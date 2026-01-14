@@ -17,7 +17,8 @@ import {
   TestTube,
   AlertTriangle,
   Lightbulb,
-  DollarSign
+  DollarSign,
+  Sparkles
 } from 'lucide-react';
 import {
   Sidebar,
@@ -48,6 +49,7 @@ const platformItems = [
   { title: "FDA Safety Dashboard", url: "/fda-safety", icon: AlertTriangle },
   { title: "Innovation Hub", url: "/innovation", icon: Lightbulb },
   { title: "Research Funding", url: "/research-funding", icon: DollarSign },
+  { title: "Research Insights", url: "/research-insights", icon: Sparkles },
   { title: "Research Hub", url: "/research", icon: FileText },
   { title: "Citizen Science", url: "/surveys", icon: Users },
   { title: "Mental Health Hub", url: "/mental-health", icon: Heart },

@@ -596,6 +596,69 @@ export type Database = {
         }
         Relationships: []
       }
+      email_digest_logs: {
+        Row: {
+          error_message: string | null
+          id: string
+          papers_included: number | null
+          recipient_count: number | null
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          error_message?: string | null
+          id?: string
+          papers_included?: number | null
+          recipient_count?: number | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          error_message?: string | null
+          id?: string
+          papers_included?: number | null
+          recipient_count?: number | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      email_subscriptions: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          is_active: boolean | null
+          last_sent_at: string | null
+          preferences: Json | null
+          subscription_type: string
+          unsubscribe_token: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          preferences?: Json | null
+          subscription_type?: string
+          unsubscribe_token?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          preferences?: Json | null
+          subscription_type?: string
+          unsubscribe_token?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       fda_device_events: {
         Row: {
           created_at: string
@@ -856,6 +919,45 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      paper_citations: {
+        Row: {
+          cited_paper_id: string | null
+          citing_paper_id: string | null
+          created_at: string | null
+          id: string
+          is_influential: boolean | null
+        }
+        Insert: {
+          cited_paper_id?: string | null
+          citing_paper_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_influential?: boolean | null
+        }
+        Update: {
+          cited_paper_id?: string | null
+          citing_paper_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_influential?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paper_citations_cited_paper_id_fkey"
+            columns: ["cited_paper_id"]
+            isOneToOne: false
+            referencedRelation: "medical_research_papers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "paper_citations_citing_paper_id_fkey"
+            columns: ["citing_paper_id"]
+            isOneToOne: false
+            referencedRelation: "medical_research_papers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       patent_data: {
         Row: {
