@@ -53,6 +53,7 @@ import QAChecklist from "./pages/QAChecklist";
 import FDASafety from "./pages/FDASafety";
 import InnovationHub from "./pages/InnovationHub";
 import ResearchFunding from "./pages/ResearchFunding";
+import ResearchInsights from "./pages/ResearchInsights";
 import { AdminRoute } from "./components/admin/AdminRoute";
 
 const queryClient = new QueryClient();
@@ -119,6 +120,7 @@ const App = () => {
             <Route path="/fda-safety" element={<ProtectedRoute><FDASafety /></ProtectedRoute>} />
             <Route path="/innovation" element={<ProtectedRoute><InnovationHub /></ProtectedRoute>} />
             <Route path="/research-funding" element={<ProtectedRoute><ResearchFunding /></ProtectedRoute>} />
+            <Route path="/research-insights" element={<ProtectedRoute><ResearchInsights /></ProtectedRoute>} />
             <Route path="/customizable-dashboard" element={<ProtectedRoute><CustomizableDashboard /></ProtectedRoute>} />
             <Route path="/donation-result" element={<DonateSuccess />} />
             <Route path="/qa-checklist" element={<QAChecklist />} />

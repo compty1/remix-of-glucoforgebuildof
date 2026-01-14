@@ -52,3 +52,9 @@ verify_jwt = false
 
 [functions.semantic-scholar-feed]
 verify_jwt = false
+
+[functions.send-weekly-digest]
+verify_jwt = false
+
+[functions.fetch-citation-network]
+verify_jwt = false
