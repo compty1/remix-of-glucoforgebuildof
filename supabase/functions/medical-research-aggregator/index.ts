@@ -84,12 +84,20 @@ serve(async (req) => {
     try {
       console.log('Fetching papers from Europe PMC');
       
+      // Comprehensive diabetes research queries
       const queries = [
         'diabetes AND (device OR technology OR monitoring)',
         'continuous glucose monitoring',
         'insulin pump therapy',
         'diabetes management technology',
-        'artificial pancreas'
+        'artificial pancreas',
+        'beta cell regeneration diabetes',
+        'stem cell therapy diabetes',
+        'islet transplantation',
+        'diabetes cure clinical trial',
+        'immunotherapy type 1 diabetes',
+        'closed loop insulin delivery',
+        'glucose sensor wearable'
       ];
 
       for (const query of queries) {
