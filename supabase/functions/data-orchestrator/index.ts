@@ -87,11 +87,12 @@ serve(async (req) => {
         }
       } catch (error) {
         const executionTime = Date.now() - fnStartTime;
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         results.push({
           function_name: functionName,
           status: 'error',
           records_fetched: 0,
-          error: error.message,
+          error: errorMessage,
           execution_time_ms: executionTime,
         });
 
@@ -161,11 +162,12 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('💥 Orchestration failed:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
     return new Response(
       JSON.stringify({
         error: 'Data orchestration failed',
-        message: error.message,
+        message: errorMessage,
         results,
       }),
       {
