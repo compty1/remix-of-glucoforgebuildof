@@ -1,1 +1,15 @@
 project_id = "meucptevbewkcipbtxih"
+
+[functions]
+
+[functions.seed-discovery-cards]
+verify_jwt = false
+
+[functions.seed-cure-therapies]
+verify_jwt = false
+
+[functions.seed-devices]
+verify_jwt = false
+
+[functions.seed-discoveries]
+verify_jwt = false
