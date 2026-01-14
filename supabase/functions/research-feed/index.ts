@@ -35,14 +35,20 @@ interface ResearchItem {
   impact_level: string
 }
 
-// Using Europe PMC API instead of RSS feeds
+// Comprehensive diabetes research search queries
 const SEARCH_QUERIES = [
   'type 1 diabetes cure',
   'type 1 diabetes treatment breakthrough',
   'stem cell therapy diabetes',
   'immunotherapy type 1 diabetes',
   'continuous glucose monitoring',
-  'insulin pump therapy'
+  'insulin pump therapy',
+  'beta cell regeneration',
+  'islet transplantation',
+  'artificial pancreas closed loop',
+  'diabetes reversal',
+  'gene therapy diabetes',
+  'encapsulation islet'
 ];
 
 async function fetchFromEuropePMC(query: string): Promise<ResearchItem[]> {

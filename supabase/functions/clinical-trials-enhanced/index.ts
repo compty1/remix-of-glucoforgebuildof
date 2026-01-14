@@ -92,13 +92,20 @@ serve(async (req) => {
     try {
       console.log('Fetching trials from ClinicalTrials.gov API');
       
-      // Diabetes-specific queries
+      // Comprehensive diabetes-specific queries including cure-focused searches
       const queries = [
         'type+1+diabetes',
         'diabetes+device',
         'continuous+glucose+monitoring',
         'insulin+pump',
-        'diabetes+technology'
+        'diabetes+technology',
+        'beta+cell+regeneration',
+        'islet+transplantation',
+        'stem+cell+diabetes',
+        'diabetes+cure',
+        'diabetes+reversal',
+        'immunotherapy+diabetes',
+        'artificial+pancreas'
       ];
 
       for (const query of queries) {
