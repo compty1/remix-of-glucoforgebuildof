@@ -733,9 +733,11 @@ export type Database = {
           doi: string | null
           drug_mentions: string[] | null
           europe_pmc_id: string | null
+          fields_of_study: string[] | null
           full_text_url: string | null
           id: string
           impact_factor: number | null
+          influential_citation_count: number | null
           journal_name: string | null
           keywords: string[] | null
           mesh_terms: string[] | null
@@ -746,9 +748,11 @@ export type Database = {
           pmid: string | null
           publication_date: string | null
           raw_data: Json | null
+          semantic_scholar_id: string | null
           source_database: string
           study_type: string | null
           title: string
+          tldr_summary: string | null
           updated_at: string
         }
         Insert: {
@@ -761,9 +765,11 @@ export type Database = {
           doi?: string | null
           drug_mentions?: string[] | null
           europe_pmc_id?: string | null
+          fields_of_study?: string[] | null
           full_text_url?: string | null
           id?: string
           impact_factor?: number | null
+          influential_citation_count?: number | null
           journal_name?: string | null
           keywords?: string[] | null
           mesh_terms?: string[] | null
@@ -774,9 +780,11 @@ export type Database = {
           pmid?: string | null
           publication_date?: string | null
           raw_data?: Json | null
+          semantic_scholar_id?: string | null
           source_database: string
           study_type?: string | null
           title: string
+          tldr_summary?: string | null
           updated_at?: string
         }
         Update: {
@@ -789,9 +797,11 @@ export type Database = {
           doi?: string | null
           drug_mentions?: string[] | null
           europe_pmc_id?: string | null
+          fields_of_study?: string[] | null
           full_text_url?: string | null
           id?: string
           impact_factor?: number | null
+          influential_citation_count?: number | null
           journal_name?: string | null
           keywords?: string[] | null
           mesh_terms?: string[] | null
@@ -802,9 +812,11 @@ export type Database = {
           pmid?: string | null
           publication_date?: string | null
           raw_data?: Json | null
+          semantic_scholar_id?: string | null
           source_database?: string
           study_type?: string | null
           title?: string
+          tldr_summary?: string | null
           updated_at?: string
         }
         Relationships: []
