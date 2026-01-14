@@ -1,0 +1,222 @@
+import Layout from '@/components/Layout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Mail, Phone, MapPin, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+
+export default function Contact() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    category: '',
+    message: ''
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // In real implementation, send to API
+    toast.success('Message sent successfully! We\'ll get back to you within 24 hours.');
+    setFormData({ name: '', email: '', subject: '', category: '', message: '' });
+  };
+
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  return (
+    <Layout>
+      <div className="container mx-auto px-6 py-8">
+        <div className="max-w-6xl mx-auto">
+          <h1 className="text-4xl font-heading font-bold text-foreground mb-6">
+            Contact Us
+          </h1>
+          <p className="text-muted-foreground mb-8">
+            Get in touch with our team. We're here to help and answer any questions you might have.
+          </p>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Contact Information */}
+            <div className="lg:col-span-1 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Mail className="h-5 w-5 text-primary" />
+                    Email Support
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground mb-2">For general inquiries:</p>
+                  <p className="font-medium">support@glucoforge.com</p>
+                  <p className="text-muted-foreground mt-4 mb-2">For research partnerships:</p>
+                  <p className="font-medium">research@glucoforge.com</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-primary" />
+                    Response Time
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 text-muted-foreground">
+                    <p>General inquiries: 24-48 hours</p>
+                    <p>Technical support: 4-8 hours</p>
+                    <p>Emergency issues: 1-2 hours</p>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-primary" />
+                    Office Location
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-muted-foreground">
+                    <p>Coming Soon</p>
+                    <p className="text-sm mt-2">
+                      GlucoForge is currently a distributed team. 
+                      Physical office location to be announced.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Contact Form */}
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Send us a Message</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="name">Name *</Label>
+                        <Input
+                          id="name"
+                          type="text"
+                          value={formData.name}
+                          onChange={(e) => handleChange('name', e.target.value)}
+                          required
+                          placeholder="Your full name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="email">Email *</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => handleChange('email', e.target.value)}
+                          required
+                          placeholder="your.email@example.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="category">Category</Label>
+                      <Select value={formData.category} onValueChange={(value) => handleChange('category', value)}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="general">General Question</SelectItem>
+                          <SelectItem value="technical">Technical Support</SelectItem>
+                          <SelectItem value="research">Research Inquiry</SelectItem>
+                          <SelectItem value="partnership">Partnership</SelectItem>
+                          <SelectItem value="privacy">Privacy Concern</SelectItem>
+                          <SelectItem value="accessibility">Accessibility Issue</SelectItem>
+                          <SelectItem value="feedback">Feedback</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="subject">Subject *</Label>
+                      <Input
+                        id="subject"
+                        type="text"
+                        value={formData.subject}
+                        onChange={(e) => handleChange('subject', e.target.value)}
+                        required
+                        placeholder="Brief description of your inquiry"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="message">Message *</Label>
+                      <Textarea
+                        id="message"
+                        value={formData.message}
+                        onChange={(e) => handleChange('message', e.target.value)}
+                        required
+                        placeholder="Please provide details about your inquiry..."
+                        className="min-h-[150px]"
+                      />
+                    </div>
+
+                    <Button type="submit" className="w-full">
+                      Send Message
+                    </Button>
+                    
+                    <p className="text-sm text-muted-foreground">
+                      * Required fields. We typically respond within 24 hours during business days.
+                    </p>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* FAQ Section */}
+          <Card className="mt-12">
+            <CardHeader>
+              <CardTitle>Frequently Asked Questions</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold mb-2">How do I get started with GlucoForge?</h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Simply create a free account and you can immediately start exploring our research tools and upload your first health data.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Is my health data secure?</h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Yes, we use industry-standard encryption and are HIPAA compliant. Your data is never shared without your explicit consent.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Can I delete my account and data?</h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Absolutely. You can delete your account and all associated data at any time from your settings page.
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">How can I contribute to research?</h4>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Upload your health data, participate in surveys, and engage with our citizen science programs to contribute to breakthrough research.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </Layout>
+  );
+}

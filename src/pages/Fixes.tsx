@@ -1,0 +1,144 @@
+import Layout from '@/components/Layout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ExternalLink, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Fix {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  votes: number;
+  source: string;
+  link: string;
+}
+
+export default function Fixes() {
+  const [fixes, setFixes] = useState<Fix[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchFixes = async () => {
+      try {
+        // Fetch device issues which contain solutions/workarounds
+        const { data: issuesData, error } = await supabase
+          .from('device_issues')
+          .select('*, devices(*)')
+          .not('solution', 'is', null)
+          .order('community_reports', { ascending: false })
+          .limit(20);
+
+        if (error) throw error;
+
+        const formattedData: Fix[] = (issuesData || []).map(issue => {
+          const difficulty = issue.severity === 'Critical' ? 'Hard' : 
+                           issue.severity === 'Major' ? 'Medium' : 'Easy';
+          
+          return {
+            id: issue.id,
+            title: issue.issue_title,
+            description: issue.description,
+            category: issue.devices?.category || 'Device',
+            difficulty: difficulty as 'Easy' | 'Medium' | 'Hard',
+            votes: issue.community_reports || 0,
+            source: issue.source_url || 'Community',
+            link: issue.source_url || '#'
+          };
+        });
+
+        setFixes(formattedData);
+      } catch (error) {
+        console.error('Error fetching fixes:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFixes();
+  }, []);
+
+  const getDifficultyColor = (difficulty: string) => {
+    switch (difficulty) {
+      case 'Easy': return 'bg-green-100 text-green-800';
+      case 'Medium': return 'bg-yellow-100 text-yellow-800';
+      case 'Hard': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-6 py-8">
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <Card key={i} className="animate-pulse">
+                <CardContent className="p-6">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
+  return (
+    <Layout>
+      <div className="container mx-auto px-6 py-8">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-4xl font-heading font-bold text-foreground mb-6">
+            Community Fixes & Workarounds
+          </h1>
+          <p className="text-muted-foreground mb-8">
+            Real solutions from the T1D community for common challenges and device issues.
+          </p>
+          
+          <div className="space-y-6">
+            {fixes.map((fix) => (
+              <Card key={fix.id} className="hover:shadow-md transition-shadow">
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="flex-1">
+                      <CardTitle className="text-xl mb-2">{fix.title}</CardTitle>
+                      <p className="text-muted-foreground">{fix.description}</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Badge variant="secondary">{fix.category}</Badge>
+                      <Badge className={getDifficultyColor(fix.difficulty)}>
+                        {fix.difficulty}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <ThumbsUp className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium">{fix.votes}</span>
+                      </div>
+                      <Badge variant="outline">{fix.source}</Badge>
+                    </div>
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={fix.link} target="_blank" rel="noopener noreferrer">
+                        View Fix
+                        <ExternalLink className="h-4 w-4 ml-2" />
+                      </a>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+}

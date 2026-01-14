@@ -1,0 +1,7 @@
+-- Add admin role to shanealecompte@gmail.com
+-- This ensures the admin functionality works for the specified admin user
+INSERT INTO public.user_roles (user_id, role)
+SELECT id, 'admin'::app_role
+FROM auth.users 
+WHERE email = 'shanealecompte@gmail.com'
+ON CONFLICT (user_id, role) DO NOTHING;
