@@ -286,6 +286,48 @@ export type Database = {
         }
         Relationships: []
       }
+      data_refresh_logs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          functions_failed: number | null
+          functions_succeeded: number | null
+          id: string
+          records_fetched: number | null
+          refresh_type: string
+          started_at: string
+          status: string
+          summary: Json | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          functions_failed?: number | null
+          functions_succeeded?: number | null
+          id?: string
+          records_fetched?: number | null
+          refresh_type?: string
+          started_at?: string
+          status?: string
+          summary?: Json | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          functions_failed?: number | null
+          functions_succeeded?: number | null
+          id?: string
+          records_fetched?: number | null
+          refresh_type?: string
+          started_at?: string
+          status?: string
+          summary?: Json | null
+        }
+        Relationships: []
+      }
       device_issues: {
         Row: {
           community_reports: number | null

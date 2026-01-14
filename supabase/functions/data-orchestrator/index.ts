@@ -41,6 +41,7 @@ serve(async (req) => {
       { name: 'research-feed', source: 'PubMed + Europe PMC' },
       { name: 'medical-research-aggregator', source: 'Europe PMC + Enhanced PubMed' },
       { name: 'clinical-trials-enhanced', source: 'ClinicalTrials.gov API' },
+      { name: 'openalex-research-feed', source: 'OpenAlex Scholarly Works API' },
       { name: 'community-feed', source: 'Community Sources' },
       { name: 'fda-data-feed', source: 'OpenFDA API' },
       { name: 'patent-innovation-feed', source: 'USPTO PatentsView API' },

@@ -13,3 +13,39 @@ verify_jwt = false
 
 [functions.seed-discoveries]
 verify_jwt = false
+
+[functions.data-orchestrator]
+verify_jwt = false
+
+[functions.openalex-research-feed]
+verify_jwt = false
+
+[functions.preprint-research-feed]
+verify_jwt = false
+
+[functions.research-feed]
+verify_jwt = false
+
+[functions.medical-research-aggregator]
+verify_jwt = false
+
+[functions.clinical-trials-enhanced]
+verify_jwt = false
+
+[functions.fda-data-feed]
+verify_jwt = false
+
+[functions.patent-innovation-feed]
+verify_jwt = false
+
+[functions.funding-research-feed]
+verify_jwt = false
+
+[functions.medicare-data-feed]
+verify_jwt = false
+
+[functions.financial-market-feed]
+verify_jwt = false
+
+[functions.community-feed]
+verify_jwt = false
