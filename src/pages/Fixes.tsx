@@ -45,8 +45,8 @@ export default function Fixes() {
             category: issue.devices?.category || 'Device',
             difficulty: difficulty as 'Easy' | 'Medium' | 'Hard',
             votes: issue.community_reports || 0,
-            source: issue.source_url || 'Community',
-            link: issue.source_url || '#'
+            source: 'Community',
+            link: '#'
           };
         });
 

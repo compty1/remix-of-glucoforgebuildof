@@ -10,38 +10,44 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "14.1"
   }
   public: {
     Tables: {
       bounties: {
         Row: {
+          category: string | null
           claimed_by: string | null
           created_at: string
-          description: string
+          deadline: string | null
+          description: string | null
           id: string
-          reward_amount: number
-          status: string
+          reward_amount: number | null
+          status: string | null
           title: string
           updated_at: string
         }
         Insert: {
+          category?: string | null
           claimed_by?: string | null
           created_at?: string
-          description: string
+          deadline?: string | null
+          description?: string | null
           id?: string
-          reward_amount: number
-          status?: string
+          reward_amount?: number | null
+          status?: string | null
           title: string
           updated_at?: string
         }
         Update: {
+          category?: string | null
           claimed_by?: string | null
           created_at?: string
-          description?: string
+          deadline?: string | null
+          description?: string | null
           id?: string
-          reward_amount?: number
-          status?: string
+          reward_amount?: number | null
+          status?: string | null
           title?: string
           updated_at?: string
         }
@@ -72,7 +78,7 @@ export type Database = {
           primary_purpose: string | null
           raw_data: Json | null
           secondary_outcomes: string[] | null
-          source_registry: string | null
+          source_registry: string
           sponsor_name: string | null
           start_date: string | null
           study_type: string | null
@@ -104,7 +110,7 @@ export type Database = {
           primary_purpose?: string | null
           raw_data?: Json | null
           secondary_outcomes?: string[] | null
-          source_registry?: string | null
+          source_registry: string
           sponsor_name?: string | null
           start_date?: string | null
           study_type?: string | null
@@ -136,7 +142,7 @@ export type Database = {
           primary_purpose?: string | null
           raw_data?: Json | null
           secondary_outcomes?: string[] | null
-          source_registry?: string | null
+          source_registry?: string
           sponsor_name?: string | null
           start_date?: string | null
           study_type?: string | null
@@ -155,7 +161,7 @@ export type Database = {
           id: string
           num_comments: number | null
           post_id: string
-          published_at: string
+          published_at: string | null
           score: number | null
           sentiment: string | null
           source: string
@@ -169,7 +175,7 @@ export type Database = {
           id?: string
           num_comments?: number | null
           post_id: string
-          published_at: string
+          published_at?: string | null
           score?: number | null
           sentiment?: string | null
           source: string
@@ -183,7 +189,7 @@ export type Database = {
           id?: string
           num_comments?: number | null
           post_id?: string
-          published_at?: string
+          published_at?: string | null
           score?: number | null
           sentiment?: string | null
           source?: string
@@ -197,33 +203,30 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
-          status: string
+          status: string | null
           target_date: string | null
           therapy_id: string
           title: string
-          updated_at: string
         }
         Insert: {
           completed_date?: string | null
           created_at?: string
           description?: string | null
           id?: string
-          status?: string
+          status?: string | null
           target_date?: string | null
           therapy_id: string
           title: string
-          updated_at?: string
         }
         Update: {
           completed_date?: string | null
           created_at?: string
           description?: string | null
           id?: string
-          status?: string
+          status?: string | null
           target_date?: string | null
           therapy_id?: string
           title?: string
-          updated_at?: string
         }
         Relationships: [
           {
@@ -237,47 +240,47 @@ export type Database = {
       }
       cure_therapies: {
         Row: {
-          category: string
-          confidence_score: number
+          category: string | null
+          confidence_score: number | null
           created_at: string
           description: string | null
           estimated_completion: string | null
           id: string
           name: string
-          phase: string
-          progress_percentage: number
-          sponsor: string
-          status: string
+          phase: string | null
+          progress_percentage: number | null
+          sponsor: string | null
+          status: string | null
           updated_at: string
           website_url: string | null
         }
         Insert: {
-          category: string
-          confidence_score?: number
+          category?: string | null
+          confidence_score?: number | null
           created_at?: string
           description?: string | null
           estimated_completion?: string | null
           id?: string
           name: string
-          phase: string
-          progress_percentage?: number
-          sponsor: string
-          status?: string
+          phase?: string | null
+          progress_percentage?: number | null
+          sponsor?: string | null
+          status?: string | null
           updated_at?: string
           website_url?: string | null
         }
         Update: {
-          category?: string
-          confidence_score?: number
+          category?: string | null
+          confidence_score?: number | null
           created_at?: string
           description?: string | null
           estimated_completion?: string | null
           id?: string
           name?: string
-          phase?: string
-          progress_percentage?: number
-          sponsor?: string
-          status?: string
+          phase?: string | null
+          progress_percentage?: number | null
+          sponsor?: string | null
+          status?: string | null
           updated_at?: string
           website_url?: string | null
         }
@@ -287,43 +290,37 @@ export type Database = {
         Row: {
           community_reports: number | null
           created_at: string
-          description: string
+          description: string | null
           device_id: string
-          frequency_percentage: number
+          frequency_percentage: number | null
           id: string
           issue_title: string
-          severity: string
+          severity: string | null
           solution: string | null
-          source_url: string | null
-          updated_at: string
           workaround: string | null
         }
         Insert: {
           community_reports?: number | null
           created_at?: string
-          description: string
+          description?: string | null
           device_id: string
-          frequency_percentage: number
+          frequency_percentage?: number | null
           id?: string
           issue_title: string
-          severity: string
+          severity?: string | null
           solution?: string | null
-          source_url?: string | null
-          updated_at?: string
           workaround?: string | null
         }
         Update: {
           community_reports?: number | null
           created_at?: string
-          description?: string
+          description?: string | null
           device_id?: string
-          frequency_percentage?: number
+          frequency_percentage?: number | null
           id?: string
           issue_title?: string
-          severity?: string
+          severity?: string | null
           solution?: string | null
-          source_url?: string | null
-          updated_at?: string
           workaround?: string | null
         }
         Relationships: [
@@ -336,63 +333,30 @@ export type Database = {
           },
         ]
       }
-      device_issues_master: {
-        Row: {
-          created_at: string
-          device_name: string
-          id: string
-          is_critical_safety_alert: boolean | null
-          issue_title: string
-          manufacturer_response_status: string | null
-          root_cause_analysis: string | null
-        }
-        Insert: {
-          created_at?: string
-          device_name: string
-          id?: string
-          is_critical_safety_alert?: boolean | null
-          issue_title: string
-          manufacturer_response_status?: string | null
-          root_cause_analysis?: string | null
-        }
-        Update: {
-          created_at?: string
-          device_name?: string
-          id?: string
-          is_critical_safety_alert?: boolean | null
-          issue_title?: string
-          manufacturer_response_status?: string | null
-          root_cause_analysis?: string | null
-        }
-        Relationships: []
-      }
       device_metrics: {
         Row: {
-          created_at: string
           device_id: string
           id: string
           last_updated: string
-          reliability_score: number
-          social_setting_score: number
-          total_reviews: number
+          reliability_score: number | null
+          social_setting_score: number | null
+          total_reviews: number | null
         }
         Insert: {
-          created_at?: string
           device_id: string
           id?: string
           last_updated?: string
-          reliability_score: number
-          social_setting_score: number
-          total_reviews?: number
+          reliability_score?: number | null
+          social_setting_score?: number | null
+          total_reviews?: number | null
         }
         Update: {
-          created_at?: string
           device_id?: string
           id?: string
           last_updated?: string
-          reliability_score?: number
-          social_setting_score?: number
-          total_reviews?: number
+          reliability_score?: number | null
+          social_setting_score?: number | null
+          total_reviews?: number | null
         }
         Relationships: [
           {
@@ -406,16 +370,14 @@ export type Database = {
       }
       devices: {
         Row: {
-          category: string
-          common_issues: string[] | null
+          category: string | null
           cons: string[] | null
           created_at: string
           description: string | null
-          fda_approved_date: string | null
           id: string
           image_url: string | null
           key_features: string[] | null
-          manufacturer: string
+          manufacturer: string | null
           model_number: string | null
           name: string
           pros: string[] | null
@@ -424,16 +386,14 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
-          category: string
-          common_issues?: string[] | null
+          category?: string | null
           cons?: string[] | null
           created_at?: string
           description?: string | null
-          fda_approved_date?: string | null
           id?: string
           image_url?: string | null
           key_features?: string[] | null
-          manufacturer: string
+          manufacturer?: string | null
           model_number?: string | null
           name: string
           pros?: string[] | null
@@ -442,16 +402,14 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
-          category?: string
-          common_issues?: string[] | null
+          category?: string | null
           cons?: string[] | null
           created_at?: string
           description?: string | null
-          fda_approved_date?: string | null
           id?: string
           image_url?: string | null
           key_features?: string[] | null
-          manufacturer?: string
+          manufacturer?: string | null
           model_number?: string | null
           name?: string
           pros?: string[] | null
@@ -465,116 +423,101 @@ export type Database = {
         Row: {
           ai_analysis: Json | null
           category: string | null
-          created_at: string | null
           credibility_factors: Json | null
           credibility_score: number | null
-          cross_references: Json[] | null
-          discovered_at: string | null
+          cross_references: Json | null
+          discovered_at: string
           discovery_type: string
           full_text: string | null
           id: string
           impact_level: string | null
-          last_validated_at: string | null
           primary_source: string | null
           publication_date: string | null
-          related_post_ids: string[] | null
-          related_research_ids: string[] | null
-          related_trial_ids: string[] | null
-          search_vector: unknown
           source_urls: string[] | null
-          summary: string
+          summary: string | null
           title: string
-          updated_at: string | null
         }
         Insert: {
           ai_analysis?: Json | null
           category?: string | null
-          created_at?: string | null
           credibility_factors?: Json | null
           credibility_score?: number | null
-          cross_references?: Json[] | null
-          discovered_at?: string | null
+          cross_references?: Json | null
+          discovered_at?: string
           discovery_type: string
           full_text?: string | null
           id?: string
           impact_level?: string | null
-          last_validated_at?: string | null
           primary_source?: string | null
           publication_date?: string | null
-          related_post_ids?: string[] | null
-          related_research_ids?: string[] | null
-          related_trial_ids?: string[] | null
-          search_vector?: unknown
           source_urls?: string[] | null
-          summary: string
+          summary?: string | null
           title: string
-          updated_at?: string | null
         }
         Update: {
           ai_analysis?: Json | null
           category?: string | null
-          created_at?: string | null
           credibility_factors?: Json | null
           credibility_score?: number | null
-          cross_references?: Json[] | null
-          discovered_at?: string | null
+          cross_references?: Json | null
+          discovered_at?: string
           discovery_type?: string
           full_text?: string | null
           id?: string
           impact_level?: string | null
-          last_validated_at?: string | null
           primary_source?: string | null
           publication_date?: string | null
-          related_post_ids?: string[] | null
-          related_research_ids?: string[] | null
-          related_trial_ids?: string[] | null
-          search_vector?: unknown
           source_urls?: string[] | null
-          summary?: string
+          summary?: string | null
           title?: string
-          updated_at?: string | null
         }
         Relationships: []
       }
       discovery_cards: {
         Row: {
+          category: string | null
           created_at: string
-          credibility: string
-          icon_url: string
+          credibility: string | null
+          icon_url: string | null
           id: string
-          mechanism: string
-          search_vector: unknown
-          snippet: string
-          sources: Json
+          mechanism: string | null
+          snippet: string | null
+          sources: Json | null
+          status: string | null
           title: string
+          updated_at: string
         }
         Insert: {
+          category?: string | null
           created_at?: string
-          credibility: string
-          icon_url: string
+          credibility?: string | null
+          icon_url?: string | null
           id?: string
-          mechanism: string
-          search_vector?: unknown
-          snippet: string
-          sources?: Json
+          mechanism?: string | null
+          snippet?: string | null
+          sources?: Json | null
+          status?: string | null
           title: string
+          updated_at?: string
         }
         Update: {
+          category?: string | null
           created_at?: string
-          credibility?: string
-          icon_url?: string
+          credibility?: string | null
+          icon_url?: string | null
           id?: string
-          mechanism?: string
-          search_vector?: unknown
-          snippet?: string
-          sources?: Json
+          mechanism?: string | null
+          snippet?: string | null
+          sources?: Json | null
+          status?: string | null
           title?: string
+          updated_at?: string
         }
         Relationships: []
       }
       drug_pricing_data: {
         Row: {
-          created_at: string | null
+          created_at: string
           data_source: string | null
           drug_name: string
           id: string
@@ -582,11 +525,11 @@ export type Database = {
           medicare_price: number | null
           ndc_code: string | null
           unit_price: number | null
-          updated_at: string | null
+          updated_at: string
           year: number | null
         }
         Insert: {
-          created_at?: string | null
+          created_at?: string
           data_source?: string | null
           drug_name: string
           id?: string
@@ -594,11 +537,11 @@ export type Database = {
           medicare_price?: number | null
           ndc_code?: string | null
           unit_price?: number | null
-          updated_at?: string | null
+          updated_at?: string
           year?: number | null
         }
         Update: {
-          created_at?: string | null
+          created_at?: string
           data_source?: string | null
           drug_name?: string
           id?: string
@@ -606,7 +549,7 @@ export type Database = {
           medicare_price?: number | null
           ndc_code?: string | null
           unit_price?: number | null
-          updated_at?: string | null
+          updated_at?: string
           year?: number | null
         }
         Relationships: []
@@ -661,25 +604,40 @@ export type Database = {
       }
       financial_resources: {
         Row: {
-          category: string
-          description: string
+          category: string | null
+          created_at: string
+          description: string | null
+          eligibility_info: string | null
           id: string
-          link: string
+          link: string | null
+          provider: string | null
           resource_title: string
+          resource_type: string | null
+          updated_at: string
         }
         Insert: {
-          category: string
-          description: string
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          eligibility_info?: string | null
           id?: string
-          link: string
+          link?: string | null
+          provider?: string | null
           resource_title: string
+          resource_type?: string | null
+          updated_at?: string
         }
         Update: {
-          category?: string
-          description?: string
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          eligibility_info?: string | null
           id?: string
-          link?: string
+          link?: string | null
+          provider?: string | null
           resource_title?: string
+          resource_type?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -687,37 +645,37 @@ export type Database = {
         Row: {
           change_percent: number | null
           company_name: string
-          created_at: string | null
+          created_at: string
           current_price: number | null
           data_date: string
           id: string
           market_cap: number | null
           ticker_symbol: string
-          updated_at: string | null
+          updated_at: string
           volume: number | null
         }
         Insert: {
           change_percent?: number | null
           company_name: string
-          created_at?: string | null
+          created_at?: string
           current_price?: number | null
           data_date: string
           id?: string
           market_cap?: number | null
           ticker_symbol: string
-          updated_at?: string | null
+          updated_at?: string
           volume?: number | null
         }
         Update: {
           change_percent?: number | null
           company_name?: string
-          created_at?: string | null
+          created_at?: string
           current_price?: number | null
           data_date?: string
           id?: string
           market_cap?: number | null
           ticker_symbol?: string
-          updated_at?: string | null
+          updated_at?: string
           volume?: number | null
         }
         Relationships: []
@@ -813,80 +771,35 @@ export type Database = {
         Row: {
           coverage_details: Json | null
           coverage_status: string | null
-          created_at: string | null
+          created_at: string
           device_name: string
           effective_date: string | null
           id: string
           ncd_number: string | null
           source_url: string | null
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
           coverage_details?: Json | null
           coverage_status?: string | null
-          created_at?: string | null
+          created_at?: string
           device_name: string
           effective_date?: string | null
           id?: string
           ncd_number?: string | null
           source_url?: string | null
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
           coverage_details?: Json | null
           coverage_status?: string | null
-          created_at?: string | null
+          created_at?: string
           device_name?: string
           effective_date?: string | null
           id?: string
           ncd_number?: string | null
           source_url?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      onboarding_enrollment: {
-        Row: {
-          created_at: string
-          current_day: number | null
-          id: string
-          is_active: boolean | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          current_day?: number | null
-          id?: string
-          is_active?: boolean | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          current_day?: number | null
-          id?: string
-          is_active?: boolean | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      onboarding_tips: {
-        Row: {
-          day_number: number
-          id: number
-          tip_content: string
-          tip_title: string
-        }
-        Insert: {
-          day_number: number
-          id?: number
-          tip_content: string
-          tip_title: string
-        }
-        Update: {
-          day_number?: number
-          id?: number
-          tip_content?: string
-          tip_title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -894,7 +807,7 @@ export type Database = {
         Row: {
           abstract: string | null
           assignee: string | null
-          created_at: string | null
+          created_at: string
           diabetes_relevance_score: number | null
           id: string
           inventors: string[] | null
@@ -902,12 +815,12 @@ export type Database = {
           patent_id: string
           patent_url: string | null
           title: string
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
           abstract?: string | null
           assignee?: string | null
-          created_at?: string | null
+          created_at?: string
           diabetes_relevance_score?: number | null
           id?: string
           inventors?: string[] | null
@@ -915,12 +828,12 @@ export type Database = {
           patent_id: string
           patent_url?: string | null
           title: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
           abstract?: string | null
           assignee?: string | null
-          created_at?: string | null
+          created_at?: string
           diabetes_relevance_score?: number | null
           id?: string
           inventors?: string[] | null
@@ -928,12 +841,13 @@ export type Database = {
           patent_id?: string
           patent_url?: string | null
           title?: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           bio: string | null
           created_at: string
           display_name: string | null
@@ -942,6 +856,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
@@ -950,6 +865,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
@@ -962,7 +878,7 @@ export type Database = {
       research_funding: {
         Row: {
           abstract: string | null
-          created_at: string | null
+          created_at: string
           fiscal_year: number | null
           funding_amount: number | null
           id: string
@@ -972,11 +888,11 @@ export type Database = {
           project_number: string
           project_start_date: string | null
           project_title: string
-          updated_at: string | null
+          updated_at: string
         }
         Insert: {
           abstract?: string | null
-          created_at?: string | null
+          created_at?: string
           fiscal_year?: number | null
           funding_amount?: number | null
           id?: string
@@ -986,11 +902,11 @@ export type Database = {
           project_number: string
           project_start_date?: string | null
           project_title: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Update: {
           abstract?: string | null
-          created_at?: string | null
+          created_at?: string
           fiscal_year?: number | null
           funding_amount?: number | null
           id?: string
@@ -1000,58 +916,37 @@ export type Database = {
           project_number?: string
           project_start_date?: string | null
           project_title?: string
-          updated_at?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
       research_items: {
         Row: {
-          authors: string[] | null
           created_at: string
-          diabetes_relevance_score: number | null
-          doi: string | null
           id: string
           impact_level: string | null
-          keywords: string[] | null
-          link: string
-          publication_date: string | null
-          raw_data: Json | null
-          source: string
-          study_type: string | null
+          link: string | null
+          source: string | null
           summary: string | null
           title: string
           updated_at: string
         }
         Insert: {
-          authors?: string[] | null
           created_at?: string
-          diabetes_relevance_score?: number | null
-          doi?: string | null
           id?: string
           impact_level?: string | null
-          keywords?: string[] | null
-          link: string
-          publication_date?: string | null
-          raw_data?: Json | null
-          source: string
-          study_type?: string | null
+          link?: string | null
+          source?: string | null
           summary?: string | null
           title: string
           updated_at?: string
         }
         Update: {
-          authors?: string[] | null
           created_at?: string
-          diabetes_relevance_score?: number | null
-          doi?: string | null
           id?: string
           impact_level?: string | null
-          keywords?: string[] | null
-          link?: string
-          publication_date?: string | null
-          raw_data?: Json | null
-          source?: string
-          study_type?: string | null
+          link?: string | null
+          source?: string | null
           summary?: string | null
           title?: string
           updated_at?: string
@@ -1061,56 +956,54 @@ export type Database = {
       saved_insights: {
         Row: {
           card_id: string
-          saved_at: string | null
+          created_at: string
+          id: string
           user_id: string
         }
         Insert: {
           card_id: string
-          saved_at?: string | null
+          created_at?: string
+          id?: string
           user_id: string
         }
         Update: {
           card_id?: string
-          saved_at?: string | null
+          created_at?: string
+          id?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "saved_insights_card_id_fkey"
-            columns: ["card_id"]
-            isOneToOne: false
-            referencedRelation: "discovery_cards"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       shifts: {
         Row: {
-          context: string
+          context: string | null
           created_at: string
-          direction: string
+          direction: string | null
           id: string
-          shift_time: string
-          tags: string[]
-          user_id: string | null
+          shift_time: string | null
+          tags: string[] | null
+          updated_at: string
+          user_id: string
         }
         Insert: {
-          context: string
+          context?: string | null
           created_at?: string
-          direction: string
+          direction?: string | null
           id?: string
-          shift_time: string
-          tags: string[]
-          user_id?: string | null
+          shift_time?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id: string
         }
         Update: {
-          context?: string
+          context?: string | null
           created_at?: string
-          direction?: string
+          direction?: string | null
           id?: string
-          shift_time?: string
-          tags?: string[]
-          user_id?: string | null
+          shift_time?: string | null
+          tags?: string[] | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1119,22 +1012,25 @@ export type Database = {
           created_at: string
           event_name: string
           id: string
-          params: Json
-          user_id: string | null
+          params: Json | null
+          results: Json | null
+          user_id: string
         }
         Insert: {
           created_at?: string
           event_name: string
           id?: string
-          params: Json
-          user_id?: string | null
+          params?: Json | null
+          results?: Json | null
+          user_id: string
         }
         Update: {
           created_at?: string
           event_name?: string
           id?: string
-          params?: Json
-          user_id?: string | null
+          params?: Json | null
+          results?: Json | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -1144,15 +1040,13 @@ export type Database = {
           id: string
           responses: Json
           survey_id: string
-          updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
-          responses?: Json
+          responses: Json
           survey_id: string
-          updated_at?: string
           user_id: string
         }
         Update: {
@@ -1160,7 +1054,6 @@ export type Database = {
           id?: string
           responses?: Json
           survey_id?: string
-          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -1175,7 +1068,7 @@ export type Database = {
       }
       surveys: {
         Row: {
-          category: string
+          category: string | null
           created_at: string
           description: string | null
           id: string
@@ -1184,7 +1077,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          category: string
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -1193,7 +1086,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          category?: string
+          category?: string | null
           created_at?: string
           description?: string | null
           id?: string
@@ -1205,55 +1098,64 @@ export type Database = {
       }
       trend_analysis_metrics: {
         Row: {
-          category: string
+          calculated_at: string
+          category: string | null
           id: string
-          issue_title: string
+          metric_name: string
+          metric_value: number | null
           seven_day_count: number | null
           thirty_day_count: number | null
-          updated_at: string
+          trend_direction: string | null
         }
         Insert: {
-          category: string
+          calculated_at?: string
+          category?: string | null
           id?: string
-          issue_title: string
+          metric_name: string
+          metric_value?: number | null
           seven_day_count?: number | null
           thirty_day_count?: number | null
-          updated_at?: string
+          trend_direction?: string | null
         }
         Update: {
-          category?: string
+          calculated_at?: string
+          category?: string | null
           id?: string
-          issue_title?: string
+          metric_name?: string
+          metric_value?: number | null
           seven_day_count?: number | null
           thirty_day_count?: number | null
-          updated_at?: string
+          trend_direction?: string | null
         }
         Relationships: []
       }
       uploads: {
         Row: {
-          errors_json: Json | null
-          filename: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string | null
           id: string
-          status: string | null
-          uploaded_at: string | null
-          user_id: string | null
+          storage_path: string | null
+          uploaded_at: string
+          user_id: string
         }
         Insert: {
-          errors_json?: Json | null
-          filename?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
           id?: string
-          status?: string | null
-          uploaded_at?: string | null
-          user_id?: string | null
+          storage_path?: string | null
+          uploaded_at?: string
+          user_id: string
         }
         Update: {
-          errors_json?: Json | null
-          filename?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
           id?: string
-          status?: string | null
-          uploaded_at?: string | null
-          user_id?: string | null
+          storage_path?: string | null
+          uploaded_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -1291,7 +1193,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
-          role: string
+          role?: string
           user_id: string
         }
         Update: {
@@ -1304,28 +1206,13 @@ export type Database = {
       }
     }
     Views: {
-      discovery_stats: {
-        Row: {
-          ai_correlations: number | null
-          avg_credibility: number | null
-          clinical_trials: number | null
-          community_symptoms: number | null
-          cure_breakthroughs: number | null
-          latest_discovery: string | null
-          research_papers: number | null
-          total_discoveries: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
-      add_admin_by_email: { Args: { user_email: string }; Returns: undefined }
-      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
-      is_admin: { Args: { user_id: string }; Returns: boolean }
       update_trends: { Args: never; Returns: undefined }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1452,8 +1339,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      app_role: ["admin", "moderator", "user"],
-    },
+    Enums: {},
   },
 } as const

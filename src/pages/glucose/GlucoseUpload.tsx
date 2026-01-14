@@ -59,8 +59,9 @@ export default function GlucoseUpload() {
         const { data: uploadRecord, error: insertError } = await supabase
           .from('uploads')
           .insert({
-            filename: file.name,
-            status: 'processing',
+            file_name: file.name,
+            file_type: file.type,
+            file_size: file.size,
             user_id: user.id
           })
           .select()

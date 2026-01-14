@@ -10,11 +10,13 @@ import { TrendingUp, TrendingDown, BarChart3, RefreshCw, AlertTriangle } from "l
 
 interface TrendMetric {
   id: string;
-  category: string;
-  issue_title: string;
+  metric_name: string;
+  metric_value: number | null;
   seven_day_count: number;
   thirty_day_count: number;
-  updated_at: string;
+  trend_direction: string | null;
+  category: string | null;
+  calculated_at: string;
 }
 
 const Trends = () => {
@@ -221,7 +223,7 @@ const Trends = () => {
                           <div className="flex items-center gap-3">
                             {getTrendIcon(trendData.direction)}
                             <div>
-                              <h3 className="font-medium capitalize">{trend.issue_title}</h3>
+                              <h3 className="font-medium capitalize">{trend.metric_name}</h3>
                               <p className="text-sm text-muted-foreground">
                                 {trend.seven_day_count} mentions this week, {trend.thirty_day_count} this month
                               </p>
@@ -267,7 +269,7 @@ const Trends = () => {
                           <Badge variant="outline">#{index + 1}</Badge>
                           <span className="text-lg font-bold">{trend.seven_day_count}</span>
                         </div>
-                        <h4 className="font-medium capitalize">{trend.issue_title}</h4>
+                        <h4 className="font-medium capitalize">{trend.metric_name}</h4>
                         <p className="text-sm text-muted-foreground">mentions this week</p>
                       </div>
                     ))}

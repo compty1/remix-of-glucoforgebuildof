@@ -363,9 +363,10 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('💥 Synthesis failed:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ 
-        error: error.message,
+        error: errorMessage,
         details: 'Discovery synthesis failed'
       }),
       {

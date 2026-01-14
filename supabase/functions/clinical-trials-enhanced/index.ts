@@ -262,10 +262,11 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in enhanced clinical trials feed:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message,
+        error: errorMessage,
         timestamp: new Date().toISOString()
       }),
       {
