@@ -42,6 +42,7 @@ serve(async (req) => {
       { name: 'medical-research-aggregator', source: 'Europe PMC + Enhanced PubMed' },
       { name: 'clinical-trials-enhanced', source: 'ClinicalTrials.gov API' },
       { name: 'openalex-research-feed', source: 'OpenAlex Scholarly Works API' },
+      { name: 'semantic-scholar-feed', source: 'Semantic Scholar (AI TLDR + Citations)' },
       { name: 'community-feed', source: 'Community Sources' },
       { name: 'fda-data-feed', source: 'OpenFDA API' },
       { name: 'patent-innovation-feed', source: 'USPTO PatentsView API' },
@@ -184,6 +185,8 @@ serve(async (req) => {
           'ClinicalTrials.gov (Clinical Trials)',
           'OpenFDA (Device Events)',
           'PubMed/Europe PMC (Research Papers)',
+          'OpenAlex (Scholarly Works)',
+          'Semantic Scholar (AI TLDR + Influential Citations)',
           'bioRxiv/medRxiv (Preprints)',
           'arXiv (Preprints)'
         ],

@@ -49,3 +49,6 @@ verify_jwt = false
 
 [functions.community-feed]
 verify_jwt = false
+
+[functions.semantic-scholar-feed]
+verify_jwt = false
