@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +25,7 @@ import {
 import { toast } from 'sonner';
 
 const DeviceAnalytics = () => {
+  const navigate = useNavigate();
   const { data, loading, error, refreshCommunityFeed } = useDeviceAnalytics();
   const { data: fdaData, loading: fdaLoading, error: fdaError, refreshData: refreshFDA } = useFDAData();
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'CGM' | 'Insulin Pump' | 'Smart Pen'>('all');
@@ -278,7 +280,7 @@ const DeviceAnalytics = () => {
                     <Button 
                       className="w-full" 
                       variant="outline"
-                      onClick={() => setSelectedDevice(device)}
+                      onClick={() => navigate(`/devices/${device.id}`)}
                     >
                       View Details & Community Fixes
                     </Button>

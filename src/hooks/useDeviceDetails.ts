@@ -1,0 +1,196 @@
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+
+export interface DeviceMetrics {
+  reliability_score: number | null;
+  social_setting_score: number | null;
+  total_reviews: number | null;
+}
+
+export interface DeviceIssue {
+  id: string;
+  issue_title: string;
+  description: string | null;
+  severity: string | null;
+  frequency_percentage: number | null;
+  community_reports: number | null;
+  solution: string | null;
+  workaround: string | null;
+}
+
+export interface CommunityPost {
+  id: string;
+  title: string;
+  content: string | null;
+  source: string;
+  sentiment: string | null;
+  score: number | null;
+  num_comments: number | null;
+  published_at: string | null;
+  post_id: string;
+}
+
+export interface FDAEvent {
+  id: string;
+  event_type: string;
+  device_name: string | null;
+  manufacturer_name: string | null;
+  event_description: string | null;
+  event_date: string | null;
+  severity_level: string | null;
+  source_url: string | null;
+}
+
+export interface ManufacturerResource {
+  id: string;
+  manufacturer: string;
+  resource_type: string;
+  title: string;
+  url: string | null;
+  phone_number: string | null;
+  description: string | null;
+}
+
+export interface Device {
+  id: string;
+  name: string;
+  manufacturer: string | null;
+  category: string | null;
+  description: string | null;
+  model_number: string | null;
+  retail_price_usd: number | null;
+  image_url: string | null;
+  website_url: string | null;
+  key_features: string[] | null;
+  pros: string[] | null;
+  cons: string[] | null;
+}
+
+export interface DeviceDetails {
+  device: Device;
+  metrics: DeviceMetrics | null;
+  issues: DeviceIssue[];
+  communityPosts: CommunityPost[];
+  fdaEvents: FDAEvent[];
+  supportResources: ManufacturerResource[];
+  relatedDevices: Device[];
+  reviewStats: {
+    positive: number;
+    neutral: number;
+    negative: number;
+    total: number;
+  };
+}
+
+export const useDeviceDetails = (deviceId: string | undefined) => {
+  const [data, setData] = useState<DeviceDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDeviceDetails = async () => {
+      if (!deviceId) {
+        setError('Device ID is required');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Fetch device basic info
+        const { data: deviceData, error: deviceError } = await supabase
+          .from('devices')
+          .select('*')
+          .eq('id', deviceId)
+          .single();
+
+        if (deviceError) throw deviceError;
+        if (!deviceData) throw new Error('Device not found');
+
+        // Fetch device metrics
+        const { data: metricsData } = await supabase
+          .from('device_metrics')
+          .select('*')
+          .eq('device_id', deviceId)
+          .single();
+
+        // Fetch device issues
+        const { data: issuesData } = await supabase
+          .from('device_issues')
+          .select('*')
+          .eq('device_id', deviceId)
+          .order('community_reports', { ascending: false });
+
+        // Fetch community posts mentioning this device
+        const deviceName = deviceData.name.toLowerCase();
+        const { data: postsData } = await supabase
+          .from('community_posts')
+          .select('*')
+          .or(`device_mentioned.ilike.%${deviceName}%,title.ilike.%${deviceName}%`)
+          .order('published_at', { ascending: false })
+          .limit(50);
+
+        // Fetch FDA events for this device/manufacturer
+        const { data: fdaData } = await supabase
+          .from('fda_device_events')
+          .select('*')
+          .or(`device_name.ilike.%${deviceData.name}%,manufacturer_name.ilike.%${deviceData.manufacturer}%`)
+          .order('event_date', { ascending: false })
+          .limit(20);
+
+        // Fetch manufacturer support resources
+        const { data: resourcesData } = await supabase
+          .from('manufacturer_support_resources')
+          .select('*')
+          .eq('manufacturer', deviceData.manufacturer || '')
+          .order('resource_type');
+
+        // Fetch related devices in same category
+        const { data: relatedData } = await supabase
+          .from('devices')
+          .select('*')
+          .eq('category', deviceData.category || '')
+          .neq('id', deviceId)
+          .limit(4);
+
+        // Calculate review sentiment stats
+        const posts = postsData || [];
+        const reviewStats = {
+          positive: posts.filter(p => p.sentiment === 'positive').length,
+          neutral: posts.filter(p => p.sentiment === 'neutral').length,
+          negative: posts.filter(p => p.sentiment === 'negative').length,
+          total: posts.length
+        };
+
+        setData({
+          device: deviceData,
+          metrics: metricsData || null,
+          issues: issuesData || [],
+          communityPosts: posts,
+          fdaEvents: fdaData || [],
+          supportResources: resourcesData || [],
+          relatedDevices: relatedData || [],
+          reviewStats
+        });
+      } catch (err) {
+        console.error('Error fetching device details:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load device details');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDeviceDetails();
+  }, [deviceId]);
+
+  const refresh = () => {
+    if (deviceId) {
+      setLoading(true);
+      // Trigger re-fetch by re-running useEffect
+    }
+  };
+
+  return { data, loading, error, refresh };
+};

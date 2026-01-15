@@ -746,6 +746,39 @@ export type Database = {
         }
         Relationships: []
       }
+      manufacturer_support_resources: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          manufacturer: string
+          phone_number: string | null
+          resource_type: string
+          title: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          manufacturer: string
+          phone_number?: string | null
+          resource_type: string
+          title: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          manufacturer?: string
+          phone_number?: string | null
+          resource_type?: string
+          title?: string
+          url?: string | null
+        }
+        Relationships: []
+      }
       market_data: {
         Row: {
           change_percent: number | null
