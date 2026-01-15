@@ -9,14 +9,27 @@ import { CitationMetrics } from '@/components/research/CitationMetrics';
 import { InfluentialPapersList } from '@/components/research/InfluentialPapersList';
 import { CitationNetwork } from '@/components/research/CitationNetwork';
 import { EmailSubscriptionForm } from '@/components/research/EmailSubscriptionForm';
+import { PaperDetailsModal } from '@/components/research/PaperDetailsModal';
 import { useResearchInsights } from '@/hooks/useResearchInsights';
-import { useCitationNetwork } from '@/hooks/useCitationNetwork';
+import { useCitationNetwork, type NetworkNode } from '@/hooks/useCitationNetwork';
 import { RefreshCw, Sparkles, TrendingUp, Network, Mail, BarChart3 } from 'lucide-react';
 
 const ResearchInsights = () => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedPaper, setSelectedPaper] = useState<NetworkNode | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
   const { papers, papersWithTLDR, topInfluentialPapers, stats, loading, error, refreshData } = useResearchInsights();
   const { networkData, loading: networkLoading, refreshNetwork, fetchCitationData } = useCitationNetwork();
+
+  const handleNodeClick = (node: NetworkNode) => {
+    setSelectedPaper(node);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
 
   return (
     <Layout>
@@ -114,6 +127,7 @@ const ResearchInsights = () => {
               loading={networkLoading}
               onRefresh={refreshNetwork}
               onFetchData={fetchCitationData}
+              onNodeClick={handleNodeClick}
             />
           </TabsContent>
 
@@ -125,6 +139,13 @@ const ResearchInsights = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Paper Details Modal */}
+      <PaperDetailsModal
+        paper={selectedPaper}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </Layout>
   );
 };
