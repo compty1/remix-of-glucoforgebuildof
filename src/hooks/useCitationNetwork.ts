@@ -5,11 +5,17 @@ export interface NetworkNode {
   id: string;
   title: string;
   tldr?: string;
+  abstract?: string;
   citationCount: number;
   influentialCount: number;
   sourceDatabase: string;
   fieldsOfStudy: string[];
   doi?: string;
+  pdfUrl?: string;
+  fullTextUrl?: string;
+  authors?: string[];
+  publicationDate?: string;
+  journalName?: string;
   openAccess: boolean;
 }
 
@@ -43,10 +49,26 @@ export const useCitationNetwork = (): UseCitationNetworkResult => {
       setLoading(true);
       setError(null);
 
-      // Fetch top papers for network visualization
+      // Fetch top papers for network visualization with all details
       const { data: papers, error: papersError } = await supabase
         .from('medical_research_papers')
-        .select('id, title, tldr_summary, citation_count, influential_citation_count, source_database, fields_of_study, doi, open_access')
+        .select(`
+          id, 
+          title, 
+          tldr_summary, 
+          abstract,
+          citation_count, 
+          influential_citation_count, 
+          source_database, 
+          fields_of_study, 
+          doi, 
+          pdf_url,
+          full_text_url,
+          authors,
+          publication_date,
+          journal_name,
+          open_access
+        `)
         .gt('citation_count', 0)
         .order('influential_citation_count', { ascending: false, nullsFirst: false })
         .limit(100);
@@ -61,16 +83,22 @@ export const useCitationNetwork = (): UseCitationNetworkResult => {
 
       if (citationsError) throw new Error(citationsError.message);
 
-      // Transform papers to nodes
+      // Transform papers to nodes with all details
       const paperNodes: NetworkNode[] = (papers || []).map(p => ({
         id: p.id,
         title: p.title,
         tldr: p.tldr_summary || undefined,
+        abstract: p.abstract || undefined,
         citationCount: p.citation_count || 0,
         influentialCount: p.influential_citation_count || 0,
         sourceDatabase: p.source_database,
         fieldsOfStudy: p.fields_of_study || [],
         doi: p.doi || undefined,
+        pdfUrl: p.pdf_url || undefined,
+        fullTextUrl: p.full_text_url || undefined,
+        authors: p.authors || undefined,
+        publicationDate: p.publication_date || undefined,
+        journalName: p.journal_name || undefined,
         openAccess: p.open_access || false,
       }));
 
