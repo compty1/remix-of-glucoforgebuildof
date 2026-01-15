@@ -58,3 +58,6 @@ verify_jwt = false
 
 [functions.fetch-citation-network]
 verify_jwt = false
+
+[functions.seed-citation-network]
+verify_jwt = false
