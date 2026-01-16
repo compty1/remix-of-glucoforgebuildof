@@ -410,6 +410,62 @@ export type Database = {
           },
         ]
       }
+      device_reviews: {
+        Row: {
+          cons: string[] | null
+          content: string
+          created_at: string | null
+          device_id: string
+          helpful_count: number | null
+          id: string
+          ownership_duration: string | null
+          pros: string[] | null
+          rating: number
+          title: string
+          updated_at: string | null
+          user_id: string
+          verified_owner: boolean | null
+        }
+        Insert: {
+          cons?: string[] | null
+          content: string
+          created_at?: string | null
+          device_id: string
+          helpful_count?: number | null
+          id?: string
+          ownership_duration?: string | null
+          pros?: string[] | null
+          rating: number
+          title: string
+          updated_at?: string | null
+          user_id: string
+          verified_owner?: boolean | null
+        }
+        Update: {
+          cons?: string[] | null
+          content?: string
+          created_at?: string | null
+          device_id?: string
+          helpful_count?: number | null
+          id?: string
+          ownership_duration?: string | null
+          pros?: string[] | null
+          rating?: number
+          title?: string
+          updated_at?: string | null
+          user_id?: string
+          verified_owner?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_reviews_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       devices: {
         Row: {
           category: string | null
@@ -1141,6 +1197,35 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      review_helpful_votes: {
+        Row: {
+          created_at: string | null
+          id: string
+          review_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          review_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          review_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_helpful_votes_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "device_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saved_insights: {
         Row: {

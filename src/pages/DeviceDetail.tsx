@@ -199,7 +199,7 @@ const DeviceDetail = () => {
             </TabsContent>
 
             <TabsContent value="reviews">
-              <DeviceReviewsTab posts={communityPosts} reviewStats={reviewStats} />
+              <DeviceReviewsTab posts={communityPosts} reviewStats={reviewStats} deviceId={deviceId} />
             </TabsContent>
 
             <TabsContent value="issues">

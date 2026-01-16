@@ -55,6 +55,7 @@ import InnovationHub from "./pages/InnovationHub";
 import ResearchFunding from "./pages/ResearchFunding";
 import ResearchInsights from "./pages/ResearchInsights";
 import DeviceDetail from "./pages/DeviceDetail";
+import DeviceComparison from "./pages/DeviceComparison";
 import { AdminRoute } from "./components/admin/AdminRoute";
 
 const queryClient = new QueryClient();
@@ -99,6 +100,7 @@ const App = () => {
             <Route path="/cure" element={<ProtectedRoute><LiveCureMonitoring /></ProtectedRoute>} />
             <Route path="/devices" element={<ProtectedRoute><DeviceAnalytics /></ProtectedRoute>} />
             <Route path="/devices/:deviceId" element={<ProtectedRoute><DeviceDetail /></ProtectedRoute>} />
+            <Route path="/devices/compare" element={<ProtectedRoute><DeviceComparison /></ProtectedRoute>} />
             <Route path="/research" element={<ProtectedRoute><ResearchHub /></ProtectedRoute>} />
             <Route path="/surveys" element={<ProtectedRoute><CitizenScience /></ProtectedRoute>} />
             <Route path="/data-upload" element={<ProtectedRoute><DataUpload /></ProtectedRoute>} />
