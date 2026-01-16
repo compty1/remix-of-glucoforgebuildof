@@ -53,6 +53,44 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_sessions: {
+        Row: {
+          created_at: string | null
+          id: string
+          messages: Json | null
+          saved_issue_id: string | null
+          summary: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          messages?: Json | null
+          saved_issue_id?: string | null
+          summary?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          messages?: Json | null
+          saved_issue_id?: string | null
+          summary?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_sessions_saved_issue_id_fkey"
+            columns: ["saved_issue_id"]
+            isOneToOne: false
+            referencedRelation: "user_saved_issues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clinical_trials_detailed: {
         Row: {
           brief_summary: string | null
@@ -1370,6 +1408,39 @@ export type Database = {
         }
         Relationships: []
       }
+      t1d_common_issues: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          search_keywords: string[] | null
+          solution_count: number | null
+          title: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          search_keywords?: string[] | null
+          solution_count?: number | null
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          search_keywords?: string[] | null
+          solution_count?: number | null
+          title?: string
+        }
+        Relationships: []
+      }
       trend_analysis_metrics: {
         Row: {
           calculated_at: string
@@ -1474,6 +1545,45 @@ export type Database = {
           created_at?: string
           id?: string
           role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_saved_issues: {
+        Row: {
+          ai_summary: string | null
+          category: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          solutions_found: Json | null
+          status: string | null
+          title: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_summary?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          solutions_found?: Json | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_summary?: string | null
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          solutions_found?: Json | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []

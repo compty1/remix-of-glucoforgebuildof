@@ -16,6 +16,7 @@ import {
   BookOpen,
   TestTube,
   AlertTriangle,
+  MessageCircle,
   Lightbulb,
   DollarSign,
   Sparkles
@@ -44,6 +45,7 @@ const navigationItems = [
 ];
 
 const platformItems = [
+  { title: "T1D Companion", url: "/t1d-companion", icon: MessageCircle },
   { title: "Live Cure Monitoring", url: "/cure", icon: Beaker },
   { title: "Device Analytics", url: "/devices", icon: Smartphone },
   { title: "FDA Safety Dashboard", url: "/fda-safety", icon: AlertTriangle },
