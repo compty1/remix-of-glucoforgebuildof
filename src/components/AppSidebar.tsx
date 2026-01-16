@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useLocation, Link } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { 
   Home, 
   Search, 
@@ -19,7 +19,8 @@ import {
   MessageCircle,
   Lightbulb,
   DollarSign,
-  Sparkles
+  Sparkles,
+  ChevronRight
 } from 'lucide-react';
 import {
   Sidebar,
@@ -30,9 +31,17 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarSeparator,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { useAuthStore } from '@/store/authStore';
 import { supabase } from '@/integrations/supabase/client';
 import logoImage from '@/assets/glucoforge-logo.svg';
@@ -47,7 +56,6 @@ const navigationItems = [
 const platformItems = [
   { title: "T1D Companion", url: "/t1d-companion", icon: MessageCircle },
   { title: "Live Cure Monitoring", url: "/cure", icon: Beaker },
-  { title: "Device Analytics", url: "/devices", icon: Smartphone },
   { title: "FDA Safety Dashboard", url: "/fda-safety", icon: AlertTriangle },
   { title: "Innovation Hub", url: "/innovation", icon: Lightbulb },
   { title: "Research Funding", url: "/research-funding", icon: DollarSign },
@@ -63,15 +71,20 @@ const platformItems = [
 const supportItems = [
   { title: "Settings", url: "/settings", icon: Settings },
   { title: "Help & Support", url: "/help", icon: HelpCircle },
-  ];
+];
 
-  const adminItems = [
-    {
-      title: "Admin",
-      url: "/admin",
-      icon: Shield,
-    }
-  ];
+const adminItems = [
+  {
+    title: "Admin",
+    url: "/admin",
+    icon: Shield,
+  }
+];
+
+interface Device {
+  id: string;
+  name: string;
+}
 
 export function AppSidebar() {
   const { state, isMobile } = useSidebar();
@@ -79,6 +92,8 @@ export function AppSidebar() {
   const { user } = useAuthStore();
   const currentPath = location.pathname;
   const [isAdmin, setIsAdmin] = React.useState(false);
+  const [devices, setDevices] = React.useState<Device[]>([]);
+  const [devicesOpen, setDevicesOpen] = React.useState(false);
 
   React.useEffect(() => {
     const checkAdminStatus = async () => {
@@ -100,11 +115,40 @@ export function AppSidebar() {
     checkAdminStatus();
   }, [user]);
 
+  React.useEffect(() => {
+    const fetchDevices = async () => {
+      const { data } = await supabase
+        .from('devices')
+        .select('id, name')
+        .order('name', { ascending: true });
+      
+      if (data) {
+        setDevices(data);
+      }
+    };
+
+    fetchDevices();
+  }, []);
+
+  // Keep submenu open if on a device page
+  React.useEffect(() => {
+    if (currentPath.startsWith('/devices/') && currentPath !== '/devices') {
+      setDevicesOpen(true);
+    }
+  }, [currentPath]);
+
   const isActive = (path: string) => currentPath === path;
+  const isDeviceActive = (deviceId: string) => currentPath === `/devices/${deviceId}`;
   
   const getNavClasses = (path: string) => {
     return isActive(path) 
       ? "bg-primary text-primary-foreground font-medium shadow-sm" 
+      : "hover:bg-muted/50 transition-colors";
+  };
+
+  const getDeviceNavClasses = (deviceId: string) => {
+    return isDeviceActive(deviceId)
+      ? "bg-primary text-primary-foreground font-medium"
       : "hover:bg-muted/50 transition-colors";
   };
 
@@ -162,6 +206,56 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+
+              {/* Device Analytics with Submenu */}
+              <Collapsible
+                open={devicesOpen}
+                onOpenChange={setDevicesOpen}
+                className="group/collapsible"
+              >
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton 
+                      className={`w-full justify-between ${
+                        currentPath === '/devices' || currentPath.startsWith('/devices/')
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "hover:bg-muted/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Smartphone className="h-4 w-4" />
+                        {state !== "collapsed" && <span>Device Analytics</span>}
+                      </div>
+                      {state !== "collapsed" && (
+                        <ChevronRight className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                      )}
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild>
+                          <NavLink to="/devices" className={getNavClasses('/devices')}>
+                            {state !== "collapsed" && <span>All Devices</span>}
+                          </NavLink>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      {devices.map((device) => (
+                        <SidebarMenuSubItem key={device.id}>
+                          <SidebarMenuSubButton asChild>
+                            <NavLink 
+                              to={`/devices/${device.id}`} 
+                              className={getDeviceNavClasses(device.id)}
+                            >
+                              {state !== "collapsed" && <span>{device.name}</span>}
+                            </NavLink>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
