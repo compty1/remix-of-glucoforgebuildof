@@ -20,7 +20,11 @@ import {
   Lightbulb,
   DollarSign,
   Sparkles,
-  ChevronRight
+  ChevronRight,
+  Activity,
+  Syringe,
+  LayoutGrid,
+  LucideIcon
 } from 'lucide-react';
 import {
   Sidebar,
@@ -84,7 +88,19 @@ const adminItems = [
 interface Device {
   id: string;
   name: string;
+  category: string | null;
 }
+
+const getDeviceIcon = (category: string | null): LucideIcon => {
+  switch (category?.toLowerCase()) {
+    case 'cgm':
+      return Activity;
+    case 'pump':
+      return Syringe;
+    default:
+      return Smartphone;
+  }
+};
 
 export function AppSidebar() {
   const { state, isMobile } = useSidebar();
@@ -119,7 +135,7 @@ export function AppSidebar() {
     const fetchDevices = async () => {
       const { data } = await supabase
         .from('devices')
-        .select('id, name')
+        .select('id, name, category')
         .order('name', { ascending: true });
       
       if (data) {
@@ -236,22 +252,27 @@ export function AppSidebar() {
                       <SidebarMenuSubItem>
                         <SidebarMenuSubButton asChild>
                           <NavLink to="/devices" className={getNavClasses('/devices')}>
+                            <LayoutGrid className="h-3 w-3" />
                             {state !== "collapsed" && <span>All Devices</span>}
                           </NavLink>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
-                      {devices.map((device) => (
-                        <SidebarMenuSubItem key={device.id}>
-                          <SidebarMenuSubButton asChild>
-                            <NavLink 
-                              to={`/devices/${device.id}`} 
-                              className={getDeviceNavClasses(device.id)}
-                            >
-                              {state !== "collapsed" && <span>{device.name}</span>}
-                            </NavLink>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
+                      {devices.map((device) => {
+                        const DeviceIcon = getDeviceIcon(device.category);
+                        return (
+                          <SidebarMenuSubItem key={device.id}>
+                            <SidebarMenuSubButton asChild>
+                              <NavLink 
+                                to={`/devices/${device.id}`} 
+                                className={getDeviceNavClasses(device.id)}
+                              >
+                                <DeviceIcon className="h-3 w-3" />
+                                {state !== "collapsed" && <span>{device.name}</span>}
+                              </NavLink>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        );
+                      })}
                     </SidebarMenuSub>
                   </CollapsibleContent>
                 </SidebarMenuItem>
