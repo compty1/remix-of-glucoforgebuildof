@@ -1650,6 +1650,8 @@ const curatedPosts = [
 
   // Final closing bracket for the array
 ];
+
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
