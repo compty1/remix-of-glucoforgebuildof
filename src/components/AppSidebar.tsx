@@ -59,13 +59,14 @@ const navigationItems = [
 
 const platformItems = [
   { title: "T1D Companion", url: "/t1d-companion", icon: MessageCircle },
+  { title: "Community Solutions", url: "/community-solutions", icon: Users },
   { title: "Live Cure Monitoring", url: "/cure", icon: Beaker },
   { title: "FDA Safety Dashboard", url: "/fda-safety", icon: AlertTriangle },
   { title: "Innovation Hub", url: "/innovation", icon: Lightbulb },
   { title: "Research Funding", url: "/research-funding", icon: DollarSign },
   { title: "Research Insights", url: "/research-insights", icon: Sparkles },
   { title: "Research Hub", url: "/research", icon: FileText },
-  { title: "Citizen Science", url: "/surveys", icon: Users },
+  { title: "Citizen Science", url: "/surveys", icon: Search },
   { title: "Mental Health Hub", url: "/mental-health", icon: Heart },
   { title: "Data Upload", url: "/data-upload", icon: Upload },
   { title: "Glycemic Journal", url: "/journal", icon: BookOpen },
