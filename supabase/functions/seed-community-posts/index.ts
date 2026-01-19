@@ -2477,7 +2477,7 @@ const curatedPosts = [
   // ==========================================
   {
     source: 'r/diabeticketo',
-    post_id: 'curated_keto_t1d_1',
+    post_id: 'curated_keto_t1d_2year_update',
     title: 'Keto with T1D - 2 year update and what I learned',
     content: 'My A1C went from 7.8 to 5.9 on keto. Key lessons: 1) Protein still raises BG - just slower, 2) Watch for ketone confusion vs DKA (nutritional ketones are different), 3) Less insulin needed overall, 4) Electrolytes are crucial, 5) Not for everyone - discuss with endo first. Works amazingly for me but requires commitment!',
     score: 567,
@@ -3060,7 +3060,20 @@ serve(async (req) => {
 
     console.log('Starting seed of curated community posts...');
     
-    const postsToInsert = curatedPosts.map(post => {
+    // Deduplicate posts by post_id (keep first occurrence)
+    const seenIds = new Set<string>();
+    const uniquePosts = curatedPosts.filter(post => {
+      if (seenIds.has(post.post_id)) {
+        console.log(`Skipping duplicate post_id: ${post.post_id}`);
+        return false;
+      }
+      seenIds.add(post.post_id);
+      return true;
+    });
+    
+    console.log(`Found ${curatedPosts.length} total posts, ${uniquePosts.length} unique posts`);
+    
+    const postsToInsert = uniquePosts.map(post => {
       // Generate a search URL for the subreddit to help users find similar content
       const subreddit = post.source.replace('r/', '');
       const searchQuery = encodeURIComponent(post.title?.substring(0, 50) || '');
@@ -3080,7 +3093,7 @@ serve(async (req) => {
         is_solution: post.is_solution,
         post_type: post.post_type || 'post',
         parent_post_id: post.parent_post_id || null,
-        published_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(), // Random time in last 30 days
+        published_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
         fetched_at: new Date().toISOString(),
         url: url,
       };
