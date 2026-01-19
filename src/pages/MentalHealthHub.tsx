@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CommandCenterWidget } from '@/components/CommandCenterWidget';
 import { InfoRail } from '@/components/InfoRail';
 import Layout from '@/components/Layout';
+import MentalHealthConditionsSection from '@/components/mental-health/MentalHealthConditionsSection';
 import { 
   Heart, 
   Brain, 
@@ -218,6 +219,9 @@ const MentalHealthHub = () => {
             </CardContent>
           </Card>
         </section>
+
+        {/* Mental Health Conditions Linked to T1D */}
+        <MentalHealthConditionsSection />
 
         {/* Main Content Tabs */}
         <section className="mb-12">
