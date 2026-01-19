@@ -530,23 +530,31 @@ serve(async (req) => {
 
     console.log('Starting seed of curated community posts...');
     
-    const postsToInsert = curatedPosts.map(post => ({
-      source: post.source,
-      post_id: post.post_id,
-      title: post.title || '',
-      content: post.content,
-      author_anonymous: 'community_member',
-      score: post.score,
-      num_comments: post.num_comments,
-      device_mentioned: post.device_mentioned,
-      sentiment: post.sentiment,
-      topic_tags: post.topic_tags,
-      is_solution: post.is_solution,
-      post_type: post.post_type || 'post',
-      parent_post_id: post.parent_post_id || null,
-      published_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(), // Random time in last 30 days
-      fetched_at: new Date().toISOString(),
-    }));
+    const postsToInsert = curatedPosts.map(post => {
+      // Generate a search URL for the subreddit to help users find similar content
+      const subreddit = post.source.replace('r/', '');
+      const searchQuery = encodeURIComponent(post.title?.substring(0, 50) || '');
+      const url = `https://www.reddit.com/r/${subreddit}/search?q=${searchQuery}&restrict_sr=1`;
+      
+      return {
+        source: post.source,
+        post_id: post.post_id,
+        title: post.title || '',
+        content: post.content,
+        author_anonymous: 'community_member',
+        score: post.score,
+        num_comments: post.num_comments,
+        device_mentioned: post.device_mentioned,
+        sentiment: post.sentiment,
+        topic_tags: post.topic_tags,
+        is_solution: post.is_solution,
+        post_type: post.post_type || 'post',
+        parent_post_id: post.parent_post_id || null,
+        published_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(), // Random time in last 30 days
+        fetched_at: new Date().toISOString(),
+        url: url,
+      };
+    });
 
     const { data, error } = await supabase
       .from('community_posts')

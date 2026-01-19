@@ -208,6 +208,7 @@ export type Database = {
           source: string
           title: string
           topic_tags: string[] | null
+          url: string | null
         }
         Insert: {
           author_anonymous?: string | null
@@ -226,6 +227,7 @@ export type Database = {
           source: string
           title: string
           topic_tags?: string[] | null
+          url?: string | null
         }
         Update: {
           author_anonymous?: string | null
@@ -244,6 +246,7 @@ export type Database = {
           source?: string
           title?: string
           topic_tags?: string[] | null
+          url?: string | null
         }
         Relationships: []
       }

@@ -37,6 +37,7 @@ interface RedditPost {
     num_comments: number;
     created_utc: number;
     subreddit: string;
+    permalink: string;
   };
 }
 
@@ -298,6 +299,11 @@ Deno.serve(async (req) => {
         const topics = detectTopics(fullText);
         const isSolution = isSolutionPost(fullText);
         
+        // Build the URL for the original post
+        const postUrl = postData.permalink 
+          ? `https://www.reddit.com${postData.permalink}`
+          : `https://www.reddit.com/r/${subreddit}/comments/${postData.id}`;
+        
         const processedPost = {
           source: `r/${subreddit}`,
           post_id: postData.id,
@@ -313,6 +319,7 @@ Deno.serve(async (req) => {
           is_solution: isSolution,
           post_type: 'post',
           parent_post_id: null,
+          url: postUrl,
         };
         
         allPosts.push(processedPost);
@@ -325,6 +332,11 @@ Deno.serve(async (req) => {
             const commentFullText = comment.body;
             const commentTopics = detectTopics(commentFullText);
             const commentIsSolution = isSolutionPost(commentFullText);
+            
+            // Build the URL for the comment
+            const commentUrl = postData.permalink 
+              ? `https://www.reddit.com${postData.permalink}${comment.id}`
+              : `https://www.reddit.com/r/${subreddit}/comments/${postData.id}/_/${comment.id}`;
             
             const processedReply = {
               source: `r/${subreddit}`,
@@ -341,6 +353,7 @@ Deno.serve(async (req) => {
               is_solution: commentIsSolution,
               post_type: 'reply',
               parent_post_id: postData.id,
+              url: commentUrl,
             };
             
             allReplies.push(processedReply);
