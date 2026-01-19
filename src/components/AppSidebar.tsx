@@ -25,6 +25,7 @@ import {
   Syringe,
   LayoutGrid,
   FolderOpen,
+  Plus,
   LucideIcon
 } from 'lucide-react';
 import {
@@ -58,10 +59,12 @@ const navigationItems = [
   { title: "Discover", url: "/discover", icon: Search },
 ];
 
-const platformItems = [
+const platformItemsBeforeProjects = [
   { title: "T1D Companion", url: "/t1d-companion", icon: MessageCircle },
   { title: "Community Solutions", url: "/community-solutions", icon: Users },
-  { title: "Projects", url: "/projects", icon: FolderOpen },
+];
+
+const platformItemsAfterProjects = [
   { title: "Live Cure Monitoring", url: "/cure", icon: Beaker },
   { title: "FDA Safety Dashboard", url: "/fda-safety", icon: AlertTriangle },
   { title: "Innovation Hub", url: "/innovation", icon: Lightbulb },
@@ -113,6 +116,12 @@ export function AppSidebar() {
   const [isAdmin, setIsAdmin] = React.useState(false);
   const [devices, setDevices] = React.useState<Device[]>([]);
   const [devicesOpen, setDevicesOpen] = React.useState(false);
+  const [projectsOpen, setProjectsOpen] = React.useState(false);
+  const [featuredProjects, setFeaturedProjects] = React.useState<{
+    id: string;
+    title: string;
+    slug: string;
+  }[]>([]);
 
   React.useEffect(() => {
     const checkAdminStatus = async () => {
@@ -149,10 +158,36 @@ export function AppSidebar() {
     fetchDevices();
   }, []);
 
+  // Fetch featured projects for submenu
+  React.useEffect(() => {
+    const fetchFeaturedProjects = async () => {
+      const { data } = await supabase
+        .from('diabetic_health_projects')
+        .select('id, title, slug')
+        .eq('status', 'published')
+        .eq('featured', true)
+        .order('view_count', { ascending: false })
+        .limit(4);
+      
+      if (data) {
+        setFeaturedProjects(data);
+      }
+    };
+
+    fetchFeaturedProjects();
+  }, []);
+
   // Keep submenu open if on a device page
   React.useEffect(() => {
     if (currentPath.startsWith('/devices/') && currentPath !== '/devices') {
       setDevicesOpen(true);
+    }
+  }, [currentPath]);
+
+  // Keep submenu open if on a projects page
+  React.useEffect(() => {
+    if (currentPath.startsWith('/projects')) {
+      setProjectsOpen(true);
     }
   }, [currentPath]);
 
@@ -215,7 +250,97 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {platformItems.map((item) => (
+              {/* Items before Projects */}
+              {platformItemsBeforeProjects.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink to={item.url} className={getNavClasses(item.url)}>
+                      <item.icon className="h-4 w-4" />
+                      {state !== "collapsed" && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+
+              {/* Projects with Submenu */}
+              <Collapsible
+                open={projectsOpen}
+                onOpenChange={setProjectsOpen}
+                className="group/projects"
+              >
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton 
+                      className={`w-full justify-between ${
+                        currentPath.startsWith('/projects')
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "hover:bg-muted/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <FolderOpen className="h-4 w-4" />
+                        {state !== "collapsed" && <span>Projects</span>}
+                      </div>
+                      {state !== "collapsed" && (
+                        <ChevronRight className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/projects:rotate-90" />
+                      )}
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {/* Featured Projects (first 4) */}
+                      {featuredProjects.map((project) => (
+                        <SidebarMenuSubItem key={project.id}>
+                          <SidebarMenuSubButton asChild>
+                            <NavLink 
+                              to={`/projects/${project.slug}`} 
+                              className={currentPath === `/projects/${project.slug}` 
+                                ? "bg-primary text-primary-foreground font-medium" 
+                                : "hover:bg-muted/50 transition-colors"}
+                            >
+                              <FolderOpen className="h-3 w-3" />
+                              {state !== "collapsed" && (
+                                <span className="truncate">{project.title}</span>
+                              )}
+                            </NavLink>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                      
+                      {/* View All Projects */}
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild>
+                          <NavLink 
+                            to="/projects" 
+                            className={currentPath === '/projects'
+                              ? "bg-primary text-primary-foreground font-medium"
+                              : "hover:bg-muted/50 transition-colors"}
+                          >
+                            <LayoutGrid className="h-3 w-3" />
+                            {state !== "collapsed" && <span>View All Projects</span>}
+                          </NavLink>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      
+                      {/* Submit a Project */}
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild>
+                          <NavLink 
+                            to="/projects?submit=true" 
+                            className="hover:bg-muted/50 transition-colors"
+                          >
+                            <Plus className="h-3 w-3" />
+                            {state !== "collapsed" && <span>Submit a Project</span>}
+                          </NavLink>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+
+              {/* Items after Projects */}
+              {platformItemsAfterProjects.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavClasses(item.url)}>
