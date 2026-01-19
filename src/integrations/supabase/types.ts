@@ -197,13 +197,17 @@ export type Database = {
           device_mentioned: string | null
           fetched_at: string
           id: string
+          is_solution: boolean | null
           num_comments: number | null
+          parent_post_id: string | null
           post_id: string
+          post_type: string | null
           published_at: string | null
           score: number | null
           sentiment: string | null
           source: string
           title: string
+          topic_tags: string[] | null
         }
         Insert: {
           author_anonymous?: string | null
@@ -211,13 +215,17 @@ export type Database = {
           device_mentioned?: string | null
           fetched_at?: string
           id?: string
+          is_solution?: boolean | null
           num_comments?: number | null
+          parent_post_id?: string | null
           post_id: string
+          post_type?: string | null
           published_at?: string | null
           score?: number | null
           sentiment?: string | null
           source: string
           title: string
+          topic_tags?: string[] | null
         }
         Update: {
           author_anonymous?: string | null
@@ -225,13 +233,17 @@ export type Database = {
           device_mentioned?: string | null
           fetched_at?: string
           id?: string
+          is_solution?: boolean | null
           num_comments?: number | null
+          parent_post_id?: string | null
           post_id?: string
+          post_type?: string | null
           published_at?: string | null
           score?: number | null
           sentiment?: string | null
           source?: string
           title?: string
+          topic_tags?: string[] | null
         }
         Relationships: []
       }

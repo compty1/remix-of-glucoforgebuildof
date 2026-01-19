@@ -57,6 +57,7 @@ import ResearchInsights from "./pages/ResearchInsights";
 import DeviceDetail from "./pages/DeviceDetail";
 import DeviceComparison from "./pages/DeviceComparison";
 import T1DCompanion from "./pages/T1DCompanion";
+import CommunitySolutions from "./pages/CommunitySolutions";
 import { AdminRoute } from "./components/admin/AdminRoute";
 
 const queryClient = new QueryClient();
@@ -127,6 +128,7 @@ const App = () => {
             <Route path="/research-funding" element={<ProtectedRoute><ResearchFunding /></ProtectedRoute>} />
             <Route path="/research-insights" element={<ProtectedRoute><ResearchInsights /></ProtectedRoute>} />
             <Route path="/t1d-companion" element={<ProtectedRoute><T1DCompanion /></ProtectedRoute>} />
+            <Route path="/community-solutions" element={<ProtectedRoute><CommunitySolutions /></ProtectedRoute>} />
             <Route path="/customizable-dashboard" element={<ProtectedRoute><CustomizableDashboard /></ProtectedRoute>} />
             <Route path="/donation-result" element={<DonateSuccess />} />
             <Route path="/qa-checklist" element={<QAChecklist />} />
