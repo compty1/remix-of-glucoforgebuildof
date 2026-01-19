@@ -38,7 +38,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
     filters.devices.length > 0 ||
     filters.sentiment !== 'all' ||
     filters.timeRange !== 'all' ||
-    filters.hasSolutions;
+    filters.hasSolutions ||
+    filters.minScore !== 'all';
 
   return (
     <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/30 rounded-lg border">
@@ -120,6 +121,25 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <SelectItem value="positive">Positive</SelectItem>
           <SelectItem value="neutral">Neutral</SelectItem>
           <SelectItem value="negative">Negative</SelectItem>
+        </SelectContent>
+      </Select>
+
+      {/* Quality Score Filter */}
+      <Select
+        value={filters.minScore}
+        onValueChange={(value: 'all' | '50' | '100' | '200' | '500') => 
+          onFilterChange({ minScore: value })
+        }
+      >
+        <SelectTrigger className="w-[130px] h-9">
+          <SelectValue placeholder="Quality" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="all">All Quality</SelectItem>
+          <SelectItem value="50">50+ Score</SelectItem>
+          <SelectItem value="100">100+ Score</SelectItem>
+          <SelectItem value="200">200+ Score</SelectItem>
+          <SelectItem value="500">500+ Score</SelectItem>
         </SelectContent>
       </Select>
 

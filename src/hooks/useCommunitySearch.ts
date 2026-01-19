@@ -31,6 +31,7 @@ export interface SearchFilters {
   timeRange: 'all' | 'day' | 'week' | 'month';
   hasSolutions: boolean;
   sortBy: 'relevance' | 'score' | 'date';
+  minScore: 'all' | '50' | '100' | '200' | '500';
 }
 
 const defaultFilters: SearchFilters = {
@@ -42,6 +43,7 @@ const defaultFilters: SearchFilters = {
   timeRange: 'all',
   hasSolutions: false,
   sortBy: 'score',
+  minScore: 'all',
 };
 
 export const useCommunitySearch = (initialFilters?: Partial<SearchFilters>) => {
@@ -103,6 +105,11 @@ export const useCommunitySearch = (initialFilters?: Partial<SearchFilters>) => {
     // Apply solution filter
     if (filters.hasSolutions) {
       query = query.eq('is_solution', true);
+    }
+
+    // Apply minimum score filter
+    if (filters.minScore !== 'all') {
+      query = query.gte('score', parseInt(filters.minScore));
     }
 
     // Apply sorting
