@@ -6,7 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Search, FileText, Award, MessageSquare } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, FileText, Award, MessageSquare, FolderOpen } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -38,6 +39,7 @@ interface Survey {
 }
 
 export default function AdminContent() {
+  const navigate = useNavigate();
   const [discoveries, setDiscoveries] = useState<Discovery[]>([]);
   const [bounties, setBounties] = useState<Bounty[]>([]);
   const [surveys, setSurveys] = useState<Survey[]>([]);
@@ -208,7 +210,7 @@ export default function AdminContent() {
           </h1>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="discoveries" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
                 Discoveries ({discoveries.length})
@@ -220,6 +222,14 @@ export default function AdminContent() {
               <TabsTrigger value="surveys" className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4" />
                 Surveys ({surveys.length})
+              </TabsTrigger>
+              <TabsTrigger 
+                value="projects" 
+                className="flex items-center gap-2"
+                onClick={() => navigate('/admin/projects')}
+              >
+                <FolderOpen className="h-4 w-4" />
+                Projects
               </TabsTrigger>
             </TabsList>
 

@@ -41,6 +41,7 @@ import AdminContent from "./pages/admin/AdminContent";
 import AdminIntegrations from "./pages/admin/AdminIntegrations";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminAnalytics from "./pages/admin/AdminAnalytics";
+import AdminProjects from "./pages/admin/AdminProjects";
 import MentalHealthHub from "./pages/MentalHealthHub";
 import ScenarioLab from "./pages/ScenarioLab";
 import Trends from "./pages/Trends";
@@ -118,6 +119,7 @@ const App = () => {
             <Route path="/admin/integrations" element={<ProtectedRoute><AdminRoute><AdminIntegrations /></AdminRoute></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute><AdminRoute><AdminSettings /></AdminRoute></ProtectedRoute>} />
             <Route path="/admin/analytics" element={<ProtectedRoute><AdminRoute><AdminAnalytics /></AdminRoute></ProtectedRoute>} />
+            <Route path="/admin/projects" element={<ProtectedRoute><AdminRoute><AdminProjects /></AdminRoute></ProtectedRoute>} />
             <Route path="/mental-health" element={<ProtectedRoute><MentalHealthHub /></ProtectedRoute>} />
             <Route path="/scenario-lab" element={<ProtectedRoute><ScenarioLab /></ProtectedRoute>} />
             <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
