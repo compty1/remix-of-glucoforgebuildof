@@ -1603,6 +1603,41 @@ export type Database = {
         }
         Relationships: []
       }
+      user_saved_posts: {
+        Row: {
+          community_post_id: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          community_post_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          community_post_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_saved_posts_community_post_id_fkey"
+            columns: ["community_post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

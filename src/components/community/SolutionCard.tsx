@@ -16,20 +16,59 @@ import {
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 import type { CommunityPost } from '@/hooks/useCommunitySearch';
 import { formatDistanceToNow } from 'date-fns';
 import { PostComments } from './PostComments';
+import { SimilarSolutions } from './SimilarSolutions';
+import { useSavedPosts } from '@/hooks/useSavedPosts';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SolutionCardProps {
   post: CommunityPost;
   onAskAI?: (post: CommunityPost) => void;
+  showSaveButton?: boolean;
+  onSimilarClick?: (post: CommunityPost) => void;
 }
 
-export const SolutionCard: React.FC<SolutionCardProps> = ({ post, onAskAI }) => {
+export const SolutionCard: React.FC<SolutionCardProps> = ({ 
+  post, 
+  onAskAI,
+  showSaveButton = true,
+  onSimilarClick,
+}) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [showSimilar, setShowSimilar] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+
+  const { isPostSaved, savePost, unsavePost, isSaving, isUnsaving } = useSavedPosts();
+
+  // Check login status
+  React.useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsLoggedIn(!!user);
+    };
+    checkAuth();
+  }, []);
+
+  const isSaved = isPostSaved(post.post_id);
+
+  const handleSaveToggle = () => {
+    if (!isLoggedIn) {
+      toast.info('Please log in to save posts');
+      return;
+    }
+    
+    if (isSaved) {
+      unsavePost(post.post_id);
+    } else {
+      savePost(post.post_id, post.id);
+    }
+  };
 
   const getSentimentIcon = () => {
     switch (post.sentiment) {
@@ -39,17 +78,6 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({ post, onAskAI }) => 
         return <Frown className="h-4 w-4 text-red-500" />;
       default:
         return <Meh className="h-4 w-4 text-yellow-500" />;
-    }
-  };
-
-  const getSentimentBadgeVariant = () => {
-    switch (post.sentiment) {
-      case 'positive':
-        return 'default';
-      case 'negative':
-        return 'destructive';
-      default:
-        return 'secondary';
     }
   };
 
@@ -81,6 +109,7 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({ post, onAskAI }) => 
     : '';
 
   const shouldShowExpandButton = post.content && post.content.length > 200;
+  const hasSimilarCriteria = post.device_mentioned || (post.topic_tags && post.topic_tags.length > 0);
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -182,6 +211,28 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({ post, onAskAI }) => 
           </div>
         )}
 
+        {/* Similar Solutions Toggle */}
+        {hasSimilarCriteria && post.post_type !== 'reply' && (
+          <div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowSimilar(!showSimilar)}
+              className="h-8 px-2 text-xs"
+            >
+              {showSimilar ? 'Hide' : 'Show'} Similar Solutions
+              {showSimilar ? (
+                <ChevronUp className="h-3.5 w-3.5 ml-1" />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5 ml-1" />
+              )}
+            </Button>
+            {showSimilar && (
+              <SimilarSolutions post={post} onPostClick={onSimilarClick} />
+            )}
+          </div>
+        )}
+
         {/* Footer */}
         <div className="flex items-center justify-between pt-2 border-t">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -195,6 +246,35 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({ post, onAskAI }) => 
           </div>
           
           <div className="flex items-center gap-1">
+            {/* Save Button */}
+            {showSaveButton && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleSaveToggle}
+                      disabled={isSaving || isUnsaving}
+                      className="h-8 text-xs"
+                    >
+                      <Bookmark 
+                        className={`h-3.5 w-3.5 mr-1 ${isSaved ? 'fill-current text-primary' : ''}`} 
+                      />
+                      {isSaved ? 'Saved' : 'Save'}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {isLoggedIn === false 
+                      ? 'Log in to save posts' 
+                      : isSaved 
+                        ? 'Remove from saved' 
+                        : 'Save to your collection'}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+
             {post.url && (
               <Button
                 variant="ghost"
