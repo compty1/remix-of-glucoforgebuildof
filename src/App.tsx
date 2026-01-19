@@ -59,6 +59,7 @@ import DeviceDetail from "./pages/DeviceDetail";
 import DeviceComparison from "./pages/DeviceComparison";
 import T1DCompanion from "./pages/T1DCompanion";
 import CommunitySolutions from "./pages/CommunitySolutions";
+import CommunityPostDetail from "./pages/CommunityPostDetail";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import { AdminRoute } from "./components/admin/AdminRoute";
@@ -133,6 +134,7 @@ const App = () => {
             <Route path="/research-insights" element={<ProtectedRoute><ResearchInsights /></ProtectedRoute>} />
             <Route path="/t1d-companion" element={<ProtectedRoute><T1DCompanion /></ProtectedRoute>} />
             <Route path="/community-solutions" element={<ProtectedRoute><CommunitySolutions /></ProtectedRoute>} />
+            <Route path="/community-solutions/:postId" element={<ProtectedRoute><CommunityPostDetail /></ProtectedRoute>} />
             <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
             <Route path="/projects/:slug" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
             <Route path="/customizable-dashboard" element={<ProtectedRoute><CustomizableDashboard /></ProtectedRoute>} />

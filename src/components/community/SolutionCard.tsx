@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   ThumbsUp, 
   MessageSquare, 
@@ -40,6 +41,7 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
   showSaveButton = true,
   onSimilarClick,
 }) => {
+  const navigate = useNavigate();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [showSimilar, setShowSimilar] = useState(false);
@@ -131,8 +133,15 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
   const shouldShowExpandButton = post.content && post.content.length > 200;
   const hasSimilarCriteria = post.device_mentioned || (post.topic_tags && post.topic_tags.length > 0);
 
+  const handleCardClick = () => {
+    navigate(`/community-solutions/${post.post_id}`);
+  };
+
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card 
+      className="hover:shadow-md transition-shadow cursor-pointer"
+      onClick={handleCardClick}
+    >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
@@ -182,7 +191,10 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsExpanded(!isExpanded);
+            }}
             className="h-8 px-2"
           >
             {isExpanded ? (
@@ -212,11 +224,14 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
 
         {/* Comments Section - Show toggle if there are comments */}
         {post.num_comments && post.num_comments > 0 && post.post_type !== 'reply' && (
-          <div>
+          <div onClick={(e) => e.stopPropagation()}>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowComments(!showComments)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowComments(!showComments);
+              }}
               className="h-8 px-2 text-xs"
             >
               <MessageSquare className="h-3.5 w-3.5 mr-1" />
@@ -227,17 +242,26 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                 <ChevronDown className="h-3.5 w-3.5 ml-1" />
               )}
             </Button>
-            <PostComments postId={post.post_id} isExpanded={showComments} />
+            <PostComments 
+              postId={post.post_id} 
+              isExpanded={showComments}
+              limit={5}
+              showViewAll={true}
+              onViewAllClick={() => navigate(`/community-solutions/${post.post_id}`)}
+            />
           </div>
         )}
 
         {/* Similar Solutions Toggle */}
         {hasSimilarCriteria && post.post_type !== 'reply' && (
-          <div>
+          <div onClick={(e) => e.stopPropagation()}>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowSimilar(!showSimilar)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSimilar(!showSimilar);
+              }}
               className="h-8 px-2 text-xs"
             >
               {showSimilar ? 'Hide' : 'Show'} Similar Solutions
@@ -254,7 +278,7 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between pt-2 border-t">
+        <div className="flex items-center justify-between pt-2 border-t" onClick={(e) => e.stopPropagation()}>
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span>{getTimeAgo()}</span>
             {post.author_anonymous && (
