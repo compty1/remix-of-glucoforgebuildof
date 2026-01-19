@@ -148,55 +148,80 @@ function isSolutionPost(text: string): boolean {
 }
 
 async function fetchRedditPosts(subreddit: string, limit: number = 50, sort: string = 'new'): Promise<RedditPost[]> {
-  try {
-    console.log(`Fetching ${sort} posts from r/${subreddit}`);
-    const response = await fetch(`https://www.reddit.com/r/${subreddit}/${sort}.json?limit=${limit}`, {
-      headers: {
-        'User-Agent': 'GlucoForge/1.0.0 (Diabetes Community Research Tool)',
-      },
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Reddit API returned ${response.status}: ${response.statusText}`);
+  // Enhanced headers to mimic browser requests
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.5',
+    'Accept-Encoding': 'gzip, deflate, br',
+    'Connection': 'keep-alive',
+    'Cache-Control': 'no-cache',
+  };
+
+  // Try multiple endpoints - old.reddit.com is often less restrictive
+  const urls = [
+    `https://old.reddit.com/r/${subreddit}/${sort}.json?limit=${limit}&raw_json=1`,
+    `https://www.reddit.com/r/${subreddit}/${sort}.json?limit=${limit}&raw_json=1`,
+  ];
+
+  for (const url of urls) {
+    try {
+      console.log(`Trying to fetch from: ${url}`);
+      const response = await fetch(url, { headers });
+      
+      if (response.ok) {
+        const data: RedditResponse = await response.json();
+        console.log(`Successfully fetched ${data.data.children.length} posts from r/${subreddit}`);
+        return data.data.children;
+      }
+      console.log(`${url} returned ${response.status}, trying next...`);
+    } catch (error) {
+      console.log(`Failed with ${url}, trying next...`);
     }
-    
-    const data: RedditResponse = await response.json();
-    console.log(`Successfully fetched ${data.data.children.length} posts from r/${subreddit}`);
-    return data.data.children;
-  } catch (error) {
-    console.error(`Error fetching from r/${subreddit}:`, error);
-    return [];
   }
+  
+  console.error(`All endpoints failed for r/${subreddit}`);
+  return [];
 }
 
 // Fetch top comments from a post
 async function fetchTopComments(subreddit: string, postId: string, limit: number = 5): Promise<any[]> {
-  try {
-    const response = await fetch(`https://www.reddit.com/r/${subreddit}/comments/${postId}.json?limit=${limit}&sort=top`, {
-      headers: {
-        'User-Agent': 'GlucoForge/1.0.0 (Diabetes Community Research Tool)',
-      },
-    });
-    
-    if (!response.ok) return [];
-    
-    const data = await response.json();
-    if (!data[1]?.data?.children) return [];
-    
-    return data[1].data.children
-      .filter((c: any) => c.kind === 't1' && c.data.body && c.data.score > 5)
-      .slice(0, limit)
-      .map((c: any) => ({
-        id: c.data.id,
-        body: c.data.body,
-        score: c.data.score,
-        author: c.data.author,
-        created_utc: c.data.created_utc,
-      }));
-  } catch (error) {
-    console.error(`Error fetching comments for post ${postId}:`, error);
-    return [];
+  const headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'application/json',
+    'Accept-Language': 'en-US,en;q=0.5',
+  };
+
+  const urls = [
+    `https://old.reddit.com/r/${subreddit}/comments/${postId}.json?limit=${limit}&sort=top&raw_json=1`,
+    `https://www.reddit.com/r/${subreddit}/comments/${postId}.json?limit=${limit}&sort=top&raw_json=1`,
+  ];
+
+  for (const url of urls) {
+    try {
+      const response = await fetch(url, { headers });
+      
+      if (!response.ok) continue;
+      
+      const data = await response.json();
+      if (!data[1]?.data?.children) continue;
+      
+      return data[1].data.children
+        .filter((c: any) => c.kind === 't1' && c.data.body && c.data.score > 5)
+        .slice(0, limit)
+        .map((c: any) => ({
+          id: c.data.id,
+          body: c.data.body,
+          score: c.data.score,
+          author: c.data.author,
+          created_utc: c.data.created_utc,
+        }));
+    } catch (error) {
+      continue;
+    }
   }
+  
+  return [];
 }
 
 Deno.serve(async (req) => {

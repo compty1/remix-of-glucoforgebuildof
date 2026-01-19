@@ -235,9 +235,20 @@ export const useRefreshCommunityData = () => {
     setRefreshError(null);
 
     try {
+      // First try to fetch live data from Reddit
       const { data, error } = await supabase.functions.invoke('community-feed');
       
-      if (error) throw error;
+      // Check if we got any posts
+      const insertedCount = data?.inserted || 0;
+      
+      // If Reddit fetch failed or returned no posts, seed with curated data
+      if (error || insertedCount === 0) {
+        console.log('Reddit fetch failed or empty, seeding curated data...');
+        const { data: seedData, error: seedError } = await supabase.functions.invoke('seed-community-posts');
+        
+        if (seedError) throw seedError;
+        return seedData;
+      }
       
       return data;
     } catch (err) {
