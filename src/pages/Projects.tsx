@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { useProjects } from '@/hooks/useProjects';
 import { ProjectCard } from '@/components/projects/ProjectCard';
@@ -28,6 +29,7 @@ import {
 import { Link } from 'react-router-dom';
 
 const Projects: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { 
     projects, 
     featuredProjects, 
@@ -37,6 +39,21 @@ const Projects: React.FC = () => {
     isLoading 
   } = useProjects();
   const [submissionModalOpen, setSubmissionModalOpen] = useState(false);
+
+  // Handle ?submit=true query parameter
+  useEffect(() => {
+    if (searchParams.get('submit') === 'true') {
+      setSubmissionModalOpen(true);
+    }
+  }, [searchParams]);
+
+  const handleModalClose = (open: boolean) => {
+    setSubmissionModalOpen(open);
+    if (!open && searchParams.get('submit')) {
+      searchParams.delete('submit');
+      setSearchParams(searchParams, { replace: true });
+    }
+  };
 
   const stats = {
     totalProjects: projects.length,
@@ -220,7 +237,7 @@ const Projects: React.FC = () => {
         {/* Submission Modal */}
         <ProjectSubmissionModal
           open={submissionModalOpen}
-          onOpenChange={setSubmissionModalOpen}
+          onOpenChange={handleModalClose}
         />
       </div>
     </Layout>
