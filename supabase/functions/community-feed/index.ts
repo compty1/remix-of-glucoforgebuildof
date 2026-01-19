@@ -245,7 +245,7 @@ Deno.serve(async (req) => {
 
     console.log('Starting enhanced community feed fetch process');
 
-    // Expanded subreddit list
+    // Greatly expanded subreddit list for more content
     const subreddits = [
       'diabetes', 
       'dexcom', 
@@ -261,20 +261,31 @@ Deno.serve(async (req) => {
       'FreeStyleLibre',
       'loopkit',
       'AndroidAPS',
-      'Nightscout'
+      'Nightscout',
+      // Additional subreddits for more content
+      'DiabetesType1',
+      'DiabetesTech',
+      'Diabetics',
+      'DiabetesRecipes',
+      'T1D',
+      'insulinpumpers',
+      'GestationalDiabetes',
+      'diabeticmemes',
     ];
     
     const allPosts: any[] = [];
     const allReplies: any[] = [];
 
-    // Fetch both new and top posts from each subreddit
+    // Fetch both new and top posts from each subreddit with increased limits
     for (const subreddit of subreddits) {
-      // Fetch new posts
-      const newPosts = await fetchRedditPosts(subreddit, 30, 'new');
-      // Fetch top posts from past week
-      const topPosts = await fetchRedditPosts(subreddit, 20, 'top');
+      // Fetch more posts per subreddit
+      const newPosts = await fetchRedditPosts(subreddit, 50, 'new');
+      // Fetch top posts from past month for more content
+      const topPosts = await fetchRedditPosts(subreddit, 30, 'top');
+      // Also fetch hot posts
+      const hotPosts = await fetchRedditPosts(subreddit, 25, 'hot');
       
-      const combinedPosts = [...newPosts, ...topPosts];
+      const combinedPosts = [...newPosts, ...topPosts, ...hotPosts];
       const seenIds = new Set<string>();
       
       for (const post of combinedPosts) {
@@ -284,9 +295,9 @@ Deno.serve(async (req) => {
         if (seenIds.has(postData.id)) continue;
         seenIds.add(postData.id);
         
-        // Skip posts older than 14 days
+        // Extended: Accept posts up to 30 days old
         const postAge = Date.now() / 1000 - postData.created_utc;
-        if (postAge > 14 * 24 * 60 * 60) continue;
+        if (postAge > 30 * 24 * 60 * 60) continue;
         
         if (!postData.title && !postData.selftext) continue;
         
@@ -386,12 +397,12 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Clean up old posts (older than 30 days)
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    // Extended retention: Clean up old posts (older than 60 days)
+    const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
     const { error: deleteError } = await supabase
       .from('community_posts')
       .delete()
-      .lt('published_at', thirtyDaysAgo);
+      .lt('published_at', sixtyDaysAgo);
 
     if (deleteError) {
       console.error('Error cleaning up old posts:', deleteError);
