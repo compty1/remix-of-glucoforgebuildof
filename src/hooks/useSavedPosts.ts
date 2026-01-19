@@ -90,6 +90,29 @@ export const useSavedPosts = () => {
     },
   });
 
+  // Update notes on a saved post
+  const updateNotesMutation = useMutation({
+    mutationFn: async ({ postId, notes }: { postId: string; notes: string | null }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Must be logged in');
+
+      const { error } = await supabase
+        .from('user_saved_posts')
+        .update({ notes })
+        .eq('user_id', user.id)
+        .eq('post_id', postId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['saved-posts'] });
+      toast.success('Notes updated');
+    },
+    onError: () => {
+      toast.error('Failed to update notes');
+    },
+  });
+
   const savePost = useCallback((postId: string, communityPostId: string, notes?: string) => {
     saveMutation.mutate({ postId, communityPostId, notes });
   }, [saveMutation]);
@@ -97,6 +120,10 @@ export const useSavedPosts = () => {
   const unsavePost = useCallback((postId: string) => {
     unsaveMutation.mutate(postId);
   }, [unsaveMutation]);
+
+  const updateNotes = useCallback((postId: string, notes: string | null) => {
+    updateNotesMutation.mutate({ postId, notes });
+  }, [updateNotesMutation]);
 
   const isPostSaved = useCallback((postId: string) => {
     return savedPosts.some(p => p.post_id === postId);
@@ -106,15 +133,22 @@ export const useSavedPosts = () => {
     return new Set(savedPosts.map(p => p.post_id));
   }, [savedPosts]);
 
+  const getPostNotes = useCallback((postId: string) => {
+    return savedPosts.find(p => p.post_id === postId)?.notes || null;
+  }, [savedPosts]);
+
   return {
     savedPosts,
     isLoading,
     error: error?.message || null,
     savePost,
     unsavePost,
+    updateNotes,
     isPostSaved,
     getSavedPostIds,
+    getPostNotes,
     isSaving: saveMutation.isPending,
     isUnsaving: unsaveMutation.isPending,
+    isUpdatingNotes: updateNotesMutation.isPending,
   };
 };

@@ -1,20 +1,22 @@
-import React from 'react';
-import { Bookmark, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Bookmark, StickyNote, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { CommunityPost } from '@/hooks/useCommunitySearch';
 import { SolutionCard } from './SolutionCard';
+import { SavePostNotesModal } from './SavePostNotesModal';
 
 interface SavedPostsListProps {
   onAskAI?: (post: CommunityPost) => void;
 }
 
 export const SavedPostsList: React.FC<SavedPostsListProps> = ({ onAskAI }) => {
-  const { savedPosts, isLoading: isSavedLoading, unsavePost } = useSavedPosts();
+  const { savedPosts, isLoading: isSavedLoading, unsavePost, updateNotes, getPostNotes, isUpdatingNotes } = useSavedPosts();
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
 
   // Fetch full post data for saved posts
   const { data: fullPosts = [], isLoading: isPostsLoading } = useQuery({
@@ -47,6 +49,22 @@ export const SavedPostsList: React.FC<SavedPostsListProps> = ({ onAskAI }) => {
 
   const isLoading = isSavedLoading || isPostsLoading;
 
+  // Get the saved post entry to access notes
+  const getSavedPostEntry = (postId: string) => {
+    return savedPosts.find(p => p.post_id === postId);
+  };
+
+  const handleEditNotes = (postId: string) => {
+    setEditingPostId(postId);
+  };
+
+  const handleSaveNotes = (notes: string | null) => {
+    if (editingPostId) {
+      updateNotes(editingPostId, notes);
+      setEditingPostId(null);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -76,6 +94,8 @@ export const SavedPostsList: React.FC<SavedPostsListProps> = ({ onAskAI }) => {
     );
   }
 
+  const editingPost = editingPostId ? fullPosts.find(p => p.post_id === editingPostId) : null;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -85,15 +105,62 @@ export const SavedPostsList: React.FC<SavedPostsListProps> = ({ onAskAI }) => {
         </h3>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {fullPosts.map((post) => (
-          <SolutionCard
-            key={post.id}
-            post={post}
-            onAskAI={onAskAI}
-            showSaveButton
-          />
-        ))}
+        {fullPosts.map((post) => {
+          const savedEntry = getSavedPostEntry(post.post_id);
+          const notes = savedEntry?.notes;
+          
+          return (
+            <div key={post.id} className="space-y-2">
+              <SolutionCard
+                post={post}
+                onAskAI={onAskAI}
+                showSaveButton
+              />
+              
+              {/* Notes Section */}
+              <Card className="bg-muted/50">
+                <CardContent className="py-3 px-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <StickyNote className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="text-sm font-medium">Your Note</span>
+                      </div>
+                      {notes ? (
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          {notes}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic">
+                          No note added
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditNotes(post.post_id)}
+                      className="shrink-0 h-7 text-xs"
+                    >
+                      {notes ? 'Edit' : 'Add Note'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          );
+        })}
       </div>
+
+      {/* Notes Modal */}
+      <SavePostNotesModal
+        isOpen={!!editingPostId}
+        onClose={() => setEditingPostId(null)}
+        onSave={handleSaveNotes}
+        initialNotes={editingPostId ? getPostNotes(editingPostId) : null}
+        postTitle={editingPost?.title}
+        isSaving={isUpdatingNotes}
+      />
     </div>
   );
 };

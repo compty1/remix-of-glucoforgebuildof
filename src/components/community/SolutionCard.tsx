@@ -11,7 +11,8 @@ import {
   Meh,
   Frown,
   Check,
-  User
+  User,
+  StickyNote
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,7 @@ import type { CommunityPost } from '@/hooks/useCommunitySearch';
 import { formatDistanceToNow } from 'date-fns';
 import { PostComments } from './PostComments';
 import { SimilarSolutions } from './SimilarSolutions';
+import { SavePostNotesModal } from './SavePostNotesModal';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -43,8 +45,10 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
   const [showSimilar, setShowSimilar] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [showNotesModal, setShowNotesModal] = useState(false);
+  const [isEditingNotes, setIsEditingNotes] = useState(false);
 
-  const { isPostSaved, savePost, unsavePost, isSaving, isUnsaving } = useSavedPosts();
+  const { isPostSaved, savePost, unsavePost, updateNotes, getPostNotes, isSaving, isUnsaving, isUpdatingNotes } = useSavedPosts();
 
   // Check login status
   React.useEffect(() => {
@@ -56,8 +60,9 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
   }, []);
 
   const isSaved = isPostSaved(post.post_id);
+  const currentNotes = getPostNotes(post.post_id);
 
-  const handleSaveToggle = () => {
+  const handleSaveClick = () => {
     if (!isLoggedIn) {
       toast.info('Please log in to save posts');
       return;
@@ -66,8 +71,23 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
     if (isSaved) {
       unsavePost(post.post_id);
     } else {
-      savePost(post.post_id, post.id);
+      setIsEditingNotes(false);
+      setShowNotesModal(true);
     }
+  };
+
+  const handleEditNotes = () => {
+    setIsEditingNotes(true);
+    setShowNotesModal(true);
+  };
+
+  const handleNotesModalSave = (notes: string | null) => {
+    if (isEditingNotes) {
+      updateNotes(post.post_id, notes);
+    } else {
+      savePost(post.post_id, post.id, notes || undefined);
+    }
+    setShowNotesModal(false);
   };
 
   const getSentimentIcon = () => {
@@ -254,7 +274,7 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={handleSaveToggle}
+                      onClick={handleSaveClick}
                       disabled={isSaving || isUnsaving}
                       className="h-8 text-xs"
                     >
@@ -270,6 +290,31 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                       : isSaved 
                         ? 'Remove from saved' 
                         : 'Save to your collection'}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+
+            {/* Edit Notes Button - only show for saved posts */}
+            {showSaveButton && isSaved && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleEditNotes}
+                      disabled={isUpdatingNotes}
+                      className="h-8 text-xs"
+                    >
+                      <StickyNote 
+                        className={`h-3.5 w-3.5 mr-1 ${currentNotes ? 'text-primary' : ''}`} 
+                      />
+                      {currentNotes ? 'Edit Note' : 'Add Note'}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {currentNotes ? 'Edit your personal note' : 'Add a personal note'}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -312,6 +357,16 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
             </Button>
           </div>
         </div>
+
+        {/* Notes Modal */}
+        <SavePostNotesModal
+          isOpen={showNotesModal}
+          onClose={() => setShowNotesModal(false)}
+          onSave={handleNotesModalSave}
+          initialNotes={currentNotes}
+          postTitle={post.title}
+          isSaving={isSaving || isUpdatingNotes}
+        />
       </CardContent>
     </Card>
   );
