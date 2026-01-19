@@ -7,6 +7,7 @@ import { CommandCenterWidget } from '@/components/CommandCenterWidget';
 import { InfoRail } from '@/components/InfoRail';
 import Layout from '@/components/Layout';
 import MentalHealthConditionsSection from '@/components/mental-health/MentalHealthConditionsSection';
+import PsychLoadComparisonSection from '@/components/mental-health/PsychLoadComparisonSection';
 import { 
   Heart, 
   Brain, 
@@ -222,6 +223,9 @@ const MentalHealthHub = () => {
 
         {/* Mental Health Conditions Linked to T1D */}
         <MentalHealthConditionsSection />
+
+        {/* Compare Psychological Load */}
+        <PsychLoadComparisonSection />
 
         {/* Main Content Tabs */}
         <section className="mb-12">
