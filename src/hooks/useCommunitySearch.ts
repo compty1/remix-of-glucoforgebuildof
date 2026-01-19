@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -50,7 +50,8 @@ export const useCommunitySearch = (initialFilters?: Partial<SearchFilters>) => {
     ...initialFilters,
   });
   const [page, setPage] = useState(0);
-  const pageSize = 20;
+  const [accumulatedPosts, setAccumulatedPosts] = useState<CommunityPost[]>([]);
+  const pageSize = 50; // Increased from 20 to show more posts
 
   const fetchPosts = async () => {
     let query = supabase
@@ -152,24 +153,42 @@ export const useCommunitySearch = (initialFilters?: Partial<SearchFilters>) => {
   const updateFilters = useCallback((newFilters: Partial<SearchFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
     setPage(0); // Reset pagination when filters change
+    setAccumulatedPosts([]); // Clear accumulated posts on filter change
   }, []);
 
   const loadMore = useCallback(() => {
-    if (data?.hasMore) {
+    if (data?.hasMore && !isLoading) {
       setPage(prev => prev + 1);
     }
-  }, [data?.hasMore]);
+  }, [data?.hasMore, isLoading]);
 
   const resetFilters = useCallback(() => {
     setFilters(defaultFilters);
     setPage(0);
+    setAccumulatedPosts([]); // Clear accumulated posts on reset
   }, []);
 
+  // Accumulate posts as pages load
+  useEffect(() => {
+    if (data?.posts && data.posts.length > 0) {
+      if (page === 0) {
+        setAccumulatedPosts(data.posts);
+      } else {
+        setAccumulatedPosts(prev => {
+          const existingIds = new Set(prev.map(p => p.id));
+          const newPosts = data.posts.filter(p => !existingIds.has(p.id));
+          return [...prev, ...newPosts];
+        });
+      }
+    }
+  }, [data?.posts, page]);
+
   return {
-    posts: data?.posts || [],
+    posts: accumulatedPosts,
     totalCount: data?.totalCount || 0,
     hasMore: data?.hasMore || false,
     isLoading,
+    isLoadingMore: isLoading && page > 0,
     error: error?.message || null,
     filters,
     updateFilters,
