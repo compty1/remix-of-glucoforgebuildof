@@ -10,7 +10,8 @@ import {
   Smile,
   Meh,
   Frown,
-  Check
+  Check,
+  User
 } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import type { CommunityPost } from '@/hooks/useCommunitySearch';
 import { formatDistanceToNow } from 'date-fns';
+import { PostComments } from './PostComments';
 
 interface SolutionCardProps {
   post: CommunityPost;
@@ -26,6 +28,7 @@ interface SolutionCardProps {
 
 export const SolutionCard: React.FC<SolutionCardProps> = ({ post, onAskAI }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
   const getSentimentIcon = () => {
@@ -88,6 +91,11 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({ post, onAskAI }) => 
             <Badge variant="outline" className="text-xs">
               {post.source}
             </Badge>
+            {post.post_type === 'reply' && (
+              <Badge variant="secondary" className="text-xs">
+                Reply
+              </Badge>
+            )}
             {post.device_mentioned && (
               <Badge variant="secondary" className="text-xs">
                 {post.device_mentioned}
@@ -153,13 +161,51 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({ post, onAskAI }) => 
           </div>
         )}
 
+        {/* Comments Section - Show toggle if there are comments */}
+        {post.num_comments && post.num_comments > 0 && post.post_type !== 'reply' && (
+          <div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowComments(!showComments)}
+              className="h-8 px-2 text-xs"
+            >
+              <MessageSquare className="h-3.5 w-3.5 mr-1" />
+              {showComments ? 'Hide' : 'Show'} Comments
+              {showComments ? (
+                <ChevronUp className="h-3.5 w-3.5 ml-1" />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5 ml-1" />
+              )}
+            </Button>
+            <PostComments postId={post.post_id} isExpanded={showComments} />
+          </div>
+        )}
+
         {/* Footer */}
         <div className="flex items-center justify-between pt-2 border-t">
-          <span className="text-xs text-muted-foreground">
-            {getTimeAgo()}
-          </span>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>{getTimeAgo()}</span>
+            {post.author_anonymous && (
+              <span className="flex items-center gap-1">
+                <User className="h-3 w-3" />
+                {post.author_anonymous}
+              </span>
+            )}
+          </div>
           
           <div className="flex items-center gap-1">
+            {post.url && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => window.open(post.url!, '_blank', 'noopener,noreferrer')}
+                className="h-8 text-xs"
+              >
+                <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                View Original
+              </Button>
+            )}
             {onAskAI && (
               <Button
                 variant="ghost"

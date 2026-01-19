@@ -19,6 +19,7 @@ export interface CommunityPost {
   is_solution: boolean | null;
   post_type: string | null;
   parent_post_id: string | null;
+  url: string | null;
 }
 
 export interface SearchFilters {
@@ -265,4 +266,30 @@ export const useRefreshCommunityData = () => {
     isRefreshing,
     refreshError,
   };
+};
+
+// Hook for fetching comments/replies for a specific post
+export const usePostComments = (postId: string | null) => {
+  return useQuery({
+    queryKey: ['post-comments', postId],
+    queryFn: async () => {
+      if (!postId) return [];
+      
+      const { data, error } = await supabase
+        .from('community_posts')
+        .select('*')
+        .eq('parent_post_id', postId)
+        .order('score', { ascending: false, nullsFirst: false });
+
+      if (error) throw error;
+      
+      return (data || []).map(post => ({
+        ...post,
+        sentiment: post.sentiment as 'positive' | 'neutral' | 'negative' | null,
+        topic_tags: post.topic_tags || [],
+      })) as CommunityPost[];
+    },
+    enabled: !!postId,
+    staleTime: 5 * 60 * 1000,
+  });
 };
