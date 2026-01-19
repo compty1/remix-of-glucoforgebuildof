@@ -13,6 +13,16 @@ interface IssueContext {
   category: string;
 }
 
+interface PostContext {
+  title: string;
+  content: string | null;
+  source: string;
+  score: number | null;
+  device_mentioned: string | null;
+  topic_tags: string[] | null;
+  url: string | null;
+}
+
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/t1d-companion-chat`;
 
 export function useT1DChat() {
@@ -22,7 +32,8 @@ export function useT1DChat() {
 
   const sendMessage = useCallback(async (
     content: string,
-    issueContext?: IssueContext
+    issueContext?: IssueContext,
+    postContext?: PostContext
   ) => {
     const userMessage: ChatMessage = {
       role: 'user',
@@ -68,7 +79,8 @@ export function useT1DChat() {
         },
         body: JSON.stringify({ 
           messages: apiMessages,
-          issueContext 
+          issueContext,
+          postContext,
         }),
       });
 
