@@ -24,6 +24,7 @@ import {
   Activity,
   Syringe,
   LayoutGrid,
+  FolderOpen,
   LucideIcon
 } from 'lucide-react';
 import {
@@ -60,6 +61,7 @@ const navigationItems = [
 const platformItems = [
   { title: "T1D Companion", url: "/t1d-companion", icon: MessageCircle },
   { title: "Community Solutions", url: "/community-solutions", icon: Users },
+  { title: "Projects", url: "/projects", icon: FolderOpen },
   { title: "Live Cure Monitoring", url: "/cure", icon: Beaker },
   { title: "FDA Safety Dashboard", url: "/fda-safety", icon: AlertTriangle },
   { title: "Innovation Hub", url: "/innovation", icon: Lightbulb },

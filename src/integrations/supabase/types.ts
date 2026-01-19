@@ -570,6 +570,57 @@ export type Database = {
         }
         Relationships: []
       }
+      diabetic_health_projects: {
+        Row: {
+          category: string
+          community_insights_summary: string | null
+          created_at: string
+          description: string
+          featured: boolean | null
+          id: string
+          official_research_summary: string | null
+          prevalence_percentage: number | null
+          slug: string
+          status: string
+          symptoms: string[] | null
+          title: string
+          updated_at: string
+          view_count: number | null
+        }
+        Insert: {
+          category: string
+          community_insights_summary?: string | null
+          created_at?: string
+          description: string
+          featured?: boolean | null
+          id?: string
+          official_research_summary?: string | null
+          prevalence_percentage?: number | null
+          slug: string
+          status?: string
+          symptoms?: string[] | null
+          title: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Update: {
+          category?: string
+          community_insights_summary?: string | null
+          created_at?: string
+          description?: string
+          featured?: boolean | null
+          id?: string
+          official_research_summary?: string | null
+          prevalence_percentage?: number | null
+          slug?: string
+          status?: string
+          symptoms?: string[] | null
+          title?: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Relationships: []
+      }
       discoveries: {
         Row: {
           ai_analysis: Json | null
@@ -1170,6 +1221,148 @@ export type Database = {
           id?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      project_community_solutions: {
+        Row: {
+          created_at: string
+          effectiveness_rating: number | null
+          id: string
+          project_id: string
+          solution_description: string
+          solution_title: string
+          source: string | null
+          source_url: string | null
+          upvotes: number | null
+        }
+        Insert: {
+          created_at?: string
+          effectiveness_rating?: number | null
+          id?: string
+          project_id: string
+          solution_description: string
+          solution_title: string
+          source?: string | null
+          source_url?: string | null
+          upvotes?: number | null
+        }
+        Update: {
+          created_at?: string
+          effectiveness_rating?: number | null
+          id?: string
+          project_id?: string
+          solution_description?: string
+          solution_title?: string
+          source?: string | null
+          source_url?: string | null
+          upvotes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_community_solutions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "diabetic_health_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_research_links: {
+        Row: {
+          authors: string | null
+          created_at: string
+          doi: string | null
+          id: string
+          key_findings: string | null
+          project_id: string
+          publication: string | null
+          publication_date: string | null
+          relevance_score: number | null
+          research_type: string
+          title: string
+          url: string | null
+        }
+        Insert: {
+          authors?: string | null
+          created_at?: string
+          doi?: string | null
+          id?: string
+          key_findings?: string | null
+          project_id: string
+          publication?: string | null
+          publication_date?: string | null
+          relevance_score?: number | null
+          research_type?: string
+          title: string
+          url?: string | null
+        }
+        Update: {
+          authors?: string | null
+          created_at?: string
+          doi?: string | null
+          id?: string
+          key_findings?: string | null
+          project_id?: string
+          publication?: string | null
+          publication_date?: string | null
+          relevance_score?: number | null
+          research_type?: string
+          title?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_research_links_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "diabetic_health_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_submissions: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          description: string
+          id: string
+          personal_experience: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          suggested_solutions: string | null
+          supporting_links: string[] | null
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          personal_experience?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          suggested_solutions?: string | null
+          supporting_links?: string[] | null
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          personal_experience?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          suggested_solutions?: string | null
+          supporting_links?: string[] | null
+          title?: string
+          user_id?: string | null
         }
         Relationships: []
       }
