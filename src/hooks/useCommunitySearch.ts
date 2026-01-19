@@ -294,6 +294,32 @@ export const useRefreshCommunityData = () => {
   };
 };
 
+// Hook for fetching a single post by post_id
+export const useSinglePost = (postId: string | null) => {
+  return useQuery({
+    queryKey: ['community-post', postId],
+    queryFn: async () => {
+      if (!postId) return null;
+      
+      const { data, error } = await supabase
+        .from('community_posts')
+        .select('*')
+        .eq('post_id', postId)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) return null;
+      
+      return {
+        ...data,
+        sentiment: data.sentiment as 'positive' | 'neutral' | 'negative' | null,
+        topic_tags: data.topic_tags || [],
+      } as CommunityPost;
+    },
+    enabled: !!postId,
+  });
+};
+
 // Hook for fetching comments/replies for a specific post
 export const usePostComments = (postId: string | null) => {
   return useQuery({

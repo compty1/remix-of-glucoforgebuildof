@@ -8,9 +8,18 @@ import { usePostComments } from '@/hooks/useCommunitySearch';
 interface PostCommentsProps {
   postId: string;
   isExpanded: boolean;
+  limit?: number;
+  showViewAll?: boolean;
+  onViewAllClick?: () => void;
 }
 
-export const PostComments: React.FC<PostCommentsProps> = ({ postId, isExpanded }) => {
+export const PostComments: React.FC<PostCommentsProps> = ({ 
+  postId, 
+  isExpanded, 
+  limit = 5,
+  showViewAll = false,
+  onViewAllClick,
+}) => {
   const { data: comments, isLoading, error } = usePostComments(isExpanded ? postId : null);
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
 
@@ -57,12 +66,16 @@ export const PostComments: React.FC<PostCommentsProps> = ({ postId, isExpanded }
     });
   };
 
+  // Apply limit to displayed comments
+  const displayedComments = limit ? comments.slice(0, limit) : comments;
+  const hasMoreComments = comments.length > displayedComments.length;
+
   return (
     <div className="space-y-3 pt-3 border-t">
       <span className="text-xs font-medium text-muted-foreground">
         {comments.length} {comments.length === 1 ? 'Comment' : 'Comments'}
       </span>
-      {comments.map((comment) => {
+      {displayedComments.map((comment) => {
         const isCommentExpanded = expandedComments.has(comment.id);
         const shouldTruncate = comment.content && comment.content.length > 200;
         const displayContent = isCommentExpanded || !shouldTruncate
@@ -106,6 +119,16 @@ export const PostComments: React.FC<PostCommentsProps> = ({ postId, isExpanded }
           </div>
         );
       })}
+      {(hasMoreComments || showViewAll) && onViewAllClick && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onViewAllClick}
+          className="h-7 px-2 text-xs text-primary"
+        >
+          View all {comments.length} comments
+        </Button>
+      )}
     </div>
   );
 };
