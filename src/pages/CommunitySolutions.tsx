@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, RefreshCw, AlertTriangle, Bell, Bookmark } from 'lucide-react';
+import { Users, RefreshCw, AlertTriangle, Bell, Bookmark, ChevronRight } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,6 +15,8 @@ import { TrendingSolutions } from '@/components/community/TrendingSolutions';
 import { DataRefreshBanner } from '@/components/community/DataRefreshBanner';
 import { SavedPostsList } from '@/components/community/SavedPostsList';
 import { AlertPreferencesModal } from '@/components/community/AlertPreferencesModal';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   useCommunitySearch, 
   useAvailableSources,
@@ -305,18 +307,26 @@ const CommunitySolutions: React.FC = () => {
                 <Card>
                   <CardContent className="pt-6">
                     <h3 className="font-semibold mb-3">Data Sources</h3>
-                    <ul className="text-sm text-muted-foreground space-y-2">
-                      <li>• r/diabetes</li>
-                      <li>• r/diabetes_t1</li>
-                      <li>• r/dexcom</li>
-                      <li>• r/omnipod</li>
-                      <li>• r/Type1Diabetes</li>
-                      <li>• r/InsulinPumps</li>
-                      <li>• r/tandemdiabetes</li>
-                      <li>• r/medtronicdiabetes</li>
-                      <li>• r/cgm</li>
-                      <li>• And more...</li>
-                    </ul>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Aggregating from <strong className="text-foreground">{availableSources.length}</strong> T1D communities
+                    </p>
+                    
+                    <Collapsible>
+                      <CollapsibleTrigger className="flex items-center gap-2 text-sm text-primary hover:underline cursor-pointer group">
+                        <ChevronRight className="h-4 w-4 transition-transform group-data-[state=open]:rotate-90" />
+                        View all sources
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <ScrollArea className="h-48 mt-2 rounded border p-2">
+                          <ul className="text-xs text-muted-foreground space-y-1">
+                            {availableSources.map((source) => (
+                              <li key={source}>• {source}</li>
+                            ))}
+                          </ul>
+                        </ScrollArea>
+                      </CollapsibleContent>
+                    </Collapsible>
+                    
                     <p className="text-xs text-muted-foreground mt-3 pt-3 border-t">
                       Data refreshed regularly. All personally identifiable information is removed.
                     </p>
