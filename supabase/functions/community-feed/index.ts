@@ -72,14 +72,18 @@ function stripPII(text: string): string {
 
 function detectDeviceMention(text: string): string | null {
   const deviceKeywords = {
-    'dexcom': ['dexcom', 'g6', 'g7'],
-    'omnipod': ['omnipod', 'pod 5', 'dash'],
-    'tandem': ['tandem', 't:slim', 'tslim', 'control-iq', 'mobi'],
-    'medtronic': ['medtronic', '670g', '780g', 'minimed'],
+    'dexcom': ['dexcom', 'g6', 'g7', 'stelo', 'dexcom one'],
+    'omnipod': ['omnipod', 'pod 5', 'dash', 'omnipod 5', 'o5'],
+    'tandem': ['tandem', 't:slim', 'tslim', 'control-iq', 'mobi', 'tandem mobi'],
+    'medtronic': ['medtronic', '670g', '780g', 'minimed', '770g', 'guardian 4'],
     'freestyle': ['freestyle', 'libre', 'libre 2', 'libre 3'],
-    'guardian': ['guardian', 'guardian 4'],
-    'eversense': ['eversense', 'implant sensor'],
+    'guardian': ['guardian', 'guardian 4', 'guardian sensor'],
+    'eversense': ['eversense', 'implant sensor', 'senseonics'],
     'insulet': ['insulet'],
+    'ilet': ['ilet', 'beta bionics', 'bionic pancreas'],
+    'tidepool': ['tidepool', 'tidepool loop'],
+    'ypsoloop': ['ypsopump', 'ypsoloop', 'ypsomed'],
+    'inpen': ['inpen', 'companion medical', 'smart pen'],
   };
   
   const lowerText = text.toLowerCase();
@@ -106,7 +110,7 @@ function analyzeSentiment(text: string): string {
   return 'neutral';
 }
 
-// Enhanced topic detection
+// Enhanced topic detection with expanded categories
 function detectTopics(text: string): string[] {
   const topicKeywords: Record<string, string[]> = {
     'glucose_lows': ['low', 'hypo', 'hypoglycemia', 'crash', 'dropping', 'shaking', 'sweating', 'below 70', 'below 80'],
@@ -121,6 +125,15 @@ function detectTopics(text: string): string[] {
     'tech': ['loop', 'diy', 'openaps', 'nightscout', 'xdrip', 'aaps', 'algorithm', 'closed loop', 'automated'],
     'insurance': ['insurance', 'coverage', 'cost', 'expensive', 'affordable', 'prior auth', 'pharmacy', 'supplies'],
     'pregnancy': ['pregnancy', 'pregnant', 'baby', 'gestational', 'fertility', 'a1c goal'],
+    // NEW CATEGORIES
+    'parenting': ['parent', 'child', 'kid', 'pediatric', 'school', 'daycare', 'caregiver', 'babysitter', 'son', 'daughter', 'teen', 'toddler', 'school nurse'],
+    'athletics': ['athlete', 'marathon', 'triathlon', 'swimming', 'competition', 'race', 'training', 'ironman', 'crossfit', 'soccer', 'basketball', 'football'],
+    'keto': ['keto', 'ketogenic', 'low carb', 'carnivore', 'paleo', 'fasting', 'intermittent fasting', 'bernstein', 'carb restriction'],
+    'burnout': ['burnout', 'exhausted', 'overwhelmed', 'giving up', 'tired of diabetes', 'mental load', 'chronic illness fatigue', 'diabetes distress'],
+    'regional': ['nhs', 'medicare', 'ndss', 'bulk bill', 'insulin cap', 'healthcare system', 'universal healthcare', 'canadian pharmacy', 'uk healthcare'],
+    'college': ['college', 'university', 'dorm', 'freshman', 'roommate', 'campus', 'dining hall', 'student health'],
+    'workplace': ['work', 'job', 'office', 'employer', 'hr', 'disability', 'accommodations', 'desk job', 'coworker'],
+    'dating': ['dating', 'relationship', 'partner', 'spouse', 'marriage', 'intimacy', 'telling someone', 'first date'],
   };
   
   const lowerText = text.toLowerCase();
@@ -245,8 +258,9 @@ Deno.serve(async (req) => {
 
     console.log('Starting enhanced community feed fetch process');
 
-    // Greatly expanded subreddit list for more content
+    // Greatly expanded subreddit list - 50+ T1D-related communities
     const subreddits = [
+      // Core T1D Communities (Original)
       'diabetes', 
       'dexcom', 
       'omnipod', 
@@ -262,7 +276,6 @@ Deno.serve(async (req) => {
       'loopkit',
       'AndroidAPS',
       'Nightscout',
-      // Additional subreddits for more content
       'DiabetesType1',
       'DiabetesTech',
       'Diabetics',
@@ -271,6 +284,62 @@ Deno.serve(async (req) => {
       'insulinpumpers',
       'GestationalDiabetes',
       'diabeticmemes',
+      
+      // NEW: Device & Technology Focused
+      'diabetes_tech',
+      'iLet',
+      'Tidepool',
+      'OpenAPS',
+      'Eversense',
+      'GuardianSensor',
+      'ControlIQ',
+      'OmniPod5',
+      'DexcomG7',
+      'DexcomG6',
+      'Libre3',
+      'MiniMed',
+      
+      // NEW: Age/Life Stage Focused
+      'diabetes_parents',
+      't1d_parents',
+      'Type1Kids',
+      'DiabetesTeens',
+      'CollegeDiabetics',
+      't1d_adults',
+      'SeniorDiabetics',
+      'PediatricDiabetes',
+      
+      // NEW: Lifestyle & Special Topics
+      'diabeticketo',
+      'diabeticfitness',
+      'diabeticathletes',
+      'diabetesrunners',
+      'DiabetesTravel',
+      'T1Dpregnancy',
+      'diabetesweightloss',
+      'diabeticfoodies',
+      
+      // NEW: Support & Mental Health
+      'DiabetesBurnout',
+      'Type1Support',
+      'DiabulimiaRecovery',
+      'DiabetesSpouses',
+      'ChronicIllness',
+      'diabetes_support',
+      
+      // NEW: Regional/International
+      'DiabetesUK',
+      'DiabetesAustralia',
+      'DiabetesCanada',
+      'DiabetesEurope',
+      'DiabetesNZ',
+      
+      // NEW: Specific Topics
+      'InsulinResistance',
+      'A1C',
+      'diabetesnews',
+      'diabetesscience',
+      'diabeticpets',
     ];
     
     const allPosts: any[] = [];
