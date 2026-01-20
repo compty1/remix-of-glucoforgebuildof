@@ -2,15 +2,24 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building2, MapPin, DollarSign, Calendar, Users, ExternalLink } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Building2, MapPin, DollarSign, Calendar, Users, GitCompare } from 'lucide-react';
 import { T1DCompany } from '@/hooks/useT1DCompanies';
 import { VerifiedLink } from '@/components/ui/verified-link';
 
 interface CompanyCardProps {
   company: T1DCompany;
+  isSelected?: boolean;
+  onToggleCompare?: (id: string) => void;
+  showCompareCheckbox?: boolean;
 }
 
-export function CompanyCard({ company }: CompanyCardProps) {
+export function CompanyCard({ 
+  company, 
+  isSelected = false, 
+  onToggleCompare, 
+  showCompareCheckbox = false 
+}: CompanyCardProps) {
   const formatFunding = (amount: number | null) => {
     if (!amount) return 'N/A';
     if (amount >= 1000000000) return `$${(amount / 1000000000).toFixed(1)}B`;
@@ -30,9 +39,21 @@ export function CompanyCard({ company }: CompanyCardProps) {
   };
 
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30">
+    <Card className={`group hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30 ${isSelected ? 'ring-2 ring-primary' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
+          {showCompareCheckbox && onToggleCompare && (
+            <div 
+              className="flex items-center justify-center pt-1"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={() => onToggleCompare(company.id)}
+                aria-label={`Add ${company.name} to comparison`}
+              />
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <Link 
               to={`/companies/${company.id}`}

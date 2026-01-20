@@ -8,10 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { InfoRail } from '@/components/InfoRail';
 import { CompanyCard } from '@/components/companies/CompanyCard';
+import CompanyComparisonBar from '@/components/companies/CompanyComparisonBar';
+import FundingTimelineChart from '@/components/companies/FundingTimelineChart';
 import { useT1DCompanies, CompanyFilters } from '@/hooks/useT1DCompanies';
 import { 
   Search, Building2, DollarSign, TrendingUp, Globe, 
-  Filter, RefreshCw, Users, Beaker, Heart
+  Filter, RefreshCw, Users, Beaker, Heart, GitCompare
 } from 'lucide-react';
 
 const Companies = () => {
@@ -19,6 +21,7 @@ const Companies = () => {
   const [companyType, setCompanyType] = useState<string>('');
   const [focusArea, setFocusArea] = useState<string>('');
   const [country, setCountry] = useState<string>('');
+  const [selectedForComparison, setSelectedForComparison] = useState<string[]>([]);
 
   const filters: CompanyFilters = useMemo(() => ({
     search: searchQuery,
@@ -28,6 +31,22 @@ const Companies = () => {
   }), [searchQuery, companyType, focusArea, country]);
 
   const { companies, loading, error, stats, refetch } = useT1DCompanies(filters);
+
+  const toggleCompareSelection = (id: string) => {
+    setSelectedForComparison(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(cId => cId !== id);
+      }
+      if (prev.length >= 4) return prev;
+      return [...prev, id];
+    });
+  };
+
+  const selectedCompaniesInfo = useMemo(() => {
+    return companies
+      .filter(c => selectedForComparison.includes(c.id))
+      .map(c => ({ id: c.id, name: c.name }));
+  }, [companies, selectedForComparison]);
 
   // Get unique values for filters
   const focusAreas = useMemo(() => {
@@ -72,6 +91,14 @@ const Companies = () => {
             Explore {stats?.totalCompanies || 60}+ companies and startups working to transform 
             Type 1 diabetes treatment, from CGM technology to cure research.
           </p>
+          <p className="text-sm text-muted-foreground">
+            <GitCompare className="h-4 w-4 inline mr-1" />
+            Select up to 4 companies to compare side-by-side
+          </p>
+        </div>
+
+        {/* Funding Timeline Chart */}
+        <FundingTimelineChart />
         </div>
 
         {/* Stats Overview */}
@@ -277,7 +304,13 @@ const Companies = () => {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {companies.map(company => (
-                      <CompanyCard key={company.id} company={company} />
+                      <CompanyCard 
+                        key={company.id} 
+                        company={company}
+                        isSelected={selectedForComparison.includes(company.id)}
+                        onToggleCompare={toggleCompareSelection}
+                        showCompareCheckbox={true}
+                      />
                     ))}
                   </div>
                 )}
@@ -348,6 +381,13 @@ const Companies = () => {
             </Card>
           </div>
         </div>
+
+        {/* Company Comparison Bar */}
+        <CompanyComparisonBar 
+          selectedCompanies={selectedCompaniesInfo}
+          onRemove={(id) => setSelectedForComparison(prev => prev.filter(cId => cId !== id))}
+          onClearAll={() => setSelectedForComparison([])}
+        />
       </div>
     </Layout>
   );
