@@ -2154,39 +2154,60 @@ export type Database = {
       }
       uploads: {
         Row: {
+          agp_data: Json | null
+          ai_insights: Json | null
           analysis_results: Json | null
+          daily_data: Json | null
+          detailed_analysis: Json | null
           file_name: string
           file_size: number | null
           file_type: string | null
+          hourly_data: Json | null
           id: string
           insights: string[] | null
+          patterns: Json | null
           readings_count: number | null
+          recommendations: string[] | null
           status: string | null
           storage_path: string | null
           uploaded_at: string
           user_id: string
         }
         Insert: {
+          agp_data?: Json | null
+          ai_insights?: Json | null
           analysis_results?: Json | null
+          daily_data?: Json | null
+          detailed_analysis?: Json | null
           file_name: string
           file_size?: number | null
           file_type?: string | null
+          hourly_data?: Json | null
           id?: string
           insights?: string[] | null
+          patterns?: Json | null
           readings_count?: number | null
+          recommendations?: string[] | null
           status?: string | null
           storage_path?: string | null
           uploaded_at?: string
           user_id: string
         }
         Update: {
+          agp_data?: Json | null
+          ai_insights?: Json | null
           analysis_results?: Json | null
+          daily_data?: Json | null
+          detailed_analysis?: Json | null
           file_name?: string
           file_size?: number | null
           file_type?: string | null
+          hourly_data?: Json | null
           id?: string
           insights?: string[] | null
+          patterns?: Json | null
           readings_count?: number | null
+          recommendations?: string[] | null
           status?: string | null
           storage_path?: string | null
           uploaded_at?: string
