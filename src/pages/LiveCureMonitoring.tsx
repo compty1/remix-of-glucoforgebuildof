@@ -21,7 +21,8 @@ import {
   Search,
   ArrowRight,
   AlertCircle,
-  FileText
+  FileText,
+  Sparkles
 } from 'lucide-react';
 
 const LiveCureMonitoring = () => {
@@ -37,12 +38,20 @@ const LiveCureMonitoring = () => {
   
   const categories = ['All', ...Array.from(new Set(therapies.map(t => t.category)))];
   
-  const filteredTherapies = therapies.filter(therapy => {
-    const matchesSearch = therapy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         therapy.sponsor.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === 'All' || therapy.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredTherapies = therapies
+    .filter(therapy => {
+      const matchesSearch = therapy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           therapy.sponsor.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === 'All' || therapy.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      // Featured therapies first
+      if (a.is_featured && !b.is_featured) return -1;
+      if (!a.is_featured && b.is_featured) return 1;
+      // Then by confidence score
+      return (b.confidence_score || 0) - (a.confidence_score || 0);
+    });
 
   const getPhaseColor = (phase: string) => {
     if (phase.includes('III') || phase === 'Approved') return 'bg-success text-success-foreground';
@@ -228,14 +237,27 @@ const LiveCureMonitoring = () => {
             </div>
           ) : (
             filteredTherapies.map((therapy) => (
-              <Card key={therapy.id} className="command-center-widget">
+              <Card key={therapy.id} className="command-center-widget relative">
                 <CardHeader>
                   <div className="flex justify-between items-start mb-3">
-                    <Badge className={getPhaseColor(therapy.phase)}>{therapy.phase}</Badge>
+                    <div className="flex gap-2 flex-wrap">
+                      {therapy.is_featured && (
+                        <Badge className="bg-amber-500 text-white gap-1">
+                          <Sparkles className="h-3 w-3" />
+                          Featured
+                        </Badge>
+                      )}
+                      <Badge className={getPhaseColor(therapy.phase)}>{therapy.phase}</Badge>
+                    </div>
                     <Badge variant="outline">{therapy.category}</Badge>
                   </div>
                   <CardTitle className="text-xl font-heading">{therapy.name}</CardTitle>
                   <p className="text-sm text-muted-foreground">{therapy.sponsor}</p>
+                  {therapy.approach_type && (
+                    <Badge variant="secondary" className="mt-2 w-fit">
+                      {therapy.approach_type}
+                    </Badge>
+                  )}
                 </CardHeader>
                 
                 <CardContent>
@@ -259,8 +281,8 @@ const LiveCureMonitoring = () => {
                       <span className="text-sm font-medium">Confidence Score</span>
                       <div className="flex items-center gap-2">
                         <div className={`text-lg font-bold ${
-                          therapy.confidence_score >= 80 ? 'text-success' :
-                          therapy.confidence_score >= 60 ? 'text-warning' : 'text-muted-foreground'
+                          (therapy.confidence_score || 0) >= 80 ? 'text-success' :
+                          (therapy.confidence_score || 0) >= 60 ? 'text-warning' : 'text-muted-foreground'
                         }`}>
                           {therapy.confidence_score}%
                         </div>
