@@ -63,6 +63,9 @@ export const SurveyModal: React.FC<SurveyModalProps> = ({
   const [showCompletion, setShowCompletion] = useState(false);
   const startTimeRef = useRef<number>(Date.now());
   const [elapsedTime, setElapsedTime] = useState(0);
+  
+  // Watch all form values at top level to avoid hooks inside render functions
+  const watchedValues = watch();
 
   // Timer effect - must be before any conditional returns
   useEffect(() => {
@@ -268,7 +271,7 @@ export const SurveyModal: React.FC<SurveyModalProps> = ({
         );
 
       case 'scale':
-        const currentValue = watch(fieldName) || [5];
+        const currentValue = watchedValues[fieldName] || [5];
         const minVal = question.min || 1;
         const maxVal = question.max || 10;
         return (
