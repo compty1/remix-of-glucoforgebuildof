@@ -9,14 +9,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 import { 
   BarChart3,
   Activity,
   TrendingUp,
   Lightbulb,
   Target,
-  Download
+  Download,
+  Loader2
 } from 'lucide-react';
+import jsPDF from 'jspdf';
 
 import GlucoseMetricsGrid from './GlucoseMetricsGrid';
 import GlucoseAGPChart from './GlucoseAGPChart';
@@ -93,6 +97,13 @@ interface AGPDataPoint {
   p95: number;
 }
 
+interface AIInsights {
+  summary?: string;
+  keyFindings?: string[];
+  priorityActions?: string[];
+  encouragement?: string;
+}
+
 interface AnalysisResultsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -105,6 +116,7 @@ interface AnalysisResultsModalProps {
   agpData?: AGPDataPoint[];
   patterns?: Pattern[];
   recommendations?: string[];
+  aiInsights?: AIInsights;
 }
 
 const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
@@ -119,10 +131,136 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
   agpData,
   patterns,
   recommendations,
+  aiInsights,
 }) => {
   const [activeTab, setActiveTab] = useState('overview');
+  const [isExporting, setIsExporting] = useState(false);
 
   const hasDetailedData = detailedAnalysis && (detailedAnalysis.readingsCount ?? 0) > 0;
+
+  const exportReport = async () => {
+    setIsExporting(true);
+    try {
+      const pdf = new jsPDF();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      let yPos = 20;
+      
+      // Title
+      pdf.setFontSize(20);
+      pdf.setTextColor(33, 33, 33);
+      pdf.text('Glucose Analysis Report', pageWidth / 2, yPos, { align: 'center' });
+      yPos += 10;
+      
+      // File info
+      pdf.setFontSize(10);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(`File: ${fileName}`, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 5;
+      pdf.text(`Generated: ${new Date().toLocaleString()}`, pageWidth / 2, yPos, { align: 'center' });
+      yPos += 15;
+      
+      // Key Metrics
+      if (detailedAnalysis) {
+        pdf.setFontSize(14);
+        pdf.setTextColor(33, 33, 33);
+        pdf.text('Key Metrics', 20, yPos);
+        yPos += 10;
+        
+        pdf.setFontSize(10);
+        pdf.setTextColor(66, 66, 66);
+        
+        const metrics = [
+          `Readings Analyzed: ${detailedAnalysis.readingsCount?.toLocaleString() || 'N/A'}`,
+          `Days of Data: ${detailedAnalysis.daysOfData || 'N/A'}`,
+          `Average Glucose: ${detailedAnalysis.avgGlucose?.toFixed(0) || 'N/A'} mg/dL`,
+          `Time in Range (70-180): ${detailedAnalysis.timeInRange?.toFixed(1) || 'N/A'}%`,
+          `CV (Variability): ${detailedAnalysis.cv?.toFixed(1) || 'N/A'}%`,
+          `GMI: ${detailedAnalysis.gmi?.toFixed(1) || 'N/A'}%`,
+        ];
+        
+        metrics.forEach(metric => {
+          pdf.text(`• ${metric}`, 25, yPos);
+          yPos += 6;
+        });
+        yPos += 10;
+      }
+      
+      // Patterns
+      if (patterns && patterns.length > 0) {
+        pdf.setFontSize(14);
+        pdf.setTextColor(33, 33, 33);
+        pdf.text('Detected Patterns', 20, yPos);
+        yPos += 10;
+        
+        pdf.setFontSize(10);
+        patterns.forEach(pattern => {
+          if (yPos > 270) {
+            pdf.addPage();
+            yPos = 20;
+          }
+          pdf.setTextColor(pattern.severity === 'critical' ? 180 : pattern.severity === 'warning' ? 200 : 66, 
+                           pattern.severity === 'critical' ? 0 : pattern.severity === 'warning' ? 150 : 66, 
+                           66);
+          pdf.text(`• ${pattern.title}`, 25, yPos);
+          yPos += 6;
+          pdf.setTextColor(100, 100, 100);
+          const descLines = pdf.splitTextToSize(pattern.description, pageWidth - 50);
+          descLines.forEach((line: string) => {
+            if (yPos > 270) {
+              pdf.addPage();
+              yPos = 20;
+            }
+            pdf.text(line, 30, yPos);
+            yPos += 5;
+          });
+          yPos += 3;
+        });
+        yPos += 10;
+      }
+      
+      // Recommendations
+      if (recommendations && recommendations.length > 0) {
+        if (yPos > 240) {
+          pdf.addPage();
+          yPos = 20;
+        }
+        
+        pdf.setFontSize(14);
+        pdf.setTextColor(33, 33, 33);
+        pdf.text('Recommendations', 20, yPos);
+        yPos += 10;
+        
+        pdf.setFontSize(10);
+        pdf.setTextColor(66, 66, 66);
+        recommendations.forEach(rec => {
+          if (yPos > 270) {
+            pdf.addPage();
+            yPos = 20;
+          }
+          const recLines = pdf.splitTextToSize(`• ${rec}`, pageWidth - 50);
+          recLines.forEach((line: string) => {
+            pdf.text(line, 25, yPos);
+            yPos += 5;
+          });
+          yPos += 2;
+        });
+      }
+      
+      // Footer
+      pdf.setFontSize(8);
+      pdf.setTextColor(150, 150, 150);
+      pdf.text('Discuss these results with your healthcare provider before making any treatment changes.', 
+               pageWidth / 2, 285, { align: 'center' });
+      
+      pdf.save(`glucose-analysis-${fileName.replace(/\.[^/.]+$/, '')}.pdf`);
+      toast.success('Report exported successfully');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export report');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -167,6 +305,19 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
             <ScrollArea className="flex-1 max-h-[calc(90vh-140px)]">
               <div className="p-6">
                 <TabsContent value="overview" className="mt-0 space-y-6">
+                  {/* AI Summary Card */}
+                  {aiInsights?.summary && (
+                    <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                      <h3 className="font-semibold text-primary mb-2 flex items-center gap-2">
+                        ✨ AI Summary
+                      </h3>
+                      <p className="text-sm text-muted-foreground">{aiInsights.summary}</p>
+                      {aiInsights.encouragement && (
+                        <p className="text-sm text-primary mt-2">{aiInsights.encouragement}</p>
+                      )}
+                    </div>
+                  )}
+                  
                   <GlucoseMetricsGrid analysis={detailedAnalysis} />
                   
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -177,31 +328,85 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
                       timeBelow70={detailedAnalysis.timeBelow70 ?? 0}
                       timeBelow54={detailedAnalysis.timeBelow54 ?? 0}
                     />
-                    {hourlyData && hourlyData.length > 0 && (
+                    {hourlyData && hourlyData.length > 0 ? (
                       <GlucoseHeatmap data={hourlyData} />
+                    ) : (
+                      <div className="p-6 border rounded-lg">
+                        <Skeleton className="h-48 w-full" />
+                      </div>
                     )}
                   </div>
                 </TabsContent>
 
                 <TabsContent value="agp" className="mt-0 space-y-6">
-                  {agpData && agpData.length > 0 && (
+                  {agpData && agpData.length > 0 ? (
                     <GlucoseAGPChart data={agpData} />
+                  ) : (
+                    <div className="p-6 border rounded-lg">
+                      <Skeleton className="h-64 w-full" />
+                    </div>
                   )}
-                  {dailyData && dailyData.length > 0 && (
+                  {dailyData && dailyData.length > 0 ? (
                     <GlucoseTrendChart data={dailyData} />
+                  ) : (
+                    <div className="p-6 border rounded-lg">
+                      <Skeleton className="h-48 w-full" />
+                    </div>
                   )}
                 </TabsContent>
 
                 <TabsContent value="trends" className="mt-0 space-y-6">
-                  {dailyData && dailyData.length > 0 && (
+                  {dailyData && dailyData.length > 0 ? (
                     <GlucoseTrendChart data={dailyData} />
+                  ) : (
+                    <div className="p-6 border rounded-lg">
+                      <Skeleton className="h-48 w-full" />
+                    </div>
                   )}
-                  {hourlyData && hourlyData.length > 0 && (
+                  {hourlyData && hourlyData.length > 0 ? (
                     <GlucoseHeatmap data={hourlyData} />
+                  ) : (
+                    <div className="p-6 border rounded-lg">
+                      <Skeleton className="h-48 w-full" />
+                    </div>
                   )}
                 </TabsContent>
 
                 <TabsContent value="insights" className="mt-0 space-y-6">
+                  {/* AI Key Findings */}
+                  {aiInsights?.keyFindings && aiInsights.keyFindings.length > 0 && (
+                    <div className="p-4 rounded-lg bg-blue-500/5 border border-blue-500/20">
+                      <h3 className="font-semibold text-blue-600 dark:text-blue-400 mb-3">
+                        🔬 AI Key Findings
+                      </h3>
+                      <ul className="space-y-2">
+                        {aiInsights.keyFindings.map((finding, index) => (
+                          <li key={index} className="text-sm flex items-start gap-2">
+                            <span className="text-blue-500">•</span>
+                            <span>{finding}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {/* AI Priority Actions */}
+                  {aiInsights?.priorityActions && aiInsights.priorityActions.length > 0 && (
+                    <div className="p-4 rounded-lg bg-amber-500/5 border border-amber-500/20">
+                      <h3 className="font-semibold text-amber-600 dark:text-amber-400 mb-3">
+                        ⚡ Priority Actions
+                      </h3>
+                      <ul className="space-y-2">
+                        {aiInsights.priorityActions.map((action, index) => (
+                          <li key={index} className="text-sm flex items-start gap-2">
+                            <span className="text-amber-500">{index + 1}.</span>
+                            <span>{action}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
                   {patterns && patterns.length > 0 && (
                     <div className="space-y-3">
                       <h3 className="font-semibold flex items-center gap-2">
@@ -256,8 +461,17 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
           <p className="text-xs text-muted-foreground">
             💡 Discuss these results with your healthcare provider
           </p>
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={exportReport}
+            disabled={isExporting}
+          >
+            {isExporting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
             Export Report
           </Button>
         </div>

@@ -84,36 +84,191 @@ interface PatternResult {
 }
 
 interface DetailedAnalysis {
-  // Basic metrics
   readingsCount: number;
   avgGlucose: number;
   medianGlucose: number;
   stdDev: number;
   cv: number;
-  
-  // Time in Range metrics
   timeInRange: number;
   timeInTightRange: number;
   timeAbove180: number;
   timeAbove250: number;
   timeBelow70: number;
   timeBelow54: number;
-  
-  // Advanced metrics
   gmi: number;
   gvi: number;
   mage: number;
-  
-  // Event counts
   lowEvents: number;
   severeLowEvents: number;
   highEvents: number;
   severeHighEvents: number;
-  
-  // Date range
   dataStart: string;
   dataEnd: string;
   daysOfData: number;
+}
+
+// ============= DATE VALIDATION =============
+// Filter out invalid readings with impossible dates
+function validateReadings(readings: GlucoseReading[]): GlucoseReading[] {
+  const now = new Date();
+  const minDate = new Date('2010-01-01'); // CGMs weren't common before this
+  const maxDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // Max 1 week in future
+  
+  return readings.filter(r => {
+    // Validate timestamp
+    if (!r.timestamp || isNaN(r.timestamp.getTime())) return false;
+    if (r.timestamp < minDate) return false;
+    if (r.timestamp > maxDate) return false;
+    
+    // Validate glucose value (physiologically possible range)
+    if (!r.value || isNaN(r.value)) return false;
+    if (r.value < 20 || r.value > 500) return false;
+    
+    return true;
+  });
+}
+
+// Validate and clamp analysis results to catch impossible values
+function validateAnalysisResults(analysis: DetailedAnalysis): DetailedAnalysis {
+  const validated = { ...analysis };
+  
+  // Clamp impossible values
+  if (validated.daysOfData > 365 * 5) validated.daysOfData = Math.min(validated.daysOfData, 365);
+  if (validated.cv > 150) validated.cv = Math.min(validated.cv, 100);
+  if (validated.gvi > 10) validated.gvi = Math.min(validated.gvi, 5);
+  
+  // Ensure percentages are in valid range
+  validated.timeInRange = Math.max(0, Math.min(100, validated.timeInRange));
+  validated.timeInTightRange = Math.max(0, Math.min(100, validated.timeInTightRange));
+  validated.timeAbove180 = Math.max(0, Math.min(100, validated.timeAbove180));
+  validated.timeAbove250 = Math.max(0, Math.min(100, validated.timeAbove250));
+  validated.timeBelow70 = Math.max(0, Math.min(100, validated.timeBelow70));
+  validated.timeBelow54 = Math.max(0, Math.min(100, validated.timeBelow54));
+  
+  // Check that TIR percentages sum roughly to 100
+  const total = validated.timeInRange + validated.timeAbove180 + validated.timeBelow70;
+  if (Math.abs(total - 100) > 5) {
+    // Recalculate based on readings count if available
+    console.warn(`TIR percentages sum to ${total.toFixed(1)}%, expected ~100%`);
+  }
+  
+  return validated;
+}
+
+// ============= FILE FORMAT DETECTION =============
+function detectFileFormat(filename: string, content: string): 'pdf' | 'csv' | 'json' | 'txt' | 'unknown' {
+  const lowerFilename = filename.toLowerCase();
+  
+  // Check by extension first
+  if (lowerFilename.endsWith('.pdf') || content.startsWith('%PDF')) {
+    return 'pdf';
+  }
+  if (lowerFilename.endsWith('.json')) {
+    return 'json';
+  }
+  if (lowerFilename.endsWith('.csv')) {
+    return 'csv';
+  }
+  if (lowerFilename.endsWith('.txt')) {
+    return 'txt';
+  }
+  
+  // Try to detect from content
+  const trimmed = content.trim();
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    return 'json';
+  }
+  if (trimmed.includes(',') && (trimmed.includes('glucose') || trimmed.includes('timestamp') || trimmed.includes('date'))) {
+    return 'csv';
+  }
+  
+  return 'unknown';
+}
+
+// ============= PDF PARSING WITH AI =============
+async function extractReadingsFromPDFWithAI(pdfTextContent: string, filename: string): Promise<GlucoseReading[]> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  
+  if (!LOVABLE_API_KEY) {
+    console.error("LOVABLE_API_KEY not configured for PDF parsing");
+    return [];
+  }
+  
+  // Clean up PDF content - remove binary garbage
+  const cleanContent = pdfTextContent
+    .replace(/[\x00-\x1F\x7F-\x9F]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .slice(0, 15000); // Limit content size
+  
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content: `You are a specialized CGM data extractor. Your task is to extract glucose readings from PDF report content.
+
+CRITICAL RULES:
+1. Extract ONLY valid glucose readings with timestamps
+2. Dates must be realistic (between 2015 and current year)
+3. Glucose values must be in mg/dL (typically 40-400)
+4. Return ONLY a valid JSON array - no explanations
+5. If no valid readings can be extracted, return empty array []
+
+Output format: [{"timestamp": "YYYY-MM-DD HH:mm", "value": number}, ...]`
+          },
+          {
+            role: "user",
+            content: `Extract all glucose readings from this CGM report PDF content:\n\n${cleanContent}`
+          }
+        ],
+        max_tokens: 4000,
+        temperature: 0.1
+      }),
+    });
+    
+    if (!response.ok) {
+      console.error(`AI extraction failed: ${response.status}`);
+      return [];
+    }
+    
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content || '';
+    
+    // Try to parse JSON from the response
+    const jsonMatch = content.match(/\[[\s\S]*\]/);
+    if (!jsonMatch) {
+      console.log("No JSON array found in AI response");
+      return [];
+    }
+    
+    const parsed = JSON.parse(jsonMatch[0]);
+    const readings: GlucoseReading[] = [];
+    
+    for (const item of parsed) {
+      if (item.timestamp && item.value) {
+        const timestamp = new Date(item.timestamp);
+        const value = parseFloat(item.value);
+        
+        if (!isNaN(timestamp.getTime()) && !isNaN(value) && value > 20 && value < 500) {
+          readings.push({ timestamp, value });
+        }
+      }
+    }
+    
+    console.log(`AI extracted ${readings.length} readings from PDF`);
+    return readings;
+    
+  } catch (error) {
+    console.error("Error during AI PDF extraction:", error);
+    return [];
+  }
 }
 
 function detectCSVFormat(content: string): 'dexcom' | 'libre' | 'generic' {
@@ -390,7 +545,7 @@ function calculateMAGE(readings: GlucoseReading[], stdDev: number): number {
   return excursions.reduce((a, b) => a + b, 0) / excursions.length;
 }
 
-// Detect patterns in glucose data
+// Enhanced pattern detection
 function detectPatterns(readings: GlucoseReading[], hourlyStats: HourlyStats[]): PatternResult[] {
   const patterns: PatternResult[] = [];
   
@@ -443,30 +598,78 @@ function detectPatterns(readings: GlucoseReading[], hourlyStats: HourlyStats[]):
   // Overnight stability check (11 PM - 4 AM)
   const overnightHours = hourlyStats.filter(h => h.hour >= 23 || h.hour <= 4);
   if (overnightHours.length > 0) {
-    const overnightValues = overnightHours.map(h => h.avg);
-    const overnightMean = overnightValues.reduce((a, b) => a + b, 0) / overnightValues.length;
-    const overnightStdDev = Math.sqrt(
-      overnightValues.reduce((sum, v) => sum + Math.pow(v - overnightMean, 2), 0) / overnightValues.length
-    );
-    const overnightCV = (overnightStdDev / overnightMean) * 100;
-    
-    if (overnightCV < 20) {
-      patterns.push({
-        type: 'overnight_stability',
-        severity: 'info',
-        title: 'Excellent Overnight Stability',
-        description: `Your overnight glucose variability is ${Math.round(overnightCV)}% CV, indicating well-tuned basal rates. Keep up the great work!`,
-        timeOfDay: '11:00 PM - 4:00 AM'
-      });
-    } else if (overnightCV > 36) {
-      patterns.push({
-        type: 'overnight_instability',
-        severity: 'warning',
-        title: 'Overnight Variability',
-        description: `Your overnight glucose variability is ${Math.round(overnightCV)}% CV. Consider reviewing basal rates or late snacks.`,
-        timeOfDay: '11:00 PM - 4:00 AM'
-      });
+    const overnightValues = overnightHours.map(h => h.avg).filter(v => v > 0);
+    if (overnightValues.length > 0) {
+      const overnightMean = overnightValues.reduce((a, b) => a + b, 0) / overnightValues.length;
+      const overnightStdDev = Math.sqrt(
+        overnightValues.reduce((sum, v) => sum + Math.pow(v - overnightMean, 2), 0) / overnightValues.length
+      );
+      const overnightCV = overnightMean > 0 ? (overnightStdDev / overnightMean) * 100 : 0;
+      
+      if (overnightCV > 0 && overnightCV < 20) {
+        patterns.push({
+          type: 'overnight_stability',
+          severity: 'info',
+          title: 'Excellent Overnight Stability',
+          description: `Your overnight glucose variability is ${Math.round(overnightCV)}% CV, indicating well-tuned basal rates. Keep up the great work!`,
+          timeOfDay: '11:00 PM - 4:00 AM'
+        });
+      } else if (overnightCV > 36) {
+        patterns.push({
+          type: 'overnight_instability',
+          severity: 'warning',
+          title: 'Overnight Variability',
+          description: `Your overnight glucose variability is ${Math.round(overnightCV)}% CV. Consider reviewing basal rates or late snacks.`,
+          timeOfDay: '11:00 PM - 4:00 AM'
+        });
+      }
     }
+  }
+  
+  // Exercise drop detection (rapid decline in afternoon)
+  const afternoonHours = hourlyStats.filter(h => h.hour >= 14 && h.hour <= 18);
+  if (afternoonHours.length >= 2) {
+    for (let i = 1; i < afternoonHours.length; i++) {
+      const drop = afternoonHours[i-1].avg - afternoonHours[i].avg;
+      if (drop > 40) {
+        patterns.push({
+          type: 'exercise_drop',
+          severity: 'info',
+          title: 'Afternoon Glucose Drop Pattern',
+          description: `Significant glucose drops detected in afternoon hours. If related to exercise, consider reducing bolus before activity or adding a snack.`,
+          timeOfDay: '2:00 PM - 6:00 PM',
+          avgImpact: drop
+        });
+        break;
+      }
+    }
+  }
+  
+  // Rebound high detection (high within 2 hours of a low)
+  const sortedReadings = [...readings].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  let reboundCount = 0;
+  for (let i = 0; i < sortedReadings.length - 1; i++) {
+    if (sortedReadings[i].value < 70) {
+      // Look for high within next 2 hours
+      for (let j = i + 1; j < sortedReadings.length; j++) {
+        const timeDiff = (sortedReadings[j].timestamp.getTime() - sortedReadings[i].timestamp.getTime()) / (1000 * 60);
+        if (timeDiff > 120) break;
+        if (sortedReadings[j].value > 200) {
+          reboundCount++;
+          break;
+        }
+      }
+    }
+  }
+  
+  if (reboundCount >= 3) {
+    patterns.push({
+      type: 'rebound_high',
+      severity: 'warning',
+      title: 'Rebound High Pattern',
+      description: `${reboundCount} instances of high glucose following lows detected. This may indicate overtreating lows. Try using 15g fast carbs and waiting 15 minutes.`,
+      frequency: reboundCount
+    });
   }
   
   // Low event clustering
@@ -523,7 +726,6 @@ function countGlucoseEvents(readings: GlucoseReading[]): {
   let inSevereHigh = false;
   
   readings.forEach(r => {
-    // Count low events (consecutive readings below 70)
     if (r.value < 70) {
       if (!inLow) {
         lowEvents++;
@@ -533,7 +735,6 @@ function countGlucoseEvents(readings: GlucoseReading[]): {
       inLow = false;
     }
     
-    // Count severe low events (below 54)
     if (r.value < 54) {
       if (!inSevereLow) {
         severeLowEvents++;
@@ -543,7 +744,6 @@ function countGlucoseEvents(readings: GlucoseReading[]): {
       inSevereLow = false;
     }
     
-    // Count high events (above 180)
     if (r.value > 180) {
       if (!inHigh) {
         highEvents++;
@@ -553,7 +753,6 @@ function countGlucoseEvents(readings: GlucoseReading[]): {
       inHigh = false;
     }
     
-    // Count severe high events (above 250)
     if (r.value > 250) {
       if (!inSevereHigh) {
         severeHighEvents++;
@@ -565,6 +764,123 @@ function countGlucoseEvents(readings: GlucoseReading[]): {
   });
   
   return { lowEvents, severeLowEvents, highEvents, severeHighEvents };
+}
+
+// Generate AI-powered recommendations
+async function generateAIRecommendations(
+  detailedAnalysis: DetailedAnalysis,
+  patterns: PatternResult[]
+): Promise<{ recommendations: string[]; aiInsights: any }> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  
+  // Generate base recommendations
+  const recommendations: string[] = [];
+  
+  patterns.forEach(p => {
+    if (p.type === 'dawn_phenomenon') {
+      recommendations.push('Consider increasing basal rate by 0.1-0.2 u/hr from 3-6 AM');
+      recommendations.push('Discuss extended-release insulin timing with your endocrinologist');
+    }
+    if (p.type === 'post_meal_spike') {
+      const meal = p.title?.toLowerCase().includes('breakfast') ? 'breakfast' : 
+                   p.title?.toLowerCase().includes('lunch') ? 'lunch' : 'dinner';
+      recommendations.push(`Pre-bolus ${meal} by 10-15 minutes`);
+      recommendations.push('Consider reducing fast-acting carbs at this meal');
+    }
+    if (p.type === 'low_clustering') {
+      recommendations.push('Review basal rates during problem times');
+      recommendations.push('Consider adding a small snack before predictable lows');
+    }
+    if (p.type === 'overnight_instability') {
+      recommendations.push('Check for undigested dinner carbs affecting overnight glucose');
+      recommendations.push('Consider adjusting overnight basal profile');
+    }
+    if (p.type === 'rebound_high') {
+      recommendations.push('Use the 15/15 rule: 15g fast carbs, wait 15 minutes before re-checking');
+      recommendations.push('Keep glucose tablets handy instead of overconsuming food');
+    }
+    if (p.type === 'exercise_drop') {
+      recommendations.push('Reduce bolus by 25-50% before planned exercise');
+      recommendations.push('Consider a 15-30g carb snack before intense activity');
+    }
+  });
+  
+  if (detailedAnalysis.cv > 36) {
+    recommendations.push('Focus on consistent meal timing and carb portions');
+    recommendations.push('Review correction factor - may need adjustment');
+  }
+  
+  if (detailedAnalysis.timeBelow70 > 4) {
+    recommendations.push('Consider reducing basal or bolus insulin');
+    recommendations.push('Keep fast-acting glucose readily available');
+  }
+  
+  if (recommendations.length === 0) {
+    recommendations.push('Your current settings appear well-optimized!');
+    recommendations.push('Continue regular uploads to track trends over time');
+  }
+  
+  recommendations.push('💡 Always discuss changes with your healthcare provider before adjusting treatment');
+  
+  // Try to get AI-enhanced insights
+  let aiInsights = null;
+  
+  if (LOVABLE_API_KEY) {
+    try {
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            {
+              role: "system",
+              content: `You are a diabetes educator AI assistant analyzing CGM data. Provide clear, actionable insights.
+              
+Format your response as JSON with this structure:
+{
+  "summary": "2-3 sentence overall assessment",
+  "keyFindings": ["finding 1", "finding 2"],
+  "priorityActions": ["action 1", "action 2"],
+  "encouragement": "positive reinforcement message"
+}`
+            },
+            {
+              role: "user",
+              content: `Analyze this glucose data:
+- Average: ${detailedAnalysis.avgGlucose.toFixed(0)} mg/dL
+- Time in Range (70-180): ${detailedAnalysis.timeInRange.toFixed(1)}%
+- CV: ${detailedAnalysis.cv.toFixed(1)}%
+- GMI: ${detailedAnalysis.gmi.toFixed(1)}%
+- Low events: ${detailedAnalysis.lowEvents}
+- High events: ${detailedAnalysis.highEvents}
+- Days of data: ${detailedAnalysis.daysOfData}
+
+Detected patterns: ${patterns.map(p => p.title).join(', ') || 'None'}`
+            }
+          ],
+          max_tokens: 800,
+          temperature: 0.3
+        }),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const content = data.choices?.[0]?.message?.content || '';
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          aiInsights = JSON.parse(jsonMatch[0]);
+        }
+      }
+    } catch (error) {
+      console.error("AI insights generation failed:", error);
+    }
+  }
+  
+  return { recommendations, aiInsights };
 }
 
 // Comprehensive glucose analysis
@@ -615,11 +931,11 @@ function analyzeGlucoseDataComprehensive(readings: GlucoseReading[]): {
   const timeBelow70 = (below70 / values.length) * 100;
   const timeBelow54 = (below54 / values.length) * 100;
   
-  // GMI (Glucose Management Indicator) - more accurate than eA1C
+  // GMI (Glucose Management Indicator)
   const gmi = 3.31 + (0.02392 * avgGlucose);
   
   // GVI (Glycemic Variability Index)
-  const idealDelta = 5; // mg/dL expected per 5 min
+  const idealDelta = 5;
   let actualDeltas = 0;
   for (let i = 1; i < readings.length; i++) {
     actualDeltas += Math.abs(readings[i].value - readings[i-1].value);
@@ -678,7 +994,7 @@ function analyzeGlucoseDataComprehensive(readings: GlucoseReading[]): {
     }
   });
   
-  const detailedAnalysis: DetailedAnalysis = {
+  let detailedAnalysis: DetailedAnalysis = {
     readingsCount: readings.length,
     avgGlucose,
     medianGlucose,
@@ -701,6 +1017,9 @@ function analyzeGlucoseDataComprehensive(readings: GlucoseReading[]): {
     dataEnd,
     daysOfData
   };
+  
+  // Validate analysis results
+  detailedAnalysis = validateAnalysisResults(detailedAnalysis);
   
   return { insights, detailedAnalysis, hourlyData, dailyData, agpData, patterns };
 }
@@ -742,73 +1061,70 @@ serve(async (req) => {
 
     console.log(`Analyzing glucose data from: ${filename}`);
 
-    // Parse file based on extension or content detection
-    let readings: GlucoseReading[] = [];
-    const lowerFilename = filename.toLowerCase();
+    // Detect file format
+    const fileFormat = detectFileFormat(filename, fileContent);
+    console.log(`Detected file format: ${fileFormat}`);
     
-    // Check file extension first
-    if (lowerFilename.endsWith('.csv') || lowerFilename.endsWith('.txt')) {
-      readings = parseCSV(fileContent);
-    } else if (lowerFilename.endsWith('.json')) {
-      readings = parseJSON(fileContent);
-    } else {
-      // Try to detect format from content
-      const trimmedContent = fileContent.trim();
-      if (trimmedContent.startsWith('{') || trimmedContent.startsWith('[')) {
-        // Looks like JSON
-        readings = parseJSON(fileContent);
-      } else if (trimmedContent.includes(',') || trimmedContent.includes('\t')) {
-        // Looks like CSV/TSV
-        readings = parseCSV(fileContent);
-      } else {
+    let readings: GlucoseReading[] = [];
+    
+    // Parse file based on detected format
+    if (fileFormat === 'pdf') {
+      console.log('Processing PDF file with AI extraction...');
+      readings = await extractReadingsFromPDFWithAI(fileContent, filename);
+      
+      if (readings.length === 0) {
+        // Update status and return error
+        await supabaseClient
+          .from('uploads')
+          .update({ status: 'error', insights: ['Could not extract glucose data from PDF. Please export as CSV from your CGM app.'] })
+          .eq('id', uploadId);
+          
         return new Response(
-          JSON.stringify({ error: 'Unsupported file format. Please upload CSV, TXT, or JSON files.' }),
+          JSON.stringify({ 
+            error: 'Could not extract glucose data from PDF. Please export as CSV from your CGM app.',
+            suggestion: 'Try exporting from Dexcom Clarity or LibreView as CSV format'
+          }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
+    } else if (fileFormat === 'json') {
+      readings = parseJSON(fileContent);
+    } else if (fileFormat === 'csv' || fileFormat === 'txt') {
+      readings = parseCSV(fileContent);
+    } else {
+      // Try CSV parsing as fallback
+      readings = parseCSV(fileContent);
+      if (readings.length === 0) {
+        readings = parseJSON(fileContent);
+      }
+    }
+    
+    // Validate readings to filter out invalid dates/values
+    const validatedReadings = validateReadings(readings);
+    console.log(`Validated ${validatedReadings.length} of ${readings.length} readings`);
+    
+    if (validatedReadings.length === 0) {
+      await supabaseClient
+        .from('uploads')
+        .update({ status: 'error', insights: ['No valid glucose readings found. Please check file format and date range.'] })
+        .eq('id', uploadId);
+        
+      return new Response(
+        JSON.stringify({ 
+          error: 'No valid glucose readings found in the file',
+          parsedCount: readings.length,
+          validCount: 0,
+          suggestion: 'Ensure dates are between 2010 and present, and glucose values are between 20-500 mg/dL'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Comprehensive analysis
-    const { insights, detailedAnalysis, hourlyData, dailyData, agpData, patterns } = analyzeGlucoseDataComprehensive(readings);
+    const { insights, detailedAnalysis, hourlyData, dailyData, agpData, patterns } = analyzeGlucoseDataComprehensive(validatedReadings);
     
-    // Generate AI recommendations based on patterns
-    const recommendations: string[] = [];
-    
-    patterns.forEach(p => {
-      if (p.type === 'dawn_phenomenon') {
-        recommendations.push('Consider increasing basal rate by 0.1-0.2 u/hr from 3-6 AM');
-        recommendations.push('Discuss extended-release insulin timing with your endocrinologist');
-      }
-      if (p.type === 'post_meal_spike') {
-        recommendations.push(`Pre-bolus ${p.title?.toLowerCase().includes('breakfast') ? 'breakfast' : p.title?.toLowerCase().includes('lunch') ? 'lunch' : 'dinner'} by 10-15 minutes`);
-        recommendations.push('Consider reducing fast-acting carbs at this meal');
-      }
-      if (p.type === 'low_clustering') {
-        recommendations.push('Review basal rates during problem times');
-        recommendations.push('Consider adding a small snack before predictable lows');
-      }
-      if (p.type === 'overnight_instability') {
-        recommendations.push('Check for undigested dinner carbs affecting overnight glucose');
-        recommendations.push('Consider adjusting overnight basal profile');
-      }
-    });
-    
-    if (detailedAnalysis.cv > 36) {
-      recommendations.push('Focus on consistent meal timing and carb portions');
-      recommendations.push('Review correction factor - may need adjustment');
-    }
-    
-    if (detailedAnalysis.timeBelow70 > 4) {
-      recommendations.push('Consider reducing basal or bolus insulin');
-      recommendations.push('Keep fast-acting glucose readily available');
-    }
-    
-    if (recommendations.length === 0) {
-      recommendations.push('Your current settings appear well-optimized!');
-      recommendations.push('Continue regular uploads to track trends over time');
-    }
-    
-    recommendations.push('💡 Always discuss changes with your healthcare provider before adjusting treatment');
+    // Generate AI recommendations
+    const { recommendations, aiInsights } = await generateAIRecommendations(detailedAnalysis, patterns);
 
     // Update upload record with comprehensive analysis results
     const { error: updateError } = await supabaseClient
@@ -816,14 +1132,15 @@ serve(async (req) => {
       .update({
         status: 'completed',
         insights: insights,
-        readings_count: readings.length,
-        analysis_results: { insights, readingsCount: readings.length },
+        readings_count: validatedReadings.length,
+        analysis_results: { insights, readingsCount: validatedReadings.length },
         detailed_analysis: detailedAnalysis,
         hourly_data: hourlyData,
         daily_data: dailyData,
         agp_data: agpData,
         patterns: patterns,
-        recommendations: recommendations
+        recommendations: recommendations,
+        ai_insights: aiInsights
       })
       .eq('id', uploadId);
       
@@ -835,14 +1152,15 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         insights,
-        readingsCount: readings.length,
+        readingsCount: validatedReadings.length,
         detailedAnalysis,
         hourlyData,
         dailyData,
         agpData,
         patterns,
         recommendations,
-        message: `Successfully analyzed ${readings.length} glucose readings`
+        aiInsights,
+        message: `Successfully analyzed ${validatedReadings.length} glucose readings`
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
