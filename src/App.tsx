@@ -64,6 +64,7 @@ import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import Companies from "./pages/Companies";
 import CompanyDetail from "./pages/CompanyDetail";
+import CompanyComparison from "./pages/CompanyComparison";
 import { AdminRoute } from "./components/admin/AdminRoute";
 
 const queryClient = new QueryClient();
@@ -140,6 +141,7 @@ const App = () => {
             <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
             <Route path="/projects/:slug" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
             <Route path="/companies" element={<ProtectedRoute><Companies /></ProtectedRoute>} />
+            <Route path="/companies/compare" element={<ProtectedRoute><CompanyComparison /></ProtectedRoute>} />
             <Route path="/companies/:id" element={<ProtectedRoute><CompanyDetail /></ProtectedRoute>} />
             <Route path="/customizable-dashboard" element={<ProtectedRoute><CustomizableDashboard /></ProtectedRoute>} />
             <Route path="/donation-result" element={<DonateSuccess />} />
