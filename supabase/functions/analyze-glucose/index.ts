@@ -283,10 +283,11 @@ serve(async (req) => {
       .from('uploads')
       .update({
         status: 'completed',
-        errors_json: { insights, readingsCount: readings.length }
+        insights: insights,
+        readings_count: readings.length,
+        analysis_results: { insights, readingsCount: readings.length }
       })
       .eq('id', uploadId);
-
     if (updateError) {
       console.error('Error updating upload record:', updateError);
     }

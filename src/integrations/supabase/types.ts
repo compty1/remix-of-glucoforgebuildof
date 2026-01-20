@@ -1820,6 +1820,48 @@ export type Database = {
         }
         Relationships: []
       }
+      state_diabetes_forms: {
+        Row: {
+          created_at: string | null
+          form_category: string
+          form_description: string | null
+          form_name: string
+          form_url: string | null
+          id: string
+          issuing_agency: string | null
+          last_verified_at: string | null
+          notes: string | null
+          state_code: string
+          state_name: string
+        }
+        Insert: {
+          created_at?: string | null
+          form_category: string
+          form_description?: string | null
+          form_name: string
+          form_url?: string | null
+          id?: string
+          issuing_agency?: string | null
+          last_verified_at?: string | null
+          notes?: string | null
+          state_code: string
+          state_name: string
+        }
+        Update: {
+          created_at?: string | null
+          form_category?: string
+          form_description?: string | null
+          form_name?: string
+          form_url?: string | null
+          id?: string
+          issuing_agency?: string | null
+          last_verified_at?: string | null
+          notes?: string | null
+          state_code?: string
+          state_name?: string
+        }
+        Relationships: []
+      }
       survey_responses: {
         Row: {
           created_at: string
@@ -2020,6 +2062,63 @@ export type Database = {
         }
         Relationships: []
       }
+      t1d_resources: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          external_url: string | null
+          featured: boolean | null
+          icon_name: string | null
+          id: string
+          internal_route: string | null
+          is_internal_tool: boolean | null
+          priority: number | null
+          resource_type: string | null
+          subcategory: string | null
+          tags: string[] | null
+          target_audience: string[] | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          external_url?: string | null
+          featured?: boolean | null
+          icon_name?: string | null
+          id?: string
+          internal_route?: string | null
+          is_internal_tool?: boolean | null
+          priority?: number | null
+          resource_type?: string | null
+          subcategory?: string | null
+          tags?: string[] | null
+          target_audience?: string[] | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          external_url?: string | null
+          featured?: boolean | null
+          icon_name?: string | null
+          id?: string
+          internal_route?: string | null
+          is_internal_tool?: boolean | null
+          priority?: number | null
+          resource_type?: string | null
+          subcategory?: string | null
+          tags?: string[] | null
+          target_audience?: string[] | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       trend_analysis_metrics: {
         Row: {
           calculated_at: string
@@ -2055,28 +2154,40 @@ export type Database = {
       }
       uploads: {
         Row: {
+          analysis_results: Json | null
           file_name: string
           file_size: number | null
           file_type: string | null
           id: string
+          insights: string[] | null
+          readings_count: number | null
+          status: string | null
           storage_path: string | null
           uploaded_at: string
           user_id: string
         }
         Insert: {
+          analysis_results?: Json | null
           file_name: string
           file_size?: number | null
           file_type?: string | null
           id?: string
+          insights?: string[] | null
+          readings_count?: number | null
+          status?: string | null
           storage_path?: string | null
           uploaded_at?: string
           user_id: string
         }
         Update: {
+          analysis_results?: Json | null
           file_name?: string
           file_size?: number | null
           file_type?: string | null
           id?: string
+          insights?: string[] | null
+          readings_count?: number | null
+          status?: string | null
           storage_path?: string | null
           uploaded_at?: string
           user_id?: string
