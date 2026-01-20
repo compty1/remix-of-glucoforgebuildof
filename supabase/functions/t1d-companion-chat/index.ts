@@ -56,11 +56,12 @@ const STOP_WORDS = new Set([
 
 // Common T1D-related keywords to detect
 const T1D_KEYWORDS = {
-  devices: ['dexcom', 'omnipod', 'tandem', 'medtronic', 'libre', 'guardian', 'cgm', 'pump', 'sensor', 'g6', 'g7'],
+  devices: ['dexcom', 'omnipod', 'tandem', 'medtronic', 'libre', 'guardian', 'cgm', 'pump', 'sensor', 'g6', 'g7', 'dash', 'eros', 'control-iq', 'basal-iq', '670g', '770g', '780g'],
   topics: ['morning', 'lows', 'highs', 'dawn', 'exercise', 'workout', 'insulin', 'bolus', 'basal', 'carb', 'carbs', 
            'hypo', 'hyper', 'glucose', 'sugar', 'a1c', 'hba1c', 'nighttime', 'sleep', 'stress', 'sick', 'illness',
            'travel', 'flying', 'alcohol', 'drinking', 'eating', 'food', 'meal', 'snack', 'correction', 'dose',
-           'adhesive', 'tape', 'site', 'rotation', 'absorption', 'occlusion', 'loop', 'aaps', 'diy']
+           'adhesive', 'tape', 'site', 'rotation', 'absorption', 'occlusion', 'loop', 'aaps', 'diy', 'accuracy',
+           'calibration', 'compression', 'insertion', 'warm-up', 'restart']
 };
 
 function extractKeywords(text: string): string[] {
@@ -80,8 +81,8 @@ function extractKeywords(text: string): string[] {
     !T1D_KEYWORDS.devices.includes(word) && !T1D_KEYWORDS.topics.includes(word)
   );
   
-  // Return T1D keywords first, then others, limit to 8
-  return [...t1dWords, ...otherWords].slice(0, 8);
+  // Return T1D keywords first, then others, limit to 10
+  return [...t1dWords, ...otherWords].slice(0, 10);
 }
 
 function detectDevice(text: string): string | null {
@@ -102,12 +103,12 @@ function detectTopicTags(text: string): string[] {
   const tagMappings: Record<string, string[]> = {
     'morning_lows': ['morning low', 'wake up low', 'dawn phenomenon', 'morning hypo'],
     'exercise': ['exercise', 'workout', 'gym', 'running', 'sports', 'physical activity'],
-    'sensor_issues': ['sensor', 'adhesive', 'tape', 'falling off', 'cgm issues'],
-    'pump_issues': ['pump', 'occlusion', 'site change', 'infusion'],
-    'insulin_dosing': ['bolus', 'basal', 'dose', 'dosing', 'correction', 'ratio'],
-    'diet': ['carb', 'food', 'meal', 'eating', 'diet', 'snack'],
-    'nighttime': ['night', 'sleep', 'overnight', 'nighttime'],
-    'travel': ['travel', 'flying', 'airport', 'vacation'],
+    'sensor_issues': ['sensor', 'adhesive', 'tape', 'falling off', 'cgm issues', 'accuracy', 'readings'],
+    'pump_issues': ['pump', 'occlusion', 'site change', 'infusion', 'cannula'],
+    'insulin_dosing': ['bolus', 'basal', 'dose', 'dosing', 'correction', 'ratio', 'sensitivity'],
+    'diet': ['carb', 'food', 'meal', 'eating', 'diet', 'snack', 'protein', 'fat'],
+    'nighttime': ['night', 'sleep', 'overnight', 'nighttime', '3am'],
+    'travel': ['travel', 'flying', 'airport', 'vacation', 'timezone'],
   };
   
   for (const [tag, phrases] of Object.entries(tagMappings)) {
@@ -125,7 +126,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, issueContext, postContext } = await req.json();
+    const { messages, issueContext, postContext, contextType, deviceContext, projectContext } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -141,10 +142,43 @@ serve(async (req) => {
     
     // Build community context
     let communityContext = "";
+    let sourcesForClient: any[] = [];
+    
+    // Add device-specific context if provided
+    if (deviceContext) {
+      communityContext += `\n\nDEVICE CONTEXT:\n`;
+      communityContext += `Device: ${deviceContext.name}\n`;
+      if (deviceContext.category) communityContext += `Category: ${deviceContext.category}\n`;
+      if (deviceContext.manufacturer) communityContext += `Manufacturer: ${deviceContext.manufacturer}\n`;
+      
+      if (deviceContext.issues && deviceContext.issues.length > 0) {
+        communityContext += `\nKNOWN ISSUES WITH THIS DEVICE:\n`;
+        deviceContext.issues.forEach((issue: any, i: number) => {
+          communityContext += `${i + 1}. ${issue.issue_title}`;
+          if (issue.description) communityContext += `: ${issue.description}`;
+          communityContext += `\n`;
+        });
+      }
+    }
+
+    // Add project-specific context if provided
+    if (projectContext) {
+      communityContext += `\n\nHEALTH PROJECT CONTEXT:\n`;
+      communityContext += `Topic: ${projectContext.title}\n`;
+      communityContext += `Description: ${projectContext.description}\n`;
+      
+      if (projectContext.symptoms && projectContext.symptoms.length > 0) {
+        communityContext += `Related Symptoms: ${projectContext.symptoms.join(', ')}\n`;
+      }
+      
+      if (projectContext.possible_causes && projectContext.possible_causes.length > 0) {
+        communityContext += `Possible Causes: ${projectContext.possible_causes.join(', ')}\n`;
+      }
+    }
     
     // If a specific post was provided as context (from "Ask AI" button)
     if (postContext) {
-      communityContext = `\n\nUSER IS ASKING ABOUT THIS SPECIFIC COMMUNITY POST:\n`;
+      communityContext += `\n\nUSER IS ASKING ABOUT THIS SPECIFIC COMMUNITY POST:\n`;
       communityContext += `Title: ${postContext.title}\n`;
       communityContext += `Source: ${postContext.source} (${postContext.score || 0} upvotes)\n`;
       if (postContext.device_mentioned) {
@@ -157,23 +191,30 @@ serve(async (req) => {
       if (postContext.url) {
         communityContext += `Original URL: ${postContext.url}\n`;
       }
+      
+      sourcesForClient.push({
+        title: postContext.title,
+        url: postContext.url,
+        source: postContext.source,
+        score: postContext.score,
+      });
     }
     
-    // Search for additional relevant community posts
+    // Search for relevant community posts
     if (latestUserMessage) {
       // Extract keywords using improved extraction
       const keywords = extractKeywords(latestUserMessage);
-      const detectedDevice = detectDevice(latestUserMessage);
+      const detectedDevice = deviceContext?.name ? deviceContext.name.toLowerCase() : detectDevice(latestUserMessage);
       const detectedTags = detectTopicTags(latestUserMessage);
 
-      console.log("Search context:", { keywords, detectedDevice, detectedTags });
+      console.log("Search context:", { keywords, detectedDevice, detectedTags, contextType });
 
       // Build search conditions
       const conditions: string[] = [];
       
       // Add keyword search for title and content
       if (keywords.length > 0) {
-        const keywordConditions = keywords.slice(0, 5).map((k: string) => 
+        const keywordConditions = keywords.slice(0, 6).map((k: string) => 
           `title.ilike.%${k}%,content.ilike.%${k}%`
         ).join(",");
         conditions.push(keywordConditions);
@@ -190,15 +231,15 @@ serve(async (req) => {
       }
 
       if (conditions.length > 0) {
-        // Search for relevant community posts
+        // Search for relevant community posts - fetch MORE posts (10 instead of 5)
         const { data: posts, error } = await supabase
           .from("community_posts")
-          .select("title, content, source, score, topic_tags, device_mentioned, url, is_solution")
+          .select("id, post_id, title, content, source, score, topic_tags, device_mentioned, url, is_solution")
           .or(conditions.join(","))
           .neq("sentiment", "negative")
           .neq("post_type", "reply")
           .order("score", { ascending: false, nullsFirst: false })
-          .limit(8);
+          .limit(10);
 
         if (!error && posts && posts.length > 0) {
           // Prioritize solutions
@@ -206,7 +247,29 @@ serve(async (req) => {
             if (a.is_solution && !b.is_solution) return -1;
             if (!a.is_solution && b.is_solution) return 1;
             return (b.score || 0) - (a.score || 0);
-          }).slice(0, 5);
+          }).slice(0, 8);
+
+          // Fetch comments for top posts
+          const postIds = sortedPosts.map(p => p.post_id);
+          const { data: comments } = await supabase
+            .from("community_posts")
+            .select("post_id, parent_post_id, content, score, author_anonymous")
+            .in("parent_post_id", postIds)
+            .order("score", { ascending: false, nullsFirst: false })
+            .limit(30);
+
+          // Group comments by parent post
+          const commentsByPost: Record<string, any[]> = {};
+          if (comments) {
+            comments.forEach(comment => {
+              if (comment.parent_post_id) {
+                if (!commentsByPost[comment.parent_post_id]) {
+                  commentsByPost[comment.parent_post_id] = [];
+                }
+                commentsByPost[comment.parent_post_id].push(comment);
+              }
+            });
+          }
 
           communityContext += `\n\nRELATED COMMUNITY EXPERIENCES:\n${sortedPosts
             .map((p: any, i: number) => {
@@ -219,11 +282,30 @@ serve(async (req) => {
                 entry += `Topics: ${p.topic_tags.join(', ')}\n`;
               }
               if (p.content) {
-                entry += `Content: ${p.content.substring(0, 600)}${p.content.length > 600 ? '...' : ''}\n`;
+                entry += `Content: ${p.content.substring(0, 800)}${p.content.length > 800 ? '...' : ''}\n`;
               }
+              
+              // Add top comments for this post
+              const postComments = commentsByPost[p.post_id] || [];
+              if (postComments.length > 0) {
+                entry += `Top Comments:\n`;
+                postComments.slice(0, 3).forEach((c, j) => {
+                  entry += `  - (${c.score || 0} pts) ${c.content?.substring(0, 200)}${c.content?.length > 200 ? '...' : ''}\n`;
+                });
+              }
+              
               if (p.url) {
                 entry += `Source: ${p.url}\n`;
               }
+              
+              // Track sources for client
+              sourcesForClient.push({
+                title: p.title,
+                url: p.url,
+                source: p.source,
+                score: p.score,
+              });
+              
               return entry;
             })
             .join("\n")}`;
@@ -237,9 +319,13 @@ serve(async (req) => {
       issueContextStr = `\n\nUSER'S SAVED ISSUE:\nTitle: ${issueContext.title}\nDescription: ${issueContext.description}\nCategory: ${issueContext.category}`;
     }
 
-    const systemPrompt = T1D_SYSTEM_PROMPT + communityContext + issueContextStr;
+    // Add instruction for follow-up questions
+    const followUpInstruction = `\n\nAFTER YOUR RESPONSE, suggest 3-4 relevant follow-up questions the user might want to ask. These should be practical, actionable questions that dig deeper into the topic. Format them on separate lines starting with "FOLLOW_UP:" prefix.`;
+
+    const systemPrompt = T1D_SYSTEM_PROMPT + communityContext + issueContextStr + followUpInstruction;
 
     console.log("System prompt length:", systemPrompt.length);
+    console.log("Sources found:", sourcesForClient.length);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -248,7 +334,7 @@ serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
           ...messages,

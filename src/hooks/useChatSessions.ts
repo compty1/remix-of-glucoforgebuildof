@@ -394,16 +394,38 @@ export function useActiveChat(
             const parsed = JSON.parse(jsonStr);
             const content = parsed.choices?.[0]?.delta?.content;
             if (content) updateAssistantMessage(content);
-            
-            // Check for suggested questions in the response
-            if (parsed.suggested_questions) {
-              setSuggestedQuestions(parsed.suggested_questions);
-            }
           } catch {
             textBuffer = line + '\n' + textBuffer;
             break;
           }
         }
+      }
+
+      // Parse follow-up questions from the response
+      const extractedQuestions: string[] = [];
+      const lines = assistantContent.split('\n');
+      lines.forEach(line => {
+        if (line.trim().startsWith('FOLLOW_UP:')) {
+          const question = line.replace('FOLLOW_UP:', '').trim();
+          if (question) extractedQuestions.push(question);
+        }
+      });
+      
+      // Clean assistant content by removing FOLLOW_UP lines
+      const cleanedContent = lines
+        .filter(line => !line.trim().startsWith('FOLLOW_UP:'))
+        .join('\n')
+        .trim();
+      
+      if (extractedQuestions.length > 0) {
+        setSuggestedQuestions(extractedQuestions);
+        assistantContent = cleanedContent;
+        // Update the message with cleaned content
+        setMessages(prev => prev.map((m, i) =>
+          i === prev.length - 1 && m.role === 'assistant'
+            ? { ...m, content: cleanedContent }
+            : m
+        ));
       }
 
       // Save the updated messages to the session
