@@ -237,33 +237,11 @@ const DataUpload = () => {
                       input.type = 'file';
                       input.accept = '.csv,.json,.pdf';
                       input.multiple = true;
-                      input.onchange = (e) => {
+                      input.onchange = async (e) => {
                         const files = Array.from((e.target as HTMLInputElement).files || []);
-                        files.forEach((file) => {
-                          // Simulate file upload
-                          const newFile: UploadedFile = {
-                            id: Date.now().toString() + Math.random(),
-                            name: file.name,
-                            type: file.name.includes('.csv') ? 'cgm' : file.name.includes('.json') ? 'pump' : 'lab',
-                            size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
-                            uploadDate: new Date().toISOString().split('T')[0],
-                            status: 'processing',
-                            insights: 0
-                          };
-                          
-                          setUploadedFiles(prev => [newFile, ...prev]);
-                          
-                          // Simulate processing completion
-                          setTimeout(() => {
-                            setUploadedFiles(prev => 
-                              prev.map(f => 
-                                f.id === newFile.id 
-                                  ? { ...f, status: 'complete' as const, insights: Math.floor(Math.random() * 20) + 5 }
-                                  : f
-                              )
-                            );
-                          }, 3000);
-                        });
+                        for (const file of files) {
+                          await processFile(file);
+                        }
                       };
                       input.click();
                     }}
