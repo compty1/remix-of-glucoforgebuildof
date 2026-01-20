@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -7,8 +6,9 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthStore } from '@/store/authStore';
 import { useSavedIssues } from '@/hooks/useSavedIssues';
-import { useT1DChat, ChatMessage as ChatMessageType } from '@/hooks/useT1DChat';
+import { useActiveChat } from '@/hooks/useChatSessions';
 import { ChatMessage } from './ChatMessage';
+import { SuggestedQuestions } from '@/components/chat/SuggestedQuestions';
 import { 
   Send, 
   Loader2, 
@@ -43,6 +43,7 @@ interface T1DChatProps {
     description: string;
     category: string;
   };
+  sessionId?: string;
 }
 
 const SUGGESTED_PROMPTS = [
@@ -61,27 +62,48 @@ const CATEGORIES = [
   'Technical',
 ];
 
-export function T1DChat({ initialMessage, initialContext }: T1DChatProps) {
+export function T1DChat({ initialMessage, initialContext, sessionId }: T1DChatProps) {
   const [input, setInput] = useState('');
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [issueTitle, setIssueTitle] = useState('');
   const [issueDescription, setIssueDescription] = useState('');
   const [issueCategory, setIssueCategory] = useState('');
+  const [hasInitialized, setHasInitialized] = useState(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
   const { user } = useAuthStore();
   const { toast } = useToast();
-  const { messages, isLoading, sendMessage, clearChat, getLastAssistantMessage } = useT1DChat();
+  
+  // Use the persistent chat hook instead of local state
+  const { 
+    messages, 
+    isLoading, 
+    suggestedQuestions,
+    sendMessage, 
+    startNewChat, 
+    loadSession,
+    getLastAssistantMessage 
+  } = useActiveChat('general', undefined, initialContext?.title || 'T1D Companion');
+  
   const { createIssue } = useSavedIssues();
+
+  // Load session if sessionId is provided
+  useEffect(() => {
+    if (sessionId && !hasInitialized) {
+      loadSession(sessionId);
+      setHasInitialized(true);
+    }
+  }, [sessionId, loadSession, hasInitialized]);
 
   // Handle initial message from explore section
   useEffect(() => {
-    if (initialMessage && messages.length === 0) {
-      sendMessage(initialMessage, initialContext);
+    if (initialMessage && messages.length === 0 && !hasInitialized && !sessionId) {
+      sendMessage(initialMessage);
+      setHasInitialized(true);
     }
-  }, [initialMessage]);
+  }, [initialMessage, messages.length, sendMessage, hasInitialized, sessionId]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -96,12 +118,21 @@ export function T1DChat({ initialMessage, initialContext }: T1DChatProps) {
 
     const message = input.trim();
     setInput('');
-    await sendMessage(message, initialContext);
+    await sendMessage(message);
   };
 
   const handleSuggestedPrompt = (prompt: string) => {
     setInput(prompt);
     inputRef.current?.focus();
+  };
+
+  const handleSelectQuestion = (question: string) => {
+    sendMessage(question);
+  };
+
+  const handleNewChat = () => {
+    startNewChat();
+    setHasInitialized(false);
   };
 
   const handleSaveIssue = async () => {
@@ -114,8 +145,6 @@ export function T1DChat({ initialMessage, initialContext }: T1DChatProps) {
       return;
     }
 
-    const lastAssistantMessage = getLastAssistantMessage();
-    
     await createIssue.mutateAsync({
       title: issueTitle,
       description: issueDescription || undefined,
@@ -171,7 +200,7 @@ export function T1DChat({ initialMessage, initialContext }: T1DChatProps) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={clearChat}
+              onClick={handleNewChat}
               className="gap-1"
             >
               <RefreshCw className="h-4 w-4" />
@@ -221,10 +250,20 @@ export function T1DChat({ initialMessage, initialContext }: T1DChatProps) {
                 key={i}
                 role={message.role}
                 content={message.content}
-                timestamp={message.timestamp}
+                timestamp={new Date(message.timestamp)}
                 isStreaming={isLoading && i === messages.length - 1 && message.role === 'assistant'}
               />
             ))}
+            
+            {/* Suggested Questions */}
+            {!isLoading && suggestedQuestions.length > 0 && (
+              <div className="mt-4">
+                <SuggestedQuestions 
+                  questions={suggestedQuestions} 
+                  onSelectQuestion={handleSelectQuestion} 
+                />
+              </div>
+            )}
           </div>
         )}
       </ScrollArea>

@@ -17,11 +17,13 @@ interface ChatContext {
     description: string;
     category: string;
   };
+  sessionId?: string;
 }
 
 export default function T1DCompanion() {
   const [activeTab, setActiveTab] = useState('explore');
   const [chatContext, setChatContext] = useState<ChatContext | null>(null);
+  const [chatKey, setChatKey] = useState(0); // Force re-mount when loading sessions
   const { user } = useAuthStore();
 
   const handleSelectIssue = (issue: any) => {
@@ -33,6 +35,7 @@ export default function T1DCompanion() {
         category: issue.category,
       },
     });
+    setChatKey(prev => prev + 1);
     setActiveTab('chat');
   };
 
@@ -45,11 +48,28 @@ export default function T1DCompanion() {
         category: issue.category || '',
       },
     });
+    setChatKey(prev => prev + 1);
+    setActiveTab('chat');
+  };
+
+  const handleSelectSession = (session: any) => {
+    // Load the existing session instead of starting a new one
+    setChatContext({
+      initialMessage: '', // Don't send a new message
+      context: {
+        title: session.context_name || 'Chat',
+        description: '',
+        category: session.context_type || 'general',
+      },
+      sessionId: session.id, // Pass the session ID to load
+    });
+    setChatKey(prev => prev + 1);
     setActiveTab('chat');
   };
 
   const handleStartNewChat = () => {
     setChatContext(null);
+    setChatKey(prev => prev + 1);
     setActiveTab('chat');
   };
 
@@ -100,9 +120,10 @@ export default function T1DCompanion() {
 
             <TabsContent value="chat" className="mt-0">
               <T1DChat
-                key={chatContext?.initialMessage || 'new'}
-                initialMessage={chatContext?.initialMessage}
+                key={chatKey}
+                initialMessage={chatContext?.sessionId ? undefined : chatContext?.initialMessage}
                 initialContext={chatContext?.context}
+                sessionId={chatContext?.sessionId}
               />
             </TabsContent>
 
@@ -113,18 +134,7 @@ export default function T1DCompanion() {
             {user && (
               <TabsContent value="history" className="mt-0">
                 <ChatHistoryList
-                  onSelectSession={(session) => {
-                    // Load the session into chat
-                    setChatContext({
-                      initialMessage: '',
-                      context: {
-                        title: session.context_name || 'Chat',
-                        description: '',
-                        category: session.context_type,
-                      },
-                    });
-                    setActiveTab('chat');
-                  }}
+                  onSelectSession={handleSelectSession}
                 />
               </TabsContent>
             )}
