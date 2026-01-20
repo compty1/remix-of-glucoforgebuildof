@@ -1,16 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { InfoRail } from "@/components/InfoRail";
-import { Lightbulb, ExternalLink, Search, RefreshCw, TrendingUp, Users } from "lucide-react";
+import { Lightbulb, ExternalLink, Search, RefreshCw, TrendingUp, Users, Building2, DollarSign, ArrowRight } from "lucide-react";
 import { usePatentData } from "@/hooks/usePatentData";
+import { supabase } from "@/integrations/supabase/client";
 
 const InnovationHub = () => {
   const { data: patents, loading, error, refetch } = usePatentData();
   const [searchQuery, setSearchQuery] = useState('');
+  const [topCompanies, setTopCompanies] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchTopCompanies = async () => {
+      const { data } = await supabase
+        .from('t1d_companies')
+        .select('id, name, total_funding_usd, focus_areas, company_type')
+        .eq('is_active', true)
+        .order('total_funding_usd', { ascending: false, nullsFirst: false })
+        .limit(5);
+      setTopCompanies(data || []);
+    };
+    fetchTopCompanies();
+  }, []);
 
   const filteredPatents = patents.filter(patent =>
     patent.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -214,6 +230,49 @@ const InnovationHub = () => {
                       </div>
                     ))}
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Top T1D Companies */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  Top T1D Companies
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {topCompanies.map((company) => (
+                    <Link
+                      key={company.id}
+                      to={`/companies/${company.id}`}
+                      className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50 transition-colors"
+                    >
+                      <div>
+                        <span className="text-sm font-medium">{company.name}</span>
+                        <div className="text-xs text-muted-foreground">
+                          {company.focus_areas?.slice(0, 2).join(', ')}
+                        </div>
+                      </div>
+                      {company.total_funding_usd && (
+                        <Badge variant="outline" className="text-xs">
+                          <DollarSign className="h-3 w-3 mr-0.5" />
+                          {company.total_funding_usd >= 1000000000 
+                            ? `${(company.total_funding_usd / 1000000000).toFixed(1)}B`
+                            : `${(company.total_funding_usd / 1000000).toFixed(0)}M`
+                          }
+                        </Badge>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+                <Link to="/companies">
+                  <Button variant="outline" className="w-full mt-4" size="sm">
+                    View All Companies
+                    <ArrowRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </div>
