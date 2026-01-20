@@ -30,7 +30,7 @@ const DURATION_OPTIONS = [
 ];
 
 export function MedicationReviewForm({ medicationId, onSuccess }: MedicationReviewFormProps) {
-  const { submitReview, isSubmitting } = useMedicationReviews(medicationId);
+  const { submitReview, isSubmitting } = useMedicationReviews();
   const { toast } = useToast();
   
   const [formData, setFormData] = useState({
@@ -94,24 +94,23 @@ export function MedicationReviewForm({ medicationId, onSuccess }: MedicationRevi
     }
 
     try {
-      await submitReview({
-        ...formData,
+      await submitReview.mutateAsync({
+        medication_id: medicationId,
+        title: formData.title || undefined,
+        content: formData.content,
+        rating: formData.rating,
+        effectiveness_rating: formData.effectiveness_rating || undefined,
+        side_effects_rating: formData.side_effects_rating || undefined,
+        ease_of_use_rating: formData.ease_of_use_rating || undefined,
+        duration_of_use: formData.duration_of_use || undefined,
+        would_recommend: formData.would_recommend,
         pros: formData.pros.filter(p => p.trim()),
         cons: formData.cons.filter(c => c.trim()),
       });
       
-      toast({
-        title: 'Review submitted',
-        description: 'Thank you for your feedback!',
-      });
-      
       onSuccess?.();
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to submit review. Please try again.',
-        variant: 'destructive',
-      });
+      // Error is handled by the mutation
     }
   };
 
@@ -137,8 +136,8 @@ export function MedicationReviewForm({ medicationId, onSuccess }: MedicationRevi
             <Star 
               className={`h-6 w-6 cursor-pointer transition-colors ${
                 i < value 
-                  ? 'fill-yellow-400 text-yellow-400' 
-                  : 'text-muted hover:text-yellow-300'
+                  ? 'fill-warning text-warning' 
+                  : 'text-muted hover:text-warning/50'
               }`}
             />
           </button>

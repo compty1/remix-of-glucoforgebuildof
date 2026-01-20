@@ -71,6 +71,8 @@ import StateFormsFinder from "./pages/StateFormsFinder";
 import News from "./pages/News";
 import BuildWithUs from "./pages/BuildWithUs";
 import GetInvolved from "./pages/GetInvolved";
+import MedicineHub from "./pages/MedicineHub";
+import MedicineComparison from "./pages/MedicineComparison";
 import { AdminRoute } from "./components/admin/AdminRoute";
 const queryClient = new QueryClient();
 
@@ -153,6 +155,8 @@ const App = () => {
             <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
             <Route path="/resources/state-forms" element={<ProtectedRoute><StateFormsFinder /></ProtectedRoute>} />
             <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} />
+            <Route path="/medicines" element={<ProtectedRoute><MedicineHub /></ProtectedRoute>} />
+            <Route path="/medicines/compare" element={<ProtectedRoute><MedicineComparison /></ProtectedRoute>} />
             <Route path="/build-with-us" element={<BuildWithUs />} />
             <Route path="/get-involved" element={<GetInvolved />} />
             <Route path="/donation-result" element={<DonateSuccess />} />

@@ -5,8 +5,7 @@ import { MedicationCompareBar } from '@/components/medicine/MedicationCompareBar
 import { MedicationFilters } from '@/components/medicine/MedicationFilters';
 import { MedicationDetailModal } from '@/components/medicine/MedicationDetailModal';
 import { InsulinTimingChart } from '@/components/medicine/InsulinTimingChart';
-import { useMedications } from '@/hooks/useMedications';
-import { useMedicationComparison } from '@/hooks/useMedicationComparison';
+import { useMedications, useMedicationCategories, MedicationCategory, SortOption } from '@/hooks/useMedications';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,12 +13,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Pill, Syringe, PillBottle, Activity } from 'lucide-react';
 
 const INSULIN_COLORS = [
-  '#3b82f6', // blue
-  '#ef4444', // red
-  '#22c55e', // green
-  '#f59e0b', // amber
-  '#8b5cf6', // violet
-  '#ec4899', // pink
+  'hsl(var(--chart-1))',
+  'hsl(var(--chart-2))',
+  'hsl(var(--chart-3))',
+  'hsl(var(--chart-4))',
+  'hsl(var(--chart-5))',
+  'hsl(var(--primary))',
 ];
 
 // Helper to parse timing strings like "15-30 min" to minutes
@@ -38,48 +37,66 @@ const parseTimeToMinutes = (timeStr: string | null): number => {
 
 export default function MedicineHub() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState<MedicationCategory>('all');
   const [selectedSubcategory, setSelectedSubcategory] = useState('all');
-  const [sortBy, setSortBy] = useState('name');
+  const [sortBy, setSortBy] = useState<SortOption>('popularity');
   const [selectedMedicationId, setSelectedMedicationId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('all');
+  const [selectedForCompare, setSelectedForCompare] = useState<Array<{ id: string; name: string }>>([]);
 
-  const { medications, isLoading, subcategories } = useMedications({
-    category: selectedCategory === 'all' ? undefined : selectedCategory,
-    subcategory: selectedSubcategory === 'all' ? undefined : selectedSubcategory,
+  const { data: medications, isLoading } = useMedications({
+    category: selectedCategory,
     search: searchQuery,
-    sortBy,
+    sort: sortBy,
   });
 
-  const { 
-    selectedMedications, 
-    toggleMedication, 
-    removeMedication, 
-    clearAll 
-  } = useMedicationComparison();
+  const { data: categories } = useMedicationCategories();
+
+  // Get subcategories from current medications
+  const subcategories = useMemo(() => {
+    if (!medications) return [];
+    return [...new Set(medications.map(m => m.subcategory).filter(Boolean) as string[])];
+  }, [medications]);
 
   // Filter medications based on active tab
   const filteredMedications = useMemo(() => {
     if (!medications) return [];
     
+    let filtered = medications;
+    
+    // Apply subcategory filter
+    if (selectedSubcategory !== 'all') {
+      filtered = filtered.filter(m => m.subcategory === selectedSubcategory);
+    }
+    
+    // Apply tab filter
     switch (activeTab) {
       case 'insulins':
-        return medications.filter(m => m.category === 'Insulin');
+        return filtered.filter(m => m.category?.toLowerCase().includes('insulin'));
       case 'oral':
-        return medications.filter(m => m.category === 'Oral');
+        return filtered.filter(m => 
+          m.category === 'Biguanide' || 
+          m.category === 'Sulfonylurea' || 
+          m.category?.includes('DPP-4') ||
+          m.category?.includes('SGLT2')
+        );
       case 'injectables':
-        return medications.filter(m => m.category === 'Injectable');
+        return filtered.filter(m => 
+          m.category?.includes('GLP-1') || 
+          m.category?.includes('GIP') ||
+          m.category === 'Amylin Analog'
+        );
       default:
-        return medications;
+        return filtered;
     }
-  }, [medications, activeTab]);
+  }, [medications, activeTab, selectedSubcategory]);
 
   // Get insulin data for the chart
   const insulinChartData = useMemo(() => {
     if (!medications) return [];
     
     const insulins = medications.filter(m => 
-      m.category === 'Insulin' && 
+      m.category?.toLowerCase().includes('insulin') && 
       (m.onset_time || m.peak_time || m.duration)
     );
 
@@ -98,21 +115,55 @@ export default function MedicineHub() {
     
     return {
       total: medications.length,
-      insulins: medications.filter(m => m.category === 'Insulin').length,
-      oral: medications.filter(m => m.category === 'Oral').length,
-      injectables: medications.filter(m => m.category === 'Injectable').length,
+      insulins: medications.filter(m => m.category?.toLowerCase().includes('insulin')).length,
+      oral: medications.filter(m => 
+        m.category === 'Biguanide' || 
+        m.category === 'Sulfonylurea' || 
+        m.category?.includes('DPP-4') ||
+        m.category?.includes('SGLT2')
+      ).length,
+      injectables: medications.filter(m => 
+        m.category?.includes('GLP-1') || 
+        m.category?.includes('GIP') ||
+        m.category === 'Amylin Analog'
+      ).length,
     };
   }, [medications]);
 
   const handleToggleCompare = (id: string) => {
     const medication = medications?.find(m => m.id === id);
-    if (medication) {
-      toggleMedication({ id: medication.id, name: medication.name });
-    }
+    if (!medication) return;
+    
+    setSelectedForCompare(prev => {
+      const exists = prev.find(m => m.id === id);
+      if (exists) {
+        return prev.filter(m => m.id !== id);
+      }
+      if (prev.length >= 4) return prev;
+      return [...prev, { id: medication.id, name: medication.name }];
+    });
   };
 
   const handleViewDetails = (medication: any) => {
     setSelectedMedicationId(medication.id);
+  };
+
+  const handleSortChange = (value: string) => {
+    // Map filter sort values to hook sort values
+    switch (value) {
+      case 'rating':
+        setSortBy('rating');
+        break;
+      case 'price_low':
+      case 'price_high':
+        setSortBy('price');
+        break;
+      case 'popularity':
+        setSortBy('popularity');
+        break;
+      default:
+        setSortBy('name');
+    }
   };
 
   return (
@@ -148,8 +199,8 @@ export default function MedicineHub() {
           <Card>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-500/10">
-                  <Syringe className="h-5 w-5 text-blue-500" />
+                <div className="p-2 rounded-lg bg-accent">
+                  <Syringe className="h-5 w-5 text-accent-foreground" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.insulins}</p>
@@ -161,8 +212,8 @@ export default function MedicineHub() {
           <Card>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-green-500/10">
-                  <PillBottle className="h-5 w-5 text-green-500" />
+                <div className="p-2 rounded-lg bg-secondary">
+                  <PillBottle className="h-5 w-5 text-secondary-foreground" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.oral}</p>
@@ -174,8 +225,8 @@ export default function MedicineHub() {
           <Card>
             <CardContent className="pt-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-purple-500/10">
-                  <Activity className="h-5 w-5 text-purple-500" />
+                <div className="p-2 rounded-lg bg-muted">
+                  <Activity className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.injectables}</p>
@@ -211,11 +262,11 @@ export default function MedicineHub() {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             selectedCategory={selectedCategory}
-            onCategoryChange={setSelectedCategory}
+            onCategoryChange={(val) => setSelectedCategory(val as MedicationCategory)}
             selectedSubcategory={selectedSubcategory}
             onSubcategoryChange={setSelectedSubcategory}
             sortBy={sortBy}
-            onSortChange={setSortBy}
+            onSortChange={handleSortChange}
             subcategories={subcategories}
           />
         </div>
@@ -225,9 +276,9 @@ export default function MedicineHub() {
           <span className="text-sm text-muted-foreground">
             Showing {filteredMedications.length} medications
           </span>
-          {selectedMedications.length > 0 && (
+          {selectedForCompare.length > 0 && (
             <Badge variant="secondary">
-              {selectedMedications.length} selected for comparison
+              {selectedForCompare.length} selected for comparison
             </Badge>
           )}
         </div>
@@ -254,10 +305,10 @@ export default function MedicineHub() {
               <MedicationCard
                 key={medication.id}
                 medication={medication}
-                isSelected={selectedMedications.some(m => m.id === medication.id)}
+                isSelected={selectedForCompare.some(m => m.id === medication.id)}
                 onToggleCompare={handleToggleCompare}
                 onViewDetails={handleViewDetails}
-                compareDisabled={selectedMedications.length >= 4}
+                compareDisabled={selectedForCompare.length >= 4}
               />
             ))}
           </div>
@@ -275,9 +326,9 @@ export default function MedicineHub() {
 
         {/* Compare Bar */}
         <MedicationCompareBar
-          selectedMedications={selectedMedications}
-          onRemove={removeMedication}
-          onClearAll={clearAll}
+          selectedMedications={selectedForCompare}
+          onRemove={(id) => setSelectedForCompare(prev => prev.filter(m => m.id !== id))}
+          onClearAll={() => setSelectedForCompare([])}
         />
 
         {/* Detail Modal */}

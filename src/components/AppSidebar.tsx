@@ -33,7 +33,8 @@ import {
   Library,
   Hammer,
   HandHeart,
-  Info
+  Info,
+  Pill
 } from 'lucide-react';
 import {
   Sidebar,
@@ -70,6 +71,7 @@ const platformItemsBeforeProjects = [
   { title: "T1D News", url: "/news", icon: Newspaper },
   { title: "T1D Companion", url: "/t1d-companion", icon: MessageCircle },
   { title: "Community Solutions", url: "/community-solutions", icon: Users },
+  { title: "Medicine Hub", url: "/medicines", icon: Pill },
 ];
 
 const platformItemsAfterProjects = [
