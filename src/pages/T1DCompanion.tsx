@@ -5,9 +5,10 @@ import { Card } from '@/components/ui/card';
 import { ExploreSection } from '@/components/t1d-companion/ExploreSection';
 import { T1DChat } from '@/components/t1d-companion/T1DChat';
 import { MySavedIssues } from '@/components/t1d-companion/MySavedIssues';
+import { ChatHistoryList } from '@/components/chat/ChatHistoryList';
 import { SavedIssue } from '@/hooks/useSavedIssues';
 import { useAuthStore } from '@/store/authStore';
-import { Sparkles, Compass, MessageSquare, Bookmark } from 'lucide-react';
+import { Sparkles, Compass, MessageSquare, Bookmark, History } from 'lucide-react';
 
 interface ChatContext {
   initialMessage: string;
@@ -71,7 +72,7 @@ export default function T1DCompanion() {
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="explore" className="gap-2">
               <Compass className="h-4 w-4" />
               <span className="hidden sm:inline">Explore</span>
@@ -84,6 +85,12 @@ export default function T1DCompanion() {
               <Bookmark className="h-4 w-4" />
               <span className="hidden sm:inline">My Issues</span>
             </TabsTrigger>
+            {user && (
+              <TabsTrigger value="history" className="gap-2">
+                <History className="h-4 w-4" />
+                <span className="hidden sm:inline">History</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <Card className="p-6">
@@ -102,6 +109,25 @@ export default function T1DCompanion() {
             <TabsContent value="my-issues" className="mt-0">
               <MySavedIssues onChatWithIssue={handleChatWithSavedIssue} />
             </TabsContent>
+
+            {user && (
+              <TabsContent value="history" className="mt-0">
+                <ChatHistoryList
+                  onSelectSession={(session) => {
+                    // Load the session into chat
+                    setChatContext({
+                      initialMessage: '',
+                      context: {
+                        title: session.context_name || 'Chat',
+                        description: '',
+                        category: session.context_type,
+                      },
+                    });
+                    setActiveTab('chat');
+                  }}
+                />
+              </TabsContent>
+            )}
           </Card>
         </Tabs>
       </div>

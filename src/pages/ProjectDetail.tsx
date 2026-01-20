@@ -4,6 +4,7 @@ import Layout from '@/components/Layout';
 import { useProjectDetail } from '@/hooks/useProjects';
 import { ResearchSection } from '@/components/projects/ResearchSection';
 import { CommunitySolutionsSection } from '@/components/projects/CommunitySolutionsSection';
+import { ProjectAIChat } from '@/components/projects/ProjectAIChat';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -410,17 +411,16 @@ const ProjectDetail: React.FC = () => {
 
           <TabsContent value="discussion">
             <Card>
-              <CardContent className="py-12 text-center">
-                <MessageCircle className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium">Join the Discussion</h3>
-                <p className="text-muted-foreground mt-2 mb-4">
-                  Explore related discussions in our Community Solutions hub.
-                </p>
-                <Button asChild>
-                  <Link to="/community-solutions">
-                    Browse Community Solutions
-                  </Link>
-                </Button>
+              <CardContent className="p-6">
+                <ProjectAIChat
+                  projectId={project.id}
+                  projectTitle={project.title}
+                  projectDescription={project.description}
+                  projectSymptoms={project.symptoms || undefined}
+                  projectCauses={project.possible_causes || undefined}
+                  researchCount={researchLinks.length}
+                  solutionsCount={communitySolutions.length}
+                />
               </CardContent>
             </Card>
           </TabsContent>

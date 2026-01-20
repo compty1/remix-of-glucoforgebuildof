@@ -21,8 +21,10 @@ import {
   MessageSquare,
   AlertTriangle,
   Shield,
-  Headphones
+  Headphones,
+  Bot
 } from 'lucide-react';
+import { DeviceAIChat } from '@/components/device/DeviceAIChat';
 
 const DeviceDetail = () => {
   const { deviceId } = useParams<{ deviceId: string }>();
@@ -192,6 +194,13 @@ const DeviceDetail = () => {
                 <Headphones className="h-4 w-4 mr-2" />
                 Support
               </TabsTrigger>
+              <TabsTrigger 
+                value="ai-assistant"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                <Bot className="h-4 w-4 mr-2" />
+                AI Assistant
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview">
@@ -212,6 +221,16 @@ const DeviceDetail = () => {
 
             <TabsContent value="support">
               <DeviceSupportTab resources={supportResources} device={device} />
+            </TabsContent>
+
+            <TabsContent value="ai-assistant">
+              <DeviceAIChat
+                deviceId={deviceId || ''}
+                deviceName={device.name}
+                deviceCategory={device.category}
+                deviceManufacturer={device.manufacturer}
+                deviceIssues={issues}
+              />
             </TabsContent>
           </Tabs>
         </section>

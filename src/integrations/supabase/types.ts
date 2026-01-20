@@ -127,28 +127,40 @@ export type Database = {
       }
       chat_sessions: {
         Row: {
+          context_id: string | null
+          context_name: string | null
+          context_type: string | null
           created_at: string | null
           id: string
           messages: Json | null
           saved_issue_id: string | null
+          suggested_questions: Json | null
           summary: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          context_id?: string | null
+          context_name?: string | null
+          context_type?: string | null
           created_at?: string | null
           id?: string
           messages?: Json | null
           saved_issue_id?: string | null
+          suggested_questions?: Json | null
           summary?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          context_id?: string | null
+          context_name?: string | null
+          context_type?: string | null
           created_at?: string | null
           id?: string
           messages?: Json | null
           saved_issue_id?: string | null
+          suggested_questions?: Json | null
           summary?: string | null
           updated_at?: string | null
           user_id?: string
