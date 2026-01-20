@@ -9,6 +9,7 @@ import { useAccessibilityAudit, usePerformanceMonitor } from "@/utils/qa-utils";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Journey from "./pages/Journey";
+import About from "./pages/About";
 import Fixes from "./pages/Fixes";
 import Discoveries from "./pages/Discoveries";
 import HowItWorks from "./pages/HowItWorks";
@@ -93,7 +94,8 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/journey" element={<Journey />} />
+          <Route path="/journey" element={<Journey />} />
+          <Route path="/about" element={<About />} />
             <Route path="/fixes" element={<Fixes />} />
             <Route path="/discoveries" element={<Discoveries />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
