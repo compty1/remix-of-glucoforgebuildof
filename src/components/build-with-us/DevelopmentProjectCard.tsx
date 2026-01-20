@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,8 +23,17 @@ interface DevelopmentProjectCardProps {
 }
 
 export function DevelopmentProjectCard({ project }: DevelopmentProjectCardProps) {
+  const navigate = useNavigate();
+
+  const handleClick = () => {
+    navigate(`/build-with-us/${project.id}`);
+  };
+
   return (
-    <Card className="group hover:shadow-lg transition-all duration-300 hover:border-primary/30 flex flex-col h-full">
+    <Card 
+      className="group hover:shadow-lg transition-all duration-300 hover:border-primary/30 flex flex-col h-full cursor-pointer"
+      onClick={handleClick}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <Badge 
@@ -73,6 +83,10 @@ export function DevelopmentProjectCard({ project }: DevelopmentProjectCardProps)
         <Button 
           variant="ghost" 
           className="w-full justify-between group-hover:bg-primary/5 mt-auto"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleClick();
+          }}
         >
           View Project
           <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />

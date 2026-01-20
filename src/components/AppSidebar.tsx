@@ -34,7 +34,9 @@ import {
   Hammer,
   HandHeart,
   Info,
-  Pill
+  Pill,
+  Stethoscope,
+  Sparkles as SparklesIcon
 } from 'lucide-react';
 import {
   Sidebar,
@@ -72,6 +74,8 @@ const platformItemsBeforeProjects = [
   { title: "T1D Companion", url: "/t1d-companion", icon: MessageCircle },
   { title: "Community Solutions", url: "/community-solutions", icon: Users },
   { title: "Medicine Hub", url: "/medicines", icon: Pill },
+  { title: "Find Clinical Trials", url: "/trials", icon: Stethoscope },
+  { title: "Quality of Life", url: "/quality-of-life", icon: SparklesIcon },
 ];
 
 const platformItemsAfterProjects = [
@@ -294,7 +298,7 @@ export function AppSidebar() {
                     >
                       <div className="flex items-center gap-2">
                         <FolderOpen className="h-4 w-4" />
-                        {state !== "collapsed" && <span>Projects</span>}
+                        {state !== "collapsed" && <span>Deep Dive Projects</span>}
                       </div>
                       {state !== "collapsed" && (
                         <ChevronRight className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/projects:rotate-90" />
