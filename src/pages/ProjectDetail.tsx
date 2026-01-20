@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Progress } from '@/components/ui/progress';
 import { 
   ChevronLeft, 
   Eye, 
@@ -18,7 +19,14 @@ import {
   FileText,
   Users,
   MessageCircle,
-  Info
+  Info,
+  Search,
+  AlertTriangle,
+  Zap,
+  Clock,
+  HelpCircle,
+  Link2,
+  Target
 } from 'lucide-react';
 
 const ProjectDetail: React.FC = () => {
@@ -74,6 +82,22 @@ const ProjectDetail: React.FC = () => {
       'General': 'bg-gray-500/10 text-gray-600 border-gray-500/20',
     };
     return colors[category] || colors['General'];
+  };
+
+  const getDifficultyColor = (difficulty: string | null): string => {
+    switch (difficulty) {
+      case 'mild': return 'bg-green-500/10 text-green-600 border-green-500/20';
+      case 'moderate': return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
+      case 'severe': return 'bg-red-500/10 text-red-600 border-red-500/20';
+      default: return 'bg-gray-500/10 text-gray-600 border-gray-500/20';
+    }
+  };
+
+  const formatNumber = (num: number | null): string => {
+    if (!num) return 'N/A';
+    if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+    if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
+    return num.toString();
   };
 
   return (
@@ -179,6 +203,95 @@ const ProjectDetail: React.FC = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
+            {/* How Common Is This? - Stats Row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Search className="h-5 w-5 mx-auto text-primary mb-2" />
+                  <p className="text-2xl font-bold text-primary">
+                    {formatNumber(project.search_volume_monthly)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Monthly Searches</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Users className="h-5 w-5 mx-auto text-primary mb-2" />
+                  <p className="text-2xl font-bold text-primary">
+                    {formatNumber(project.affected_population_estimate)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">People Affected</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Clock className="h-5 w-5 mx-auto text-primary mb-2" />
+                  <p className="text-2xl font-bold text-primary">
+                    {project.time_to_diagnosis_avg || 'Unknown'}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Avg. Time to Diagnose</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Target className="h-5 w-5 mx-auto text-primary mb-2" />
+                  {project.management_difficulty && (
+                    <Badge variant="outline" className={`mb-1 ${getDifficultyColor(project.management_difficulty)}`}>
+                      {project.management_difficulty}
+                    </Badge>
+                  )}
+                  <p className="text-xs text-muted-foreground">Management Difficulty</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Why This Happens - Possible Causes */}
+            {project.possible_causes && project.possible_causes.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <HelpCircle className="h-5 w-5 text-primary" />
+                    Why This Happens
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Research identifies multiple potential causes for this condition:
+                  </p>
+                  <div className="grid md:grid-cols-2 gap-2">
+                    {project.possible_causes.map((cause, index) => (
+                      <div key={index} className="flex items-start gap-2 text-sm">
+                        <span className="text-primary font-bold mt-0.5">•</span>
+                        <span>{cause}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Condition Triggers */}
+            {project.condition_triggers && project.condition_triggers.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-yellow-500" />
+                    What Makes It Worse
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {project.condition_triggers.map((trigger, index) => (
+                      <Badge key={index} variant="secondary" className="bg-yellow-500/10 text-yellow-700 border-yellow-500/20">
+                        {trigger}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Research & Community Insights */}
             <div className="grid md:grid-cols-2 gap-6">
               {project.official_research_summary && (
                 <Card>
@@ -212,6 +325,51 @@ const ProjectDetail: React.FC = () => {
                 </Card>
               )}
             </div>
+
+            {/* Commonly Misdiagnosed As */}
+            {project.commonly_misdiagnosed_as && project.commonly_misdiagnosed_as.length > 0 && (
+              <Card className="border-orange-500/30 bg-orange-500/5">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2 text-orange-600">
+                    <AlertTriangle className="h-5 w-5" />
+                    Often Misdiagnosed As
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    This condition is frequently mistaken for other issues:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {project.commonly_misdiagnosed_as.map((condition, index) => (
+                      <Badge key={index} variant="outline" className="border-orange-500/30">
+                        {condition}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Related Conditions */}
+            {project.related_conditions && project.related_conditions.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Link2 className="h-5 w-5 text-primary" />
+                    Related Conditions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {project.related_conditions.map((condition, index) => (
+                      <Badge key={index} variant="secondary">
+                        {condition}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Quick Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
