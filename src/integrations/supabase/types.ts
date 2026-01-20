@@ -290,6 +290,8 @@ export type Database = {
           score: number | null
           sentiment: string | null
           source: string
+          source_link_verified: boolean | null
+          source_link_verified_at: string | null
           title: string
           topic_tags: string[] | null
           url: string | null
@@ -309,6 +311,8 @@ export type Database = {
           score?: number | null
           sentiment?: string | null
           source: string
+          source_link_verified?: boolean | null
+          source_link_verified_at?: string | null
           title: string
           topic_tags?: string[] | null
           url?: string | null
@@ -328,6 +332,8 @@ export type Database = {
           score?: number | null
           sentiment?: string | null
           source?: string
+          source_link_verified?: boolean | null
+          source_link_verified_at?: string | null
           title?: string
           topic_tags?: string[] | null
           url?: string | null
@@ -383,6 +389,8 @@ export type Database = {
           description: string | null
           estimated_completion: string | null
           id: string
+          link_verified: boolean | null
+          link_verified_at: string | null
           name: string
           phase: string | null
           progress_percentage: number | null
@@ -398,6 +406,8 @@ export type Database = {
           description?: string | null
           estimated_completion?: string | null
           id?: string
+          link_verified?: boolean | null
+          link_verified_at?: string | null
           name: string
           phase?: string | null
           progress_percentage?: number | null
@@ -413,6 +423,8 @@ export type Database = {
           description?: string | null
           estimated_completion?: string | null
           id?: string
+          link_verified?: boolean | null
+          link_verified_at?: string | null
           name?: string
           phase?: string | null
           progress_percentage?: number | null
@@ -741,6 +753,8 @@ export type Database = {
           full_text: string | null
           id: string
           impact_level: string | null
+          links_verified: boolean | null
+          links_verified_at: string | null
           primary_source: string | null
           publication_date: string | null
           source_urls: string[] | null
@@ -758,6 +772,8 @@ export type Database = {
           full_text?: string | null
           id?: string
           impact_level?: string | null
+          links_verified?: boolean | null
+          links_verified_at?: string | null
           primary_source?: string | null
           publication_date?: string | null
           source_urls?: string[] | null
@@ -775,6 +791,8 @@ export type Database = {
           full_text?: string | null
           id?: string
           impact_level?: string | null
+          links_verified?: boolean | null
+          links_verified_at?: string | null
           primary_source?: string | null
           publication_date?: string | null
           source_urls?: string[] | null
@@ -1268,6 +1286,8 @@ export type Database = {
           diabetes_relevance_score: number | null
           id: string
           inventors: string[] | null
+          link_verified: boolean | null
+          link_verified_at: string | null
           patent_date: string | null
           patent_id: string
           patent_url: string | null
@@ -1281,6 +1301,8 @@ export type Database = {
           diabetes_relevance_score?: number | null
           id?: string
           inventors?: string[] | null
+          link_verified?: boolean | null
+          link_verified_at?: string | null
           patent_date?: string | null
           patent_id: string
           patent_url?: string | null
@@ -1294,6 +1316,8 @@ export type Database = {
           diabetes_relevance_score?: number | null
           id?: string
           inventors?: string[] | null
+          link_verified?: boolean | null
+          link_verified_at?: string | null
           patent_date?: string | null
           patent_id?: string
           patent_url?: string | null
@@ -1525,6 +1549,8 @@ export type Database = {
           id: string
           impact_level: string | null
           link: string | null
+          link_verified: boolean | null
+          link_verified_at: string | null
           source: string | null
           summary: string | null
           title: string
@@ -1535,6 +1561,8 @@ export type Database = {
           id?: string
           impact_level?: string | null
           link?: string | null
+          link_verified?: boolean | null
+          link_verified_at?: string | null
           source?: string | null
           summary?: string | null
           title: string
@@ -1545,6 +1573,8 @@ export type Database = {
           id?: string
           impact_level?: string | null
           link?: string | null
+          link_verified?: boolean | null
+          link_verified_at?: string | null
           source?: string | null
           summary?: string | null
           title?: string
@@ -1754,6 +1784,111 @@ export type Database = {
           search_keywords?: string[] | null
           solution_count?: number | null
           title?: string
+        }
+        Relationships: []
+      }
+      t1d_companies: {
+        Row: {
+          acquired_by: string | null
+          acquisition_date: string | null
+          clinical_stage: string | null
+          company_type: string | null
+          country: string | null
+          created_at: string | null
+          crunchbase_url: string | null
+          data_source: string | null
+          description: string | null
+          employee_count: string | null
+          focus_areas: string[] | null
+          founded_year: number | null
+          funding_rounds: number | null
+          funding_stage: string | null
+          headquarters: string | null
+          id: string
+          investors: Json | null
+          is_active: boolean | null
+          key_people: Json | null
+          last_funding_date: string | null
+          link_verified: boolean | null
+          link_verified_at: string | null
+          linkedin_url: string | null
+          logo_url: string | null
+          name: string
+          parent_company: string | null
+          products: Json | null
+          technology_summary: string | null
+          total_funding_usd: number | null
+          twitter_url: string | null
+          updated_at: string | null
+          website_url: string | null
+        }
+        Insert: {
+          acquired_by?: string | null
+          acquisition_date?: string | null
+          clinical_stage?: string | null
+          company_type?: string | null
+          country?: string | null
+          created_at?: string | null
+          crunchbase_url?: string | null
+          data_source?: string | null
+          description?: string | null
+          employee_count?: string | null
+          focus_areas?: string[] | null
+          founded_year?: number | null
+          funding_rounds?: number | null
+          funding_stage?: string | null
+          headquarters?: string | null
+          id?: string
+          investors?: Json | null
+          is_active?: boolean | null
+          key_people?: Json | null
+          last_funding_date?: string | null
+          link_verified?: boolean | null
+          link_verified_at?: string | null
+          linkedin_url?: string | null
+          logo_url?: string | null
+          name: string
+          parent_company?: string | null
+          products?: Json | null
+          technology_summary?: string | null
+          total_funding_usd?: number | null
+          twitter_url?: string | null
+          updated_at?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          acquired_by?: string | null
+          acquisition_date?: string | null
+          clinical_stage?: string | null
+          company_type?: string | null
+          country?: string | null
+          created_at?: string | null
+          crunchbase_url?: string | null
+          data_source?: string | null
+          description?: string | null
+          employee_count?: string | null
+          focus_areas?: string[] | null
+          founded_year?: number | null
+          funding_rounds?: number | null
+          funding_stage?: string | null
+          headquarters?: string | null
+          id?: string
+          investors?: Json | null
+          is_active?: boolean | null
+          key_people?: Json | null
+          last_funding_date?: string | null
+          link_verified?: boolean | null
+          link_verified_at?: string | null
+          linkedin_url?: string | null
+          logo_url?: string | null
+          name?: string
+          parent_company?: string | null
+          products?: Json | null
+          technology_summary?: string | null
+          total_funding_usd?: number | null
+          twitter_url?: string | null
+          updated_at?: string | null
+          website_url?: string | null
         }
         Relationships: []
       }
