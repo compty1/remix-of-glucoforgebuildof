@@ -34,6 +34,40 @@ interface UploadedFile {
   status: 'processing' | 'complete' | 'error';
   insights: string[];
   readingsCount: number;
+  detailedAnalysis?: {
+    readingsCount?: number;
+    avgGlucose?: number;
+    medianGlucose?: number;
+    stdDev?: number;
+    cv?: number;
+    gmi?: number;
+    timeInRange?: number;
+    timeInTightRange?: number;
+    timeAbove180?: number;
+    timeAbove250?: number;
+    timeBelow70?: number;
+    timeBelow54?: number;
+    mage?: number;
+    gvi?: number;
+    lowEvents?: number;
+    severeLowEvents?: number;
+    highEvents?: number;
+    severeHighEvents?: number;
+    dataStart?: string;
+    dataEnd?: string;
+    daysOfData?: number;
+  };
+  hourlyData?: Array<{ hour: number; avg: number; min: number; max: number; p10: number; p25: number; p50: number; p75: number; p90: number; count: number }>;
+  dailyData?: Array<{ date: string; avg: number; min: number; max: number; tir: number; readings: number; lowEvents: number; highEvents: number }>;
+  agpData?: Array<{ time: string; p5: number; p25: number; p50: number; p75: number; p95: number }>;
+  patterns?: Array<{ type: string; severity: 'info' | 'warning' | 'critical'; title: string; description: string; timeOfDay?: string; avgImpact?: number }>;
+  recommendations?: string[];
+  aiInsights?: {
+    patterns?: Array<{ pattern: string; description: string; impact: string }>;
+    recommendations?: Array<{ recommendation: string; priority: string; rationale: string }>;
+    concerns?: string[];
+    summary?: string;
+  };
 }
 
 const DataUpload = () => {
@@ -64,7 +98,14 @@ const DataUpload = () => {
           uploadDate: new Date(upload.uploaded_at).toISOString().split('T')[0],
           status: (upload.status === 'completed' ? 'complete' : upload.status) as 'complete' | 'processing' | 'error',
           insights: upload.insights || [],
-          readingsCount: upload.readings_count || 0
+          readingsCount: upload.readings_count || 0,
+          detailedAnalysis: upload.detailed_analysis as UploadedFile['detailedAnalysis'],
+          hourlyData: upload.hourly_data as UploadedFile['hourlyData'],
+          dailyData: upload.daily_data as UploadedFile['dailyData'],
+          agpData: upload.agp_data as UploadedFile['agpData'],
+          patterns: upload.patterns as UploadedFile['patterns'],
+          recommendations: upload.recommendations || [],
+          aiInsights: upload.ai_insights as UploadedFile['aiInsights']
         })));
       }
     };
@@ -153,7 +194,14 @@ const DataUpload = () => {
               id: uploadRecord.id,
               status: 'complete' as const, 
               insights,
-              readingsCount
+              readingsCount,
+              detailedAnalysis: analysisResult?.detailedAnalysis,
+              hourlyData: analysisResult?.hourlyData,
+              dailyData: analysisResult?.dailyData,
+              agpData: analysisResult?.agpData,
+              patterns: analysisResult?.patterns,
+              recommendations: analysisResult?.recommendations,
+              aiInsights: analysisResult?.aiInsights
             }
           : f
       ));
@@ -430,6 +478,12 @@ const DataUpload = () => {
           fileName={selectedFile.name}
           insights={selectedFile.insights}
           readingsCount={selectedFile.readingsCount}
+          detailedAnalysis={selectedFile.detailedAnalysis}
+          hourlyData={selectedFile.hourlyData}
+          dailyData={selectedFile.dailyData}
+          agpData={selectedFile.agpData}
+          patterns={selectedFile.patterns}
+          recommendations={selectedFile.recommendations}
         />
       )}
     </Layout>

@@ -27,27 +27,27 @@ import PatternCard from './PatternCard';
 import RecommendationCard from './RecommendationCard';
 
 interface DetailedAnalysis {
-  readingsCount: number;
-  avgGlucose: number;
-  medianGlucose: number;
-  stdDev: number;
-  cv: number;
-  timeInRange: number;
-  timeInTightRange: number;
-  timeAbove180: number;
-  timeAbove250: number;
-  timeBelow70: number;
-  timeBelow54: number;
-  gmi: number;
-  gvi: number;
-  mage: number;
-  lowEvents: number;
-  severeLowEvents: number;
-  highEvents: number;
-  severeHighEvents: number;
-  dataStart: string;
-  dataEnd: string;
-  daysOfData: number;
+  readingsCount?: number;
+  avgGlucose?: number;
+  medianGlucose?: number;
+  stdDev?: number;
+  cv?: number;
+  timeInRange?: number;
+  timeInTightRange?: number;
+  timeAbove180?: number;
+  timeAbove250?: number;
+  timeBelow70?: number;
+  timeBelow54?: number;
+  gmi?: number;
+  gvi?: number;
+  mage?: number;
+  lowEvents?: number;
+  severeLowEvents?: number;
+  highEvents?: number;
+  severeHighEvents?: number;
+  dataStart?: string;
+  dataEnd?: string;
+  daysOfData?: number;
 }
 
 interface Pattern {
@@ -122,7 +122,7 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState('overview');
 
-  const hasDetailedData = detailedAnalysis && detailedAnalysis.readingsCount > 0;
+  const hasDetailedData = detailedAnalysis && (detailedAnalysis.readingsCount ?? 0) > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -135,7 +135,7 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>{fileName}</span>
             <Badge variant="outline">{readingsCount.toLocaleString()} readings</Badge>
-            {hasDetailedData && (
+            {hasDetailedData && detailedAnalysis.daysOfData && (
               <Badge variant="secondary">{detailedAnalysis.daysOfData} days</Badge>
             )}
           </div>
@@ -171,11 +171,11 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
                   
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <TimeInRangeChart
-                      timeInRange={detailedAnalysis.timeInRange}
-                      timeAbove180={detailedAnalysis.timeAbove180}
-                      timeAbove250={detailedAnalysis.timeAbove250}
-                      timeBelow70={detailedAnalysis.timeBelow70}
-                      timeBelow54={detailedAnalysis.timeBelow54}
+                      timeInRange={detailedAnalysis.timeInRange ?? 0}
+                      timeAbove180={detailedAnalysis.timeAbove180 ?? 0}
+                      timeAbove250={detailedAnalysis.timeAbove250 ?? 0}
+                      timeBelow70={detailedAnalysis.timeBelow70 ?? 0}
+                      timeBelow54={detailedAnalysis.timeBelow54 ?? 0}
                     />
                     {hourlyData && hourlyData.length > 0 && (
                       <GlucoseHeatmap data={hourlyData} />
