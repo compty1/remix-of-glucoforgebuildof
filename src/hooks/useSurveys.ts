@@ -9,6 +9,19 @@ interface Survey {
   questions: any; // This handles the Json type from Supabase
   created_at: string;
   updated_at: string;
+  // New research-grade fields
+  survey_type?: string;
+  research_category?: string;
+  institution_partner?: string;
+  irb_number?: string;
+  consent_text?: string;
+  estimated_time_minutes?: number;
+  is_anonymous?: boolean;
+  requires_demographics?: boolean;
+  version?: number;
+  status?: string;
+  target_responses?: number;
+  metadata?: any;
 }
 
 interface UseSurveysResult {
@@ -31,6 +44,7 @@ export const useSurveys = (): UseSurveysResult => {
       const { data, error: fetchError } = await supabase
         .from('surveys')
         .select('*')
+        .eq('status', 'active')
         .order('created_at', { ascending: false });
 
       if (fetchError) {
