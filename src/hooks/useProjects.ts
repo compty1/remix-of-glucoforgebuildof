@@ -19,6 +19,15 @@ export interface Project {
   view_count: number;
   created_at: string;
   updated_at: string;
+  // Enhanced fields
+  possible_causes: string[] | null;
+  search_volume_monthly: number | null;
+  affected_population_estimate: number | null;
+  condition_triggers: string[] | null;
+  related_conditions: string[] | null;
+  management_difficulty: string | null;
+  time_to_diagnosis_avg: string | null;
+  commonly_misdiagnosed_as: string[] | null;
 }
 
 export interface ResearchLink {
