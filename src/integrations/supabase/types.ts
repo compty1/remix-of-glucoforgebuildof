@@ -383,51 +383,81 @@ export type Database = {
       }
       cure_therapies: {
         Row: {
+          advantages: string[] | null
+          approach_type: string | null
           category: string | null
+          clinical_trial_ids: string[] | null
           confidence_score: number | null
           created_at: string
+          current_status_text: string | null
           description: string | null
+          estimated_availability_text: string | null
           estimated_completion: string | null
           id: string
+          is_featured: boolean | null
+          life_after_treatment: string | null
           link_verified: boolean | null
           link_verified_at: string | null
+          mechanism: string | null
           name: string
           phase: string | null
           progress_percentage: number | null
+          requirements: string[] | null
+          risks: string[] | null
           sponsor: string | null
           status: string | null
           updated_at: string
           website_url: string | null
         }
         Insert: {
+          advantages?: string[] | null
+          approach_type?: string | null
           category?: string | null
+          clinical_trial_ids?: string[] | null
           confidence_score?: number | null
           created_at?: string
+          current_status_text?: string | null
           description?: string | null
+          estimated_availability_text?: string | null
           estimated_completion?: string | null
           id?: string
+          is_featured?: boolean | null
+          life_after_treatment?: string | null
           link_verified?: boolean | null
           link_verified_at?: string | null
+          mechanism?: string | null
           name: string
           phase?: string | null
           progress_percentage?: number | null
+          requirements?: string[] | null
+          risks?: string[] | null
           sponsor?: string | null
           status?: string | null
           updated_at?: string
           website_url?: string | null
         }
         Update: {
+          advantages?: string[] | null
+          approach_type?: string | null
           category?: string | null
+          clinical_trial_ids?: string[] | null
           confidence_score?: number | null
           created_at?: string
+          current_status_text?: string | null
           description?: string | null
+          estimated_availability_text?: string | null
           estimated_completion?: string | null
           id?: string
+          is_featured?: boolean | null
+          life_after_treatment?: string | null
           link_verified?: boolean | null
           link_verified_at?: string | null
+          mechanism?: string | null
           name?: string
           phase?: string | null
           progress_percentage?: number | null
+          requirements?: string[] | null
+          risks?: string[] | null
           sponsor?: string | null
           status?: string | null
           updated_at?: string
@@ -634,15 +664,18 @@ export type Database = {
         Row: {
           accuracy_mard: string | null
           app_compatibility: Json | null
+          availability: string | null
           battery_life: string | null
           category: string | null
           compatibility: Json | null
           cons: string[] | null
           created_at: string
           description: string | null
+          device_type: string | null
           fda_510k_number: string | null
           fda_clearance_date: string | null
           fda_pma_number: string | null
+          fda_status: string | null
           id: string
           image_url: string | null
           insurance_coverage: string | null
@@ -650,10 +683,12 @@ export type Database = {
           manufacturer: string | null
           model_number: string | null
           name: string
+          price_range: string | null
           pros: string[] | null
           regulatory_class: string | null
           retail_price_usd: number | null
           sensor_wear_days: number | null
+          specifications: Json | null
           support_email: string | null
           support_phone: string | null
           updated_at: string
@@ -665,15 +700,18 @@ export type Database = {
         Insert: {
           accuracy_mard?: string | null
           app_compatibility?: Json | null
+          availability?: string | null
           battery_life?: string | null
           category?: string | null
           compatibility?: Json | null
           cons?: string[] | null
           created_at?: string
           description?: string | null
+          device_type?: string | null
           fda_510k_number?: string | null
           fda_clearance_date?: string | null
           fda_pma_number?: string | null
+          fda_status?: string | null
           id?: string
           image_url?: string | null
           insurance_coverage?: string | null
@@ -681,10 +719,12 @@ export type Database = {
           manufacturer?: string | null
           model_number?: string | null
           name: string
+          price_range?: string | null
           pros?: string[] | null
           regulatory_class?: string | null
           retail_price_usd?: number | null
           sensor_wear_days?: number | null
+          specifications?: Json | null
           support_email?: string | null
           support_phone?: string | null
           updated_at?: string
@@ -696,15 +736,18 @@ export type Database = {
         Update: {
           accuracy_mard?: string | null
           app_compatibility?: Json | null
+          availability?: string | null
           battery_life?: string | null
           category?: string | null
           compatibility?: Json | null
           cons?: string[] | null
           created_at?: string
           description?: string | null
+          device_type?: string | null
           fda_510k_number?: string | null
           fda_clearance_date?: string | null
           fda_pma_number?: string | null
+          fda_status?: string | null
           id?: string
           image_url?: string | null
           insurance_coverage?: string | null
@@ -712,10 +755,12 @@ export type Database = {
           manufacturer?: string | null
           model_number?: string | null
           name?: string
+          price_range?: string | null
           pros?: string[] | null
           regulatory_class?: string | null
           retail_price_usd?: number | null
           sensor_wear_days?: number | null
+          specifications?: Json | null
           support_email?: string | null
           support_phone?: string | null
           updated_at?: string

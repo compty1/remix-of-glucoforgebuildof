@@ -14,6 +14,17 @@ export interface CureTherapy {
   status: string;
   website_url: string;
   milestones?: CureMilestone[];
+  // Enhanced fields
+  approach_type?: string;
+  mechanism?: string;
+  advantages?: string[];
+  risks?: string[];
+  current_status_text?: string;
+  estimated_availability_text?: string;
+  life_after_treatment?: string;
+  requirements?: string[];
+  clinical_trial_ids?: string[];
+  is_featured?: boolean;
 }
 
 export interface CureMilestone {
