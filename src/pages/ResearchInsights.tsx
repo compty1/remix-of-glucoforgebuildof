@@ -10,9 +10,10 @@ import { InfluentialPapersList } from '@/components/research/InfluentialPapersLi
 import { CitationNetwork } from '@/components/research/CitationNetwork';
 import { EmailSubscriptionForm } from '@/components/research/EmailSubscriptionForm';
 import { PaperDetailsModal } from '@/components/research/PaperDetailsModal';
+import { FoundConnectionsTab } from '@/components/research/FoundConnectionsTab';
 import { useResearchInsights } from '@/hooks/useResearchInsights';
 import { useCitationNetwork, type NetworkNode } from '@/hooks/useCitationNetwork';
-import { RefreshCw, Sparkles, TrendingUp, Network, Mail, BarChart3 } from 'lucide-react';
+import { RefreshCw, Sparkles, TrendingUp, Network, Mail, BarChart3, Link2 } from 'lucide-react';
 
 const ResearchInsights = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -56,7 +57,7 @@ const ResearchInsights = () => {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4" />
               Overview
@@ -68,6 +69,10 @@ const ResearchInsights = () => {
             <TabsTrigger value="influential" className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4" />
               Influential
+            </TabsTrigger>
+            <TabsTrigger value="connections" className="flex items-center gap-2">
+              <Link2 className="h-4 w-4" />
+              Connections
             </TabsTrigger>
             <TabsTrigger value="network" className="flex items-center gap-2">
               <Network className="h-4 w-4" />
@@ -118,6 +123,11 @@ const ResearchInsights = () => {
             ) : (
               <InfluentialPapersList papers={topInfluentialPapers} />
             )}
+          </TabsContent>
+
+          {/* Found Connections Tab */}
+          <TabsContent value="connections">
+            <FoundConnectionsTab />
           </TabsContent>
 
           {/* Citation Network Tab */}
