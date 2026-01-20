@@ -261,18 +261,30 @@ serve(async (req) => {
 
     console.log(`Analyzing glucose data from: ${filename}`);
 
-    // Parse file based on extension
+    // Parse file based on extension or content detection
     let readings: GlucoseReading[] = [];
+    const lowerFilename = filename.toLowerCase();
     
-    if (filename.toLowerCase().endsWith('.csv')) {
+    // Check file extension first
+    if (lowerFilename.endsWith('.csv') || lowerFilename.endsWith('.txt')) {
       readings = parseCSV(fileContent);
-    } else if (filename.toLowerCase().endsWith('.json')) {
+    } else if (lowerFilename.endsWith('.json')) {
       readings = parseJSON(fileContent);
     } else {
-      return new Response(
-        JSON.stringify({ error: 'Unsupported file format. Please upload CSV or JSON files.' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      // Try to detect format from content
+      const trimmedContent = fileContent.trim();
+      if (trimmedContent.startsWith('{') || trimmedContent.startsWith('[')) {
+        // Looks like JSON
+        readings = parseJSON(fileContent);
+      } else if (trimmedContent.includes(',') || trimmedContent.includes('\t')) {
+        // Looks like CSV/TSV
+        readings = parseCSV(fileContent);
+      } else {
+        return new Response(
+          JSON.stringify({ error: 'Unsupported file format. Please upload CSV, TXT, or JSON files.' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Analyze the data
