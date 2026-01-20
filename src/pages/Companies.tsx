@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Layout } from '@/components/Layout';
+import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -287,15 +287,11 @@ const Companies = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <InfoRail>
-              <p>
-                This database tracks <strong>60+ companies</strong> actively working on 
-                Type 1 diabetes solutions, from CGM manufacturers to cure research pioneers.
-              </p>
-              <p className="mt-2">
-                Data sourced from Seedtable, Crunchbase, and verified company websites.
-              </p>
-            </InfoRail>
+            <InfoRail
+              whatThisShows="This database tracks 60+ companies actively working on Type 1 diabetes solutions, from CGM manufacturers to cure research pioneers."
+              whyItMatters="Understanding the T1D innovation landscape helps you track cure progress and new technologies."
+              nextSteps="Click on any company to view detailed information, funding history, and products."
+            />
 
             {/* Top Focus Areas */}
             <Card>

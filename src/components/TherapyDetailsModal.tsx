@@ -1,9 +1,11 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { VerifiedLink } from '@/components/ui/verified-link';
 import { 
   ExternalLink, 
   Calendar, 
@@ -12,7 +14,8 @@ import {
   AlertCircle,
   Star,
   Building,
-  Target
+  Target,
+  Building2
 } from 'lucide-react';
 import { CureTherapy } from '@/hooks/useCureMonitoring';
 
@@ -113,14 +116,22 @@ export const TherapyDetailsModal: React.FC<TherapyDetailsModalProps> = ({
               </div>
 
               {therapy.website_url && (
-                <Button 
-                  className="w-full" 
-                  onClick={() => window.open(therapy.website_url, '_blank')}
+                <VerifiedLink 
+                  href={therapy.website_url}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
                 >
-                  <ExternalLink className="h-4 w-4 mr-2" />
+                  <ExternalLink className="h-4 w-4" />
                   Visit Official Website
-                </Button>
+                </VerifiedLink>
               )}
+
+              {/* Link to company if sponsor matches */}
+              <Link to={`/companies?search=${encodeURIComponent(therapy.sponsor)}`}>
+                <Button variant="outline" className="w-full">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  View Sponsor Company
+                </Button>
+              </Link>
             </CardContent>
           </Card>
 

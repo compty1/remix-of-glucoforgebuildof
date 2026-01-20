@@ -99,7 +99,7 @@ export function useT1DCompanies(filters?: CompanyFilters) {
 
       if (fetchError) throw fetchError;
 
-      let filteredData = (data || []) as T1DCompany[];
+      let filteredData = (data || []) as unknown as T1DCompany[];
 
       // Client-side search filter
       if (filters?.search) {
@@ -177,7 +177,7 @@ export function useCompanyById(id: string | undefined) {
           .single();
 
         if (fetchError) throw fetchError;
-        setCompany(data as T1DCompany);
+        setCompany(data as unknown as T1DCompany);
       } catch (err) {
         console.error('Error fetching company:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch company');
@@ -215,7 +215,7 @@ export function useRelatedCompanies(focusAreas: string[] | null, excludeId?: str
           .limit(6);
 
         if (error) throw error;
-        setCompanies((data || []) as T1DCompany[]);
+        setCompanies((data || []) as unknown as T1DCompany[]);
       } catch (err) {
         console.error('Error fetching related companies:', err);
       } finally {

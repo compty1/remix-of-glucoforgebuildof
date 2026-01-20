@@ -26,6 +26,7 @@ import {
   LayoutGrid,
   FolderOpen,
   Plus,
+  Building2,
   LucideIcon
 } from 'lucide-react';
 import {
@@ -65,6 +66,7 @@ const platformItemsBeforeProjects = [
 ];
 
 const platformItemsAfterProjects = [
+  { title: "T1D Companies", url: "/companies", icon: Building2 },
   { title: "Live Cure Monitoring", url: "/cure", icon: Beaker },
   { title: "FDA Safety Dashboard", url: "/fda-safety", icon: AlertTriangle },
   { title: "Innovation Hub", url: "/innovation", icon: Lightbulb },

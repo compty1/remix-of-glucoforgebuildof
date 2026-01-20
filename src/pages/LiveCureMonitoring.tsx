@@ -313,15 +313,16 @@ const LiveCureMonitoring = () => {
               <Button size="lg" className="bg-white text-primary hover:bg-white/90">
                 Set Up Alerts
               </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="border-white/30 text-white hover:bg-white/10"
-                onClick={() => window.open('/research-hub', '_self')}
-              >
-                View All Research
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+              <Link to="/companies">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="border-white/30 text-white hover:bg-white/10"
+                >
+                  Explore T1D Companies
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
             </div>
           </Card>
         </section>

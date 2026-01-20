@@ -1,6 +1,6 @@
 import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Layout } from '@/components/Layout';
+import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -361,18 +361,10 @@ const CompanyDetail = () => {
             )}
 
             {/* Data Source */}
-            <InfoRail>
-              <p>
-                Data sourced from <strong>{company.data_source || 'verified sources'}</strong>.
-                Last updated: {new Date(company.updated_at).toLocaleDateString()}
-              </p>
-              {company.acquired_by && (
-                <p className="mt-2">
-                  This company was acquired by <strong>{company.acquired_by}</strong>
-                  {company.acquisition_date && ` on ${new Date(company.acquisition_date).toLocaleDateString()}`}.
-                </p>
-              )}
-            </InfoRail>
+            <InfoRail
+              whatThisShows={`Data sourced from ${company.data_source || 'verified sources'}. Last updated: ${new Date(company.updated_at).toLocaleDateString()}`}
+              whyItMatters={company.acquired_by ? `This company was acquired by ${company.acquired_by}${company.acquisition_date ? ` on ${new Date(company.acquisition_date).toLocaleDateString()}` : ''}.` : "Track funding and clinical progress for this T1D innovator."}
+            />
 
             {/* Related Companies */}
             {relatedCompanies.length > 0 && (
