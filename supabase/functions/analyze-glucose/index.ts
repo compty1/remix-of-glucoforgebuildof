@@ -105,52 +105,237 @@ interface DetailedAnalysis {
   dataStart: string;
   dataEnd: string;
   daysOfData: number;
+  fromSummaryReport?: boolean;
+}
+
+// PDF Summary Metrics interface
+interface PDFSummaryMetrics {
+  gmi?: number;
+  avgGlucose?: number;
+  timeInRange?: number;
+  timeAbove180?: number;
+  timeBelow70?: number;
+  cv?: number;
+  reportPeriodDays?: number;
 }
 
 // ============= DATE VALIDATION =============
-// Filter out invalid readings with impossible dates
 function validateReadings(readings: GlucoseReading[]): GlucoseReading[] {
   const now = new Date();
   const currentYear = now.getFullYear();
-  const minDate = new Date('2010-01-01'); // CGMs weren't common before this
-  const maxDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // Max 1 week in future
+  const minDate = new Date('2010-01-01');
+  const maxDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
   
   const validated = readings.filter(r => {
-    // Validate timestamp exists
-    if (!r.timestamp || isNaN(r.timestamp.getTime())) {
-      return false;
-    }
+    if (!r.timestamp || isNaN(r.timestamp.getTime())) return false;
     
-    // CRITICAL: Explicitly check year to reject AI-generated garbage dates (year 0100, 5534, etc.)
     const year = r.timestamp.getFullYear();
     if (year < 2010 || year > currentYear + 1) {
       console.log(`Rejecting reading with impossible year: ${year}`);
       return false;
     }
     
-    // Check date range
-    if (r.timestamp < minDate || r.timestamp > maxDate) {
-      return false;
-    }
-    
-    // Validate glucose value (physiologically possible range)
+    if (r.timestamp < minDate || r.timestamp > maxDate) return false;
     if (!r.value || isNaN(r.value)) return false;
     if (r.value < 20 || r.value > 500) return false;
     
     return true;
   });
   
-  console.log(`Date validation: ${readings.length} input -> ${validated.length} valid (rejected ${readings.length - validated.length})`);
+  console.log(`Date validation: ${readings.length} input -> ${validated.length} valid`);
   return validated;
 }
 
+// ============= TEXT QUALITY ASSESSMENT =============
+interface TextQualityResult {
+  score: number;
+  hasNumbers: boolean;
+  hasKeywords: boolean;
+  isReadable: boolean;
+  alphanumericRatio: number;
+}
+
+function assessTextQuality(text: string): TextQualityResult {
+  if (!text || text.length < 10) {
+    return { score: 0, hasNumbers: false, hasKeywords: false, isReadable: false, alphanumericRatio: 0 };
+  }
+  
+  // Calculate alphanumeric ratio
+  const alphanumericChars = (text.match(/[a-zA-Z0-9]/g) || []).length;
+  const alphanumericRatio = alphanumericChars / text.length;
+  
+  // Check for CGM-related keywords
+  const keywords = ['glucose', 'gmi', 'time in range', 'tir', 'average', 'mean', 'mg/dl', 'mmol', 
+                    'sensor', 'cgm', 'dexcom', 'libre', 'bionic', 'ilet', 'clarity', 'agp',
+                    'variability', 'cv', 'coefficient', 'target', 'low', 'high', 'report'];
+  const lowerText = text.toLowerCase();
+  const foundKeywords = keywords.filter(k => lowerText.includes(k));
+  const hasKeywords = foundKeywords.length >= 2;
+  
+  // Check for numeric values (glucose readings are typically 40-400)
+  const numbers = text.match(/\b\d{2,3}\b/g) || [];
+  const glucoseRangeNumbers = numbers.filter(n => {
+    const num = parseInt(n);
+    return num >= 40 && num <= 400;
+  });
+  const hasNumbers = glucoseRangeNumbers.length >= 3;
+  
+  // Check for percentage patterns (TIR, GMI, etc.)
+  const percentages = text.match(/\d{1,3}\.?\d*\s*%/g) || [];
+  const hasPercentages = percentages.length >= 2;
+  
+  // Calculate overall score (0-100)
+  let score = 0;
+  score += alphanumericRatio >= 0.5 ? 30 : alphanumericRatio * 60;
+  score += hasKeywords ? 30 : foundKeywords.length * 10;
+  score += hasNumbers ? 20 : Math.min(glucoseRangeNumbers.length * 5, 20);
+  score += hasPercentages ? 20 : Math.min(percentages.length * 10, 20);
+  
+  const isReadable = score >= 40;
+  
+  console.log(`Text quality: score=${score.toFixed(0)}, alphaRatio=${alphanumericRatio.toFixed(2)}, keywords=${foundKeywords.length}, numbers=${glucoseRangeNumbers.length}, percentages=${percentages.length}`);
+  
+  return { score, hasNumbers, hasKeywords, isReadable, alphanumericRatio };
+}
+
+// ============= NUMERIC PATTERN EXTRACTION (FALLBACK) =============
+function extractMetricsViaPatterns(text: string): PDFSummaryMetrics | null {
+  const metrics: PDFSummaryMetrics = {};
+  const lowerText = text.toLowerCase();
+  
+  // GMI patterns: "GMI 7.2%" or "GMI: 7.2" or "Glucose Management Indicator 7.2%"
+  const gmiPatterns = [
+    /gmi[:\s]+(\d+\.?\d*)[\s%]*/i,
+    /glucose\s*management\s*indicator[:\s]+(\d+\.?\d*)/i,
+    /estimated\s*a1c[:\s]+(\d+\.?\d*)/i
+  ];
+  for (const pattern of gmiPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const value = parseFloat(match[1]);
+      if (value >= 4 && value <= 15) {
+        metrics.gmi = value;
+        console.log(`Pattern match: GMI = ${value}`);
+        break;
+      }
+    }
+  }
+  
+  // Average glucose patterns: "Average 154 mg/dL" or "Mean Sensor Glucose: 154"
+  const avgPatterns = [
+    /(?:average|mean|avg)\s*(?:sensor\s*)?(?:glucose)?[:\s]+(\d{2,3})\s*(?:mg\/dl)?/i,
+    /(?:glucose|bg)\s*(?:average|mean)[:\s]+(\d{2,3})/i,
+    /(\d{2,3})\s*mg\/dl\s*(?:average|mean)/i
+  ];
+  for (const pattern of avgPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const value = parseInt(match[1]);
+      if (value >= 50 && value <= 400) {
+        metrics.avgGlucose = value;
+        console.log(`Pattern match: avgGlucose = ${value}`);
+        break;
+      }
+    }
+  }
+  
+  // Time in Range patterns: "TIR 68.5%" or "Time in Range: 68.5%" or "70-180: 68%"
+  const tirPatterns = [
+    /(?:time\s*in\s*(?:target\s*)?range|tir)[:\s]*[\d\-mg\/dlto\s]*?(\d{1,2}\.?\d*)[\s]*%/i,
+    /70\s*-\s*180[:\s]*(\d{1,2}\.?\d*)[\s]*%/i,
+    /(\d{1,2}\.?\d*)[\s]*%\s*(?:time\s*in\s*range|tir)/i
+  ];
+  for (const pattern of tirPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const value = parseFloat(match[1]);
+      if (value >= 0 && value <= 100) {
+        metrics.timeInRange = value;
+        console.log(`Pattern match: timeInRange = ${value}`);
+        break;
+      }
+    }
+  }
+  
+  // Time above range patterns
+  const abovePatterns = [
+    /(?:time\s*)?(?:above|high|>)\s*(?:range|180)[:\s]*(\d{1,2}\.?\d*)[\s]*%/i,
+    /(\d{1,2}\.?\d*)[\s]*%\s*(?:above|high)/i
+  ];
+  for (const pattern of abovePatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const value = parseFloat(match[1]);
+      if (value >= 0 && value <= 100) {
+        metrics.timeAbove180 = value;
+        console.log(`Pattern match: timeAbove180 = ${value}`);
+        break;
+      }
+    }
+  }
+  
+  // Time below range patterns
+  const belowPatterns = [
+    /(?:time\s*)?(?:below|low|<)\s*(?:range|70)[:\s]*(\d{1,2}\.?\d*)[\s]*%/i,
+    /(\d{1,2}\.?\d*)[\s]*%\s*(?:below|low)/i
+  ];
+  for (const pattern of belowPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const value = parseFloat(match[1]);
+      if (value >= 0 && value <= 50) {
+        metrics.timeBelow70 = value;
+        console.log(`Pattern match: timeBelow70 = ${value}`);
+        break;
+      }
+    }
+  }
+  
+  // CV patterns: "CV 32.5%" or "Coefficient of Variation: 32.5"
+  const cvPatterns = [
+    /(?:cv|coefficient\s*of\s*variation|glucose\s*variability)[:\s]*(\d{1,2}\.?\d*)[\s]*%?/i,
+    /(\d{1,2}\.?\d*)[\s]*%\s*cv/i
+  ];
+  for (const pattern of cvPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const value = parseFloat(match[1]);
+      if (value >= 10 && value <= 100) {
+        metrics.cv = value;
+        console.log(`Pattern match: CV = ${value}`);
+        break;
+      }
+    }
+  }
+  
+  // Report period patterns: "14 days" or "90 day report" or "Last 30 days"
+  const periodPatterns = [
+    /(\d{1,3})\s*(?:day|days)\s*(?:report|summary|period)?/i,
+    /(?:last|past)\s*(\d{1,3})\s*(?:day|days)/i,
+    /(?:report\s*period|date\s*range)[:\s]*.*?(\d{1,3})\s*days?/i
+  ];
+  for (const pattern of periodPatterns) {
+    const match = text.match(pattern);
+    if (match) {
+      const value = parseInt(match[1]);
+      if (value >= 1 && value <= 365) {
+        metrics.reportPeriodDays = value;
+        console.log(`Pattern match: reportPeriodDays = ${value}`);
+        break;
+      }
+    }
+  }
+  
+  // Check if we found anything useful
+  const hasMetrics = metrics.gmi || metrics.avgGlucose || metrics.timeInRange;
+  return hasMetrics ? metrics : null;
+}
+
 // ============= PDF REPORT TYPE DETECTION =============
-// Detect if PDF is a summary report (Bionic, Clarity, LibreView) vs raw export
 function detectPDFReportType(filename: string, textContent: string): 'summary_report' | 'raw_export' | 'unknown' {
   const lowerFilename = filename.toLowerCase();
   const lowerText = textContent.toLowerCase();
   
-  // Check for known summary report types
   if (lowerFilename.includes('bionic') || lowerText.includes('bionic pancreas') || lowerText.includes('ilet')) {
     console.log('Detected: Bionic/iLet summary report');
     return 'summary_report';
@@ -167,12 +352,11 @@ function detectPDFReportType(filename: string, textContent: string): 'summary_re
     console.log('Detected: AGP summary report');
     return 'summary_report';
   }
-  if (lowerText.includes('time in range') && lowerText.includes('glucose management indicator')) {
+  if (lowerText.includes('time in range') && (lowerText.includes('glucose management indicator') || lowerText.includes('gmi'))) {
     console.log('Detected: CGM summary report (by content)');
     return 'summary_report';
   }
   
-  // Check for patterns suggesting raw data export
   const timestampMatches = lowerText.match(/\d{1,2}:\d{2}:\d{2}/g);
   if (lowerText.includes('glucose value') && (lowerText.includes('timestamp') || (timestampMatches && timestampMatches.length > 10))) {
     console.log('Detected: Raw glucose data export');
@@ -182,29 +366,20 @@ function detectPDFReportType(filename: string, textContent: string): 'summary_re
   return 'unknown';
 }
 
-// Validate and clamp analysis results to catch impossible values
+// Validate and clamp analysis results
 function validateAnalysisResults(analysis: DetailedAnalysis): DetailedAnalysis {
   const validated = { ...analysis };
   
-  // Clamp impossible values
   if (validated.daysOfData > 365 * 5) validated.daysOfData = Math.min(validated.daysOfData, 365);
   if (validated.cv > 150) validated.cv = Math.min(validated.cv, 100);
   if (validated.gvi > 10) validated.gvi = Math.min(validated.gvi, 5);
   
-  // Ensure percentages are in valid range
   validated.timeInRange = Math.max(0, Math.min(100, validated.timeInRange));
   validated.timeInTightRange = Math.max(0, Math.min(100, validated.timeInTightRange));
   validated.timeAbove180 = Math.max(0, Math.min(100, validated.timeAbove180));
   validated.timeAbove250 = Math.max(0, Math.min(100, validated.timeAbove250));
   validated.timeBelow70 = Math.max(0, Math.min(100, validated.timeBelow70));
   validated.timeBelow54 = Math.max(0, Math.min(100, validated.timeBelow54));
-  
-  // Check that TIR percentages sum roughly to 100
-  const total = validated.timeInRange + validated.timeAbove180 + validated.timeBelow70;
-  if (Math.abs(total - 100) > 5) {
-    // Recalculate based on readings count if available
-    console.warn(`TIR percentages sum to ${total.toFixed(1)}%, expected ~100%`);
-  }
   
   return validated;
 }
@@ -213,25 +388,15 @@ function validateAnalysisResults(analysis: DetailedAnalysis): DetailedAnalysis {
 function detectFileFormat(filename: string, content: string): 'pdf' | 'csv' | 'json' | 'txt' | 'unknown' {
   const lowerFilename = filename.toLowerCase();
   
-  // Check by extension first
-  if (lowerFilename.endsWith('.pdf') || content.startsWith('%PDF')) {
+  if (lowerFilename.endsWith('.pdf') || content.startsWith('%PDF') || /^[A-Za-z0-9+/=]+$/.test(content.replace(/\s/g, '').substring(0, 100))) {
     return 'pdf';
   }
-  if (lowerFilename.endsWith('.json')) {
-    return 'json';
-  }
-  if (lowerFilename.endsWith('.csv')) {
-    return 'csv';
-  }
-  if (lowerFilename.endsWith('.txt')) {
-    return 'txt';
-  }
+  if (lowerFilename.endsWith('.json')) return 'json';
+  if (lowerFilename.endsWith('.csv')) return 'csv';
+  if (lowerFilename.endsWith('.txt')) return 'txt';
   
-  // Try to detect from content
   const trimmed = content.trim();
-  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-    return 'json';
-  }
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) return 'json';
   if (trimmed.includes(',') && (trimmed.includes('glucose') || trimmed.includes('timestamp') || trimmed.includes('date'))) {
     return 'csv';
   }
@@ -239,24 +404,149 @@ function detectFileFormat(filename: string, content: string): 'pdf' | 'csv' | 'j
   return 'unknown';
 }
 
-// ============= PDF PARSING WITH AI =============
-// Try to extract text content from PDF binary data
+// ============= AI VISION PDF EXTRACTION (PRIMARY METHOD) =============
+async function extractPDFWithVision(base64PDF: string, filename: string): Promise<{ metrics: PDFSummaryMetrics | null; text: string }> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  
+  if (!LOVABLE_API_KEY) {
+    console.error("LOVABLE_API_KEY not configured for vision extraction");
+    return { metrics: null, text: '' };
+  }
+  
+  console.log('Using AI Vision to extract PDF content...');
+  
+  try {
+    // Use Gemini with vision capability to read the PDF document
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content: `You are a CGM (Continuous Glucose Monitor) report data extractor. Your task is to extract glucose metrics from diabetes management reports.
+
+REPORT TYPES YOU'LL SEE:
+- Bionic Pancreas/iLet Reports: Look for "Mean Sensor Glucose", "Time in Target Range (70-180)", "GMI", "CV"
+- Dexcom Clarity Reports: Look for "Average Glucose", "Time in Range", "GMI", "Standard Deviation"
+- LibreView/AGP Reports: Look for "Average Glucose", "Time in Target", "Glucose Variability"
+- Generic CGM Reports: Look for percentages near range labels, glucose averages, GMI/A1C estimates
+
+EXTRACTION RULES:
+1. GMI (Glucose Management Indicator): A number between 5.0 and 10.0, similar to A1C percentage
+2. Average Glucose: A number between 80-250 mg/dL typically
+3. Time in Range (70-180 mg/dL): A percentage, typically 40-90%
+4. Time Above Range (>180): A percentage
+5. Time Below Range (<70): A percentage, usually 0-10%
+6. CV (Coefficient of Variation): A percentage, typically 20-50%
+7. Report Period: Number of days covered (7, 14, 30, 90, etc.)
+
+OUTPUT FORMAT: Return ONLY a valid JSON object with these fields (use null for missing values):
+{
+  "gmi": number or null,
+  "avgGlucose": number or null,
+  "timeInRange": number or null,
+  "timeAbove180": number or null,
+  "timeBelow70": number or null,
+  "cv": number or null,
+  "reportPeriodDays": number or null,
+  "extractedText": "key text excerpts from the report"
+}`
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `Extract CGM metrics from this ${filename} report. Return the JSON object with extracted values.`
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:application/pdf;base64,${base64PDF}`
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 1000,
+        temperature: 0 // Deterministic output
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Vision API error: ${response.status} - ${errorText}`);
+      return { metrics: null, text: '' };
+    }
+    
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content || '';
+    console.log('Vision API response:', content.substring(0, 500));
+    
+    // Parse JSON from response
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        const metrics: PDFSummaryMetrics = {};
+        
+        // Validate and extract each metric
+        if (parsed.gmi && typeof parsed.gmi === 'number' && parsed.gmi >= 4 && parsed.gmi <= 15) {
+          metrics.gmi = parsed.gmi;
+        }
+        if (parsed.avgGlucose && typeof parsed.avgGlucose === 'number' && parsed.avgGlucose >= 50 && parsed.avgGlucose <= 400) {
+          metrics.avgGlucose = parsed.avgGlucose;
+        }
+        if (parsed.timeInRange !== null && typeof parsed.timeInRange === 'number' && parsed.timeInRange >= 0 && parsed.timeInRange <= 100) {
+          metrics.timeInRange = parsed.timeInRange;
+        }
+        if (parsed.timeAbove180 !== null && typeof parsed.timeAbove180 === 'number' && parsed.timeAbove180 >= 0 && parsed.timeAbove180 <= 100) {
+          metrics.timeAbove180 = parsed.timeAbove180;
+        }
+        if (parsed.timeBelow70 !== null && typeof parsed.timeBelow70 === 'number' && parsed.timeBelow70 >= 0 && parsed.timeBelow70 <= 100) {
+          metrics.timeBelow70 = parsed.timeBelow70;
+        }
+        if (parsed.cv && typeof parsed.cv === 'number' && parsed.cv >= 0 && parsed.cv <= 100) {
+          metrics.cv = parsed.cv;
+        }
+        if (parsed.reportPeriodDays && typeof parsed.reportPeriodDays === 'number' && parsed.reportPeriodDays >= 1 && parsed.reportPeriodDays <= 365) {
+          metrics.reportPeriodDays = parsed.reportPeriodDays;
+        }
+        
+        const extractedText = parsed.extractedText || '';
+        console.log('Vision extracted metrics:', JSON.stringify(metrics));
+        
+        return { metrics, text: extractedText };
+      } catch (parseError) {
+        console.error('Failed to parse vision response JSON:', parseError);
+      }
+    }
+    
+    return { metrics: null, text: content };
+  } catch (error) {
+    console.error("Vision extraction error:", error);
+    return { metrics: null, text: '' };
+  }
+}
+
+// ============= LEGACY PDF TEXT EXTRACTION (FALLBACK) =============
 function extractTextFromPDFBinary(pdfContent: string): string {
-  // Check if content is base64 encoded
   let rawContent = pdfContent;
   
-  // Try to decode base64 if it looks like base64
+  // Try to decode base64
   if (/^[A-Za-z0-9+/=]+$/.test(pdfContent.replace(/\s/g, '').substring(0, 100))) {
     try {
-      const decoded = atob(pdfContent.replace(/\s/g, ''));
-      rawContent = decoded;
+      rawContent = atob(pdfContent.replace(/\s/g, ''));
     } catch {
-      // Not base64, use as-is
+      // Not base64
     }
   }
   
-  // Extract text content from PDF structure
-  // PDFs contain text in various formats - look for common patterns
   const textPatterns: string[] = [];
   
   // Pattern 1: Text in parentheses (Tj operator)
@@ -285,35 +575,24 @@ function extractTextFromPDFBinary(pdfContent: string): string {
     });
   }
   
-  // Pattern 3: Look for readable ASCII sequences
+  // Pattern 3: Readable ASCII sequences
   const asciiMatches = rawContent.match(/[A-Za-z][A-Za-z0-9\s.,:%\-\/]{10,100}/g);
   if (asciiMatches) {
     asciiMatches.forEach(m => textPatterns.push(m));
   }
   
-  // Clean and join extracted text
   const extractedText = textPatterns
     .join(' ')
     .replace(/[\x00-\x1F\x7F-\x9F]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
   
-  console.log(`Extracted ${extractedText.length} chars of text from PDF`);
+  console.log(`Legacy extraction: ${extractedText.length} chars`);
   return extractedText;
 }
 
-// Extract summary metrics from CGM report PDFs (like Bionic, Clarity, LibreView reports)
-interface PDFSummaryMetrics {
-  gmi?: number;
-  avgGlucose?: number;
-  timeInRange?: number;
-  timeAbove180?: number;
-  timeBelow70?: number;
-  cv?: number;
-  reportPeriodDays?: number;
-}
-
-async function extractSummaryMetricsFromPDF(pdfText: string, filename: string): Promise<PDFSummaryMetrics | null> {
+// ============= AI TEXT-BASED SUMMARY EXTRACTION (FALLBACK) =============
+async function extractSummaryMetricsFromText(pdfText: string, filename: string): Promise<PDFSummaryMetrics | null> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   
   if (!LOVABLE_API_KEY || pdfText.length < 30) {
@@ -321,9 +600,55 @@ async function extractSummaryMetricsFromPDF(pdfText: string, filename: string): 
     return null;
   }
   
-  console.log(`Extracting summary metrics from PDF (${pdfText.length} chars of text)`);
+  // First, try pattern-based extraction (fast, no API call)
+  const patternMetrics = extractMetricsViaPatterns(pdfText);
+  if (patternMetrics && (patternMetrics.avgGlucose || patternMetrics.timeInRange || patternMetrics.gmi)) {
+    console.log('Successfully extracted metrics via patterns:', JSON.stringify(patternMetrics));
+    return patternMetrics;
+  }
+  
+  console.log(`Extracting summary metrics from text (${pdfText.length} chars)...`);
   
   try {
+    // Detect report type for better prompts
+    const lowerFilename = filename.toLowerCase();
+    const lowerText = pdfText.toLowerCase();
+    let reportType = 'generic';
+    
+    if (lowerFilename.includes('bionic') || lowerText.includes('bionic') || lowerText.includes('ilet')) {
+      reportType = 'bionic';
+    } else if (lowerFilename.includes('clarity') || lowerText.includes('dexcom') || lowerText.includes('clarity')) {
+      reportType = 'dexcom';
+    } else if (lowerFilename.includes('libre') || lowerText.includes('libre') || lowerText.includes('abbott')) {
+      reportType = 'libre';
+    }
+    
+    // Build report-specific hints
+    let reportHints = '';
+    if (reportType === 'bionic') {
+      reportHints = `
+BIONIC/ILET REPORT HINTS:
+- "Mean Sensor Glucose" or "Mean CGM" = avgGlucose
+- "Time in Target Range" with "70-180" = timeInRange percentage
+- "GMI" or "Glucose Management Indicator" = gmi percentage
+- "CV" or "Coefficient of Variation" = cv percentage
+- Look for tables with these values side by side`;
+    } else if (reportType === 'dexcom') {
+      reportHints = `
+DEXCOM CLARITY HINTS:
+- "Average Glucose" in mg/dL = avgGlucose
+- "Time in Range (70-180 mg/dL)" = timeInRange percentage
+- "GMI" = gmi percentage
+- Look for the main summary panel with large numbers`;
+    } else if (reportType === 'libre') {
+      reportHints = `
+LIBRE/AGP HINTS:
+- "Average Glucose" = avgGlucose
+- "Time in Target Range" = timeInRange percentage
+- "Glucose Variability" or "CV%" = cv percentage
+- Look for the AGP profile section`;
+    }
+    
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -335,166 +660,63 @@ async function extractSummaryMetricsFromPDF(pdfText: string, filename: string): 
         messages: [
           {
             role: "system",
-            content: `You are a specialized CGM report data extractor. Extract summary metrics from diabetes CGM reports.
-
-COMMON REPORT FORMATS AND METRIC LOCATIONS:
-- Bionic/iLet Report: Look for "GMI", "Time in Range", "Mean Glucose", "CV"
-- Dexcom Clarity: Look for "GMI", "Time in Range (70-180 mg/dL)", "Average Glucose", "Standard Deviation"
-- LibreView/AGP: Look for "Time in Target Range", "Average Glucose", "Glucose Variability", "CV%"
-- General CGM reports: Look for percentages next to "TIR", "Time in Range", averages near "Mean", "Average"
+            content: `You are a CGM report data extractor. Extract diabetes metrics from the text.
+${reportHints}
 
 EXTRACTION RULES:
-1. Extract ONLY metrics that are clearly visible in the text
-2. For percentages, extract the NUMBER only (e.g., "68.5" not "68.5%")
-3. For glucose values, use mg/dL (convert mmol/L by multiplying by 18 if needed)
-4. GMI is typically 5.0-10.0 range (similar to A1C)
-5. Time in Range is typically 0-100 percentage
-6. CV (Coefficient of Variation) is typically 20-60%
+1. Extract ONLY values that are clearly present in the text
+2. For percentages, extract just the number (e.g., "68.5" not "68.5%")
+3. GMI is typically 5.0-10.0 (like A1C)
+4. Average glucose is typically 80-250 mg/dL
+5. Time in Range is 0-100%
+6. CV is typically 20-60%
 
-Return ONLY a valid JSON object. Use null for metrics not found.
-Example: {"gmi": 7.2, "avgGlucose": 154, "timeInRange": 68.5, "timeAbove180": 25.0, "timeBelow70": 3.5, "cv": 32.5, "reportPeriodDays": 14}`
+Return ONLY valid JSON: {"gmi": number|null, "avgGlucose": number|null, "timeInRange": number|null, "timeAbove180": number|null, "timeBelow70": number|null, "cv": number|null, "reportPeriodDays": number|null}`
           },
           {
             role: "user",
-            content: `Extract CGM summary metrics from this report (${filename}):\n\n${pdfText.slice(0, 10000)}`
+            content: `Extract metrics from this ${reportType} CGM report:\n\n${pdfText.slice(0, 8000)}`
           }
         ],
-        max_tokens: 600,
-        temperature: 0.1
-      }),
-    });
-    
-    if (!response.ok) {
-      console.error(`AI metrics extraction failed: ${response.status}`);
-      return null;
-    }
-    
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
-    
-    // Parse JSON from response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      const metrics = JSON.parse(jsonMatch[0]);
-      
-      // Validate extracted metrics are reasonable
-      if (metrics.gmi && (metrics.gmi < 4 || metrics.gmi > 15)) {
-        console.log(`Rejecting invalid GMI: ${metrics.gmi}`);
-        metrics.gmi = null;
-      }
-      if (metrics.avgGlucose && (metrics.avgGlucose < 50 || metrics.avgGlucose > 400)) {
-        console.log(`Rejecting invalid avgGlucose: ${metrics.avgGlucose}`);
-        metrics.avgGlucose = null;
-      }
-      if (metrics.timeInRange && (metrics.timeInRange < 0 || metrics.timeInRange > 100)) {
-        metrics.timeInRange = Math.max(0, Math.min(100, metrics.timeInRange));
-      }
-      if (metrics.cv && (metrics.cv < 0 || metrics.cv > 100)) {
-        metrics.cv = Math.max(0, Math.min(100, metrics.cv));
-      }
-      
-      console.log('Extracted and validated summary metrics:', JSON.stringify(metrics));
-      return metrics;
-    }
-    
-    console.log('No valid JSON found in AI response');
-    return null;
-  } catch (error) {
-    console.error("Error extracting summary metrics:", error);
-    return null;
-  }
-}
-
-async function extractReadingsFromPDFWithAI(pdfTextContent: string, filename: string): Promise<GlucoseReading[]> {
-  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-  
-  if (!LOVABLE_API_KEY) {
-    console.error("LOVABLE_API_KEY not configured for PDF parsing");
-    return [];
-  }
-  
-  // Extract text from PDF binary
-  const extractedText = extractTextFromPDFBinary(pdfTextContent);
-  
-  if (extractedText.length < 50) {
-    console.log("Insufficient text extracted from PDF");
-    return [];
-  }
-  
-  // Limit content size for AI
-  const cleanContent = extractedText.slice(0, 15000);
-  
-  try {
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content: `You are a specialized CGM data extractor. Your task is to extract glucose readings from PDF report content.
-
-CRITICAL RULES:
-1. Extract ONLY valid glucose readings with timestamps
-2. Dates must be realistic (between 2015 and current year)
-3. Glucose values must be in mg/dL (typically 40-400)
-4. Return ONLY a valid JSON array - no explanations
-5. If no valid readings can be extracted, return empty array []
-
-Output format: [{"timestamp": "YYYY-MM-DD HH:mm", "value": number}, ...]`
-          },
-          {
-            role: "user",
-            content: `Extract all glucose readings from this CGM report PDF content:\n\n${cleanContent}`
-          }
-        ],
-        max_tokens: 4000,
-        temperature: 0.1
+        max_tokens: 500,
+        temperature: 0 // Deterministic
       }),
     });
     
     if (!response.ok) {
       console.error(`AI extraction failed: ${response.status}`);
-      return [];
+      return patternMetrics; // Return pattern results if API fails
     }
     
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || '';
     
-    // Try to parse JSON from the response
-    const jsonMatch = content.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) {
-      console.log("No JSON array found in AI response");
-      return [];
-    }
-    
-    const parsed = JSON.parse(jsonMatch[0]);
-    const readings: GlucoseReading[] = [];
-    
-    for (const item of parsed) {
-      if (item.timestamp && item.value) {
-        const timestamp = new Date(item.timestamp);
-        const value = parseFloat(item.value);
-        
-        if (!isNaN(timestamp.getTime()) && !isNaN(value) && value > 20 && value < 500) {
-          readings.push({ timestamp, value });
-        }
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const metrics = JSON.parse(jsonMatch[0]);
+      
+      // Validate extracted values
+      if (metrics.gmi && (metrics.gmi < 4 || metrics.gmi > 15)) metrics.gmi = null;
+      if (metrics.avgGlucose && (metrics.avgGlucose < 50 || metrics.avgGlucose > 400)) metrics.avgGlucose = null;
+      if (metrics.timeInRange !== undefined && metrics.timeInRange !== null) {
+        metrics.timeInRange = Math.max(0, Math.min(100, metrics.timeInRange));
       }
+      if (metrics.cv !== undefined && metrics.cv !== null) {
+        metrics.cv = Math.max(0, Math.min(100, metrics.cv));
+      }
+      
+      console.log('AI extracted metrics:', JSON.stringify(metrics));
+      return metrics;
     }
     
-    console.log(`AI extracted ${readings.length} readings from PDF`);
-    return readings;
-    
+    return patternMetrics;
   } catch (error) {
-    console.error("Error during AI PDF extraction:", error);
-    return [];
+    console.error("Error extracting summary metrics:", error);
+    return patternMetrics;
   }
 }
 
+// ============= CSV PARSING =============
 function detectCSVFormat(content: string): 'dexcom' | 'libre' | 'generic' {
   const lowerContent = content.toLowerCase();
   if (lowerContent.includes('dexcom') || lowerContent.includes('clarity') || lowerContent.includes('egv')) {
@@ -513,7 +735,6 @@ function parseCSV(content: string): GlucoseReading[] {
   
   console.log(`Detected CSV format: ${format}`);
   
-  // Find header row (some exports have metadata rows before headers)
   let headerIndex = 0;
   for (let i = 0; i < Math.min(lines.length, 20); i++) {
     const line = lines[i].toLowerCase();
@@ -526,45 +747,37 @@ function parseCSV(content: string): GlucoseReading[] {
   
   const headers = lines[headerIndex]?.toLowerCase().split(',').map(h => h.trim().replace(/"/g, '')) || [];
   
-  // Find column indices based on format
   let timestampCol = -1;
   let dateCol = -1;
   let timeCol = -1;
   let valueCol = -1;
   
   headers.forEach((h, idx) => {
-    // Timestamp columns
     if (h.includes('timestamp') || h === 'device timestamp' || h === 'reader timestamp') {
       timestampCol = idx;
     }
-    // Separate date columns
-    if (h === 'date' || h.includes('date') && !h.includes('timestamp')) {
+    if (h === 'date' || (h.includes('date') && !h.includes('timestamp'))) {
       dateCol = idx;
     }
-    // Separate time columns
     if (h === 'time' && !h.includes('timestamp')) {
       timeCol = idx;
     }
-    // Value columns - Dexcom uses 'Glucose Value (mg/dL)', Libre uses 'Historic Glucose mg/dL'
     if (h.includes('glucose') || h.includes('egv') || h.includes('bg') || h.includes('historic')) {
-      if (h.includes('mg') || !valueCol || valueCol === -1) {
+      if (h.includes('mg') || valueCol === -1) {
         valueCol = idx;
       }
     }
   });
   
-  // Fallback for generic CSV: assume first col is timestamp, second is value
   if (timestampCol === -1 && dateCol === -1) timestampCol = 0;
   if (valueCol === -1) valueCol = headers.length > 1 ? 1 : 0;
   
-  console.log(`Parsing with cols - timestamp: ${timestampCol}, date: ${dateCol}, time: ${timeCol}, value: ${valueCol}`);
+  console.log(`CSV columns - timestamp: ${timestampCol}, date: ${dateCol}, time: ${timeCol}, value: ${valueCol}`);
   
-  // Parse data rows
   for (let i = headerIndex + 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
     
-    // Handle quoted CSV fields
     const parts: string[] = [];
     let current = '';
     let inQuotes = false;
@@ -584,7 +797,6 @@ function parseCSV(content: string): GlucoseReading[] {
     
     let timestamp: Date;
     
-    // Parse timestamp
     if (timestampCol !== -1 && parts[timestampCol]) {
       timestamp = new Date(parts[timestampCol]);
     } else if (dateCol !== -1 && timeCol !== -1 && parts[dateCol] && parts[timeCol]) {
@@ -595,8 +807,7 @@ function parseCSV(content: string): GlucoseReading[] {
       continue;
     }
     
-    // Parse value
-    let valueStr = parts[valueCol]?.replace(/[^\d.]/g, '') || '';
+    const valueStr = parts[valueCol]?.replace(/[^\d.]/g, '') || '';
     const value = parseFloat(valueStr);
     
     if (!isNaN(timestamp.getTime()) && !isNaN(value) && value > 0 && value < 600) {
@@ -604,7 +815,7 @@ function parseCSV(content: string): GlucoseReading[] {
     }
   }
   
-  console.log(`Parsed ${readings.length} valid glucose readings`);
+  console.log(`Parsed ${readings.length} glucose readings from CSV`);
   return readings;
 }
 
@@ -613,7 +824,6 @@ function parseJSON(content: string): GlucoseReading[] {
     const data = JSON.parse(content);
     const readings: GlucoseReading[] = [];
     
-    // Handle array of readings
     if (Array.isArray(data)) {
       for (const item of data) {
         const timestamp = new Date(item.timestamp || item.time || item.date);
@@ -631,7 +841,7 @@ function parseJSON(content: string): GlucoseReading[] {
   }
 }
 
-// Calculate percentile from sorted array
+// ============= STATISTICAL CALCULATIONS =============
 function percentile(arr: number[], p: number): number {
   if (arr.length === 0) return 0;
   const sorted = [...arr].sort((a, b) => a - b);
@@ -642,7 +852,6 @@ function percentile(arr: number[], p: number): number {
   return sorted[lower] + (sorted[upper] - sorted[lower]) * (index - lower);
 }
 
-// Calculate hourly statistics for AGP
 function calculateHourlyStatistics(readings: GlucoseReading[]): HourlyStats[] {
   const hourlyData: Map<number, number[]> = new Map();
   
@@ -682,19 +891,17 @@ function calculateHourlyStatistics(readings: GlucoseReading[]): HourlyStats[] {
   return stats;
 }
 
-// Generate AGP data with time labels
 function generateAGPData(hourlyStats: HourlyStats[]): AGPDataPoint[] {
   return hourlyStats.map(stat => ({
     time: `${stat.hour.toString().padStart(2, '0')}:00`,
-    p5: percentile(Array(stat.count).fill(stat.avg), 5) * 0.85, // Approximation
+    p5: percentile(Array(stat.count).fill(stat.avg), 5) * 0.85,
     p25: stat.p25,
     p50: stat.p50,
     p75: stat.p75,
-    p95: stat.p90 * 1.1 // Approximation
+    p95: stat.p90 * 1.1
   }));
 }
 
-// Calculate daily statistics
 function calculateDailyStatistics(readings: GlucoseReading[]): DailyStats[] {
   const dailyData: Map<string, GlucoseReading[]> = new Map();
   
@@ -734,7 +941,6 @@ function calculateDailyStatistics(readings: GlucoseReading[]): DailyStats[] {
   return stats;
 }
 
-// Calculate MAGE (Mean Amplitude of Glycemic Excursions)
 function calculateMAGE(readings: GlucoseReading[], stdDev: number): number {
   if (readings.length < 10) return 0;
   
@@ -769,11 +975,11 @@ function calculateMAGE(readings: GlucoseReading[], stdDev: number): number {
   return excursions.reduce((a, b) => a + b, 0) / excursions.length;
 }
 
-// Enhanced pattern detection
+// ============= PATTERN DETECTION =============
 function detectPatterns(readings: GlucoseReading[], hourlyStats: HourlyStats[]): PatternResult[] {
   const patterns: PatternResult[] = [];
   
-  // Dawn phenomenon detection (rising glucose 4-8 AM)
+  // Dawn phenomenon (4-8 AM)
   const dawnHours = hourlyStats.filter(h => h.hour >= 4 && h.hour <= 8);
   if (dawnHours.length >= 3) {
     let risingTrend = true;
@@ -788,14 +994,14 @@ function detectPatterns(readings: GlucoseReading[], hourlyStats: HourlyStats[]):
         type: 'dawn_phenomenon',
         severity: 'warning',
         title: 'Dawn Phenomenon Detected',
-        description: `Your glucose rises an average of ${Math.round(dawnHours[dawnHours.length - 1].avg - dawnHours[0].avg)} mg/dL between 4-8 AM. Consider adjusting basal rates during early morning hours.`,
+        description: `Your glucose rises an average of ${Math.round(dawnHours[dawnHours.length - 1].avg - dawnHours[0].avg)} mg/dL between 4-8 AM.`,
         timeOfDay: '4:00 AM - 8:00 AM',
         avgImpact: dawnHours[dawnHours.length - 1].avg - dawnHours[0].avg
       });
     }
   }
   
-  // Post-meal spike detection (hours 7-9, 12-14, 18-20)
+  // Post-meal spikes
   const mealHours = [
     { start: 7, end: 9, name: 'breakfast' },
     { start: 12, end: 14, name: 'lunch' },
@@ -812,14 +1018,14 @@ function detectPatterns(readings: GlucoseReading[], hourlyStats: HourlyStats[]):
         type: 'post_meal_spike',
         severity: maxPostMeal > 200 ? 'warning' : 'info',
         title: `Post-${meal.name.charAt(0).toUpperCase() + meal.name.slice(1)} Spike`,
-        description: `Average ${Math.round(maxPostMeal - preMeal)} mg/dL rise after ${meal.name}. Consider pre-bolusing 10-15 minutes earlier.`,
+        description: `Average ${Math.round(maxPostMeal - preMeal)} mg/dL rise after ${meal.name}.`,
         timeOfDay: `${meal.start}:00 - ${meal.end}:00`,
         avgImpact: maxPostMeal - preMeal
       });
     }
   });
   
-  // Overnight stability check (11 PM - 4 AM)
+  // Overnight stability (11 PM - 4 AM)
   const overnightHours = hourlyStats.filter(h => h.hour >= 23 || h.hour <= 4);
   if (overnightHours.length > 0) {
     const overnightValues = overnightHours.map(h => h.avg).filter(v => v > 0);
@@ -835,7 +1041,7 @@ function detectPatterns(readings: GlucoseReading[], hourlyStats: HourlyStats[]):
           type: 'overnight_stability',
           severity: 'info',
           title: 'Excellent Overnight Stability',
-          description: `Your overnight glucose variability is ${Math.round(overnightCV)}% CV, indicating well-tuned basal rates. Keep up the great work!`,
+          description: `Your overnight glucose variability is ${Math.round(overnightCV)}% CV.`,
           timeOfDay: '11:00 PM - 4:00 AM'
         });
       } else if (overnightCV > 36) {
@@ -843,60 +1049,14 @@ function detectPatterns(readings: GlucoseReading[], hourlyStats: HourlyStats[]):
           type: 'overnight_instability',
           severity: 'warning',
           title: 'Overnight Variability',
-          description: `Your overnight glucose variability is ${Math.round(overnightCV)}% CV. Consider reviewing basal rates or late snacks.`,
+          description: `Your overnight glucose variability is ${Math.round(overnightCV)}% CV.`,
           timeOfDay: '11:00 PM - 4:00 AM'
         });
       }
     }
   }
   
-  // Exercise drop detection (rapid decline in afternoon)
-  const afternoonHours = hourlyStats.filter(h => h.hour >= 14 && h.hour <= 18);
-  if (afternoonHours.length >= 2) {
-    for (let i = 1; i < afternoonHours.length; i++) {
-      const drop = afternoonHours[i-1].avg - afternoonHours[i].avg;
-      if (drop > 40) {
-        patterns.push({
-          type: 'exercise_drop',
-          severity: 'info',
-          title: 'Afternoon Glucose Drop Pattern',
-          description: `Significant glucose drops detected in afternoon hours. If related to exercise, consider reducing bolus before activity or adding a snack.`,
-          timeOfDay: '2:00 PM - 6:00 PM',
-          avgImpact: drop
-        });
-        break;
-      }
-    }
-  }
-  
-  // Rebound high detection (high within 2 hours of a low)
-  const sortedReadings = [...readings].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
-  let reboundCount = 0;
-  for (let i = 0; i < sortedReadings.length - 1; i++) {
-    if (sortedReadings[i].value < 70) {
-      // Look for high within next 2 hours
-      for (let j = i + 1; j < sortedReadings.length; j++) {
-        const timeDiff = (sortedReadings[j].timestamp.getTime() - sortedReadings[i].timestamp.getTime()) / (1000 * 60);
-        if (timeDiff > 120) break;
-        if (sortedReadings[j].value > 200) {
-          reboundCount++;
-          break;
-        }
-      }
-    }
-  }
-  
-  if (reboundCount >= 3) {
-    patterns.push({
-      type: 'rebound_high',
-      severity: 'warning',
-      title: 'Rebound High Pattern',
-      description: `${reboundCount} instances of high glucose following lows detected. This may indicate overtreating lows. Try using 15g fast carbs and waiting 15 minutes.`,
-      frequency: reboundCount
-    });
-  }
-  
-  // Low event clustering
+  // Low clustering
   const lowsByHour = hourlyStats.filter(h => {
     const values = readings.filter(r => r.timestamp.getHours() === h.hour).map(r => r.value);
     return values.filter(v => v < 70).length > values.length * 0.1;
@@ -908,12 +1068,12 @@ function detectPatterns(readings: GlucoseReading[], hourlyStats: HourlyStats[]):
       type: 'low_clustering',
       severity: 'critical',
       title: 'Recurring Low Pattern',
-      description: `Lows tend to occur around: ${lowTimes}. Review insulin timing or add snacks during these periods.`,
+      description: `Lows tend to occur around: ${lowTimes}.`,
       frequency: lowsByHour.length
     });
   }
   
-  // High event clustering  
+  // High clustering
   const highsByHour = hourlyStats.filter(h => {
     const values = readings.filter(r => r.timestamp.getHours() === h.hour).map(r => r.value);
     return values.filter(v => v > 250).length > values.length * 0.15;
@@ -925,7 +1085,7 @@ function detectPatterns(readings: GlucoseReading[], hourlyStats: HourlyStats[]):
       type: 'high_clustering',
       severity: 'warning',
       title: 'Recurring High Pattern',
-      description: `Highs tend to occur around: ${highTimes}. Review carb coverage or basal rates during these times.`,
+      description: `Highs tend to occur around: ${highTimes}.`,
       frequency: highsByHour.length
     });
   }
@@ -933,121 +1093,57 @@ function detectPatterns(readings: GlucoseReading[], hourlyStats: HourlyStats[]):
   return patterns;
 }
 
-// Count glucose events
-function countGlucoseEvents(readings: GlucoseReading[]): {
-  lowEvents: number;
-  severeLowEvents: number;
-  highEvents: number;
-  severeHighEvents: number;
-} {
-  let lowEvents = 0;
-  let severeLowEvents = 0;
-  let highEvents = 0;
-  let severeHighEvents = 0;
-  let inLow = false;
-  let inSevereLow = false;
-  let inHigh = false;
-  let inSevereHigh = false;
+function countGlucoseEvents(readings: GlucoseReading[]): { lowEvents: number; severeLowEvents: number; highEvents: number; severeHighEvents: number } {
+  let lowEvents = 0, severeLowEvents = 0, highEvents = 0, severeHighEvents = 0;
+  let inLow = false, inSevereLow = false, inHigh = false, inSevereHigh = false;
   
   readings.forEach(r => {
-    if (r.value < 70) {
-      if (!inLow) {
-        lowEvents++;
-        inLow = true;
-      }
-    } else {
-      inLow = false;
-    }
-    
-    if (r.value < 54) {
-      if (!inSevereLow) {
-        severeLowEvents++;
-        inSevereLow = true;
-      }
-    } else {
-      inSevereLow = false;
-    }
-    
-    if (r.value > 180) {
-      if (!inHigh) {
-        highEvents++;
-        inHigh = true;
-      }
-    } else {
-      inHigh = false;
-    }
-    
-    if (r.value > 250) {
-      if (!inSevereHigh) {
-        severeHighEvents++;
-        inSevereHigh = true;
-      }
-    } else {
-      inSevereHigh = false;
-    }
+    if (r.value < 70) { if (!inLow) { lowEvents++; inLow = true; } } else { inLow = false; }
+    if (r.value < 54) { if (!inSevereLow) { severeLowEvents++; inSevereLow = true; } } else { inSevereLow = false; }
+    if (r.value > 180) { if (!inHigh) { highEvents++; inHigh = true; } } else { inHigh = false; }
+    if (r.value > 250) { if (!inSevereHigh) { severeHighEvents++; inSevereHigh = true; } } else { inSevereHigh = false; }
   });
   
   return { lowEvents, severeLowEvents, highEvents, severeHighEvents };
 }
 
-// Generate AI-powered recommendations
+// ============= AI RECOMMENDATIONS =============
 async function generateAIRecommendations(
   detailedAnalysis: DetailedAnalysis,
   patterns: PatternResult[]
 ): Promise<{ recommendations: string[]; aiInsights: any }> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-  
-  // Generate base recommendations
   const recommendations: string[] = [];
   
   patterns.forEach(p => {
     if (p.type === 'dawn_phenomenon') {
       recommendations.push('Consider increasing basal rate by 0.1-0.2 u/hr from 3-6 AM');
-      recommendations.push('Discuss extended-release insulin timing with your endocrinologist');
     }
     if (p.type === 'post_meal_spike') {
-      const meal = p.title?.toLowerCase().includes('breakfast') ? 'breakfast' : 
-                   p.title?.toLowerCase().includes('lunch') ? 'lunch' : 'dinner';
-      recommendations.push(`Pre-bolus ${meal} by 10-15 minutes`);
-      recommendations.push('Consider reducing fast-acting carbs at this meal');
+      recommendations.push('Pre-bolus meals by 10-15 minutes');
     }
     if (p.type === 'low_clustering') {
       recommendations.push('Review basal rates during problem times');
-      recommendations.push('Consider adding a small snack before predictable lows');
     }
     if (p.type === 'overnight_instability') {
-      recommendations.push('Check for undigested dinner carbs affecting overnight glucose');
-      recommendations.push('Consider adjusting overnight basal profile');
+      recommendations.push('Review overnight basal rates');
     }
-    if (p.type === 'rebound_high') {
-      recommendations.push('Use the 15/15 rule: 15g fast carbs, wait 15 minutes before re-checking');
-      recommendations.push('Keep glucose tablets handy instead of overconsuming food');
-    }
-    if (p.type === 'exercise_drop') {
-      recommendations.push('Reduce bolus by 25-50% before planned exercise');
-      recommendations.push('Consider a 15-30g carb snack before intense activity');
+    if (p.type === 'high_clustering') {
+      recommendations.push('Consider adjusting insulin-to-carb ratios');
     }
   });
   
-  if (detailedAnalysis.cv > 36) {
-    recommendations.push('Focus on consistent meal timing and carb portions');
-    recommendations.push('Review correction factor - may need adjustment');
-  }
-  
   if (detailedAnalysis.timeBelow70 > 4) {
-    recommendations.push('Consider reducing basal or bolus insulin');
-    recommendations.push('Keep fast-acting glucose readily available');
+    recommendations.push('Prioritize reducing hypoglycemia - discuss with your provider');
+  }
+  if (detailedAnalysis.cv > 36) {
+    recommendations.push('Focus on reducing variability for better control');
+  }
+  if (detailedAnalysis.timeInRange < 70) {
+    recommendations.push('Small adjustments to timing or doses could improve TIR');
   }
   
-  if (recommendations.length === 0) {
-    recommendations.push('Your current settings appear well-optimized!');
-    recommendations.push('Continue regular uploads to track trends over time');
-  }
-  
-  recommendations.push('💡 Always discuss changes with your healthcare provider before adjusting treatment');
-  
-  // Try to get AI-enhanced insights
-  let aiInsights = null;
+  let aiInsights: any = {};
   
   if (LOVABLE_API_KEY) {
     try {
@@ -1062,31 +1158,25 @@ async function generateAIRecommendations(
           messages: [
             {
               role: "system",
-              content: `You are a diabetes educator AI assistant analyzing CGM data. Provide clear, actionable insights.
-              
-Format your response as JSON with this structure:
-{
-  "summary": "2-3 sentence overall assessment",
-  "keyFindings": ["finding 1", "finding 2"],
-  "priorityActions": ["action 1", "action 2"],
-  "encouragement": "positive reinforcement message"
-}`
+              content: `You are a diabetes educator AI. Provide brief, actionable insights based on CGM data.
+Keep responses concise and practical. Focus on the 2-3 most important findings.`
             },
             {
               role: "user",
-              content: `Analyze this glucose data:
-- Average: ${detailedAnalysis.avgGlucose.toFixed(0)} mg/dL
-- Time in Range (70-180): ${detailedAnalysis.timeInRange.toFixed(1)}%
-- CV: ${detailedAnalysis.cv.toFixed(1)}%
-- GMI: ${detailedAnalysis.gmi.toFixed(1)}%
-- Low events: ${detailedAnalysis.lowEvents}
-- High events: ${detailedAnalysis.highEvents}
-- Days of data: ${detailedAnalysis.daysOfData}
+              content: `CGM Analysis:
+- Readings: ${detailedAnalysis.readingsCount} over ${detailedAnalysis.daysOfData} days
+- Avg Glucose: ${detailedAnalysis.avgGlucose?.toFixed(0) || 'N/A'} mg/dL
+- GMI: ${detailedAnalysis.gmi?.toFixed(1) || 'N/A'}%
+- TIR: ${detailedAnalysis.timeInRange?.toFixed(1) || 'N/A'}%
+- CV: ${detailedAnalysis.cv?.toFixed(1) || 'N/A'}%
+- Time Low: ${detailedAnalysis.timeBelow70?.toFixed(1) || 'N/A'}%
+- Time High: ${detailedAnalysis.timeAbove180?.toFixed(1) || 'N/A'}%
+- Patterns: ${patterns.map(p => p.type).join(', ') || 'None detected'}
 
-Detected patterns: ${patterns.map(p => p.title).join(', ') || 'None'}`
+Provide 3-4 key findings and actionable recommendations.`
             }
           ],
-          max_tokens: 800,
+          max_tokens: 600,
           temperature: 0.3
         }),
       });
@@ -1094,10 +1184,12 @@ Detected patterns: ${patterns.map(p => p.title).join(', ') || 'None'}`
       if (response.ok) {
         const data = await response.json();
         const content = data.choices?.[0]?.message?.content || '';
-        const jsonMatch = content.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          aiInsights = JSON.parse(jsonMatch[0]);
-        }
+        
+        aiInsights = {
+          summary: content,
+          keyFindings: patterns.map(p => p.description),
+          priorityActions: recommendations.slice(0, 3)
+        };
       }
     } catch (error) {
       console.error("AI insights generation failed:", error);
@@ -1107,7 +1199,7 @@ Detected patterns: ${patterns.map(p => p.title).join(', ') || 'None'}`
   return { recommendations, aiInsights };
 }
 
-// Comprehensive glucose analysis
+// ============= COMPREHENSIVE ANALYSIS =============
 function analyzeGlucoseDataComprehensive(readings: GlucoseReading[]): {
   insights: string[];
   detailedAnalysis: DetailedAnalysis;
@@ -1127,20 +1219,16 @@ function analyzeGlucoseDataComprehensive(readings: GlucoseReading[]): {
     };
   }
   
-  // Sort readings by timestamp
   readings.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   
   const values = readings.map(r => r.value);
   const insights: string[] = [];
   
-  // Basic statistics
   const avgGlucose = values.reduce((sum, v) => sum + v, 0) / values.length;
-  const sortedValues = [...values].sort((a, b) => a - b);
   const medianGlucose = percentile(values, 50);
   const stdDev = Math.sqrt(values.reduce((sum, v) => sum + Math.pow(v - avgGlucose, 2), 0) / values.length);
   const cv = (stdDev / avgGlucose) * 100;
   
-  // Time in Range calculations
   const inRange = values.filter(v => v >= 70 && v <= 180).length;
   const inTightRange = values.filter(v => v >= 70 && v <= 140).length;
   const above180 = values.filter(v => v > 180).length;
@@ -1155,10 +1243,8 @@ function analyzeGlucoseDataComprehensive(readings: GlucoseReading[]): {
   const timeBelow70 = (below70 / values.length) * 100;
   const timeBelow54 = (below54 / values.length) * 100;
   
-  // GMI (Glucose Management Indicator)
   const gmi = 3.31 + (0.02392 * avgGlucose);
   
-  // GVI (Glycemic Variability Index)
   const idealDelta = 5;
   let actualDeltas = 0;
   for (let i = 1; i < readings.length; i++) {
@@ -1166,26 +1252,18 @@ function analyzeGlucoseDataComprehensive(readings: GlucoseReading[]): {
   }
   const gvi = actualDeltas / ((readings.length - 1) * idealDelta);
   
-  // MAGE
   const mage = calculateMAGE(readings, stdDev);
-  
-  // Event counts
   const events = countGlucoseEvents(readings);
   
-  // Calculate hourly and daily statistics
   const hourlyData = calculateHourlyStatistics(readings);
   const dailyData = calculateDailyStatistics(readings);
   const agpData = generateAGPData(hourlyData);
-  
-  // Detect patterns
   const patterns = detectPatterns(readings, hourlyData);
   
-  // Data range
   const dataStart = readings[0].timestamp.toISOString().split('T')[0];
   const dataEnd = readings[readings.length - 1].timestamp.toISOString().split('T')[0];
   const daysOfData = Math.ceil((readings[readings.length - 1].timestamp.getTime() - readings[0].timestamp.getTime()) / (1000 * 60 * 60 * 24)) + 1;
   
-  // Generate insights
   insights.push(`📊 Analyzed ${readings.length.toLocaleString()} readings over ${daysOfData} days (${dataStart} to ${dataEnd})`);
   insights.push(`📈 Average glucose: ${avgGlucose.toFixed(0)} mg/dL | Median: ${medianGlucose.toFixed(0)} mg/dL`);
   insights.push(`🎯 Time in Range (70-180): ${timeInRange.toFixed(1)}% ${timeInRange >= 70 ? '✓ Target met!' : '(Target: ≥70%)'}`);
@@ -1211,7 +1289,6 @@ function analyzeGlucoseDataComprehensive(readings: GlucoseReading[]): {
     insights.push(`🌊 MAGE (Glucose Swings): ${mage.toFixed(0)} mg/dL ${mage < 60 ? '- Good' : '- Review meal timing'}`);
   }
   
-  // Pattern-based insights
   patterns.forEach(p => {
     if (p.severity === 'critical' || p.severity === 'warning') {
       insights.push(`⚡ ${p.title}: ${p.description.split('.')[0]}`);
@@ -1242,20 +1319,18 @@ function analyzeGlucoseDataComprehensive(readings: GlucoseReading[]): {
     daysOfData
   };
   
-  // Validate analysis results
   detailedAnalysis = validateAnalysisResults(detailedAnalysis);
   
   return { insights, detailedAnalysis, hourlyData, dailyData, agpData, patterns };
 }
 
+// ============= MAIN SERVER =============
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Rate limiting
     const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
     if (!checkRateLimit(clientIp)) {
       return new Response(
@@ -1264,13 +1339,11 @@ serve(async (req) => {
       );
     }
 
-    // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    // Validate request
     const requestBody = await req.json();
     const validation = analyzeRequestSchema.safeParse(requestBody);
     
@@ -1282,154 +1355,135 @@ serve(async (req) => {
     }
 
     const { filename, fileContent, uploadId } = validation.data;
+    console.log(`Analyzing: ${filename} (${fileContent.length} chars)`);
 
-    console.log(`Analyzing glucose data from: ${filename}`);
-
-    // Detect file format
     const fileFormat = detectFileFormat(filename, fileContent);
-    console.log(`Detected file format: ${fileFormat}`);
+    console.log(`File format: ${fileFormat}`);
     
     let readings: GlucoseReading[] = [];
     
-    // Parse file based on detected format
+    // ============= PDF PROCESSING =============
     if (fileFormat === 'pdf') {
-      console.log('Processing PDF file...');
+      console.log('Processing PDF...');
       
-      // First, extract text and detect report type
-      const extractedText = extractTextFromPDFBinary(fileContent);
-      const reportType = detectPDFReportType(filename, extractedText);
-      console.log(`PDF report type: ${reportType}`);
+      // STEP 1: Try AI Vision extraction (primary method)
+      const visionResult = await extractPDFWithVision(fileContent, filename);
       
-      // For summary reports, skip individual reading extraction and go straight to summary metrics
-      if (reportType === 'summary_report') {
-        console.log('Detected summary report - extracting metrics directly (skipping individual readings)');
-        const summaryMetrics = await extractSummaryMetricsFromPDF(extractedText, filename);
+      if (visionResult.metrics && (visionResult.metrics.avgGlucose || visionResult.metrics.timeInRange || visionResult.metrics.gmi)) {
+        console.log('Vision extraction successful!');
+        const metrics = visionResult.metrics;
         
-        if (summaryMetrics && (summaryMetrics.avgGlucose || summaryMetrics.timeInRange || summaryMetrics.gmi)) {
-          console.log('Successfully extracted summary metrics from report');
-          
-          // Calculate estimated timeAbove250 if not provided
-          const timeAbove250 = summaryMetrics.timeAbove180 ? Math.max(0, summaryMetrics.timeAbove180 * 0.3) : 0;
-          
-          const syntheticAnalysis = {
-            readingsCount: 0,
-            avgGlucose: summaryMetrics.avgGlucose || 0,
-            medianGlucose: summaryMetrics.avgGlucose || 0,
-            stdDev: summaryMetrics.cv && summaryMetrics.avgGlucose ? (summaryMetrics.cv / 100) * summaryMetrics.avgGlucose : 0,
-            cv: summaryMetrics.cv || 0,
-            timeInRange: summaryMetrics.timeInRange || 0,
-            timeInTightRange: summaryMetrics.timeInRange ? summaryMetrics.timeInRange * 0.6 : 0,
-            timeAbove180: summaryMetrics.timeAbove180 || 0,
-            timeAbove250,
-            timeBelow70: summaryMetrics.timeBelow70 || 0,
-            timeBelow54: summaryMetrics.timeBelow70 ? summaryMetrics.timeBelow70 * 0.3 : 0,
-            gmi: summaryMetrics.gmi || (summaryMetrics.avgGlucose ? 3.31 + 0.02392 * summaryMetrics.avgGlucose : 0),
-            gvi: 0,
-            mage: 0,
-            lowEvents: 0,
-            severeLowEvents: 0,
-            highEvents: 0,
-            severeHighEvents: 0,
-            dataStart: new Date(Date.now() - (summaryMetrics.reportPeriodDays || 14) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            dataEnd: new Date().toISOString().split('T')[0],
-            daysOfData: summaryMetrics.reportPeriodDays || 14,
-            fromSummaryReport: true
-          };
-          
-          const reportDays = summaryMetrics.reportPeriodDays || 14;
-          const insights: string[] = [];
-          
-          insights.push(`📊 Summary Report Analysis (${reportDays} days)`);
-          if (summaryMetrics.avgGlucose) {
-            insights.push(`📈 Average Glucose: ${Math.round(summaryMetrics.avgGlucose)} mg/dL`);
-          }
-          if (summaryMetrics.gmi) {
-            const gmiStatus = summaryMetrics.gmi < 7 ? '✓ Well controlled' : summaryMetrics.gmi < 8 ? '(Target: <7%)' : '⚠️ Needs attention';
-            insights.push(`🎯 GMI (Estimated A1C): ${summaryMetrics.gmi.toFixed(1)}% ${gmiStatus}`);
-          }
-          if (summaryMetrics.timeInRange) {
-            const tirStatus = summaryMetrics.timeInRange >= 70 ? '✓ Target met!' : `(Target: ≥70%)`;
-            insights.push(`⏱️ Time in Range (70-180): ${summaryMetrics.timeInRange.toFixed(1)}% ${tirStatus}`);
-          }
-          if (summaryMetrics.timeAbove180) {
-            insights.push(`🔺 Time Above Range: ${summaryMetrics.timeAbove180.toFixed(1)}%`);
-          }
-          if (summaryMetrics.timeBelow70) {
-            const lowStatus = summaryMetrics.timeBelow70 < 4 ? '✓ Within target' : '⚠️ Review needed (Target: <4%)';
-            insights.push(`🔻 Time Below Range: ${summaryMetrics.timeBelow70.toFixed(1)}% ${lowStatus}`);
-          }
-          if (summaryMetrics.cv) {
-            const cvStatus = summaryMetrics.cv < 36 ? '✓ Stable' : '(Target: <36%)';
-            insights.push(`🌊 Glucose Variability (CV): ${summaryMetrics.cv.toFixed(1)}% ${cvStatus}`);
-          }
-          insights.push(`ℹ️ For detailed patterns & AGP charts, export raw CGM data as CSV`);
-          
-          const recommendations = [
-            'This analysis is based on summary metrics from your PDF report.',
-            'For detailed pattern detection (dawn phenomenon, post-meal spikes, etc.), export your raw CGM data as CSV.',
-            '📋 How to export CSV: Dexcom Clarity → Export → CSV | LibreView → Download Data → CSV',
-            '💡 Always discuss changes with your healthcare provider.'
-          ];
-          
-          // Update upload record
-          await supabaseClient
-            .from('uploads')
-            .update({
-              status: 'completed',
-              insights,
-              readings_count: 0,
-              analysis_results: { insights, readingsCount: 0, fromSummary: true },
-              detailed_analysis: syntheticAnalysis,
-              hourly_data: [],
-              daily_data: [],
-              agp_data: [],
-              patterns: [],
-              recommendations,
-              ai_insights: { summary: 'Metrics extracted from PDF summary report. Upload CSV for detailed analysis.', fromSummary: true }
-            })
-            .eq('id', uploadId);
-          
-          return new Response(
-            JSON.stringify({
-              success: true,
-              insights,
-              readingsCount: 0,
-              detailedAnalysis: syntheticAnalysis,
-              hourlyData: [],
-              dailyData: [],
-              agpData: [],
-              patterns: [],
-              recommendations,
-              aiInsights: { summary: 'Summary metrics extracted from PDF report.', fromSummary: true },
-              fromSummary: true,
-              message: 'Extracted summary metrics from PDF report. For detailed analysis, export as CSV.'
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-          );
+        // Build synthetic analysis from vision-extracted metrics
+        const syntheticAnalysis: DetailedAnalysis = {
+          readingsCount: 0,
+          avgGlucose: metrics.avgGlucose || 0,
+          medianGlucose: metrics.avgGlucose || 0,
+          stdDev: metrics.cv && metrics.avgGlucose ? (metrics.cv / 100) * metrics.avgGlucose : 0,
+          cv: metrics.cv || 0,
+          timeInRange: metrics.timeInRange || 0,
+          timeInTightRange: metrics.timeInRange ? metrics.timeInRange * 0.6 : 0,
+          timeAbove180: metrics.timeAbove180 || 0,
+          timeAbove250: metrics.timeAbove180 ? metrics.timeAbove180 * 0.3 : 0,
+          timeBelow70: metrics.timeBelow70 || 0,
+          timeBelow54: metrics.timeBelow70 ? metrics.timeBelow70 * 0.3 : 0,
+          gmi: metrics.gmi || (metrics.avgGlucose ? 3.31 + 0.02392 * metrics.avgGlucose : 0),
+          gvi: 0,
+          mage: 0,
+          lowEvents: 0,
+          severeLowEvents: 0,
+          highEvents: 0,
+          severeHighEvents: 0,
+          dataStart: new Date(Date.now() - (metrics.reportPeriodDays || 14) * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+          dataEnd: new Date().toISOString().split('T')[0],
+          daysOfData: metrics.reportPeriodDays || 14,
+          fromSummaryReport: true
+        };
+        
+        const reportDays = metrics.reportPeriodDays || 14;
+        const insights: string[] = [];
+        
+        insights.push(`📊 Summary Report Analysis (${reportDays} days)`);
+        if (metrics.avgGlucose) insights.push(`📈 Average Glucose: ${Math.round(metrics.avgGlucose)} mg/dL`);
+        if (metrics.gmi) {
+          const gmiStatus = metrics.gmi < 7 ? '✓ Well controlled' : metrics.gmi < 8 ? '(Target: <7%)' : '⚠️ Needs attention';
+          insights.push(`🎯 GMI (Estimated A1C): ${metrics.gmi.toFixed(1)}% ${gmiStatus}`);
         }
+        if (metrics.timeInRange) {
+          const tirStatus = metrics.timeInRange >= 70 ? '✓ Target met!' : '(Target: ≥70%)';
+          insights.push(`⏱️ Time in Range (70-180): ${metrics.timeInRange.toFixed(1)}% ${tirStatus}`);
+        }
+        if (metrics.timeAbove180) insights.push(`🔺 Time Above Range: ${metrics.timeAbove180.toFixed(1)}%`);
+        if (metrics.timeBelow70) {
+          const lowStatus = metrics.timeBelow70 < 4 ? '✓ Within target' : '⚠️ Review needed';
+          insights.push(`🔻 Time Below Range: ${metrics.timeBelow70.toFixed(1)}% ${lowStatus}`);
+        }
+        if (metrics.cv) {
+          const cvStatus = metrics.cv < 36 ? '✓ Stable' : '(Target: <36%)';
+          insights.push(`🌊 Glucose Variability (CV): ${metrics.cv.toFixed(1)}% ${cvStatus}`);
+        }
+        insights.push(`ℹ️ For detailed patterns & AGP charts, export raw CGM data as CSV`);
+        
+        const recommendations = [
+          'This analysis is based on summary metrics from your PDF report.',
+          'For detailed pattern detection, export your raw CGM data as CSV.',
+          '📋 How to export: Dexcom Clarity → Export → CSV | LibreView → Download Data → CSV',
+          '💡 Always discuss changes with your healthcare provider.'
+        ];
+        
+        await supabaseClient
+          .from('uploads')
+          .update({
+            status: 'completed',
+            insights,
+            readings_count: 0,
+            analysis_results: { insights, readingsCount: 0, fromSummary: true },
+            detailed_analysis: syntheticAnalysis,
+            hourly_data: [],
+            daily_data: [],
+            agp_data: [],
+            patterns: [],
+            recommendations,
+            ai_insights: { summary: 'Metrics extracted from PDF via AI Vision.', fromSummary: true }
+          })
+          .eq('id', uploadId);
+        
+        return new Response(
+          JSON.stringify({
+            success: true,
+            insights,
+            readingsCount: 0,
+            detailedAnalysis: syntheticAnalysis,
+            hourlyData: [],
+            dailyData: [],
+            agpData: [],
+            patterns: [],
+            recommendations,
+            aiInsights: { summary: 'Summary metrics extracted from PDF report.', fromSummary: true },
+            fromSummary: true,
+            message: 'Extracted metrics via AI Vision. For detailed analysis, export as CSV.'
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        );
       }
       
-      // For unknown or raw_export PDFs, try to extract individual readings
-      console.log('Attempting to extract individual readings from PDF...');
-      readings = await extractReadingsFromPDFWithAI(fileContent, filename);
-      console.log(`AI extracted ${readings.length} readings from PDF`);
+      console.log('Vision extraction failed, trying fallback methods...');
       
-      // If we got readings, validate them strictly
-      if (readings.length > 0) {
-        const beforeValidation = readings.length;
-        readings = validateReadings(readings);
-        console.log(`After validation: ${readings.length} of ${beforeValidation} readings valid`);
-      }
+      // STEP 2: Try legacy text extraction + AI/pattern matching (fallback)
+      const extractedText = extractTextFromPDFBinary(fileContent);
+      const textQuality = assessTextQuality(extractedText);
+      console.log(`Text quality: ${JSON.stringify(textQuality)}`);
       
-      // If still no valid readings, try summary extraction as fallback
-      if (readings.length < 5) {
-        console.log('Insufficient valid readings, falling back to summary extraction...');
-        const summaryMetrics = await extractSummaryMetricsFromPDF(extractedText, filename);
+      if (textQuality.isReadable) {
+        const reportType = detectPDFReportType(filename, extractedText);
+        console.log(`Report type: ${reportType}`);
+        
+        // Try summary extraction from text
+        const summaryMetrics = await extractSummaryMetricsFromText(extractedText, filename);
         
         if (summaryMetrics && (summaryMetrics.avgGlucose || summaryMetrics.timeInRange || summaryMetrics.gmi)) {
-          console.log('Fallback: Found summary metrics in PDF');
+          console.log('Fallback summary extraction successful');
           
-          const syntheticAnalysis = {
+          const syntheticAnalysis: DetailedAnalysis = {
             readingsCount: 0,
             avgGlucose: summaryMetrics.avgGlucose || 0,
             medianGlucose: summaryMetrics.avgGlucose || 0,
@@ -1457,9 +1511,9 @@ serve(async (req) => {
           const insights = [
             `📊 Report Summary (${summaryMetrics.reportPeriodDays || 14} days)`,
             summaryMetrics.avgGlucose ? `📈 Average Glucose: ${Math.round(summaryMetrics.avgGlucose)} mg/dL` : null,
-            summaryMetrics.gmi ? `🎯 GMI (Estimated A1C): ${summaryMetrics.gmi.toFixed(1)}%` : null,
-            summaryMetrics.timeInRange ? `⏱️ Time in Range (70-180): ${summaryMetrics.timeInRange.toFixed(1)}%` : null,
-            summaryMetrics.cv ? `🌊 CV (Variability): ${summaryMetrics.cv.toFixed(1)}%` : null,
+            summaryMetrics.gmi ? `🎯 GMI: ${summaryMetrics.gmi.toFixed(1)}%` : null,
+            summaryMetrics.timeInRange ? `⏱️ Time in Range: ${summaryMetrics.timeInRange.toFixed(1)}%` : null,
+            summaryMetrics.cv ? `🌊 CV: ${summaryMetrics.cv.toFixed(1)}%` : null,
             `ℹ️ For detailed patterns, export as CSV from your CGM app`
           ].filter(Boolean) as string[];
           
@@ -1496,114 +1550,108 @@ serve(async (req) => {
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
           );
         }
-        
-        // No readings and no summary metrics - report error
-        await supabaseClient
-          .from('uploads')
-          .update({ 
-            status: 'error', 
-            insights: ['Could not extract glucose data from PDF. Please export as CSV from your CGM app.'] 
-          })
-          .eq('id', uploadId);
-          
-        return new Response(
-          JSON.stringify({ 
-            error: 'Could not extract glucose data from PDF. Please export as CSV from your CGM app.',
-            suggestion: 'Try exporting from Dexcom Clarity, LibreView, or your pump software as CSV format'
-          }),
-          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
       }
-    } else if (fileFormat === 'json') {
-      readings = parseJSON(fileContent);
-    } else if (fileFormat === 'csv' || fileFormat === 'txt') {
-      readings = parseCSV(fileContent);
-    } else {
-      // Try CSV parsing as fallback
-      readings = parseCSV(fileContent);
-      if (readings.length === 0) {
-        readings = parseJSON(fileContent);
-      }
-    }
-    
-    // Validate readings to filter out invalid dates/values
-    const validatedReadings = validateReadings(readings);
-    console.log(`Validated ${validatedReadings.length} of ${readings.length} readings`);
-    
-    if (validatedReadings.length === 0) {
+      
+      // All PDF extraction methods failed
+      console.log('All PDF extraction methods failed');
+      
       await supabaseClient
         .from('uploads')
-        .update({ status: 'error', insights: ['No valid glucose readings found. Please check file format and date range.'] })
+        .update({ 
+          status: 'error', 
+          insights: ['Could not extract glucose data from this PDF. Please export as CSV from your CGM app.'] 
+        })
         .eq('id', uploadId);
         
       return new Response(
         JSON.stringify({ 
-          error: 'No valid glucose readings found in the file',
-          parsedCount: readings.length,
-          validCount: 0,
-          suggestion: 'Ensure dates are between 2010 and present, and glucose values are between 20-500 mg/dL'
+          error: 'Could not extract glucose data from PDF. Please export as CSV from your CGM app.',
+          suggestion: 'Try exporting from Dexcom Clarity, LibreView, or your pump software as CSV format'
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    // Comprehensive analysis
-    const { insights, detailedAnalysis, hourlyData, dailyData, agpData, patterns } = analyzeGlucoseDataComprehensive(validatedReadings);
+    
+    // ============= CSV/JSON/TXT PROCESSING =============
+    if (fileFormat === 'csv' || fileFormat === 'txt') {
+      readings = parseCSV(fileContent);
+    } else if (fileFormat === 'json') {
+      readings = parseJSON(fileContent);
+    } else {
+      // Try CSV as fallback
+      readings = parseCSV(fileContent);
+    }
+    
+    // Validate readings
+    if (readings.length > 0) {
+      readings = validateReadings(readings);
+    }
+    
+    if (readings.length < 5) {
+      await supabaseClient
+        .from('uploads')
+        .update({ 
+          status: 'error', 
+          insights: [`Only ${readings.length} valid readings found. Please check the file format.`] 
+        })
+        .eq('id', uploadId);
+        
+      return new Response(
+        JSON.stringify({ 
+          error: `Insufficient data: only ${readings.length} valid glucose readings found.`,
+          suggestion: 'Ensure your file contains glucose values with timestamps in a supported format (CSV, JSON).'
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Perform comprehensive analysis
+    const { insights, detailedAnalysis, hourlyData, dailyData, agpData, patterns } = analyzeGlucoseDataComprehensive(readings);
     
     // Generate AI recommendations
     const { recommendations, aiInsights } = await generateAIRecommendations(detailedAnalysis, patterns);
-
-    // Update upload record with comprehensive analysis results
-    const { error: updateError } = await supabaseClient
+    
+    // Update database
+    await supabaseClient
       .from('uploads')
       .update({
         status: 'completed',
-        insights: insights,
-        readings_count: validatedReadings.length,
-        analysis_results: { insights, readingsCount: validatedReadings.length },
+        insights,
+        readings_count: readings.length,
+        analysis_results: { insights, readingsCount: readings.length },
         detailed_analysis: detailedAnalysis,
         hourly_data: hourlyData,
         daily_data: dailyData,
         agp_data: agpData,
-        patterns: patterns,
-        recommendations: recommendations,
+        patterns,
+        recommendations,
         ai_insights: aiInsights
       })
       .eq('id', uploadId);
-      
-    if (updateError) {
-      console.error('Error updating upload record:', updateError);
-    }
-
+    
+    console.log(`Analysis complete: ${readings.length} readings, ${patterns.length} patterns`);
+    
     return new Response(
       JSON.stringify({
         success: true,
         insights,
-        readingsCount: validatedReadings.length,
+        readingsCount: readings.length,
         detailedAnalysis,
         hourlyData,
         dailyData,
         agpData,
         patterns,
         recommendations,
-        aiInsights,
-        message: `Successfully analyzed ${validatedReadings.length} glucose readings`
+        aiInsights
       }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Analysis error:', errorMessage);
     
+  } catch (error) {
+    console.error("Unexpected error:", error);
     return new Response(
-      JSON.stringify({ error: errorMessage }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
+      JSON.stringify({ error: 'An unexpected error occurred during analysis.' }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
