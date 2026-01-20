@@ -1,11 +1,21 @@
-import { LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { 
+  Smartphone, 
+  Pill, 
+  Heart, 
+  Shield, 
+  Cpu, 
+  ArrowRightLeft, 
+  Stethoscope, 
+  Activity,
+  FileText 
+} from 'lucide-react';
 
 interface SurveyCategoryCardProps {
   id: string;
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon?: React.ElementType;
   count: number;
   selected: boolean;
   onClick: () => void;
@@ -14,7 +24,7 @@ interface SurveyCategoryCardProps {
 export const SurveyCategoryCard = ({
   title,
   description,
-  icon: Icon,
+  icon: Icon = FileText,
   count,
   selected,
   onClick,
