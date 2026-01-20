@@ -52,6 +52,7 @@ interface DetailedAnalysis {
   dataStart?: string;
   dataEnd?: string;
   daysOfData?: number;
+  fromSummaryReport?: boolean;
 }
 
 interface Pattern {
@@ -137,6 +138,7 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
   const [isExporting, setIsExporting] = useState(false);
 
   const hasDetailedData = detailedAnalysis && (detailedAnalysis.readingsCount ?? 0) > 0;
+  const isFromSummary = detailedAnalysis?.fromSummaryReport === true || readingsCount === 0;
 
   const exportReport = async () => {
     setIsExporting(true);
@@ -272,12 +274,26 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
           </DialogTitle>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>{fileName}</span>
-            <Badge variant="outline">{readingsCount.toLocaleString()} readings</Badge>
-            {hasDetailedData && detailedAnalysis.daysOfData && (
+            {readingsCount > 0 ? (
+              <Badge variant="outline">{readingsCount.toLocaleString()} readings</Badge>
+            ) : (
+              <Badge variant="secondary">Summary Report</Badge>
+            )}
+            {detailedAnalysis?.daysOfData && (
               <Badge variant="secondary">{detailedAnalysis.daysOfData} days</Badge>
             )}
           </div>
         </DialogHeader>
+
+        {/* Summary Report Notice */}
+        {isFromSummary && (
+          <div className="mx-6 p-3 rounded-lg bg-accent/50 border border-accent text-sm">
+            <p className="font-medium text-accent-foreground">📊 Summary Report Analysis</p>
+            <p className="text-muted-foreground mt-1">
+              This analysis is based on summary metrics from your PDF report. For detailed patterns, AGP charts, and AI recommendations, export your CGM data as CSV from Dexcom Clarity, LibreView, or your pump app.
+            </p>
+          </div>
+        )}
 
         {hasDetailedData ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
