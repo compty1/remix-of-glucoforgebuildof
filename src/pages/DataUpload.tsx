@@ -156,7 +156,21 @@ const DataUpload = () => {
     setUploadedFiles(prev => [newFile, ...prev]);
 
     try {
-      const fileContent = await file.text();
+      // PDFs must be sent as base64 (file.text() corrupts binary PDFs and breaks extraction)
+      const fileContent = await (async () => {
+        const lowerName = file.name.toLowerCase();
+        const isPdf = file.type === 'application/pdf' || lowerName.endsWith('.pdf');
+        if (!isPdf) return await file.text();
+
+        const buffer = await file.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        const chunkSize = 0x8000;
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+          binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+        }
+        return btoa(binary);
+      })();
 
       // Create upload record
       const { data: uploadRecord, error: insertError } = await supabase
