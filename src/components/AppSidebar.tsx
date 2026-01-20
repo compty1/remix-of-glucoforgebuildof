@@ -31,7 +31,8 @@ import {
   Newspaper,
   LucideIcon,
   Library,
-  Hammer
+  Hammer,
+  HandHeart
 } from 'lucide-react';
 import {
   Sidebar,
@@ -87,6 +88,7 @@ const platformItemsAfterProjects = [
 
 const supportItems = [
   { title: "Build With Us", url: "/build-with-us", icon: Hammer },
+  { title: "Get Involved", url: "/get-involved", icon: HandHeart },
   { title: "Resources", url: "/resources", icon: Library },
   { title: "Settings", url: "/settings", icon: Settings },
   { title: "Help & Support", url: "/help", icon: HelpCircle },
