@@ -27,7 +27,8 @@ import {
   FolderOpen,
   Plus,
   Building2,
-  LucideIcon
+  LucideIcon,
+  Library
 } from 'lucide-react';
 import {
   Sidebar,
@@ -81,6 +82,7 @@ const platformItemsAfterProjects = [
 ];
 
 const supportItems = [
+  { title: "Resources", url: "/resources", icon: Library },
   { title: "Settings", url: "/settings", icon: Settings },
   { title: "Help & Support", url: "/help", icon: HelpCircle },
 ];

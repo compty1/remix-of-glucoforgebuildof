@@ -1,11 +1,14 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { InfoRail } from '@/components/InfoRail';
 import Layout from '@/components/Layout';
+import AnalysisResultsModal from '@/components/data-upload/AnalysisResultsModal';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuthStore } from '@/store/authStore';
+import { toast } from 'sonner';
 import { 
   Upload, 
   FileText, 
@@ -29,32 +32,45 @@ interface UploadedFile {
   size: string;
   uploadDate: string;
   status: 'processing' | 'complete' | 'error';
-  insights: number;
+  insights: string[];
+  readingsCount: number;
 }
 
 const DataUpload = () => {
+  const { user } = useAuthStore();
   const [dragActive, setDragActive] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([
-    {
-      id: '1',
-      name: 'dexcom_data_nov2024.csv',
-      type: 'cgm',
-      size: '2.4 MB',
-      uploadDate: '2024-11-15',
-      status: 'complete',
-      insights: 23
-    },
-    {
-      id: '2', 
-      name: 'omnipod_history_oct2024.json',
-      type: 'pump',
-      size: '1.8 MB',
-      uploadDate: '2024-10-28',
-      status: 'complete',
-      insights: 18
-    }
-  ]);
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<UploadedFile | null>(null);
 
+  // Fetch user's previous uploads
+  useEffect(() => {
+    const fetchUploads = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from('uploads')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('uploaded_at', { ascending: false })
+        .limit(10);
+        
+      if (data) {
+        setUploadedFiles(data.map(upload => ({
+          id: upload.id,
+          name: upload.file_name,
+          type: upload.file_type?.includes('csv') ? 'cgm' : 'pump',
+          size: upload.file_size ? `${(upload.file_size / 1024 / 1024).toFixed(1)} MB` : '0 MB',
+          uploadDate: new Date(upload.uploaded_at).toISOString().split('T')[0],
+          status: (upload.status === 'completed' ? 'complete' : upload.status) as 'complete' | 'processing' | 'error',
+          insights: upload.insights || [],
+          readingsCount: upload.readings_count || 0
+        })));
+      }
+    };
+    
+    fetchUploads();
+  }, [user]);
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -65,36 +81,92 @@ const DataUpload = () => {
     }
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
     
-    // Simulate file upload
+    if (!user) {
+      toast.error('Please log in to upload files');
+      return;
+    }
+
+    const files = Array.from(e.dataTransfer.files);
+    for (const file of files) {
+      await processFile(file);
+    }
+  }, [user]);
+
+  const processFile = async (file: File) => {
+    if (!user) return;
+
+    const tempId = Date.now().toString();
     const newFile: UploadedFile = {
-      id: Date.now().toString(),
-      name: 'new_upload.csv',
-      type: 'cgm',
-      size: '3.2 MB', 
+      id: tempId,
+      name: file.name,
+      type: file.name.includes('.csv') ? 'cgm' : 'pump',
+      size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
       uploadDate: new Date().toISOString().split('T')[0],
       status: 'processing',
-      insights: 0
+      insights: [],
+      readingsCount: 0
     };
     
     setUploadedFiles(prev => [newFile, ...prev]);
-    
-    // Simulate processing completion
-    setTimeout(() => {
-      setUploadedFiles(prev => 
-        prev.map(file => 
-          file.id === newFile.id 
-            ? { ...file, status: 'complete' as const, insights: 15 }
-            : file
-        )
-      );
-    }, 3000);
-  }, []);
 
+    try {
+      const fileContent = await file.text();
+
+      // Create upload record
+      const { data: uploadRecord, error: insertError } = await supabase
+        .from('uploads')
+        .insert({
+          file_name: file.name,
+          file_type: file.type,
+          file_size: file.size,
+          user_id: user.id,
+          status: 'processing'
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      // Call analyze-glucose Edge Function
+      const { data: analysisResult, error: analysisError } = await supabase.functions.invoke('analyze-glucose', {
+        body: {
+          filename: file.name,
+          fileContent,
+          uploadId: uploadRecord.id
+        }
+      });
+
+      if (analysisError) throw analysisError;
+
+      const insights = analysisResult?.insights || [];
+      const readingsCount = analysisResult?.readingsCount || 0;
+
+      setUploadedFiles(prev => prev.map(f => 
+        f.id === tempId
+          ? { 
+              ...f, 
+              id: uploadRecord.id,
+              status: 'complete' as const, 
+              insights,
+              readingsCount
+            }
+          : f
+      ));
+
+      toast.success(`${file.name} analyzed - ${readingsCount} readings processed`);
+    } catch (error) {
+      console.error('Upload error:', error);
+      setUploadedFiles(prev => prev.map(f => 
+        f.id === tempId ? { ...f, status: 'error' as const } : f
+      ));
+      toast.error(`Failed to analyze ${file.name}`);
+    }
+  };
   const getFileIcon = (type: string) => {
     switch (type) {
       case 'cgm': return <Activity className="h-5 w-5 text-primary" />;
@@ -264,7 +336,14 @@ const DataUpload = () => {
                       
                       {file.status === 'complete' && (
                         <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedFile(file);
+                              setShowAnalysis(true);
+                            }}
+                          >
                             <TrendingUp className="h-4 w-4 mr-1" />
                             View Analysis
                           </Button>
@@ -364,6 +443,17 @@ const DataUpload = () => {
           />
         </section>
       </div>
+
+      {/* Analysis Modal */}
+      {selectedFile && (
+        <AnalysisResultsModal
+          open={showAnalysis}
+          onOpenChange={setShowAnalysis}
+          fileName={selectedFile.name}
+          insights={selectedFile.insights}
+          readingsCount={selectedFile.readingsCount}
+        />
+      )}
     </Layout>
   );
 };
