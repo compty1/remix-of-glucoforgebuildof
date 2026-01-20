@@ -8,6 +8,7 @@ import { InfoRail } from '@/components/InfoRail';
 import Layout from '@/components/Layout';
 import MentalHealthConditionsSection from '@/components/mental-health/MentalHealthConditionsSection';
 import PsychLoadComparisonSection from '@/components/mental-health/PsychLoadComparisonSection';
+import MentalHealthAssessmentSection from '@/components/mental-health/MentalHealthAssessmentSection';
 import { 
   Heart, 
   Brain, 
@@ -226,6 +227,9 @@ const MentalHealthHub = () => {
 
         {/* Compare Psychological Load */}
         <PsychLoadComparisonSection />
+
+        {/* Mental Health Assessment Quiz */}
+        <MentalHealthAssessmentSection />
 
         {/* Main Content Tabs */}
         <section className="mb-12">
