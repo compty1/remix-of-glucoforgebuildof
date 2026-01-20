@@ -14,6 +14,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_found_connections: {
+        Row: {
+          ai_analysis: Json | null
+          biological_mechanism: string | null
+          community_mentions: number | null
+          confidence_score: number | null
+          connection_type: string
+          created_at: string
+          cross_validation_count: number | null
+          description: string
+          id: string
+          keywords: string[] | null
+          last_analyzed_at: string | null
+          novelty_score: number | null
+          practical_implications: string[] | null
+          research_citations: number | null
+          source_fda_data: Json | null
+          source_papers: Json | null
+          source_posts: Json | null
+          source_trials: Json | null
+          title: string
+          updated_at: string
+          validation_status: string | null
+        }
+        Insert: {
+          ai_analysis?: Json | null
+          biological_mechanism?: string | null
+          community_mentions?: number | null
+          confidence_score?: number | null
+          connection_type: string
+          created_at?: string
+          cross_validation_count?: number | null
+          description: string
+          id?: string
+          keywords?: string[] | null
+          last_analyzed_at?: string | null
+          novelty_score?: number | null
+          practical_implications?: string[] | null
+          research_citations?: number | null
+          source_fda_data?: Json | null
+          source_papers?: Json | null
+          source_posts?: Json | null
+          source_trials?: Json | null
+          title: string
+          updated_at?: string
+          validation_status?: string | null
+        }
+        Update: {
+          ai_analysis?: Json | null
+          biological_mechanism?: string | null
+          community_mentions?: number | null
+          confidence_score?: number | null
+          connection_type?: string
+          created_at?: string
+          cross_validation_count?: number | null
+          description?: string
+          id?: string
+          keywords?: string[] | null
+          last_analyzed_at?: string | null
+          novelty_score?: number | null
+          practical_implications?: string[] | null
+          research_citations?: number | null
+          source_fda_data?: Json | null
+          source_papers?: Json | null
+          source_posts?: Json | null
+          source_trials?: Json | null
+          title?: string
+          updated_at?: string
+          validation_status?: string | null
+        }
+        Relationships: []
+      }
       bounties: {
         Row: {
           category: string | null
