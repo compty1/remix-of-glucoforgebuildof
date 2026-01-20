@@ -70,9 +70,12 @@ import Resources from "./pages/Resources";
 import StateFormsFinder from "./pages/StateFormsFinder";
 import News from "./pages/News";
 import BuildWithUs from "./pages/BuildWithUs";
+import DevelopmentProjectDetail from "./pages/DevelopmentProjectDetail";
 import GetInvolved from "./pages/GetInvolved";
 import MedicineHub from "./pages/MedicineHub";
 import MedicineComparison from "./pages/MedicineComparison";
+import TrialMatching from "./pages/TrialMatching";
+import QualityOfLife from "./pages/QualityOfLife";
 import { AdminRoute } from "./components/admin/AdminRoute";
 const queryClient = new QueryClient();
 
@@ -158,7 +161,10 @@ const App = () => {
             <Route path="/medicines" element={<ProtectedRoute><MedicineHub /></ProtectedRoute>} />
             <Route path="/medicines/compare" element={<ProtectedRoute><MedicineComparison /></ProtectedRoute>} />
             <Route path="/build-with-us" element={<BuildWithUs />} />
+            <Route path="/build-with-us/:projectId" element={<DevelopmentProjectDetail />} />
             <Route path="/get-involved" element={<GetInvolved />} />
+            <Route path="/trials" element={<TrialMatching />} />
+            <Route path="/quality-of-life" element={<QualityOfLife />} />
             <Route path="/donation-result" element={<DonateSuccess />} />
             <Route path="/qa-checklist" element={<QAChecklist />} />
             <Route path="*" element={<NotFound />} />

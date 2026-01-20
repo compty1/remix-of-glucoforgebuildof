@@ -77,7 +77,7 @@ export function useTrialMatching(options: UseTrialMatchingOptions = {}) {
         phase: trial.phase,
         start_date: trial.start_date,
         completion_date: trial.completion_date,
-        sponsor: trial.lead_sponsor,
+        sponsor: trial.sponsor_name,
         enrollment: trial.enrollment_count,
         locations: Array.isArray(trial.locations) 
           ? (trial.locations as unknown as TrialLocation[])
