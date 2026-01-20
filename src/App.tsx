@@ -67,6 +67,7 @@ import CompanyDetail from "./pages/CompanyDetail";
 import CompanyComparison from "./pages/CompanyComparison";
 import Resources from "./pages/Resources";
 import StateFormsFinder from "./pages/StateFormsFinder";
+import News from "./pages/News";
 import { AdminRoute } from "./components/admin/AdminRoute";
 const queryClient = new QueryClient();
 
@@ -147,6 +148,7 @@ const App = () => {
             <Route path="/customizable-dashboard" element={<ProtectedRoute><CustomizableDashboard /></ProtectedRoute>} />
             <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
             <Route path="/resources/state-forms" element={<ProtectedRoute><StateFormsFinder /></ProtectedRoute>} />
+            <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} />
             <Route path="/donation-result" element={<DonateSuccess />} />
             <Route path="/qa-checklist" element={<QAChecklist />} />
             <Route path="*" element={<NotFound />} />
