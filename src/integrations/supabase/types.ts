@@ -1862,26 +1862,98 @@ export type Database = {
         }
         Relationships: []
       }
+      survey_demographics: {
+        Row: {
+          a1c_range: string | null
+          age_range: string | null
+          cgm_usage: string | null
+          country: string | null
+          created_at: string | null
+          diabetes_type: string | null
+          diagnosis_year: number | null
+          gender: string | null
+          id: string
+          pump_usage: string | null
+          therapy_type: string | null
+          updated_at: string | null
+          user_id: string
+          years_with_diabetes: number | null
+        }
+        Insert: {
+          a1c_range?: string | null
+          age_range?: string | null
+          cgm_usage?: string | null
+          country?: string | null
+          created_at?: string | null
+          diabetes_type?: string | null
+          diagnosis_year?: number | null
+          gender?: string | null
+          id?: string
+          pump_usage?: string | null
+          therapy_type?: string | null
+          updated_at?: string | null
+          user_id: string
+          years_with_diabetes?: number | null
+        }
+        Update: {
+          a1c_range?: string | null
+          age_range?: string | null
+          cgm_usage?: string | null
+          country?: string | null
+          created_at?: string | null
+          diabetes_type?: string | null
+          diagnosis_year?: number | null
+          gender?: string | null
+          id?: string
+          pump_usage?: string | null
+          therapy_type?: string | null
+          updated_at?: string | null
+          user_id?: string
+          years_with_diabetes?: number | null
+        }
+        Relationships: []
+      }
       survey_responses: {
         Row: {
+          completed_at: string | null
+          consent_given: boolean | null
           created_at: string
+          device_type: string | null
           id: string
+          is_complete: boolean | null
+          metadata: Json | null
           responses: Json
+          session_id: string | null
           survey_id: string
+          time_spent_seconds: number | null
           user_id: string
         }
         Insert: {
+          completed_at?: string | null
+          consent_given?: boolean | null
           created_at?: string
+          device_type?: string | null
           id?: string
+          is_complete?: boolean | null
+          metadata?: Json | null
           responses: Json
+          session_id?: string | null
           survey_id: string
+          time_spent_seconds?: number | null
           user_id: string
         }
         Update: {
+          completed_at?: string | null
+          consent_given?: boolean | null
           created_at?: string
+          device_type?: string | null
           id?: string
+          is_complete?: boolean | null
+          metadata?: Json | null
           responses?: Json
+          session_id?: string | null
           survey_id?: string
+          time_spent_seconds?: number | null
           user_id?: string
         }
         Relationships: [
@@ -1897,30 +1969,66 @@ export type Database = {
       surveys: {
         Row: {
           category: string | null
+          consent_text: string | null
           created_at: string
           description: string | null
+          estimated_time_minutes: number | null
           id: string
+          institution_partner: string | null
+          irb_number: string | null
+          is_anonymous: boolean | null
+          metadata: Json | null
           questions: Json
+          requires_demographics: boolean | null
+          research_category: string | null
+          status: string | null
+          survey_type: string | null
+          target_responses: number | null
           title: string
           updated_at: string
+          version: number | null
         }
         Insert: {
           category?: string | null
+          consent_text?: string | null
           created_at?: string
           description?: string | null
+          estimated_time_minutes?: number | null
           id?: string
+          institution_partner?: string | null
+          irb_number?: string | null
+          is_anonymous?: boolean | null
+          metadata?: Json | null
           questions?: Json
+          requires_demographics?: boolean | null
+          research_category?: string | null
+          status?: string | null
+          survey_type?: string | null
+          target_responses?: number | null
           title: string
           updated_at?: string
+          version?: number | null
         }
         Update: {
           category?: string | null
+          consent_text?: string | null
           created_at?: string
           description?: string | null
+          estimated_time_minutes?: number | null
           id?: string
+          institution_partner?: string | null
+          irb_number?: string | null
+          is_anonymous?: boolean | null
+          metadata?: Json | null
           questions?: Json
+          requires_demographics?: boolean | null
+          research_category?: string | null
+          status?: string | null
+          survey_type?: string | null
+          target_responses?: number | null
           title?: string
           updated_at?: string
+          version?: number | null
         }
         Relationships: []
       }
