@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,13 @@ import {
   AlertTriangle,
   Zap,
   Heart,
+  Download,
+  Share2,
+  Copy,
+  Check,
+  FileText,
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ComparisonCategory {
   id: string;
@@ -312,9 +318,132 @@ const getImpactLabel = (level: string) => {
 
 const PsychLoadComparisonSection: React.FC = () => {
   const [showAllSources, setShowAllSources] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  const handleDownloadPdf = async () => {
+    setIsGeneratingPdf(true);
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const jsPDF = (await import('jspdf')).default;
+
+      // Create a summary content for PDF
+      const pdfContent = document.createElement('div');
+      pdfContent.style.cssText = 'padding: 40px; background: white; width: 800px; font-family: Arial, sans-serif;';
+      pdfContent.innerHTML = `
+        <div style="text-align: center; margin-bottom: 30px;">
+          <h1 style="color: #333; font-size: 28px; margin-bottom: 10px;">The Psychological Load of Type 1 Diabetes</h1>
+          <p style="color: #666; font-size: 14px;">Research-backed comparison data to share with family, friends, and healthcare providers</p>
+        </div>
+        
+        <div style="display: flex; justify-content: space-around; margin-bottom: 30px; text-align: center;">
+          <div style="flex: 1; padding: 20px; background: #f0f9ff; border-radius: 8px; margin: 0 10px;">
+            <div style="font-size: 32px; font-weight: bold; color: #0369a1;">180-300</div>
+            <div style="font-size: 14px; color: #333;">Decisions/Day</div>
+            <div style="font-size: 12px; color: #666;">vs ~35 general</div>
+          </div>
+          <div style="flex: 1; padding: 20px; background: #fef2f2; border-radius: 8px; margin: 0 10px;">
+            <div style="font-size: 32px; font-weight: bold; color: #dc2626;">24/7/365</div>
+            <div style="font-size: 14px; color: #333;">No Days Off</div>
+            <div style="font-size: 12px; color: #666;">vs ability to rest</div>
+          </div>
+          <div style="flex: 1; padding: 20px; background: #fff7ed; border-radius: 8px; margin: 0 10px;">
+            <div style="font-size: 32px; font-weight: bold; color: #ea580c;">42+</div>
+            <div style="font-size: 14px; color: #333;">Variables to Track</div>
+            <div style="font-size: 12px; color: #666;">vs 0 for non-diabetics</div>
+          </div>
+        </div>
+
+        <h2 style="color: #333; font-size: 20px; margin-bottom: 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">Key Burden Comparisons</h2>
+        
+        ${comparisonCategories.map(cat => `
+          <div style="margin-bottom: 20px; padding: 15px; background: #f9fafb; border-radius: 8px;">
+            <div style="font-weight: bold; font-size: 16px; color: #333; margin-bottom: 8px;">${cat.title}</div>
+            <div style="display: flex; gap: 20px;">
+              <div style="flex: 1;">
+                <div style="font-size: 12px; color: #dc2626; font-weight: bold;">T1D: ${cat.t1dData.metric}</div>
+                <div style="font-size: 12px; color: #666;">${cat.t1dData.description}</div>
+              </div>
+              <div style="flex: 1;">
+                <div style="font-size: 12px; color: #16a34a; font-weight: bold;">General: ${cat.generalData.metric}</div>
+                <div style="font-size: 12px; color: #666;">${cat.generalData.description}</div>
+              </div>
+            </div>
+            <div style="margin-top: 10px; font-style: italic; font-size: 11px; color: #666;">
+              Equivalent to: "${cat.equivalentTo}"
+            </div>
+          </div>
+        `).join('')}
+
+        <h2 style="color: #333; font-size: 20px; margin: 20px 0 15px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;">Research Sources</h2>
+        <div style="font-size: 11px; color: #666;">
+          ${sources.slice(0, 5).map(s => `<div style="margin-bottom: 5px;">• ${s.title} - ${s.organization}</div>`).join('')}
+          <div style="margin-top: 10px; color: #999;">+ ${sources.length - 5} more peer-reviewed sources</div>
+        </div>
+
+        <div style="margin-top: 30px; text-align: center; padding: 15px; background: #f0f9ff; border-radius: 8px;">
+          <p style="font-size: 12px; color: #666; margin: 0;">
+            Generated from GlucoForge Mental Health Hub | Learn more at glucoforge.app/mental-health
+          </p>
+        </div>
+      `;
+      
+      document.body.appendChild(pdfContent);
+      
+      const canvas = await html2canvas(pdfContent, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      
+      document.body.removeChild(pdfContent);
+      
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.save('T1D-Psychological-Load-Comparison.pdf');
+      
+      toast.success('PDF downloaded successfully');
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast.error('Failed to generate PDF');
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  };
+
+  const handleShare = async () => {
+    const shareText = `The Psychological Load of Type 1 Diabetes:
+
+📊 180-300 diabetes decisions per day (vs ~35 for general population)
+⏰ 24/7/365 management with zero days off
+📈 42+ variables affecting blood glucose
+
+T1D management is like taking a final exam every single day, for the rest of your life. Share to help others understand the invisible burden.
+
+Learn more: glucoforge.app/mental-health`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'The Psychological Load of Type 1 Diabetes',
+          text: shareText,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        setIsCopied(true);
+        toast.success('Share text copied to clipboard');
+        setTimeout(() => setIsCopied(false), 2000);
+      }
+    } catch (error) {
+      if ((error as Error).name !== 'AbortError') {
+        toast.error('Failed to share');
+      }
+    }
+  };
 
   return (
-    <section className="mb-12">
+    <section className="mb-12" ref={sectionRef}>
       {/* Section Header */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
@@ -323,11 +452,48 @@ const PsychLoadComparisonSection: React.FC = () => {
         <h2 className="text-3xl font-bold text-foreground mb-3">
           Compare the Psychological Load
         </h2>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-muted-foreground max-w-2xl mx-auto mb-6">
           Understanding the invisible burden of Type 1 Diabetes management compared to 
           those without the condition. These research-backed comparisons help illustrate 
           why T1D is so mentally demanding.
         </p>
+        
+        {/* Download & Share Buttons */}
+        <div className="flex items-center justify-center gap-3">
+          <Button
+            variant="outline"
+            onClick={handleDownloadPdf}
+            disabled={isGeneratingPdf}
+          >
+            {isGeneratingPdf ? (
+              <>
+                <FileText className="h-4 w-4 mr-2 animate-pulse" />
+                Generating...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2" />
+                Download PDF
+              </>
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleShare}
+          >
+            {isCopied ? (
+              <>
+                <Check className="h-4 w-4 mr-2" />
+                Copied!
+              </>
+            ) : (
+              <>
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Headline Stats */}

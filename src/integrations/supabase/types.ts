@@ -572,49 +572,73 @@ export type Database = {
       }
       diabetic_health_projects: {
         Row: {
+          affected_population_estimate: number | null
           category: string
+          commonly_misdiagnosed_as: string[] | null
           community_insights_summary: string | null
+          condition_triggers: string[] | null
           created_at: string
           description: string
           featured: boolean | null
           id: string
+          management_difficulty: string | null
           official_research_summary: string | null
+          possible_causes: string[] | null
           prevalence_percentage: number | null
+          related_conditions: string[] | null
+          search_volume_monthly: number | null
           slug: string
           status: string
           symptoms: string[] | null
+          time_to_diagnosis_avg: string | null
           title: string
           updated_at: string
           view_count: number | null
         }
         Insert: {
+          affected_population_estimate?: number | null
           category: string
+          commonly_misdiagnosed_as?: string[] | null
           community_insights_summary?: string | null
+          condition_triggers?: string[] | null
           created_at?: string
           description: string
           featured?: boolean | null
           id?: string
+          management_difficulty?: string | null
           official_research_summary?: string | null
+          possible_causes?: string[] | null
           prevalence_percentage?: number | null
+          related_conditions?: string[] | null
+          search_volume_monthly?: number | null
           slug: string
           status?: string
           symptoms?: string[] | null
+          time_to_diagnosis_avg?: string | null
           title: string
           updated_at?: string
           view_count?: number | null
         }
         Update: {
+          affected_population_estimate?: number | null
           category?: string
+          commonly_misdiagnosed_as?: string[] | null
           community_insights_summary?: string | null
+          condition_triggers?: string[] | null
           created_at?: string
           description?: string
           featured?: boolean | null
           id?: string
+          management_difficulty?: string | null
           official_research_summary?: string | null
+          possible_causes?: string[] | null
           prevalence_percentage?: number | null
+          related_conditions?: string[] | null
+          search_volume_monthly?: number | null
           slug?: string
           status?: string
           symptoms?: string[] | null
+          time_to_diagnosis_avg?: string | null
           title?: string
           updated_at?: string
           view_count?: number | null

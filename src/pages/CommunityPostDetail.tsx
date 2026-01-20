@@ -25,6 +25,7 @@ import Layout from '@/components/Layout';
 import { useSinglePost, usePostComments } from '@/hooks/useCommunitySearch';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { SavePostNotesModal } from '@/components/community/SavePostNotesModal';
+import { RelatedPosts } from '@/components/community/RelatedPosts';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow, format } from 'date-fns';
 
@@ -410,6 +411,15 @@ const CommunityPostDetail: React.FC = () => {
             )}
           </CardContent>
         </Card>
+
+        {/* Related Solutions Section */}
+        {post && (
+          <RelatedPosts
+            currentPostId={post.id}
+            topicTags={post.topic_tags}
+            deviceMentioned={post.device_mentioned}
+          />
+        )}
 
         {/* Notes Modal */}
         {post && (

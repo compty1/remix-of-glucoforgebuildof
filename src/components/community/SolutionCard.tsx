@@ -27,6 +27,7 @@ import { SimilarSolutions } from './SimilarSolutions';
 import { SavePostNotesModal } from './SavePostNotesModal';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { supabase } from '@/integrations/supabase/client';
+import { getSourceCategory, getCategoryConfig } from '@/utils/sourceCategories';
 
 interface SolutionCardProps {
   post: CommunityPost;
@@ -146,6 +147,13 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
             {getSentimentIcon()}
+            {/* Source Category Badge */}
+            <Badge 
+              variant="outline" 
+              className={`text-xs ${getCategoryConfig(getSourceCategory(post.source)).color}`}
+            >
+              {getCategoryConfig(getSourceCategory(post.source)).label}
+            </Badge>
             <Badge variant="outline" className="text-xs">
               {post.source}
             </Badge>
@@ -160,7 +168,7 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
               </Badge>
             )}
             {post.is_solution && (
-              <Badge className="text-xs bg-green-600 hover:bg-green-700">
+              <Badge className="text-xs bg-success text-success-foreground">
                 Solution
               </Badge>
             )}

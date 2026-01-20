@@ -15,6 +15,7 @@ import { TrendingSolutions } from '@/components/community/TrendingSolutions';
 import { DataRefreshBanner } from '@/components/community/DataRefreshBanner';
 import { SavedPostsList } from '@/components/community/SavedPostsList';
 import { AlertPreferencesModal } from '@/components/community/AlertPreferencesModal';
+import { BrowseBySource } from '@/components/community/BrowseBySource';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
@@ -29,6 +30,7 @@ const CommunitySolutions: React.FC = () => {
   const { triggerRefresh, isRefreshing } = useRefreshCommunityData();
   const [activeTab, setActiveTab] = useState('all');
   const [showAlertModal, setShowAlertModal] = useState(false);
+  const [selectedSource, setSelectedSource] = useState<string | null>(null);
   
   const {
     posts,
@@ -110,6 +112,15 @@ const CommunitySolutions: React.FC = () => {
     const resultsSection = document.getElementById('results-section');
     if (resultsSection) {
       resultsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [updateFilters]);
+
+  const handleSourceSelect = useCallback((source: string | null) => {
+    setSelectedSource(source);
+    if (source) {
+      updateFilters({ sources: [source] });
+    } else {
+      updateFilters({ sources: [] });
     }
   }, [updateFilters]);
 
@@ -302,6 +313,12 @@ const CommunitySolutions: React.FC = () => {
               {/* Sidebar */}
               <div className="space-y-6">
                 <TrendingSolutions onPostClick={handleTrendingClick} />
+                
+                {/* Browse by Source */}
+                <BrowseBySource
+                  selectedSource={selectedSource}
+                  onSourceSelect={handleSourceSelect}
+                />
 
                 {/* Data Sources Info */}
                 <Card>
