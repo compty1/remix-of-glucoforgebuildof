@@ -5,6 +5,7 @@ import { useProjectDetail } from '@/hooks/useProjects';
 import { ResearchSection } from '@/components/projects/ResearchSection';
 import { CommunitySolutionsSection } from '@/components/projects/CommunitySolutionsSection';
 import { ProjectAIChat } from '@/components/projects/ProjectAIChat';
+import { ProjectFullReport } from '@/components/projects/ProjectFullReport';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,8 @@ import {
   Clock,
   HelpCircle,
   Link2,
-  Target
+  Target,
+  BookOpen
 } from 'lucide-react';
 
 const ProjectDetail: React.FC = () => {
@@ -174,10 +176,14 @@ const ProjectDetail: React.FC = () => {
 
         {/* Tabs */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-grid">
             <TabsTrigger value="overview" className="gap-2">
               <Info className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
+            </TabsTrigger>
+            <TabsTrigger value="full-report" className="gap-2">
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">Full Analysis</span>
             </TabsTrigger>
             <TabsTrigger value="research" className="gap-2">
               <FileText className="h-4 w-4" />

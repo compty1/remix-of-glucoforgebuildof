@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CommandCenterWidget } from '@/components/CommandCenterWidget';
 import { InfoRail } from '@/components/InfoRail';
 import { TherapyDetailsModal } from '@/components/TherapyDetailsModal';
+import { CureApproachesReport } from '@/components/cure/CureApproachesReport';
 import Layout from '@/components/Layout';
 import { useCureMonitoring, CureTherapy } from '@/hooks/useCureMonitoring';
 import { 
@@ -19,7 +20,8 @@ import {
   Filter,
   Search,
   ArrowRight,
-  AlertCircle
+  AlertCircle,
+  FileText
 } from 'lucide-react';
 
 const LiveCureMonitoring = () => {
@@ -28,6 +30,7 @@ const LiveCureMonitoring = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedTherapy, setSelectedTherapy] = useState<CureTherapy | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showReport, setShowReport] = useState(false);
 
   const therapies = data?.therapies || [];
   const stats = data?.stats || { activeTrials: 0, avgYearsToMarket: 0, successRate: 0, topConfidence: 0 };
@@ -85,9 +88,13 @@ const LiveCureMonitoring = () => {
             <h1 className="text-4xl font-heading font-bold text-foreground mb-4">
               Live Cure Monitoring Dashboard
             </h1>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-6">
               Real-time tracking of the most promising T1D cure research, with progress percentages based on clinical trial milestones
             </p>
+            <Button size="lg" onClick={() => setShowReport(true)} className="gap-2">
+              <FileText className="h-5 w-5" />
+              View Comprehensive Cure Approaches Report
+            </Button>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -336,6 +343,12 @@ const LiveCureMonitoring = () => {
           setIsModalOpen(false);
           setSelectedTherapy(null);
         }}
+      />
+
+      {/* Comprehensive Report Modal */}
+      <CureApproachesReport
+        isOpen={showReport}
+        onClose={() => setShowReport(false)}
       />
     </Layout>
   );
