@@ -1118,6 +1118,65 @@ export type Database = {
           },
         ]
       }
+      external_medication_reviews: {
+        Row: {
+          author_anonymous: string | null
+          content: string
+          created_at: string | null
+          external_id: string | null
+          fetched_at: string | null
+          helpful_count: number | null
+          id: string
+          medication_id: string | null
+          published_at: string | null
+          sentiment: string | null
+          source: string
+          source_url: string | null
+          subreddit: string | null
+          title: string | null
+        }
+        Insert: {
+          author_anonymous?: string | null
+          content: string
+          created_at?: string | null
+          external_id?: string | null
+          fetched_at?: string | null
+          helpful_count?: number | null
+          id?: string
+          medication_id?: string | null
+          published_at?: string | null
+          sentiment?: string | null
+          source: string
+          source_url?: string | null
+          subreddit?: string | null
+          title?: string | null
+        }
+        Update: {
+          author_anonymous?: string | null
+          content?: string
+          created_at?: string | null
+          external_id?: string | null
+          fetched_at?: string | null
+          helpful_count?: number | null
+          id?: string
+          medication_id?: string | null
+          published_at?: string | null
+          sentiment?: string | null
+          source?: string
+          source_url?: string | null
+          subreddit?: string | null
+          title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_medication_reviews_medication_id_fkey"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "medications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fda_device_events: {
         Row: {
           created_at: string
@@ -1409,6 +1468,203 @@ export type Database = {
           ncd_number?: string | null
           source_url?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      medication_reviews: {
+        Row: {
+          cons: string[] | null
+          content: string
+          created_at: string | null
+          duration_of_use: string | null
+          ease_of_use_rating: number | null
+          effectiveness_rating: number | null
+          helpful_count: number | null
+          id: string
+          medication_id: string | null
+          pros: string[] | null
+          rating: number | null
+          side_effects_rating: number | null
+          title: string | null
+          updated_at: string | null
+          user_id: string | null
+          verified: boolean | null
+          would_recommend: boolean | null
+        }
+        Insert: {
+          cons?: string[] | null
+          content: string
+          created_at?: string | null
+          duration_of_use?: string | null
+          ease_of_use_rating?: number | null
+          effectiveness_rating?: number | null
+          helpful_count?: number | null
+          id?: string
+          medication_id?: string | null
+          pros?: string[] | null
+          rating?: number | null
+          side_effects_rating?: number | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verified?: boolean | null
+          would_recommend?: boolean | null
+        }
+        Update: {
+          cons?: string[] | null
+          content?: string
+          created_at?: string | null
+          duration_of_use?: string | null
+          ease_of_use_rating?: number | null
+          effectiveness_rating?: number | null
+          helpful_count?: number | null
+          id?: string
+          medication_id?: string | null
+          pros?: string[] | null
+          rating?: number | null
+          side_effects_rating?: number | null
+          title?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          verified?: boolean | null
+          would_recommend?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medication_reviews_medication_id_fkey"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "medications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medications: {
+        Row: {
+          administration_route: string | null
+          avg_price: number | null
+          brand_names: string[] | null
+          category: string
+          clinical_notes: string | null
+          common_side_effects: string[] | null
+          cons: string[] | null
+          contraindications: string[] | null
+          created_at: string | null
+          description: string | null
+          duration: string | null
+          fda_approval_date: string | null
+          fda_status: string | null
+          featured: boolean | null
+          future_developments: string | null
+          generic_name: string | null
+          id: string
+          image_url: string | null
+          insurance_coverage_notes: string | null
+          key_features: string[] | null
+          last_updated_date: string | null
+          manufacturer: string | null
+          manufacturer_website: string | null
+          mechanism_of_action: string | null
+          medicare_price: number | null
+          name: string
+          ndc_code: string | null
+          onset_time: string | null
+          peak_time: string | null
+          popularity_rank: number | null
+          prescribing_info_url: string | null
+          pros: string[] | null
+          rating_avg: number | null
+          review_count: number | null
+          serious_warnings: string[] | null
+          storage_requirements: string | null
+          subcategory: string | null
+          typical_dosing: string | null
+          updated_at: string | null
+          usage_statistics: Json | null
+        }
+        Insert: {
+          administration_route?: string | null
+          avg_price?: number | null
+          brand_names?: string[] | null
+          category: string
+          clinical_notes?: string | null
+          common_side_effects?: string[] | null
+          cons?: string[] | null
+          contraindications?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          duration?: string | null
+          fda_approval_date?: string | null
+          fda_status?: string | null
+          featured?: boolean | null
+          future_developments?: string | null
+          generic_name?: string | null
+          id?: string
+          image_url?: string | null
+          insurance_coverage_notes?: string | null
+          key_features?: string[] | null
+          last_updated_date?: string | null
+          manufacturer?: string | null
+          manufacturer_website?: string | null
+          mechanism_of_action?: string | null
+          medicare_price?: number | null
+          name: string
+          ndc_code?: string | null
+          onset_time?: string | null
+          peak_time?: string | null
+          popularity_rank?: number | null
+          prescribing_info_url?: string | null
+          pros?: string[] | null
+          rating_avg?: number | null
+          review_count?: number | null
+          serious_warnings?: string[] | null
+          storage_requirements?: string | null
+          subcategory?: string | null
+          typical_dosing?: string | null
+          updated_at?: string | null
+          usage_statistics?: Json | null
+        }
+        Update: {
+          administration_route?: string | null
+          avg_price?: number | null
+          brand_names?: string[] | null
+          category?: string
+          clinical_notes?: string | null
+          common_side_effects?: string[] | null
+          cons?: string[] | null
+          contraindications?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          duration?: string | null
+          fda_approval_date?: string | null
+          fda_status?: string | null
+          featured?: boolean | null
+          future_developments?: string | null
+          generic_name?: string | null
+          id?: string
+          image_url?: string | null
+          insurance_coverage_notes?: string | null
+          key_features?: string[] | null
+          last_updated_date?: string | null
+          manufacturer?: string | null
+          manufacturer_website?: string | null
+          mechanism_of_action?: string | null
+          medicare_price?: number | null
+          name?: string
+          ndc_code?: string | null
+          onset_time?: string | null
+          peak_time?: string | null
+          popularity_rank?: number | null
+          prescribing_info_url?: string | null
+          pros?: string[] | null
+          rating_avg?: number | null
+          review_count?: number | null
+          serious_warnings?: string[] | null
+          storage_requirements?: string | null
+          subcategory?: string | null
+          typical_dosing?: string | null
+          updated_at?: string | null
+          usage_statistics?: Json | null
         }
         Relationships: []
       }
