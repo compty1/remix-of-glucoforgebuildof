@@ -1,0 +1,135 @@
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+
+export interface NewsArticle {
+  id: string;
+  title: string;
+  description: string | null;
+  content: string | null;
+  url: string;
+  image_url: string | null;
+  source_name: string | null;
+  source_url: string | null;
+  author: string | null;
+  published_at: string | null;
+  category: string;
+  relevance_score: number;
+  is_featured: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface UseT1DNewsResult {
+  articles: NewsArticle[];
+  featuredArticles: NewsArticle[];
+  loading: boolean;
+  refreshing: boolean;
+  error: string | null;
+  selectedCategory: string;
+  setSelectedCategory: (category: string) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  refreshNews: () => Promise<void>;
+  getCategoryCounts: () => Record<string, number>;
+}
+
+export const useT1DNews = (): UseT1DNewsResult => {
+  const [allArticles, setAllArticles] = useState<NewsArticle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const fetchNewsFromDB = useCallback(async () => {
+    try {
+      const { data, error: dbError } = await supabase
+        .from('t1d_news_articles')
+        .select('*')
+        .order('published_at', { ascending: false })
+        .limit(100);
+
+      if (dbError) throw dbError;
+
+      setAllArticles((data as NewsArticle[]) || []);
+    } catch (err) {
+      console.error('Error fetching news from DB:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch news');
+    }
+  }, []);
+
+  const refreshNews = useCallback(async () => {
+    setRefreshing(true);
+    setError(null);
+
+    try {
+      const { data, error: funcError } = await supabase.functions.invoke('fetch-t1d-news');
+
+      if (funcError) {
+        console.error('Edge function error:', funcError);
+        throw funcError;
+      }
+
+      if (data?.data) {
+        setAllArticles(data.data);
+      } else {
+        await fetchNewsFromDB();
+      }
+    } catch (err) {
+      console.error('Error refreshing news:', err);
+      setError(err instanceof Error ? err.message : 'Failed to refresh news');
+      // Try to load from DB as fallback
+      await fetchNewsFromDB();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchNewsFromDB]);
+
+  useEffect(() => {
+    const loadNews = async () => {
+      setLoading(true);
+      await fetchNewsFromDB();
+      setLoading(false);
+
+      // If no articles, try to fetch new ones
+      if (allArticles.length === 0) {
+        await refreshNews();
+      }
+    };
+
+    loadNews();
+  }, []);
+
+  const filteredArticles = allArticles.filter(article => {
+    const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;
+    const matchesSearch = !searchQuery || 
+      article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      article.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
+  const featuredArticles = filteredArticles.filter(article => article.is_featured);
+  const regularArticles = filteredArticles.filter(article => !article.is_featured);
+
+  const getCategoryCounts = useCallback(() => {
+    const counts: Record<string, number> = { all: allArticles.length };
+    allArticles.forEach(article => {
+      counts[article.category] = (counts[article.category] || 0) + 1;
+    });
+    return counts;
+  }, [allArticles]);
+
+  return {
+    articles: regularArticles,
+    featuredArticles,
+    loading,
+    refreshing,
+    error,
+    selectedCategory,
+    setSelectedCategory,
+    searchQuery,
+    setSearchQuery,
+    refreshNews,
+    getCategoryCounts,
+  };
+};

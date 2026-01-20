@@ -28,6 +28,7 @@ import {
   FolderOpen,
   Plus,
   Building2,
+  Newspaper,
   LucideIcon,
   Library
 } from 'lucide-react';
@@ -63,6 +64,7 @@ const navigationItems = [
 ];
 
 const platformItemsBeforeProjects = [
+  { title: "T1D News", url: "/news", icon: Newspaper },
   { title: "T1D Companion", url: "/t1d-companion", icon: MessageCircle },
   { title: "Community Solutions", url: "/community-solutions", icon: Users },
 ];

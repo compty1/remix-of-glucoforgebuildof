@@ -2170,6 +2170,60 @@ export type Database = {
         }
         Relationships: []
       }
+      t1d_news_articles: {
+        Row: {
+          author: string | null
+          category: string | null
+          content: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          published_at: string | null
+          relevance_score: number | null
+          source_name: string | null
+          source_url: string | null
+          title: string
+          updated_at: string | null
+          url: string
+        }
+        Insert: {
+          author?: string | null
+          category?: string | null
+          content?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          published_at?: string | null
+          relevance_score?: number | null
+          source_name?: string | null
+          source_url?: string | null
+          title: string
+          updated_at?: string | null
+          url: string
+        }
+        Update: {
+          author?: string | null
+          category?: string | null
+          content?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          published_at?: string | null
+          relevance_score?: number | null
+          source_name?: string | null
+          source_url?: string | null
+          title?: string
+          updated_at?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
       t1d_resources: {
         Row: {
           category: string
