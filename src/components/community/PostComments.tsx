@@ -16,7 +16,7 @@ interface PostCommentsProps {
 export const PostComments: React.FC<PostCommentsProps> = ({ 
   postId, 
   isExpanded, 
-  limit = 5,
+  limit,
   showViewAll = false,
   onViewAllClick,
 }) => {
@@ -66,9 +66,9 @@ export const PostComments: React.FC<PostCommentsProps> = ({
     });
   };
 
-  // Apply limit to displayed comments
-  const displayedComments = limit ? comments.slice(0, limit) : comments;
-  const hasMoreComments = comments.length > displayedComments.length;
+  // Show all comments by default (no limit unless explicitly set)
+  const displayedComments = limit !== undefined ? comments.slice(0, limit) : comments;
+  const hasMoreComments = limit !== undefined && comments.length > displayedComments.length;
 
   return (
     <div className="space-y-3 pt-3 border-t">
