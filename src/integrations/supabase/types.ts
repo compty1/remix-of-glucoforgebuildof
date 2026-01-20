@@ -177,9 +177,15 @@ export type Database = {
       }
       clinical_trials_detailed: {
         Row: {
+          accepts_healthy_volunteers: boolean | null
+          age_requirement_max: number | null
+          age_requirement_min: number | null
           brief_summary: string | null
           completion_date: string | null
           conditions: string[] | null
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
           created_at: string
           detailed_description: string | null
           eligibility_criteria: string | null
@@ -191,6 +197,7 @@ export type Database = {
           last_update_date: string | null
           lead_sponsor_class: string | null
           location_countries: string[] | null
+          locations: Json | null
           max_age: string | null
           min_age: string | null
           nct_id: string
@@ -199,6 +206,7 @@ export type Database = {
           primary_outcomes: string[] | null
           primary_purpose: string | null
           raw_data: Json | null
+          recruiting_status: string | null
           secondary_outcomes: string[] | null
           source_registry: string
           sponsor_name: string | null
@@ -209,9 +217,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accepts_healthy_volunteers?: boolean | null
+          age_requirement_max?: number | null
+          age_requirement_min?: number | null
           brief_summary?: string | null
           completion_date?: string | null
           conditions?: string[] | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
           detailed_description?: string | null
           eligibility_criteria?: string | null
@@ -223,6 +237,7 @@ export type Database = {
           last_update_date?: string | null
           lead_sponsor_class?: string | null
           location_countries?: string[] | null
+          locations?: Json | null
           max_age?: string | null
           min_age?: string | null
           nct_id: string
@@ -231,6 +246,7 @@ export type Database = {
           primary_outcomes?: string[] | null
           primary_purpose?: string | null
           raw_data?: Json | null
+          recruiting_status?: string | null
           secondary_outcomes?: string[] | null
           source_registry: string
           sponsor_name?: string | null
@@ -241,9 +257,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accepts_healthy_volunteers?: boolean | null
+          age_requirement_max?: number | null
+          age_requirement_min?: number | null
           brief_summary?: string | null
           completion_date?: string | null
           conditions?: string[] | null
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
           created_at?: string
           detailed_description?: string | null
           eligibility_criteria?: string | null
@@ -255,6 +277,7 @@ export type Database = {
           last_update_date?: string | null
           lead_sponsor_class?: string | null
           location_countries?: string[] | null
+          locations?: Json | null
           max_age?: string | null
           min_age?: string | null
           nct_id?: string
@@ -263,6 +286,7 @@ export type Database = {
           primary_outcomes?: string[] | null
           primary_purpose?: string | null
           raw_data?: Json | null
+          recruiting_status?: string | null
           secondary_outcomes?: string[] | null
           source_registry?: string
           sponsor_name?: string | null
@@ -664,22 +688,33 @@ export type Database = {
         Row: {
           accuracy_mard: string | null
           app_compatibility: Json | null
+          autonomy_level: string | null
           availability: string | null
           battery_life: string | null
           category: string | null
+          change_frequency: string | null
+          charging_frequency: string | null
+          charging_method: string | null
           compatibility: Json | null
           cons: string[] | null
           created_at: string
+          decision_automation: string | null
           description: string | null
           device_type: string | null
           fda_510k_number: string | null
           fda_clearance_date: string | null
           fda_pma_number: string | null
           fda_status: string | null
+          future_device_plans: string | null
+          future_updates: Json | null
           id: string
           image_url: string | null
           insurance_coverage: string | null
           key_features: string[] | null
+          latest_update_date: string | null
+          latest_update_features: string[] | null
+          latest_update_version: string | null
+          learning_capability: boolean | null
           manufacturer: string | null
           model_number: string | null
           name: string
@@ -691,7 +726,9 @@ export type Database = {
           specifications: Json | null
           support_email: string | null
           support_phone: string | null
+          update_frequency: string | null
           updated_at: string
+          user_input_required: string[] | null
           user_manual_url: string | null
           warmup_time: string | null
           waterproof_rating: string | null
@@ -700,22 +737,33 @@ export type Database = {
         Insert: {
           accuracy_mard?: string | null
           app_compatibility?: Json | null
+          autonomy_level?: string | null
           availability?: string | null
           battery_life?: string | null
           category?: string | null
+          change_frequency?: string | null
+          charging_frequency?: string | null
+          charging_method?: string | null
           compatibility?: Json | null
           cons?: string[] | null
           created_at?: string
+          decision_automation?: string | null
           description?: string | null
           device_type?: string | null
           fda_510k_number?: string | null
           fda_clearance_date?: string | null
           fda_pma_number?: string | null
           fda_status?: string | null
+          future_device_plans?: string | null
+          future_updates?: Json | null
           id?: string
           image_url?: string | null
           insurance_coverage?: string | null
           key_features?: string[] | null
+          latest_update_date?: string | null
+          latest_update_features?: string[] | null
+          latest_update_version?: string | null
+          learning_capability?: boolean | null
           manufacturer?: string | null
           model_number?: string | null
           name: string
@@ -727,7 +775,9 @@ export type Database = {
           specifications?: Json | null
           support_email?: string | null
           support_phone?: string | null
+          update_frequency?: string | null
           updated_at?: string
+          user_input_required?: string[] | null
           user_manual_url?: string | null
           warmup_time?: string | null
           waterproof_rating?: string | null
@@ -736,22 +786,33 @@ export type Database = {
         Update: {
           accuracy_mard?: string | null
           app_compatibility?: Json | null
+          autonomy_level?: string | null
           availability?: string | null
           battery_life?: string | null
           category?: string | null
+          change_frequency?: string | null
+          charging_frequency?: string | null
+          charging_method?: string | null
           compatibility?: Json | null
           cons?: string[] | null
           created_at?: string
+          decision_automation?: string | null
           description?: string | null
           device_type?: string | null
           fda_510k_number?: string | null
           fda_clearance_date?: string | null
           fda_pma_number?: string | null
           fda_status?: string | null
+          future_device_plans?: string | null
+          future_updates?: Json | null
           id?: string
           image_url?: string | null
           insurance_coverage?: string | null
           key_features?: string[] | null
+          latest_update_date?: string | null
+          latest_update_features?: string[] | null
+          latest_update_version?: string | null
+          learning_capability?: boolean | null
           manufacturer?: string | null
           model_number?: string | null
           name?: string
@@ -763,7 +824,9 @@ export type Database = {
           specifications?: Json | null
           support_email?: string | null
           support_phone?: string | null
+          update_frequency?: string | null
           updated_at?: string
+          user_input_required?: string[] | null
           user_manual_url?: string | null
           warmup_time?: string | null
           waterproof_rating?: string | null
@@ -1471,6 +1534,56 @@ export type Database = {
         }
         Relationships: []
       }
+      medication_interactions: {
+        Row: {
+          clinical_effects: string | null
+          created_at: string
+          description: string
+          id: string
+          interacting_drug_category: string | null
+          interacting_drug_name: string
+          management_recommendation: string | null
+          medication_id: string | null
+          severity: string
+          source: string | null
+          updated_at: string
+        }
+        Insert: {
+          clinical_effects?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          interacting_drug_category?: string | null
+          interacting_drug_name: string
+          management_recommendation?: string | null
+          medication_id?: string | null
+          severity: string
+          source?: string | null
+          updated_at?: string
+        }
+        Update: {
+          clinical_effects?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          interacting_drug_category?: string | null
+          interacting_drug_name?: string
+          management_recommendation?: string | null
+          medication_id?: string | null
+          severity?: string
+          source?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medication_interactions_medication_id_fkey"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "medications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medication_reviews: {
         Row: {
           cons: string[] | null
@@ -1924,6 +2037,60 @@ export type Database = {
           supporting_links?: string[] | null
           title?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      quality_of_life_resources: {
+        Row: {
+          availability: string | null
+          benefits_for_t1d: string | null
+          category: string
+          cost_range: string | null
+          created_at: string
+          description: string | null
+          dosage_info: string | null
+          id: string
+          image_url: string | null
+          name: string
+          precautions: string | null
+          recommended_by_community: boolean | null
+          scientific_evidence_level: string | null
+          source_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          availability?: string | null
+          benefits_for_t1d?: string | null
+          category: string
+          cost_range?: string | null
+          created_at?: string
+          description?: string | null
+          dosage_info?: string | null
+          id?: string
+          image_url?: string | null
+          name: string
+          precautions?: string | null
+          recommended_by_community?: boolean | null
+          scientific_evidence_level?: string | null
+          source_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          availability?: string | null
+          benefits_for_t1d?: string | null
+          category?: string
+          cost_range?: string | null
+          created_at?: string
+          description?: string | null
+          dosage_info?: string | null
+          id?: string
+          image_url?: string | null
+          name?: string
+          precautions?: string | null
+          recommended_by_community?: boolean | null
+          scientific_evidence_level?: string | null
+          source_url?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2579,6 +2746,51 @@ export type Database = {
           target_audience?: string[] | null
           title?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      t1d_supplement_deficiencies: {
+        Row: {
+          created_at: string
+          food_sources: string[] | null
+          id: string
+          interaction_with_insulin: string | null
+          nutrient_name: string
+          optimal_timing: string | null
+          prevalence_in_t1d: number | null
+          recommended_daily_amount: string | null
+          supplement_form: string | null
+          symptoms_of_deficiency: string[] | null
+          testing_method: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          food_sources?: string[] | null
+          id?: string
+          interaction_with_insulin?: string | null
+          nutrient_name: string
+          optimal_timing?: string | null
+          prevalence_in_t1d?: number | null
+          recommended_daily_amount?: string | null
+          supplement_form?: string | null
+          symptoms_of_deficiency?: string[] | null
+          testing_method?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          food_sources?: string[] | null
+          id?: string
+          interaction_with_insulin?: string | null
+          nutrient_name?: string
+          optimal_timing?: string | null
+          prevalence_in_t1d?: number | null
+          recommended_daily_amount?: string | null
+          supplement_form?: string | null
+          symptoms_of_deficiency?: string[] | null
+          testing_method?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
