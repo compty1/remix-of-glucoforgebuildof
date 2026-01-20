@@ -4,7 +4,6 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Table, 
@@ -20,7 +19,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-const CHART_COLORS = ['#3b82f6', '#ef4444', '#22c55e', '#f59e0b'];
+const CHART_COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))'];
 
 const parseTimeToMinutes = (timeStr: string | null): number => {
   if (!timeStr) return 0;
@@ -60,7 +59,7 @@ export default function MedicineComparison() {
     if (!medications) return [];
     
     return medications
-      .filter(m => m.category === 'Insulin' && (m.onset_time || m.peak_time || m.duration))
+      .filter(m => m.category?.toLowerCase().includes('insulin') && (m.onset_time || m.peak_time || m.duration))
       .map((med, index) => ({
         name: med.name,
         onset: parseTimeToMinutes(med.onset_time),
@@ -188,7 +187,7 @@ export default function MedicineComparison() {
                         <TableCell key={med.id}>
                           {med.rating_avg ? (
                             <div className="flex items-center gap-1">
-                              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                              <Star className="h-4 w-4 fill-warning text-warning" />
                               <span className="font-medium">{med.rating_avg.toFixed(1)}</span>
                               <span className="text-muted-foreground text-sm">
                                 ({med.review_count || 0})
@@ -255,7 +254,7 @@ export default function MedicineComparison() {
                       {medications.map(med => (
                         <TableCell key={med.id}>
                           {med.medicare_price ? (
-                            <span className="text-blue-600 font-medium">
+                            <span className="text-primary font-medium">
                               ${med.medicare_price}
                             </span>
                           ) : '—'}
@@ -289,16 +288,16 @@ export default function MedicineComparison() {
                     <TableRow>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                           Pros
                         </div>
                       </TableCell>
                       {medications.map(med => (
                         <TableCell key={med.id}>
-                          {med.pros && med.pros.length > 0 ? (
+                          {med.pros && (med.pros as string[]).length > 0 ? (
                             <ul className="text-sm space-y-1">
                               {(med.pros as string[]).slice(0, 3).map((pro, i) => (
-                                <li key={i} className="text-green-700 dark:text-green-400">
+                                <li key={i} className="text-emerald-700 dark:text-emerald-400">
                                   • {pro}
                                 </li>
                               ))}
@@ -312,16 +311,16 @@ export default function MedicineComparison() {
                     <TableRow>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <XCircle className="h-4 w-4 text-red-500" />
+                          <XCircle className="h-4 w-4 text-destructive" />
                           Cons
                         </div>
                       </TableCell>
                       {medications.map(med => (
                         <TableCell key={med.id}>
-                          {med.cons && med.cons.length > 0 ? (
+                          {med.cons && (med.cons as string[]).length > 0 ? (
                             <ul className="text-sm space-y-1">
                               {(med.cons as string[]).slice(0, 3).map((con, i) => (
-                                <li key={i} className="text-red-700 dark:text-red-400">
+                                <li key={i} className="text-destructive">
                                   • {con}
                                 </li>
                               ))}

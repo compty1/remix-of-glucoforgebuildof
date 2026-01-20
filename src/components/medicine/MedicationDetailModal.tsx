@@ -29,9 +29,13 @@ interface MedicationDetailModalProps {
 }
 
 export function MedicationDetailModal({ medicationId, onClose }: MedicationDetailModalProps) {
-  const { medication, reviews, externalReviews, isLoading } = useMedicationDetails(medicationId);
+  const { data: medicationData, isLoading } = useMedicationDetails(medicationId || undefined);
 
   if (!medicationId) return null;
+
+  const medication = medicationData;
+  const reviews = medicationData?.userReviews || [];
+  const externalReviews = medicationData?.externalReviews || [];
 
   return (
     <Dialog open={!!medicationId} onOpenChange={() => onClose()}>
@@ -99,13 +103,13 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                   {medication.pros && medication.pros.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="font-medium flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                         Pros
                       </h4>
                       <ul className="space-y-1">
                         {medication.pros.map((pro, i) => (
                           <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                            <span className="text-green-500">•</span>
+                            <span className="text-emerald-500">•</span>
                             {pro}
                           </li>
                         ))}
@@ -116,13 +120,13 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                   {medication.cons && medication.cons.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="font-medium flex items-center gap-2">
-                        <XCircle className="h-4 w-4 text-red-500" />
+                        <XCircle className="h-4 w-4 text-destructive" />
                         Cons
                       </h4>
                       <ul className="space-y-1">
                         {medication.cons.map((con, i) => (
                           <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                            <span className="text-red-500">•</span>
+                            <span className="text-destructive">•</span>
                             {con}
                           </li>
                         ))}
@@ -201,7 +205,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                 {medication.common_side_effects && medication.common_side_effects.length > 0 && (
                   <div>
                     <h4 className="font-medium mb-2 flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                      <AlertTriangle className="h-4 w-4 text-warning" />
                       Common Side Effects
                     </h4>
                     <div className="flex flex-wrap gap-2">
@@ -252,10 +256,10 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                   {medication.medicare_price && (
                     <div className="p-4 border rounded-lg">
                       <div className="flex items-center gap-2 mb-2">
-                        <DollarSign className="h-5 w-5 text-blue-500" />
+                        <DollarSign className="h-5 w-5 text-primary" />
                         <h4 className="font-medium">Medicare Price</h4>
                       </div>
-                      <p className="text-2xl font-bold text-blue-600">${medication.medicare_price}</p>
+                      <p className="text-2xl font-bold text-primary">${medication.medicare_price}</p>
                       <p className="text-xs text-muted-foreground">Part D coverage</p>
                     </div>
                   )}
@@ -284,7 +288,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                   <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
                     <div className="text-center">
                       <div className="flex items-center gap-1">
-                        <Star className="h-6 w-6 fill-yellow-400 text-yellow-400" />
+                        <Star className="h-6 w-6 fill-warning text-warning" />
                         <span className="text-3xl font-bold">{medication.rating_avg.toFixed(1)}</span>
                       </div>
                       <p className="text-sm text-muted-foreground">
@@ -295,7 +299,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                 )}
 
                 {/* User Reviews */}
-                {reviews && reviews.length > 0 ? (
+                {reviews.length > 0 ? (
                   <div className="space-y-4">
                     <h4 className="font-medium">User Reviews</h4>
                     {reviews.map((review) => (
@@ -305,7 +309,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                             {Array.from({ length: 5 }).map((_, i) => (
                               <Star 
                                 key={i}
-                                className={`h-4 w-4 ${i < (review.rating || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-muted'}`}
+                                className={`h-4 w-4 ${i < (review.rating || 0) ? 'fill-warning text-warning' : 'text-muted'}`}
                               />
                             ))}
                           </div>
@@ -331,7 +335,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                 )}
 
                 {/* External Reviews */}
-                {externalReviews && externalReviews.length > 0 && (
+                {externalReviews.length > 0 && (
                   <div className="space-y-4">
                     <h4 className="font-medium">Community Feedback</h4>
                     {externalReviews.slice(0, 5).map((review) => (
