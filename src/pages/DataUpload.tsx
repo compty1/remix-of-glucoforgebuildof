@@ -484,6 +484,7 @@ const DataUpload = () => {
           agpData={selectedFile.agpData}
           patterns={selectedFile.patterns}
           recommendations={selectedFile.recommendations}
+          aiInsights={selectedFile.aiInsights}
         />
       )}
     </Layout>
