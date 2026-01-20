@@ -85,6 +85,12 @@ export interface Device {
   user_manual_url?: string | null;
   support_phone?: string | null;
   support_email?: string | null;
+  // New enhanced fields
+  device_type?: string | null;
+  price_range?: string | null;
+  availability?: string | null;
+  fda_status?: string | null;
+  specifications?: unknown;
 }
 
 export interface DeviceDetails {
