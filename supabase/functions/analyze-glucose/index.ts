@@ -186,6 +186,144 @@ function detectFileFormat(filename: string, content: string): 'pdf' | 'csv' | 'j
 }
 
 // ============= PDF PARSING WITH AI =============
+// Try to extract text content from PDF binary data
+function extractTextFromPDFBinary(pdfContent: string): string {
+  // Check if content is base64 encoded
+  let rawContent = pdfContent;
+  
+  // Try to decode base64 if it looks like base64
+  if (/^[A-Za-z0-9+/=]+$/.test(pdfContent.replace(/\s/g, '').substring(0, 100))) {
+    try {
+      const decoded = atob(pdfContent.replace(/\s/g, ''));
+      rawContent = decoded;
+    } catch {
+      // Not base64, use as-is
+    }
+  }
+  
+  // Extract text content from PDF structure
+  // PDFs contain text in various formats - look for common patterns
+  const textPatterns: string[] = [];
+  
+  // Pattern 1: Text in parentheses (Tj operator)
+  const parenMatches = rawContent.match(/\(([^)]{2,200})\)/g);
+  if (parenMatches) {
+    parenMatches.forEach(m => {
+      const text = m.slice(1, -1)
+        .replace(/\\n/g, '\n')
+        .replace(/\\r/g, '')
+        .replace(/\\\(/g, '(')
+        .replace(/\\\)/g, ')');
+      if (/[a-zA-Z0-9]/.test(text)) {
+        textPatterns.push(text);
+      }
+    });
+  }
+  
+  // Pattern 2: Text between BT/ET blocks
+  const btMatches = rawContent.match(/BT[\s\S]{10,2000}?ET/g);
+  if (btMatches) {
+    btMatches.forEach(block => {
+      const innerText = block.match(/\(([^)]+)\)/g);
+      if (innerText) {
+        innerText.forEach(t => textPatterns.push(t.slice(1, -1)));
+      }
+    });
+  }
+  
+  // Pattern 3: Look for readable ASCII sequences
+  const asciiMatches = rawContent.match(/[A-Za-z][A-Za-z0-9\s.,:%\-\/]{10,100}/g);
+  if (asciiMatches) {
+    asciiMatches.forEach(m => textPatterns.push(m));
+  }
+  
+  // Clean and join extracted text
+  const extractedText = textPatterns
+    .join(' ')
+    .replace(/[\x00-\x1F\x7F-\x9F]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  
+  console.log(`Extracted ${extractedText.length} chars of text from PDF`);
+  return extractedText;
+}
+
+// Extract summary metrics from CGM report PDFs (like Bionic, Clarity, LibreView reports)
+interface PDFSummaryMetrics {
+  gmi?: number;
+  avgGlucose?: number;
+  timeInRange?: number;
+  timeAbove180?: number;
+  timeBelow70?: number;
+  cv?: number;
+  reportPeriodDays?: number;
+}
+
+async function extractSummaryMetricsFromPDF(pdfText: string, filename: string): Promise<PDFSummaryMetrics | null> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  
+  if (!LOVABLE_API_KEY || pdfText.length < 50) {
+    return null;
+  }
+  
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content: `You extract CGM summary metrics from diabetes report text. 
+Extract ONLY these metrics if present, return as JSON object:
+- gmi: GMI or Glucose Management Indicator (number, e.g., 7.2)
+- avgGlucose: Average glucose in mg/dL (number, e.g., 154)
+- timeInRange: Time in range 70-180 mg/dL as percentage (number, e.g., 68.5)
+- timeAbove180: Time above 180 mg/dL percentage (number)
+- timeBelow70: Time below 70 mg/dL percentage (number)
+- cv: Coefficient of variation percentage (number, e.g., 32.5)
+- reportPeriodDays: Number of days in report (number, e.g., 90)
+
+Return ONLY valid JSON object with found metrics. Use null for missing values.
+Example: {"gmi": 7.2, "avgGlucose": 154, "timeInRange": 68.5, "cv": 32.5}`
+          },
+          {
+            role: "user",
+            content: `Extract metrics from this CGM report (${filename}):\n\n${pdfText.slice(0, 8000)}`
+          }
+        ],
+        max_tokens: 500,
+        temperature: 0.1
+      }),
+    });
+    
+    if (!response.ok) {
+      console.error(`AI metrics extraction failed: ${response.status}`);
+      return null;
+    }
+    
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content || '';
+    
+    // Parse JSON from response
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const metrics = JSON.parse(jsonMatch[0]);
+      console.log('Extracted summary metrics from PDF:', metrics);
+      return metrics;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error("Error extracting summary metrics:", error);
+    return null;
+  }
+}
+
 async function extractReadingsFromPDFWithAI(pdfTextContent: string, filename: string): Promise<GlucoseReading[]> {
   const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
   
@@ -194,11 +332,16 @@ async function extractReadingsFromPDFWithAI(pdfTextContent: string, filename: st
     return [];
   }
   
-  // Clean up PDF content - remove binary garbage
-  const cleanContent = pdfTextContent
-    .replace(/[\x00-\x1F\x7F-\x9F]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .slice(0, 15000); // Limit content size
+  // Extract text from PDF binary
+  const extractedText = extractTextFromPDFBinary(pdfTextContent);
+  
+  if (extractedText.length < 50) {
+    console.log("Insufficient text extracted from PDF");
+    return [];
+  }
+  
+  // Limit content size for AI
+  const cleanContent = extractedText.slice(0, 15000);
   
   try {
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -1073,6 +1216,84 @@ serve(async (req) => {
       readings = await extractReadingsFromPDFWithAI(fileContent, filename);
       
       if (readings.length === 0) {
+        // Try to extract summary metrics from the PDF report instead
+        console.log('No individual readings found, trying to extract summary metrics...');
+        const extractedText = extractTextFromPDFBinary(fileContent);
+        const summaryMetrics = await extractSummaryMetricsFromPDF(extractedText, filename);
+        
+        if (summaryMetrics && (summaryMetrics.avgGlucose || summaryMetrics.timeInRange || summaryMetrics.gmi)) {
+          // We got summary metrics - create a synthetic analysis from them
+          console.log('Found summary metrics in PDF report');
+          
+          const syntheticAnalysis = {
+            readingsCount: 0,
+            avgGlucose: summaryMetrics.avgGlucose || 0,
+            medianGlucose: summaryMetrics.avgGlucose || 0,
+            stdDev: summaryMetrics.cv && summaryMetrics.avgGlucose ? (summaryMetrics.cv / 100) * summaryMetrics.avgGlucose : 0,
+            cv: summaryMetrics.cv || 0,
+            timeInRange: summaryMetrics.timeInRange || 0,
+            timeInTightRange: 0,
+            timeAbove180: summaryMetrics.timeAbove180 || 0,
+            timeBelow70: summaryMetrics.timeBelow70 || 0,
+            timeBelow54: 0,
+            gmi: summaryMetrics.gmi || 0,
+            gvi: 0,
+            mage: 0,
+            lowEvents: 0,
+            severeLowEvents: 0,
+            highEvents: 0,
+            severeHighEvents: 0,
+            dataStart: new Date(Date.now() - (summaryMetrics.reportPeriodDays || 90) * 24 * 60 * 60 * 1000).toISOString(),
+            dataEnd: new Date().toISOString(),
+            daysOfData: summaryMetrics.reportPeriodDays || 90
+          };
+          
+          const insights = [
+            `📊 Report Summary (${summaryMetrics.reportPeriodDays || 90} days)`,
+            summaryMetrics.avgGlucose ? `📈 Average Glucose: ${summaryMetrics.avgGlucose} mg/dL` : null,
+            summaryMetrics.gmi ? `🎯 GMI (Estimated A1C): ${summaryMetrics.gmi.toFixed(1)}%` : null,
+            summaryMetrics.timeInRange ? `⏱️ Time in Range (70-180): ${summaryMetrics.timeInRange.toFixed(1)}%` : null,
+            summaryMetrics.cv ? `🌊 CV (Variability): ${summaryMetrics.cv.toFixed(1)}%` : null,
+            `ℹ️ Note: Detailed patterns require raw CGM data export (CSV format)`
+          ].filter(Boolean);
+          
+          // Update upload record with summary analysis
+          await supabaseClient
+            .from('uploads')
+            .update({
+              status: 'completed',
+              insights: insights,
+              readings_count: 0,
+              analysis_results: { insights, readingsCount: 0, fromSummary: true },
+              detailed_analysis: syntheticAnalysis,
+              hourly_data: [],
+              daily_data: [],
+              agp_data: [],
+              patterns: [],
+              recommendations: ['For detailed pattern analysis, export your CGM data as CSV from Dexcom Clarity, LibreView, or your pump software.'],
+              ai_insights: 'Summary metrics extracted from PDF report. For personalized recommendations, upload raw CGM data in CSV format.'
+            })
+            .eq('id', uploadId);
+          
+          return new Response(
+            JSON.stringify({
+              success: true,
+              insights,
+              readingsCount: 0,
+              detailedAnalysis: syntheticAnalysis,
+              hourlyData: [],
+              dailyData: [],
+              agpData: [],
+              patterns: [],
+              recommendations: ['For detailed pattern analysis, export your CGM data as CSV from Dexcom Clarity, LibreView, or your pump software.'],
+              aiInsights: 'Summary metrics extracted from PDF report.',
+              fromSummary: true,
+              message: 'Extracted summary metrics from PDF report. For detailed analysis, export as CSV.'
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+          );
+        }
+        
         // Update status and return error
         await supabaseClient
           .from('uploads')
@@ -1082,7 +1303,7 @@ serve(async (req) => {
         return new Response(
           JSON.stringify({ 
             error: 'Could not extract glucose data from PDF. Please export as CSV from your CGM app.',
-            suggestion: 'Try exporting from Dexcom Clarity or LibreView as CSV format'
+            suggestion: 'Try exporting from Dexcom Clarity, LibreView, or your pump software as CSV format'
           }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
