@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { CommunityPost } from '@/hooks/useDeviceDetails';
 import { useDeviceReviews } from '@/hooks/useDeviceReviews';
+import { useExternalReviews } from '@/hooks/useExternalReviews';
 import { UserReviewsList } from './UserReviewsList';
+import { ExternalReviewCard } from './ExternalReviewCard';
 import { 
   MessageSquare, 
   ThumbsUp, 
@@ -15,7 +17,9 @@ import {
   Meh,
   Frown,
   Users,
-  Star
+  Star,
+  ExternalLink,
+  Loader2
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -38,6 +42,7 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
   const [sentimentFilter, setSentimentFilter] = useState<'all' | 'positive' | 'neutral' | 'negative'>('all');
   const [visibleCount, setVisibleCount] = useState(10);
   const [activeSection, setActiveSection] = useState<'user' | 'community'>('user');
+  const [externalSourceFilter, setExternalSourceFilter] = useState<'all' | 'reddit' | 'google'>('all');
 
   const {
     reviews,
@@ -50,11 +55,31 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
     toggleHelpful
   } = useDeviceReviews(deviceId);
 
+  const {
+    reviews: externalReviews,
+    stats: externalStats,
+    loading: externalLoading,
+    filterBySource,
+    filterBySentiment
+  } = useExternalReviews(deviceId);
+
   const filteredPosts = posts.filter(post => 
     sentimentFilter === 'all' || post.sentiment === sentimentFilter
   );
 
   const visiblePosts = filteredPosts.slice(0, visibleCount);
+
+  // Filter external reviews based on current filters
+  const filteredExternalReviews = React.useMemo(() => {
+    let filtered = externalReviews;
+    if (externalSourceFilter !== 'all') {
+      filtered = filtered.filter(r => r.source === externalSourceFilter);
+    }
+    if (sentimentFilter !== 'all') {
+      filtered = filtered.filter(r => r.sentiment === sentimentFilter);
+    }
+    return filtered;
+  }, [externalReviews, externalSourceFilter, sentimentFilter]);
 
   const getSentimentBadge = (sentiment: string | null) => {
     switch (sentiment) {
@@ -71,9 +96,18 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
     const colors: Record<string, string> = {
       'reddit': 'bg-orange-500/10 text-orange-600 border-orange-500/20',
       'twitter': 'bg-blue-400/10 text-blue-500 border-blue-400/20',
-      'facebook': 'bg-blue-600/10 text-blue-700 border-blue-600/20'
+      'facebook': 'bg-blue-600/10 text-blue-700 border-blue-600/20',
+      'google': 'bg-green-500/10 text-green-600 border-green-500/20'
     };
     return colors[source.toLowerCase()] || 'bg-muted text-muted-foreground';
+  };
+
+  // Combine external stats with community post stats for total
+  const combinedStats = {
+    positive: reviewStats.positive + externalStats.positive,
+    neutral: reviewStats.neutral + externalStats.neutral,
+    negative: reviewStats.negative + externalStats.negative,
+    total: reviewStats.total + externalStats.total
   };
 
   return (
@@ -87,7 +121,7 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
           </TabsTrigger>
           <TabsTrigger value="community" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Community Buzz ({reviewStats.total})
+            Community Buzz ({combinedStats.total})
           </TabsTrigger>
         </TabsList>
 
@@ -117,27 +151,41 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="text-center p-4 bg-success/10 rounded-lg">
                   <Smile className="h-6 w-6 text-success mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-success">{reviewStats.positive}</div>
+                  <div className="text-2xl font-bold text-success">{combinedStats.positive}</div>
                   <p className="text-xs text-muted-foreground">Positive</p>
                 </div>
                 <div className="text-center p-4 bg-warning/10 rounded-lg">
                   <Meh className="h-6 w-6 text-warning mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-warning">{reviewStats.neutral}</div>
+                  <div className="text-2xl font-bold text-warning">{combinedStats.neutral}</div>
                   <p className="text-xs text-muted-foreground">Neutral</p>
                 </div>
                 <div className="text-center p-4 bg-destructive/10 rounded-lg">
                   <Frown className="h-6 w-6 text-destructive mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-destructive">{reviewStats.negative}</div>
+                  <div className="text-2xl font-bold text-destructive">{combinedStats.negative}</div>
                   <p className="text-xs text-muted-foreground">Negative</p>
                 </div>
               </div>
+              
+              {/* Source breakdown */}
+              {externalStats.sources.length > 0 && (
+                <div className="mt-4 pt-4 border-t">
+                  <p className="text-sm text-muted-foreground mb-2">Sources:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {externalStats.sources.map(({ source, count }) => (
+                      <Badge key={source} variant="outline" className={getSourceBadge(source)}>
+                        {source}: {count} reviews
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
           {/* Filters */}
           <div className="flex flex-wrap items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground mr-2">Filter:</span>
+            <span className="text-sm text-muted-foreground mr-2">Sentiment:</span>
             {(['all', 'positive', 'neutral', 'negative'] as const).map(filter => (
               <Button
                 key={filter}
@@ -145,15 +193,52 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
                 size="sm"
                 onClick={() => setSentimentFilter(filter)}
               >
-                {filter === 'all' ? `All (${reviewStats.total})` : 
-                 `${filter.charAt(0).toUpperCase() + filter.slice(1)} (${reviewStats[filter as keyof typeof reviewStats]})`}
+                {filter === 'all' ? `All` : filter.charAt(0).toUpperCase() + filter.slice(1)}
+              </Button>
+            ))}
+            
+            <span className="text-sm text-muted-foreground ml-4 mr-2">Source:</span>
+            {(['all', 'reddit'] as const).map(filter => (
+              <Button
+                key={filter}
+                variant={externalSourceFilter === filter ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setExternalSourceFilter(filter)}
+              >
+                {filter === 'all' ? 'All Sources' : filter.charAt(0).toUpperCase() + filter.slice(1)}
               </Button>
             ))}
           </div>
 
-          {/* Posts List */}
-          {visiblePosts.length > 0 ? (
+          {/* Reddit Experiences Section */}
+          {externalLoading ? (
+            <Card className="command-center-widget">
+              <CardContent className="p-8 text-center">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+                <p className="text-muted-foreground">Loading community experiences...</p>
+              </CardContent>
+            </Card>
+          ) : filteredExternalReviews.length > 0 && (
             <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <ExternalLink className="h-5 w-5" />
+                Reddit Experiences ({filteredExternalReviews.length})
+              </h3>
+              <div className="grid gap-4">
+                {filteredExternalReviews.map((review) => (
+                  <ExternalReviewCard key={review.id} review={review} />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Community Posts List */}
+          {visiblePosts.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                Community Posts ({filteredPosts.length})
+              </h3>
               {visiblePosts.map((post) => (
                 <Card key={post.id} className="command-center-widget">
                   <CardContent className="p-4">
@@ -196,12 +281,15 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
                 </div>
               )}
             </div>
-          ) : (
+          )}
+          
+          {/* No content state */}
+          {filteredExternalReviews.length === 0 && visiblePosts.length === 0 && !externalLoading && (
             <Card className="command-center-widget">
               <CardContent className="p-8 text-center">
                 <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Posts Found</h3>
-                <p className="text-muted-foreground">No community posts available.</p>
+                <p className="text-muted-foreground">No community posts or reviews match your filters.</p>
               </CardContent>
             </Card>
           )}

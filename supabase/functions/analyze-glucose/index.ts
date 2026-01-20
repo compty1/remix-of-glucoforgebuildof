@@ -40,47 +40,116 @@ interface GlucoseReading {
   value: number;
 }
 
+function detectCSVFormat(content: string): 'dexcom' | 'libre' | 'generic' {
+  const lowerContent = content.toLowerCase();
+  if (lowerContent.includes('dexcom') || lowerContent.includes('clarity') || lowerContent.includes('egv')) {
+    return 'dexcom';
+  }
+  if (lowerContent.includes('libre') || lowerContent.includes('abbott') || lowerContent.includes('libreview')) {
+    return 'libre';
+  }
+  return 'generic';
+}
+
 function parseCSV(content: string): GlucoseReading[] {
   const lines = content.split('\n').filter(line => line.trim());
   const readings: GlucoseReading[] = [];
+  const format = detectCSVFormat(content);
   
-  // Skip header row
-  for (let i = 1; i < lines.length; i++) {
+  console.log(`Detected CSV format: ${format}`);
+  
+  // Find header row (some exports have metadata rows before headers)
+  let headerIndex = 0;
+  for (let i = 0; i < Math.min(lines.length, 20); i++) {
+    const line = lines[i].toLowerCase();
+    if (line.includes('timestamp') || line.includes('date') || line.includes('time') || 
+        line.includes('glucose') || line.includes('egv') || line.includes('historic')) {
+      headerIndex = i;
+      break;
+    }
+  }
+  
+  const headers = lines[headerIndex]?.toLowerCase().split(',').map(h => h.trim().replace(/"/g, '')) || [];
+  
+  // Find column indices based on format
+  let timestampCol = -1;
+  let dateCol = -1;
+  let timeCol = -1;
+  let valueCol = -1;
+  
+  headers.forEach((h, idx) => {
+    // Timestamp columns
+    if (h.includes('timestamp') || h === 'device timestamp' || h === 'reader timestamp') {
+      timestampCol = idx;
+    }
+    // Separate date columns
+    if (h === 'date' || h.includes('date') && !h.includes('timestamp')) {
+      dateCol = idx;
+    }
+    // Separate time columns
+    if (h === 'time' && !h.includes('timestamp')) {
+      timeCol = idx;
+    }
+    // Value columns - Dexcom uses 'Glucose Value (mg/dL)', Libre uses 'Historic Glucose mg/dL'
+    if (h.includes('glucose') || h.includes('egv') || h.includes('bg') || h.includes('historic')) {
+      if (h.includes('mg') || !valueCol || valueCol === -1) {
+        valueCol = idx;
+      }
+    }
+  });
+  
+  // Fallback for generic CSV: assume first col is timestamp, second is value
+  if (timestampCol === -1 && dateCol === -1) timestampCol = 0;
+  if (valueCol === -1) valueCol = headers.length > 1 ? 1 : 0;
+  
+  console.log(`Parsing with cols - timestamp: ${timestampCol}, date: ${dateCol}, time: ${timeCol}, value: ${valueCol}`);
+  
+  // Parse data rows
+  for (let i = headerIndex + 1; i < lines.length; i++) {
     const line = lines[i].trim();
     if (!line) continue;
     
-    const parts = line.split(',');
-    if (parts.length < 2) continue;
-    
-    // Try common CSV formats: timestamp,value or date,time,value
-    let timestamp: Date;
-    let value: number;
-    
-    if (parts.length === 2) {
-      // Format: timestamp,value
-      timestamp = new Date(parts[0].trim());
-      value = parseFloat(parts[1].trim());
-    } else if (parts.length >= 3) {
-      // Format: date,time,value or index,timestamp,value
-      const possibleTimestamp = parts[0].trim() + ' ' + parts[1].trim();
-      timestamp = new Date(possibleTimestamp);
-      
-      // If first attempt fails, try second column as timestamp
-      if (isNaN(timestamp.getTime())) {
-        timestamp = new Date(parts[1].trim());
-        value = parseFloat(parts[2].trim());
+    // Handle quoted CSV fields
+    const parts: string[] = [];
+    let current = '';
+    let inQuotes = false;
+    for (const char of line) {
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === ',' && !inQuotes) {
+        parts.push(current.trim().replace(/"/g, ''));
+        current = '';
       } else {
-        value = parseFloat(parts[2].trim());
+        current += char;
       }
+    }
+    parts.push(current.trim().replace(/"/g, ''));
+    
+    if (parts.length <= Math.max(timestampCol, dateCol, valueCol)) continue;
+    
+    let timestamp: Date;
+    
+    // Parse timestamp
+    if (timestampCol !== -1 && parts[timestampCol]) {
+      timestamp = new Date(parts[timestampCol]);
+    } else if (dateCol !== -1 && timeCol !== -1 && parts[dateCol] && parts[timeCol]) {
+      timestamp = new Date(`${parts[dateCol]} ${parts[timeCol]}`);
+    } else if (dateCol !== -1 && parts[dateCol]) {
+      timestamp = new Date(parts[dateCol]);
     } else {
       continue;
     }
+    
+    // Parse value
+    let valueStr = parts[valueCol]?.replace(/[^\d.]/g, '') || '';
+    const value = parseFloat(valueStr);
     
     if (!isNaN(timestamp.getTime()) && !isNaN(value) && value > 0 && value < 600) {
       readings.push({ timestamp, value });
     }
   }
   
+  console.log(`Parsed ${readings.length} valid glucose readings`);
   return readings;
 }
 
