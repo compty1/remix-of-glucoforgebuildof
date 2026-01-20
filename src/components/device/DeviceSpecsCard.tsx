@@ -15,7 +15,14 @@ import {
   ExternalLink,
   DollarSign,
   Stethoscope,
-  Link2
+  Link2,
+  Settings,
+  Syringe,
+  Gauge,
+  Zap,
+  Timer,
+  Cpu,
+  Beaker
 } from 'lucide-react';
 
 interface DeviceSpecsCardProps {
@@ -42,8 +49,65 @@ interface DeviceSpecsCardProps {
     user_manual_url?: string | null;
     support_phone?: string | null;
     support_email?: string | null;
+    specifications?: Record<string, string> | null;
+    device_type?: string | null;
+    price_range?: string | null;
+    availability?: string | null;
+    fda_status?: string | null;
   };
 }
+
+// Helper function to get icon for specification type
+const getSpecIcon = (key: string) => {
+  const iconMap: Record<string, React.ReactNode> = {
+    bolus: <Syringe className="h-5 w-5 text-primary" />,
+    reservoir: <Beaker className="h-5 w-5 text-primary" />,
+    basal_rates: <Activity className="h-5 w-5 text-primary" />,
+    battery: <Battery className="h-5 w-5 text-primary" />,
+    waterproof: <Droplets className="h-5 w-5 text-primary" />,
+    algorithm: <Cpu className="h-5 w-5 text-primary" />,
+    reading_interval: <Timer className="h-5 w-5 text-primary" />,
+    calibration: <Gauge className="h-5 w-5 text-primary" />,
+    sensor_life: <Clock className="h-5 w-5 text-primary" />,
+    transmitter: <Zap className="h-5 w-5 text-primary" />,
+    transmitter_life: <Zap className="h-5 w-5 text-primary" />,
+    warmup: <Timer className="h-5 w-5 text-primary" />,
+    mard: <Activity className="h-5 w-5 text-primary" />,
+    pod_life: <Clock className="h-5 w-5 text-primary" />,
+    bolus_increment: <Syringe className="h-5 w-5 text-primary" />,
+    auto_corrections: <Cpu className="h-5 w-5 text-primary" />,
+    setup: <Settings className="h-5 w-5 text-primary" />,
+    carb_counting: <Settings className="h-5 w-5 text-primary" />,
+    size: <Settings className="h-5 w-5 text-primary" />,
+  };
+  return iconMap[key] || <Settings className="h-5 w-5 text-muted-foreground" />;
+};
+
+// Helper function to format specification labels
+const formatSpecLabel = (key: string): string => {
+  const labelMap: Record<string, string> = {
+    bolus: "Bolus Range",
+    reservoir: "Reservoir",
+    basal_rates: "Basal Rates",
+    battery: "Battery",
+    waterproof: "Water Rating",
+    algorithm: "Algorithm",
+    reading_interval: "Reading Interval",
+    calibration: "Calibration",
+    sensor_life: "Sensor Life",
+    transmitter: "Transmitter",
+    transmitter_life: "Transmitter Life",
+    warmup: "Warmup Time",
+    mard: "MARD Accuracy",
+    pod_life: "Pod Life",
+    bolus_increment: "Bolus Increment",
+    auto_corrections: "Auto Corrections",
+    setup: "Setup",
+    carb_counting: "Carb Counting",
+    size: "Size",
+  };
+  return labelMap[key] || key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
 
 export const DeviceSpecsCard: React.FC<DeviceSpecsCardProps> = ({ device }) => {
   const hasSpecs = device.sensor_wear_days || device.warmup_time || device.accuracy_mard || 
@@ -69,10 +133,42 @@ export const DeviceSpecsCard: React.FC<DeviceSpecsCardProps> = ({ device }) => {
     ? JSON.parse(device.app_compatibility)
     : device.app_compatibility;
 
+  // Parse specifications if it's a string
+  const specifications = typeof device.specifications === 'string'
+    ? JSON.parse(device.specifications)
+    : device.specifications;
+
+  const hasDeviceSpecs = specifications && Object.keys(specifications).length > 0;
+
   return (
     <div className="space-y-6">
-      {/* Technical Specifications */}
-      {hasSpecs && (
+      {/* Device-Specific Specifications (from JSONB) */}
+      {hasDeviceSpecs && (
+        <Card className="command-center-widget">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Settings className="h-5 w-5 text-primary" />
+              Specifications
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {Object.entries(specifications).map(([key, value]) => (
+                <div key={key} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                  {getSpecIcon(key)}
+                  <div>
+                    <p className="text-xs text-muted-foreground">{formatSpecLabel(key)}</p>
+                    <p className="font-medium">{String(value)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Technical Specifications (legacy fields) */}
+      {hasSpecs && !hasDeviceSpecs && (
         <Card className="command-center-widget">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
