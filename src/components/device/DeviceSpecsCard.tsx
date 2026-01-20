@@ -49,7 +49,7 @@ interface DeviceSpecsCardProps {
     user_manual_url?: string | null;
     support_phone?: string | null;
     support_email?: string | null;
-    specifications?: Record<string, string> | null;
+    specifications?: Record<string, string> | unknown | null;
     device_type?: string | null;
     price_range?: string | null;
     availability?: string | null;
