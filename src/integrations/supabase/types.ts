@@ -2496,6 +2496,42 @@ export type Database = {
           },
         ]
       }
+      volunteer_interests: {
+        Row: {
+          availability: string | null
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          portfolio_url: string | null
+          roles: string[]
+          skills: string | null
+          status: string | null
+        }
+        Insert: {
+          availability?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          name: string
+          portfolio_url?: string | null
+          roles: string[]
+          skills?: string | null
+          status?: string | null
+        }
+        Update: {
+          availability?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          portfolio_url?: string | null
+          roles?: string[]
+          skills?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
