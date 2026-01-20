@@ -69,7 +69,7 @@ export interface Device {
   key_features: string[] | null;
   pros: string[] | null;
   cons: string[] | null;
-  // Extended specs
+  // Extended specs - use unknown for JSON fields to allow casting
   fda_clearance_date?: string | null;
   fda_510k_number?: string | null;
   fda_pma_number?: string | null;
@@ -79,8 +79,8 @@ export interface Device {
   accuracy_mard?: string | null;
   battery_life?: string | null;
   waterproof_rating?: string | null;
-  compatibility?: Record<string, string[]> | null;
-  app_compatibility?: Record<string, string> | null;
+  compatibility?: unknown;
+  app_compatibility?: unknown;
   insurance_coverage?: string | null;
   user_manual_url?: string | null;
   support_phone?: string | null;
