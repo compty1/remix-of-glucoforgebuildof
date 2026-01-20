@@ -99,6 +99,30 @@ export const DeviceIssuesTab: React.FC<DeviceIssuesTabProps> = ({
                     </div>
                   )}
 
+                  {/* FDA MAUDE Stats */}
+                  {(issue.fda_maude_count && issue.fda_maude_count > 0) && (
+                    <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <ExternalLink className="h-4 w-4 text-primary" />
+                          <h4 className="text-sm font-medium text-primary">FDA MAUDE Reports</h4>
+                        </div>
+                        <span className="text-lg font-bold text-primary">{issue.fda_maude_count?.toLocaleString()}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-2">
+                        Adverse events reported to FDA Manufacturer and User Facility Device Experience database
+                      </p>
+                      <a 
+                        href="https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfmaude/search.cfm" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        Search FDA MAUDE <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </div>
+                  )}
+
                   {/* Official Solution */}
                   {issue.solution && (
                     <div className="bg-success/5 border border-success/20 rounded-lg p-4">

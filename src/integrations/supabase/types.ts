@@ -483,11 +483,16 @@ export type Database = {
           created_at: string
           description: string | null
           device_id: string
+          fda_maude_count: number | null
+          fda_recall_count: number | null
           frequency_percentage: number | null
           id: string
+          issue_category: string | null
           issue_title: string
+          last_fda_update: string | null
           severity: string | null
           solution: string | null
+          source_url: string | null
           workaround: string | null
         }
         Insert: {
@@ -495,11 +500,16 @@ export type Database = {
           created_at?: string
           description?: string | null
           device_id: string
+          fda_maude_count?: number | null
+          fda_recall_count?: number | null
           frequency_percentage?: number | null
           id?: string
+          issue_category?: string | null
           issue_title: string
+          last_fda_update?: string | null
           severity?: string | null
           solution?: string | null
+          source_url?: string | null
           workaround?: string | null
         }
         Update: {
@@ -507,11 +517,16 @@ export type Database = {
           created_at?: string
           description?: string | null
           device_id?: string
+          fda_maude_count?: number | null
+          fda_recall_count?: number | null
           frequency_percentage?: number | null
           id?: string
+          issue_category?: string | null
           issue_title?: string
+          last_fda_update?: string | null
           severity?: string | null
           solution?: string | null
+          source_url?: string | null
           workaround?: string | null
         }
         Relationships: [
@@ -617,51 +632,96 @@ export type Database = {
       }
       devices: {
         Row: {
+          accuracy_mard: string | null
+          app_compatibility: Json | null
+          battery_life: string | null
           category: string | null
+          compatibility: Json | null
           cons: string[] | null
           created_at: string
           description: string | null
+          fda_510k_number: string | null
+          fda_clearance_date: string | null
+          fda_pma_number: string | null
           id: string
           image_url: string | null
+          insurance_coverage: string | null
           key_features: string[] | null
           manufacturer: string | null
           model_number: string | null
           name: string
           pros: string[] | null
+          regulatory_class: string | null
           retail_price_usd: number | null
+          sensor_wear_days: number | null
+          support_email: string | null
+          support_phone: string | null
           updated_at: string
+          user_manual_url: string | null
+          warmup_time: string | null
+          waterproof_rating: string | null
           website_url: string | null
         }
         Insert: {
+          accuracy_mard?: string | null
+          app_compatibility?: Json | null
+          battery_life?: string | null
           category?: string | null
+          compatibility?: Json | null
           cons?: string[] | null
           created_at?: string
           description?: string | null
+          fda_510k_number?: string | null
+          fda_clearance_date?: string | null
+          fda_pma_number?: string | null
           id?: string
           image_url?: string | null
+          insurance_coverage?: string | null
           key_features?: string[] | null
           manufacturer?: string | null
           model_number?: string | null
           name: string
           pros?: string[] | null
+          regulatory_class?: string | null
           retail_price_usd?: number | null
+          sensor_wear_days?: number | null
+          support_email?: string | null
+          support_phone?: string | null
           updated_at?: string
+          user_manual_url?: string | null
+          warmup_time?: string | null
+          waterproof_rating?: string | null
           website_url?: string | null
         }
         Update: {
+          accuracy_mard?: string | null
+          app_compatibility?: Json | null
+          battery_life?: string | null
           category?: string | null
+          compatibility?: Json | null
           cons?: string[] | null
           created_at?: string
           description?: string | null
+          fda_510k_number?: string | null
+          fda_clearance_date?: string | null
+          fda_pma_number?: string | null
           id?: string
           image_url?: string | null
+          insurance_coverage?: string | null
           key_features?: string[] | null
           manufacturer?: string | null
           model_number?: string | null
           name?: string
           pros?: string[] | null
+          regulatory_class?: string | null
           retail_price_usd?: number | null
+          sensor_wear_days?: number | null
+          support_email?: string | null
+          support_phone?: string | null
           updated_at?: string
+          user_manual_url?: string | null
+          warmup_time?: string | null
+          waterproof_rating?: string | null
           website_url?: string | null
         }
         Relationships: []
@@ -944,6 +1004,74 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      external_device_reviews: {
+        Row: {
+          author_anonymous: string | null
+          content: string
+          created_at: string | null
+          device_id: string | null
+          device_mentioned: string | null
+          external_id: string
+          fetched_at: string | null
+          helpful_count: number | null
+          id: string
+          published_at: string | null
+          rating: number | null
+          sentiment: string | null
+          source: string
+          source_url: string | null
+          subreddit: string | null
+          title: string | null
+          verified_purchase: boolean | null
+        }
+        Insert: {
+          author_anonymous?: string | null
+          content: string
+          created_at?: string | null
+          device_id?: string | null
+          device_mentioned?: string | null
+          external_id: string
+          fetched_at?: string | null
+          helpful_count?: number | null
+          id?: string
+          published_at?: string | null
+          rating?: number | null
+          sentiment?: string | null
+          source: string
+          source_url?: string | null
+          subreddit?: string | null
+          title?: string | null
+          verified_purchase?: boolean | null
+        }
+        Update: {
+          author_anonymous?: string | null
+          content?: string
+          created_at?: string | null
+          device_id?: string | null
+          device_mentioned?: string | null
+          external_id?: string
+          fetched_at?: string | null
+          helpful_count?: number | null
+          id?: string
+          published_at?: string | null
+          rating?: number | null
+          sentiment?: string | null
+          source?: string
+          source_url?: string | null
+          subreddit?: string | null
+          title?: string | null
+          verified_purchase?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "external_device_reviews_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       fda_device_events: {
         Row: {

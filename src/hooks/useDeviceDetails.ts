@@ -16,6 +16,11 @@ export interface DeviceIssue {
   community_reports: number | null;
   solution: string | null;
   workaround: string | null;
+  fda_maude_count?: number | null;
+  fda_recall_count?: number | null;
+  issue_category?: string | null;
+  source_url?: string | null;
+  last_fda_update?: string | null;
 }
 
 export interface CommunityPost {
@@ -64,6 +69,22 @@ export interface Device {
   key_features: string[] | null;
   pros: string[] | null;
   cons: string[] | null;
+  // Extended specs
+  fda_clearance_date?: string | null;
+  fda_510k_number?: string | null;
+  fda_pma_number?: string | null;
+  regulatory_class?: string | null;
+  sensor_wear_days?: number | null;
+  warmup_time?: string | null;
+  accuracy_mard?: string | null;
+  battery_life?: string | null;
+  waterproof_rating?: string | null;
+  compatibility?: Record<string, string[]> | null;
+  app_compatibility?: Record<string, string> | null;
+  insurance_coverage?: string | null;
+  user_manual_url?: string | null;
+  support_phone?: string | null;
+  support_email?: string | null;
 }
 
 export interface DeviceDetails {

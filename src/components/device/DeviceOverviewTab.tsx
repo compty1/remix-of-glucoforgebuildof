@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Device } from '@/hooks/useDeviceDetails';
+import { DeviceSpecsCard } from './DeviceSpecsCard';
 import { CheckCircle2, XCircle, Zap, DollarSign, Hash, ExternalLink } from 'lucide-react';
 
 interface DeviceOverviewTabProps {
@@ -98,10 +99,10 @@ export const DeviceOverviewTab: React.FC<DeviceOverviewTabProps> = ({ device }) 
         </Card>
       </div>
 
-      {/* Technical Specifications */}
+      {/* Basic Tech Specs */}
       <Card className="command-center-widget">
         <CardHeader>
-          <CardTitle className="text-lg">Technical Specifications</CardTitle>
+          <CardTitle className="text-lg">Basic Information</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -126,6 +127,9 @@ export const DeviceOverviewTab: React.FC<DeviceOverviewTabProps> = ({ device }) 
           </div>
         </CardContent>
       </Card>
+
+      {/* Extended Device Specs - Technical, Regulatory, Compatibility, Support */}
+      <DeviceSpecsCard device={device} />
     </div>
   );
 };
