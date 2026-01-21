@@ -20,7 +20,8 @@ import {
   ExternalLink,
   BookOpen,
   Activity,
-  RefreshCw
+  RefreshCw,
+  Users
 } from 'lucide-react';
 
 interface Source {
@@ -381,6 +382,122 @@ const mentalHealthConditions: MentalHealthCondition[] = [
     ],
     icon: <Moon className="h-5 w-5" />,
     color: 'bg-violet-500/10 text-violet-600'
+  },
+  {
+    id: 'body-image',
+    title: 'Body Image & Self-Esteem Issues',
+    description: 'Many people with T1D struggle with body image concerns related to weight fluctuations from insulin, visible devices like pumps and CGMs, and the constant focus on food.',
+    prevalence: 'Affects 30-40% of T1D patients, especially adolescents',
+    symptoms: [
+      'Embarrassment about wearing visible devices',
+      'Concerns about insulin-related weight gain',
+      'Hiding diabetes devices under clothing',
+      'Avoiding activities that would reveal devices (swimming, intimacy)',
+      'Negative self-talk related to body and diabetes',
+      'Comparing body to non-diabetics'
+    ],
+    t1dConnection: 'The visible nature of diabetes technology, weight changes with insulin therapy, and constant food awareness create unique body image challenges not faced by the general population.',
+    sources: [
+      {
+        title: 'Body image concerns in adolescents with type 1 diabetes',
+        url: 'https://pubmed.ncbi.nlm.nih.gov/31573064/',
+        organization: 'PubMed'
+      },
+      {
+        title: 'Self-esteem and psychological adjustment in young adults with type 1 diabetes',
+        url: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7724467/',
+        organization: 'PMC/NIH'
+      }
+    ],
+    icon: <Heart className="h-5 w-5" />,
+    color: 'bg-rose-500/10 text-rose-600'
+  },
+  {
+    id: 'social-isolation',
+    title: 'Social Isolation & Loneliness',
+    description: 'People with T1D may experience social isolation due to feeling different, difficulty explaining the condition, and missing social events for diabetes management.',
+    prevalence: 'Common across all age groups with T1D',
+    symptoms: [
+      'Feeling misunderstood by friends and family',
+      'Avoiding social gatherings with food',
+      'Difficulty dating or forming relationships',
+      'Withdrawal from activities due to diabetes complexity',
+      'Feeling alone even in supportive environments',
+      'Reluctance to discuss diabetes openly'
+    ],
+    t1dConnection: 'The invisible nature of T1D challenges combined with visible management requirements creates social friction. Many feel others cannot truly understand the 24/7 nature of the condition.',
+    sources: [
+      {
+        title: 'Social relationships and health in adolescents with type 1 diabetes',
+        url: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8965825/',
+        organization: 'PMC/NIH'
+      },
+      {
+        title: 'Loneliness and Social Isolation in Adults with Diabetes',
+        url: 'https://diabetesjournals.org/care/article/45/7/1542/147147',
+        organization: 'Diabetes Care'
+      }
+    ],
+    icon: <Users className="h-5 w-5" />,
+    color: 'bg-slate-500/10 text-slate-600'
+  },
+  {
+    id: 'caregiver-burnout',
+    title: 'Caregiver Burnout',
+    description: 'Parents and caregivers of people with T1D face significant psychological burden, including chronic stress, sleep deprivation, and hypervigilance that can lead to burnout.',
+    prevalence: 'Affects majority of T1D caregivers, especially parents',
+    symptoms: [
+      'Constant worry about blood sugar levels',
+      'Sleep deprivation from overnight monitoring',
+      'Feeling overwhelmed by management decisions',
+      'Neglecting own health and needs',
+      'Relationship strain with partner',
+      'Difficulty letting go as child grows'
+    ],
+    t1dConnection: 'Caregivers take on the mental load of diabetes management, often 24/7. The high-stakes nature of decisions (insulin dosing) creates chronic stress that compounds over years.',
+    sources: [
+      {
+        title: 'Parental stress and quality of life in pediatric type 1 diabetes',
+        url: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8647116/',
+        organization: 'PMC/NIH'
+      },
+      {
+        title: 'Caregiver burden in type 1 diabetes management',
+        url: 'https://www.frontiersin.org/articles/10.3389/fped.2022.1000683',
+        organization: 'Frontiers in Pediatrics'
+      }
+    ],
+    icon: <Shield className="h-5 w-5" />,
+    color: 'bg-teal-500/10 text-teal-600'
+  },
+  {
+    id: 'technology-fatigue',
+    title: 'Technology Fatigue & Alarm Fatigue',
+    description: 'The constant stream of data and alarms from CGMs, pumps, and apps can lead to overwhelming fatigue, desensitization to alarms, and decision paralysis.',
+    prevalence: 'Increasingly common with CGM adoption',
+    symptoms: [
+      'Ignoring or silencing CGM alarms',
+      'Feeling overwhelmed by glucose data',
+      'Decision paralysis from too much information',
+      'Frustration with device malfunctions',
+      'Desire to "take a break" from technology',
+      'Alarm desensitization leading to missed alerts'
+    ],
+    t1dConnection: 'While diabetes technology improves outcomes, the constant alerts and data streams create a new form of burden. The brain struggles to process continuous monitoring without fatigue.',
+    sources: [
+      {
+        title: 'Alarm fatigue with continuous glucose monitoring',
+        url: 'https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7789862/',
+        organization: 'PMC/NIH'
+      },
+      {
+        title: 'Psychological aspects of diabetes technology use',
+        url: 'https://www.sciencedirect.com/science/article/pii/S1056872722000113',
+        organization: 'Diabetes Research and Clinical Practice'
+      }
+    ],
+    icon: <AlertTriangle className="h-5 w-5" />,
+    color: 'bg-amber-500/10 text-amber-600'
   }
 ];
 
