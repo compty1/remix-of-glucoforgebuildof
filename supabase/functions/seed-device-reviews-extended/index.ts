@@ -256,14 +256,13 @@ serve(async (req) => {
       }
     }
 
-    // Insert reviews
+    // Clear existing seeded reviews and insert new ones
+    await supabase.from('external_device_reviews').delete().like('external_id', 'seed-ext-%');
+
     if (reviewsToInsert.length > 0) {
       const { error: insertError } = await supabase
         .from('external_device_reviews')
-        .upsert(reviewsToInsert, { 
-          onConflict: 'external_id',
-          ignoreDuplicates: false 
-        });
+        .insert(reviewsToInsert);
 
       if (insertError) throw insertError;
     }
