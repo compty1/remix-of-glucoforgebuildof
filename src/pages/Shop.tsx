@@ -4,11 +4,12 @@ import { BackButton } from '@/components/ui/back-button';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingBag, Filter } from 'lucide-react';
+import { ShoppingBag, Filter, Loader2 } from 'lucide-react';
 import { useShopProducts, useProductCategories, ShopProduct } from '@/hooks/useShopProducts';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { ShoppingCart, CartItem } from '@/components/shop/ShoppingCart';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const categoryLabels: Record<string, string> = {
   all: 'All Products',
@@ -24,6 +25,7 @@ const categoryLabels: Record<string, string> = {
 export default function Shop() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
   
   const { data: products = [], isLoading } = useShopProducts(activeCategory);
   const { data: categories = [] } = useProductCategories();
@@ -60,8 +62,42 @@ export default function Shop() {
     toast.success('Item removed from cart');
   };
 
-  const handleCheckout = () => {
-    toast.info('Checkout coming soon! Stripe integration in progress.');
+  const handleCheckout = async () => {
+    if (cartItems.length === 0) {
+      toast.error('Your cart is empty');
+      return;
+    }
+
+    setCheckoutLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const items = cartItems.map(item => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+      }));
+
+      const { data, error } = await supabase.functions.invoke('create-shop-checkout', {
+        body: { 
+          items,
+          successUrl: `${window.location.origin}/shop/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${window.location.origin}/shop/cancel`,
+        },
+      });
+
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL returned');
+      }
+    } catch (error) {
+      console.error('Checkout error:', error);
+      toast.error('Failed to start checkout. Please try again.');
+    } finally {
+      setCheckoutLoading(false);
+    }
   };
 
   return (
