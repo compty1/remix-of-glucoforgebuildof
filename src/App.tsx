@@ -91,11 +91,14 @@ import LearnExplore from "./pages/LearnExplore";
 import WarriorSpotlight from "./pages/WarriorSpotlight";
 import Shop from "./pages/Shop";
 import PublicGlucoseData from "./pages/PublicGlucoseData";
+import ShopSuccess from "./pages/shop/ShopSuccess";
+import ShopCancel from "./pages/shop/ShopCancel";
 
 // Admin Pages
 import AdminArticles from "./pages/admin/AdminArticles";
 import AdminLowSugarStories from "./pages/admin/AdminLowSugarStories";
 import AdminWarriors from "./pages/admin/AdminWarriors";
+import AdminShop from "./pages/admin/AdminShop";
 
 const queryClient = new QueryClient();
 
@@ -200,12 +203,15 @@ const App = () => {
             <Route path="/learn" element={<LearnExplore />} />
             <Route path="/warrior-spotlight" element={<WarriorSpotlight />} />
             <Route path="/shop" element={<Shop />} />
+            <Route path="/shop/success" element={<ShopSuccess />} />
+            <Route path="/shop/cancel" element={<ShopCancel />} />
             <Route path="/public-glucose-data" element={<ProtectedRoute><PublicGlucoseData /></ProtectedRoute>} />
             
             {/* Admin Content Management Routes */}
             <Route path="/admin/articles" element={<AdminRoute><AdminArticles /></AdminRoute>} />
             <Route path="/admin/low-sugar-stories" element={<AdminRoute><AdminLowSugarStories /></AdminRoute>} />
             <Route path="/admin/warriors" element={<AdminRoute><AdminWarriors /></AdminRoute>} />
+            <Route path="/admin/shop" element={<AdminRoute><AdminShop /></AdminRoute>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
