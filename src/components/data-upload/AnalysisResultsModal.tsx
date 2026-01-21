@@ -18,7 +18,9 @@ import {
   Lightbulb,
   Target,
   Download,
-  Loader2
+  Loader2,
+  AlertTriangle,
+  Calendar
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 
@@ -29,6 +31,9 @@ import GlucoseTrendChart from './GlucoseTrendChart';
 import GlucoseHeatmap from './GlucoseHeatmap';
 import PatternCard from './PatternCard';
 import RecommendationCard from './RecommendationCard';
+import GlucoseRiskMatrix from './GlucoseRiskMatrix';
+import WeekdayComparisonChart from './WeekdayComparisonChart';
+import TrendPrediction from './TrendPrediction';
 
 interface DetailedAnalysis {
   readingsCount?: number;
