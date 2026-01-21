@@ -91,6 +91,12 @@ import LearnExplore from "./pages/LearnExplore";
 import WarriorSpotlight from "./pages/WarriorSpotlight";
 import Shop from "./pages/Shop";
 import PublicGlucoseData from "./pages/PublicGlucoseData";
+
+// Admin Pages
+import AdminArticles from "./pages/admin/AdminArticles";
+import AdminLowSugarStories from "./pages/admin/AdminLowSugarStories";
+import AdminWarriors from "./pages/admin/AdminWarriors";
+
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -195,6 +201,12 @@ const App = () => {
             <Route path="/warrior-spotlight" element={<WarriorSpotlight />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/public-glucose-data" element={<ProtectedRoute><PublicGlucoseData /></ProtectedRoute>} />
+            
+            {/* Admin Content Management Routes */}
+            <Route path="/admin/articles" element={<AdminRoute><AdminArticles /></AdminRoute>} />
+            <Route path="/admin/low-sugar-stories" element={<AdminRoute><AdminLowSugarStories /></AdminRoute>} />
+            <Route path="/admin/warriors" element={<AdminRoute><AdminWarriors /></AdminRoute>} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
