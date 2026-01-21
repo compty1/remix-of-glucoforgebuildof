@@ -352,7 +352,7 @@ serve(async (req) => {
           category: 'hardware',
           difficulty: 'easy',
           success_rate: 71,
-          source: 'tandem',
+          source: 'community',
           warnings: ['Persistent issues may require pump replacement'],
           votes: 423
         },
@@ -405,7 +405,7 @@ serve(async (req) => {
           category: 'hardware',
           difficulty: 'easy',
           success_rate: 68,
-          source: 'tandem',
+          source: 'community',
           warnings: ['Turning off Bluetooth disables mobile app sync'],
           votes: 389
         },
@@ -479,7 +479,7 @@ serve(async (req) => {
           category: 'other',
           difficulty: 'easy',
           success_rate: 77,
-          source: 'medtronic',
+          source: 'community',
           warnings: ['Timing varies by individual insulin sensitivity'],
           votes: 398
         },
