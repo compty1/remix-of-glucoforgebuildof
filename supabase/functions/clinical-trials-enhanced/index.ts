@@ -144,15 +144,31 @@ serve(async (req) => {
                   }
                 }
 
-                // Extract countries
+                // Extract countries and detailed location data
                 const countries: string[] = [];
+                const locations: any[] = [];
                 if (contactsLocationsModule?.LocationList?.Location) {
                   for (const location of contactsLocationsModule.LocationList.Location) {
                     if (location.LocationCountry && !countries.includes(location.LocationCountry)) {
                       countries.push(location.LocationCountry);
                     }
+                    // Extract detailed location info
+                    locations.push({
+                      facility: location.LocationFacility || null,
+                      city: location.LocationCity || null,
+                      state: location.LocationState || null,
+                      country: location.LocationCountry || null,
+                      zip: location.LocationZip || null,
+                      status: location.LocationStatus || null,
+                      contact_name: location.LocationContactList?.LocationContact?.[0]?.LocationContactName || null,
+                      contact_phone: location.LocationContactList?.LocationContact?.[0]?.LocationContactPhone || null,
+                      contact_email: location.LocationContactList?.LocationContact?.[0]?.LocationContactEMail || null
+                    });
                   }
                 }
+
+                // Extract central contact info
+                const centralContact = protocolSection?.ContactsLocationsModule?.CentralContactList?.CentralContact?.[0];
 
                 // Extract outcomes
                 const primaryOutcomes: string[] = [];
@@ -170,7 +186,7 @@ serve(async (req) => {
                   }
                 }
 
-                const trial: ClinicalTrial = {
+                const trial: ClinicalTrial & { locations?: any[]; contact_name?: string; contact_phone?: string; contact_email?: string } = {
                   nct_id: identificationModule?.NCTId || `trial_${Date.now()}_${Math.random()}`,
                   title: identificationModule?.BriefTitle || '',
                   brief_summary: identificationModule?.BriefSummary,
@@ -197,7 +213,12 @@ serve(async (req) => {
                   source_registry: 'clinicaltrials.gov',
                   study_url: `https://clinicaltrials.gov/ct2/show/${identificationModule?.NCTId}`,
                   last_update_date: statusModule?.LastUpdatePostDateStruct?.LastUpdatePostDate,
-                  raw_data: studyData
+                  raw_data: studyData,
+                  // Enhanced location data
+                  locations: locations.length > 0 ? locations : undefined,
+                  contact_name: centralContact?.CentralContactName || null,
+                  contact_phone: centralContact?.CentralContactPhone || null,
+                  contact_email: centralContact?.CentralContactEMail || null
                 };
 
                 allTrials.push(trial);

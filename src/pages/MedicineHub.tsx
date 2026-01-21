@@ -5,12 +5,13 @@ import { MedicationCompareBar } from '@/components/medicine/MedicationCompareBar
 import { MedicationFilters } from '@/components/medicine/MedicationFilters';
 import { MedicationDetailModal } from '@/components/medicine/MedicationDetailModal';
 import { InsulinTimingChart } from '@/components/medicine/InsulinTimingChart';
+import { InteractionChecker } from '@/components/medicine/InteractionChecker';
 import { useMedications, useMedicationCategories, MedicationCategory, SortOption } from '@/hooks/useMedications';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Pill, Syringe, PillBottle, Activity } from 'lucide-react';
+import { Pill, Syringe, PillBottle, Activity, Shield } from 'lucide-react';
 
 const INSULIN_COLORS = [
   'hsl(var(--chart-1))',
@@ -239,11 +240,15 @@ export default function MedicineHub() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-md">
+          <TabsList className="grid w-full grid-cols-5 max-w-lg">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="insulins">Insulins</TabsTrigger>
             <TabsTrigger value="oral">Oral</TabsTrigger>
             <TabsTrigger value="injectables">Injectables</TabsTrigger>
+            <TabsTrigger value="interactions" className="flex items-center gap-1">
+              <Shield className="h-3 w-3" />
+              Interactions
+            </TabsTrigger>
           </TabsList>
 
           {/* Insulin Timing Chart - Only show on insulins tab */}
@@ -253,6 +258,11 @@ export default function MedicineHub() {
                 <InsulinTimingChart insulins={insulinChartData} />
               </div>
             )}
+          </TabsContent>
+
+          {/* Interaction Checker Tab */}
+          <TabsContent value="interactions" className="mt-6">
+            <InteractionChecker />
           </TabsContent>
         </Tabs>
 
