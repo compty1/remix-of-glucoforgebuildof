@@ -978,8 +978,7 @@ Even when symptoms persist, patients can maintain quality of life:
       { citation: "McCrimmon RJ, Sherwin RS. Hypoglycemia in Type 1 Diabetes. Diabetes. 2010;59(10):2333-2339." },
       { citation: "American Diabetes Association. Glycemic Targets: Standards of Medical Care in Diabetes. Diabetes Care. 2024." }
     ]
-  }
-},
+  },
 
   // ===================== DAWN PHENOMENON =====================
   "dawn-phenomenon": {
