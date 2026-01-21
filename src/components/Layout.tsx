@@ -83,7 +83,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       Live Cure Monitoring
                     </Link>
                     <Link to="/devices" className="block text-muted-foreground hover:text-foreground transition-colors">
-                      Device Analytics
+                      Devices
                     </Link>
                     <Link to="/research" className="block text-muted-foreground hover:text-foreground transition-colors">
                       Research Hub

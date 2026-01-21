@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import Layout from '@/components/Layout';
 import DiscoveryCard from '@/components/DiscoveryCard';
+import { WeeklyDigestSignup } from '@/components/WeeklyDigestSignup';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
 import logoImage from '@/assets/glucoforge-logo.svg';
@@ -355,6 +356,13 @@ const Index = () => {
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Weekly Digest Signup Section */}
+      <section className="py-12 px-4">
+        <div className="container mx-auto max-w-4xl">
+          <WeeklyDigestSignup variant="full" />
         </div>
       </section>
 

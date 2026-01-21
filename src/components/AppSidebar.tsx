@@ -86,7 +86,7 @@ const platformItemsAfterProjects = [
   { title: "Research Funding", url: "/research-funding", icon: DollarSign },
   { title: "Research Insights", url: "/research-insights", icon: Sparkles },
   { title: "Research Hub", url: "/research", icon: FileText },
-  { title: "Contribute", url: "/surveys", icon: HeartHandshake },
+  { title: "Contribute Data", url: "/surveys", icon: HeartHandshake },
   { title: "Mental Health Hub", url: "/mental-health", icon: Heart },
   { title: "Data Upload", url: "/data-upload", icon: Upload },
   { title: "Glycemic Journal", url: "/journal", icon: BookOpen },
@@ -387,7 +387,7 @@ export function AppSidebar() {
                     >
                       <div className="flex items-center gap-2">
                         <Smartphone className="h-4 w-4" />
-                        {state !== "collapsed" && <span>Device Analytics</span>}
+                        {state !== "collapsed" && <span>Devices</span>}
                       </div>
                       {state !== "collapsed" && (
                         <ChevronRight className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />

@@ -27,8 +27,10 @@ import {
   Smartphone,
   BarChart3,
   Bookmark,
-  Upload
+  Upload,
+  Mail
 } from 'lucide-react';
+import { WeeklyDigestSignup } from '@/components/WeeklyDigestSignup';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 
@@ -98,6 +100,15 @@ const availableWidgets: DashboardWidget[] = [
     description: 'Overview of your key health indicators',
     icon: Heart,
     defaultSize: { w: 12, h: 3 }
+  },
+  {
+    id: 'weekly-digest',
+    title: 'Weekly Digest',
+    component: ({ title }: { title: string }) => <WeeklyDigestSignup variant="compact" />,
+    category: 'Updates',
+    description: 'Sign up for weekly T1D research updates',
+    icon: Mail,
+    defaultSize: { w: 4, h: 3 }
   }
 ];
 
