@@ -42,11 +42,6 @@ interface DiabetesApp {
   developer: string | null;
   is_featured: boolean;
 }
-  review_count: number;
-  last_update: string | null;
-  developer: string | null;
-  is_featured: boolean;
-}
 
 interface AppReview {
   id: string;

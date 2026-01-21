@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import Layout from '@/components/Layout';
 import DiscoveryCard from '@/components/DiscoveryCard';
 import { WeeklyDigestSignup } from '@/components/WeeklyDigestSignup';
+import { StatementJar } from '@/components/home/StatementJar';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
 import logoImage from '@/assets/glucoforge-logo.svg';
@@ -314,6 +315,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Statement Jar Section */}
+      <StatementJar />
 
       {/* How It Works */}
       <section className="py-20 bg-accent/30">

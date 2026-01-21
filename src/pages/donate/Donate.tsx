@@ -2,33 +2,27 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Users, Target, TrendingUp, Check } from 'lucide-react';
-import { useState } from 'react';
+import { Slider } from '@/components/ui/slider';
+import { Heart, Users, Target, TrendingUp, Check, Sparkles } from 'lucide-react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
+import { DonationImpactVisualization } from '@/components/donate/DonationImpactVisualization';
 
-const donationAmounts = [
-  { amount: 25, description: 'Supports one research survey' },
-  { amount: 50, description: 'Funds data analysis for 100 participants' },
-  { amount: 100, description: 'Sponsors one week of platform hosting' },
-  { amount: 250, description: 'Enables advanced research features' },
-  { amount: 500, description: 'Supports one month of operations' },
-  { amount: 1000, description: 'Major research initiative support' }
-];
+const quickAmounts = [25, 50, 100, 250, 500, 1000];
 
 export default function Donate() {
-  const [selectedAmount, setSelectedAmount] = useState<number>(100);
-  const [customAmount, setCustomAmount] = useState<string>('');
+  const [sliderValue, setSliderValue] = useState<number[]>([100]);
   const [processing, setProcessing] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
+  const currentAmount = sliderValue[0];
+
   const handleDonate = async () => {
-    const amount = customAmount ? parseFloat(customAmount) : selectedAmount;
-    
-    if (!amount || amount < 5) {
+    if (currentAmount < 5) {
       toast.error('Minimum donation amount is $5');
       return;
     }
@@ -37,7 +31,7 @@ export default function Donate() {
     
     try {
       const { data, error } = await supabase.functions.invoke('create-donation', {
-        body: { amount: Math.round(amount * 100) } // Convert to cents
+        body: { amount: Math.round(currentAmount * 100) } // Convert to cents
       });
 
       if (error) throw error;
@@ -104,54 +98,57 @@ export default function Donate() {
             {/* Donation Form */}
             <Card>
               <CardHeader>
-                <CardTitle>Make a Donation</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  Make a Donation
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Amount Display */}
+                <div className="text-center py-6 bg-muted/30 rounded-xl">
+                  <p className="text-5xl font-bold text-primary">${currentAmount}</p>
+                  <p className="text-muted-foreground mt-2">Your donation amount</p>
+                </div>
+
+                {/* Slider */}
+                <div className="space-y-4">
+                  <Slider
+                    value={sliderValue}
+                    onValueChange={setSliderValue}
+                    min={5}
+                    max={5000}
+                    step={5}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>$5</span>
+                    <span>$5,000</span>
+                  </div>
+                </div>
+
+                {/* Quick Amount Buttons */}
                 <div>
-                  <p className="text-sm font-medium mb-4">Select Amount:</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    {donationAmounts.map(({ amount, description }) => (
-                      <button
+                  <p className="text-sm font-medium mb-3">Quick select:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {quickAmounts.map((amount) => (
+                      <Button
                         key={amount}
-                        onClick={() => {
-                          setSelectedAmount(amount);
-                          setCustomAmount('');
-                        }}
-                        className={`p-3 rounded-lg border-2 text-left transition-colors ${
-                          selectedAmount === amount && !customAmount
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border hover:border-primary/50'
-                        }`}
+                        variant={currentAmount === amount ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSliderValue([amount])}
                       >
-                        <p className="font-semibold">${amount}</p>
-                        <p className="text-xs text-muted-foreground">{description}</p>
-                      </button>
+                        ${amount}
+                      </Button>
                     ))}
                   </div>
                 </div>
 
-                <div>
-                  <p className="text-sm font-medium mb-2">Or enter custom amount:</p>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">$</span>
-                    <input
-                      type="number"
-                      min="5"
-                      step="0.01"
-                      value={customAmount}
-                      onChange={(e) => {
-                        setCustomAmount(e.target.value);
-                        setSelectedAmount(0);
-                      }}
-                      placeholder="0.00"
-                      className="w-full pl-8 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                    />
-                  </div>
-                </div>
+                {/* Impact Visualization */}
+                <DonationImpactVisualization amount={currentAmount} />
 
                 <Button
                   onClick={handleDonate}
-                  disabled={processing || (!selectedAmount && !customAmount)}
+                  disabled={processing || currentAmount < 5}
                   className="w-full accent-gradient"
                   size="lg"
                 >
@@ -160,7 +157,7 @@ export default function Donate() {
                   ) : (
                     <>
                       <Heart className="h-4 w-4 mr-2" />
-                      Donate ${customAmount || selectedAmount}
+                      Donate ${currentAmount}
                     </>
                   )}
                 </Button>
