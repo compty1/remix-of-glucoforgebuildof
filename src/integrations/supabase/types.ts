@@ -14,6 +14,87 @@ export type Database = {
   }
   public: {
     Tables: {
+      adult_content_posts: {
+        Row: {
+          author_username: string | null
+          category: string | null
+          comments_count: number | null
+          content: string
+          created_at: string | null
+          id: string
+          is_published: boolean | null
+          source_platform: string | null
+          source_url: string | null
+          tips: string[] | null
+          title: string
+          updated_at: string | null
+          upvotes: number | null
+          warnings: string[] | null
+        }
+        Insert: {
+          author_username?: string | null
+          category?: string | null
+          comments_count?: number | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_published?: boolean | null
+          source_platform?: string | null
+          source_url?: string | null
+          tips?: string[] | null
+          title: string
+          updated_at?: string | null
+          upvotes?: number | null
+          warnings?: string[] | null
+        }
+        Update: {
+          author_username?: string | null
+          category?: string | null
+          comments_count?: number | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_published?: boolean | null
+          source_platform?: string | null
+          source_url?: string | null
+          tips?: string[] | null
+          title?: string
+          updated_at?: string | null
+          upvotes?: number | null
+          warnings?: string[] | null
+        }
+        Relationships: []
+      }
+      adult_content_submissions: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string | null
+          id: string
+          status: string | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          status?: string | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_found_connections: {
         Row: {
           ai_analysis: Json | null
@@ -83,6 +164,131 @@ export type Database = {
           title?: string
           updated_at?: string
           validation_status?: string | null
+        }
+        Relationships: []
+      }
+      ai_healthcare_recommendations: {
+        Row: {
+          analysis_summary: string | null
+          based_on_count: number | null
+          category: string
+          created_at: string | null
+          id: string
+          recommendation: string
+        }
+        Insert: {
+          analysis_summary?: string | null
+          based_on_count?: number | null
+          category: string
+          created_at?: string | null
+          id?: string
+          recommendation: string
+        }
+        Update: {
+          analysis_summary?: string | null
+          based_on_count?: number | null
+          category?: string
+          created_at?: string | null
+          id?: string
+          recommendation?: string
+        }
+        Relationships: []
+      }
+      app_reviews: {
+        Row: {
+          app_id: string | null
+          author: string | null
+          content: string
+          created_at: string | null
+          id: string
+          rating: number | null
+          source_platform: string | null
+          source_url: string | null
+        }
+        Insert: {
+          app_id?: string | null
+          author?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          rating?: number | null
+          source_platform?: string | null
+          source_url?: string | null
+        }
+        Update: {
+          app_id?: string | null
+          author?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          rating?: number | null
+          source_platform?: string | null
+          source_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_reviews_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "diabetes_apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      articles: {
+        Row: {
+          author_id: string | null
+          category: string | null
+          content: Json
+          created_at: string | null
+          excerpt: string | null
+          featured_image_url: string | null
+          id: string
+          is_featured: boolean | null
+          is_published: boolean | null
+          published_at: string | null
+          reading_time_mins: number | null
+          slug: string
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          views: number | null
+        }
+        Insert: {
+          author_id?: string | null
+          category?: string | null
+          content: Json
+          created_at?: string | null
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          published_at?: string | null
+          reading_time_mins?: number | null
+          slug: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          views?: number | null
+        }
+        Update: {
+          author_id?: string | null
+          category?: string | null
+          content?: Json
+          created_at?: string | null
+          excerpt?: string | null
+          featured_image_url?: string | null
+          id?: string
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          published_at?: string | null
+          reading_time_mins?: number | null
+          slug?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          views?: number | null
         }
         Relationships: []
       }
@@ -364,6 +570,33 @@ export type Database = {
         }
         Relationships: []
       }
+      community_statements: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_anonymous: boolean | null
+          is_approved: boolean | null
+          statement: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          is_approved?: boolean | null
+          statement: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          is_approved?: boolean | null
+          statement?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       cure_milestones: {
         Row: {
           completed_date: string | null
@@ -530,6 +763,47 @@ export type Database = {
           summary?: Json | null
         }
         Relationships: []
+      }
+      device_improvements: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          device_id: string | null
+          id: string
+          improvement_title: string
+          release_date: string | null
+          source_url: string | null
+          version: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          device_id?: string | null
+          id?: string
+          improvement_title: string
+          release_date?: string | null
+          source_url?: string | null
+          version?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          device_id?: string | null
+          id?: string
+          improvement_title?: string
+          release_date?: string | null
+          source_url?: string | null
+          version?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_improvements_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       device_issues: {
         Row: {
@@ -896,6 +1170,135 @@ export type Database = {
         }
         Relationships: []
       }
+      diabetes_apps: {
+        Row: {
+          avg_rating: number | null
+          category: string | null
+          cons: string[] | null
+          created_at: string | null
+          description: string | null
+          developer: string | null
+          download_urls: Json | null
+          features: string[] | null
+          id: string
+          is_featured: boolean | null
+          last_update: string | null
+          logo_url: string | null
+          name: string
+          platforms: string[] | null
+          pros: string[] | null
+          review_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_rating?: number | null
+          category?: string | null
+          cons?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          developer?: string | null
+          download_urls?: Json | null
+          features?: string[] | null
+          id?: string
+          is_featured?: boolean | null
+          last_update?: string | null
+          logo_url?: string | null
+          name: string
+          platforms?: string[] | null
+          pros?: string[] | null
+          review_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_rating?: number | null
+          category?: string | null
+          cons?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          developer?: string | null
+          download_urls?: Json | null
+          features?: string[] | null
+          id?: string
+          is_featured?: boolean | null
+          last_update?: string | null
+          logo_url?: string | null
+          name?: string
+          platforms?: string[] | null
+          pros?: string[] | null
+          review_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      diabetes_emergence_data: {
+        Row: {
+          age_group: string | null
+          created_at: string | null
+          diagnoses_count: number | null
+          id: string
+          region: string | null
+          source: string | null
+          source_url: string | null
+          year: number
+        }
+        Insert: {
+          age_group?: string | null
+          created_at?: string | null
+          diagnoses_count?: number | null
+          id?: string
+          region?: string | null
+          source?: string | null
+          source_url?: string | null
+          year: number
+        }
+        Update: {
+          age_group?: string | null
+          created_at?: string | null
+          diagnoses_count?: number | null
+          id?: string
+          region?: string | null
+          source?: string | null
+          source_url?: string | null
+          year?: number
+        }
+        Relationships: []
+      }
+      diabetes_myths: {
+        Row: {
+          autonomous_explanation: string | null
+          autonomous_reasoning: string | null
+          autonomous_verdict: string | null
+          created_at: string | null
+          id: string
+          myth: string
+          official_explanation: string | null
+          official_sources: string[] | null
+          official_verdict: string | null
+        }
+        Insert: {
+          autonomous_explanation?: string | null
+          autonomous_reasoning?: string | null
+          autonomous_verdict?: string | null
+          created_at?: string | null
+          id?: string
+          myth: string
+          official_explanation?: string | null
+          official_sources?: string[] | null
+          official_verdict?: string | null
+        }
+        Update: {
+          autonomous_explanation?: string | null
+          autonomous_reasoning?: string | null
+          autonomous_verdict?: string | null
+          created_at?: string | null
+          id?: string
+          myth?: string
+          official_explanation?: string | null
+          official_sources?: string[] | null
+          official_verdict?: string | null
+        }
+        Relationships: []
+      }
       diabetic_health_projects: {
         Row: {
           affected_population_estimate: number | null
@@ -1073,6 +1476,42 @@ export type Database = {
         }
         Relationships: []
       }
+      donations: {
+        Row: {
+          amount_cents: number
+          completed_at: string | null
+          created_at: string | null
+          donor_email: string | null
+          id: string
+          status: string | null
+          stripe_payment_intent: string | null
+          stripe_session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount_cents: number
+          completed_at?: string | null
+          created_at?: string | null
+          donor_email?: string | null
+          id?: string
+          status?: string | null
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          completed_at?: string | null
+          created_at?: string | null
+          donor_email?: string | null
+          id?: string
+          status?: string | null
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       drug_pricing_data: {
         Row: {
           created_at: string
@@ -1109,6 +1548,48 @@ export type Database = {
           unit_price?: number | null
           updated_at?: string
           year?: number | null
+        }
+        Relationships: []
+      }
+      education_topics: {
+        Row: {
+          category: string | null
+          content: Json | null
+          created_at: string | null
+          difficulty: string | null
+          id: string
+          illustrations: Json | null
+          is_published: boolean | null
+          related_topics: string[] | null
+          slug: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          content?: Json | null
+          created_at?: string | null
+          difficulty?: string | null
+          id?: string
+          illustrations?: Json | null
+          is_published?: boolean | null
+          related_topics?: string[] | null
+          slug: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          content?: Json | null
+          created_at?: string | null
+          difficulty?: string | null
+          id?: string
+          illustrations?: Json | null
+          is_published?: boolean | null
+          related_topics?: string[] | null
+          slug?: string
+          title?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -1435,6 +1916,138 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      healthcare_experiences: {
+        Row: {
+          category: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_published: boolean | null
+          location_state: string | null
+          sentiment: string | null
+          source_platform: string | null
+          source_url: string | null
+          title: string
+          upvotes: number | null
+        }
+        Insert: {
+          category?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_published?: boolean | null
+          location_state?: string | null
+          sentiment?: string | null
+          source_platform?: string | null
+          source_url?: string | null
+          title: string
+          upvotes?: number | null
+        }
+        Update: {
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_published?: boolean | null
+          location_state?: string | null
+          sentiment?: string | null
+          source_platform?: string | null
+          source_url?: string | null
+          title?: string
+          upvotes?: number | null
+        }
+        Relationships: []
+      }
+      healthcare_partner_inquiries: {
+        Row: {
+          contact_name: string
+          created_at: string | null
+          email: string
+          id: string
+          interest_areas: string[] | null
+          message: string | null
+          organization_name: string
+          organization_type: string | null
+          phone: string | null
+          status: string | null
+        }
+        Insert: {
+          contact_name: string
+          created_at?: string | null
+          email: string
+          id?: string
+          interest_areas?: string[] | null
+          message?: string | null
+          organization_name: string
+          organization_type?: string | null
+          phone?: string | null
+          status?: string | null
+        }
+        Update: {
+          contact_name?: string
+          created_at?: string | null
+          email?: string
+          id?: string
+          interest_areas?: string[] | null
+          message?: string | null
+          organization_name?: string
+          organization_type?: string | null
+          phone?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
+      low_blood_sugar_stories: {
+        Row: {
+          author_username: string | null
+          category: string | null
+          content: string
+          created_at: string | null
+          id: string
+          illustration_url: string | null
+          is_featured: boolean | null
+          is_published: boolean | null
+          published_at: string | null
+          source_platform: string | null
+          source_url: string | null
+          title: string
+          updated_at: string | null
+          upvotes: number | null
+        }
+        Insert: {
+          author_username?: string | null
+          category?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          illustration_url?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          published_at?: string | null
+          source_platform?: string | null
+          source_url?: string | null
+          title: string
+          updated_at?: string | null
+          upvotes?: number | null
+        }
+        Update: {
+          author_username?: string | null
+          category?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          illustration_url?: string | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          published_at?: string | null
+          source_platform?: string | null
+          source_url?: string | null
+          title?: string
+          updated_at?: string | null
+          upvotes?: number | null
+        }
+        Relationships: []
       }
       manufacturer_support_resources: {
         Row: {
@@ -1828,7 +2441,9 @@ export type Database = {
           insurance_coverage_notes: string | null
           key_features: string[] | null
           last_updated_date: string | null
+          logo_url: string | null
           manufacturer: string | null
+          manufacturer_logo_url: string | null
           manufacturer_website: string | null
           mechanism_of_action: string | null
           medicare_price: number | null
@@ -1870,7 +2485,9 @@ export type Database = {
           insurance_coverage_notes?: string | null
           key_features?: string[] | null
           last_updated_date?: string | null
+          logo_url?: string | null
           manufacturer?: string | null
+          manufacturer_logo_url?: string | null
           manufacturer_website?: string | null
           mechanism_of_action?: string | null
           medicare_price?: number | null
@@ -1912,7 +2529,9 @@ export type Database = {
           insurance_coverage_notes?: string | null
           key_features?: string[] | null
           last_updated_date?: string | null
+          logo_url?: string | null
           manufacturer?: string | null
+          manufacturer_logo_url?: string | null
           manufacturer_website?: string | null
           mechanism_of_action?: string | null
           medicare_price?: number | null
@@ -2021,8 +2640,114 @@ export type Database = {
         }
         Relationships: []
       }
+      population_insights: {
+        Row: {
+          affected_percentage: number | null
+          created_at: string | null
+          data: Json | null
+          description: string | null
+          id: string
+          insight_type: string
+        }
+        Insert: {
+          affected_percentage?: number | null
+          created_at?: string | null
+          data?: Json | null
+          description?: string | null
+          id?: string
+          insight_type: string
+        }
+        Update: {
+          affected_percentage?: number | null
+          created_at?: string | null
+          data?: Json | null
+          description?: string | null
+          id?: string
+          insight_type?: string
+        }
+        Relationships: []
+      }
+      potential_warriors: {
+        Row: {
+          contact_info: string | null
+          created_at: string | null
+          detected_keywords: string[] | null
+          id: string
+          platform: string
+          post_content: string | null
+          post_url: string | null
+          status: string | null
+          username: string | null
+        }
+        Insert: {
+          contact_info?: string | null
+          created_at?: string | null
+          detected_keywords?: string[] | null
+          id?: string
+          platform: string
+          post_content?: string | null
+          post_url?: string | null
+          status?: string | null
+          username?: string | null
+        }
+        Update: {
+          contact_info?: string | null
+          created_at?: string | null
+          detected_keywords?: string[] | null
+          id?: string
+          platform?: string
+          post_content?: string | null
+          post_url?: string | null
+          status?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      product_reviews: {
+        Row: {
+          author: string | null
+          content: string
+          created_at: string | null
+          id: string
+          product_id: string | null
+          rating: number | null
+          source_platform: string | null
+          source_url: string | null
+        }
+        Insert: {
+          author?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          product_id?: string | null
+          rating?: number | null
+          source_platform?: string | null
+          source_url?: string | null
+        }
+        Update: {
+          author?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          product_id?: string | null
+          rating?: number | null
+          source_platform?: string | null
+          source_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_reviews_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "t1d_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
+          auto_nickname: string | null
+          avatar_style: string | null
           avatar_url: string | null
           bio: string | null
           created_at: string
@@ -2032,6 +2757,8 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          auto_nickname?: string | null
+          avatar_style?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
@@ -2041,6 +2768,8 @@ export type Database = {
           user_id: string
         }
         Update: {
+          auto_nickname?: string | null
+          avatar_style?: string | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
@@ -2190,6 +2919,42 @@ export type Database = {
           supporting_links?: string[] | null
           title?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      public_glucose_data: {
+        Row: {
+          anonymized_user_id: string | null
+          carbs: number | null
+          created_at: string | null
+          glucose_value: number | null
+          id: string
+          insulin_dose: number | null
+          notes: string | null
+          source_dataset: string
+          timestamp: string | null
+        }
+        Insert: {
+          anonymized_user_id?: string | null
+          carbs?: number | null
+          created_at?: string | null
+          glucose_value?: number | null
+          id?: string
+          insulin_dose?: number | null
+          notes?: string | null
+          source_dataset: string
+          timestamp?: string | null
+        }
+        Update: {
+          anonymized_user_id?: string | null
+          carbs?: number | null
+          created_at?: string | null
+          glucose_value?: number | null
+          id?: string
+          insulin_dose?: number | null
+          notes?: string | null
+          source_dataset?: string
+          timestamp?: string | null
         }
         Relationships: []
       }
@@ -2411,6 +3176,90 @@ export type Database = {
           tags?: string[] | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      shop_orders: {
+        Row: {
+          created_at: string | null
+          id: string
+          products: Json
+          shipping_info: Json | null
+          status: string | null
+          stripe_payment_intent: string | null
+          stripe_session_id: string | null
+          total_cents: number
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          products: Json
+          shipping_info?: Json | null
+          status?: string | null
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+          total_cents: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          products?: Json
+          shipping_info?: Json | null
+          status?: string | null
+          stripe_payment_intent?: string | null
+          stripe_session_id?: string | null
+          total_cents?: number
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      shop_products: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          customization_options: Json | null
+          description: string | null
+          id: string
+          images: string[] | null
+          is_active: boolean | null
+          name: string
+          price_cents: number
+          stock_status: string | null
+          stripe_price_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          customization_options?: Json | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean | null
+          name: string
+          price_cents: number
+          stock_status?: string | null
+          stripe_price_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          customization_options?: Json | null
+          description?: string | null
+          id?: string
+          images?: string[] | null
+          is_active?: boolean | null
+          name?: string
+          price_cents?: number
+          stock_status?: string | null
+          stripe_price_id?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -2845,6 +3694,57 @@ export type Database = {
         }
         Relationships: []
       }
+      t1d_products: {
+        Row: {
+          avg_rating: number | null
+          category: string | null
+          cons: string[] | null
+          created_at: string | null
+          description: string | null
+          features: string[] | null
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          name: string
+          price_range: string | null
+          pros: string[] | null
+          purchase_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          avg_rating?: number | null
+          category?: string | null
+          cons?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          features?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          name: string
+          price_range?: string | null
+          pros?: string[] | null
+          purchase_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          avg_rating?: number | null
+          category?: string | null
+          cons?: string[] | null
+          created_at?: string | null
+          description?: string | null
+          features?: string[] | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          name?: string
+          price_range?: string | null
+          pros?: string[] | null
+          purchase_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       t1d_resources: {
         Row: {
           category: string
@@ -2980,6 +3880,53 @@ export type Database = {
         }
         Relationships: []
       }
+      trending_device_issues: {
+        Row: {
+          affected_users_estimate: number | null
+          created_at: string | null
+          device_id: string | null
+          first_reported: string | null
+          id: string
+          issue_description: string | null
+          issue_title: string
+          last_reported: string | null
+          sources: Json | null
+          status: string | null
+        }
+        Insert: {
+          affected_users_estimate?: number | null
+          created_at?: string | null
+          device_id?: string | null
+          first_reported?: string | null
+          id?: string
+          issue_description?: string | null
+          issue_title: string
+          last_reported?: string | null
+          sources?: Json | null
+          status?: string | null
+        }
+        Update: {
+          affected_users_estimate?: number | null
+          created_at?: string | null
+          device_id?: string | null
+          first_reported?: string | null
+          id?: string
+          issue_description?: string | null
+          issue_title?: string
+          last_reported?: string | null
+          sources?: Json | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trending_device_issues_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       uploads: {
         Row: {
           agp_data: Json | null
@@ -3039,6 +3986,36 @@ export type Database = {
           status?: string | null
           storage_path?: string | null
           uploaded_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_activity_log: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json | null
           user_id?: string
         }
         Relationships: []
@@ -3195,6 +4172,57 @@ export type Database = {
           roles?: string[]
           skills?: string | null
           status?: string | null
+        }
+        Relationships: []
+      }
+      warrior_stories: {
+        Row: {
+          contact_info: string | null
+          created_at: string | null
+          id: string
+          is_anonymous: boolean | null
+          is_featured: boolean | null
+          is_published: boolean | null
+          obstacles: string[] | null
+          person_name: string | null
+          platform: string | null
+          social_handle: string | null
+          story_content: string
+          title: string
+          triumphs: string[] | null
+          updated_at: string | null
+        }
+        Insert: {
+          contact_info?: string | null
+          created_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          obstacles?: string[] | null
+          person_name?: string | null
+          platform?: string | null
+          social_handle?: string | null
+          story_content: string
+          title: string
+          triumphs?: string[] | null
+          updated_at?: string | null
+        }
+        Update: {
+          contact_info?: string | null
+          created_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          is_featured?: boolean | null
+          is_published?: boolean | null
+          obstacles?: string[] | null
+          person_name?: string | null
+          platform?: string | null
+          social_handle?: string | null
+          story_content?: string
+          title?: string
+          triumphs?: string[] | null
+          updated_at?: string | null
         }
         Relationships: []
       }
