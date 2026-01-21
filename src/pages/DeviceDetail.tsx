@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useDeviceDetails } from '@/hooks/useDeviceDetails';
+import { useDeviceFixes } from '@/hooks/useDeviceFixes';
 import { DeviceHero } from '@/components/device/DeviceHero';
 import { DeviceMetricsCard } from '@/components/device/DeviceMetricsCard';
 import { DeviceOverviewTab } from '@/components/device/DeviceOverviewTab';
@@ -13,6 +14,7 @@ import { DeviceReviewsTab } from '@/components/device/DeviceReviewsTab';
 import { DeviceIssuesTab } from '@/components/device/DeviceIssuesTab';
 import { DeviceFDATab } from '@/components/device/DeviceFDATab';
 import { DeviceSupportTab } from '@/components/device/DeviceSupportTab';
+import { DeviceUserFixesTab } from '@/components/device/DeviceUserFixesTab';
 import { RelatedDevicesSection } from '@/components/device/RelatedDevicesSection';
 import { 
   ArrowLeft, 
@@ -22,7 +24,8 @@ import {
   AlertTriangle,
   Shield,
   Headphones,
-  Bot
+  Bot,
+  Lightbulb
 } from 'lucide-react';
 import { DeviceAIChat } from '@/components/device/DeviceAIChat';
 
@@ -30,6 +33,7 @@ const DeviceDetail = () => {
   const { deviceId } = useParams<{ deviceId: string }>();
   const navigate = useNavigate();
   const { data, loading, error } = useDeviceDetails(deviceId);
+  const { data: userFixes } = useDeviceFixes(deviceId);
   const [activeTab, setActiveTab] = useState('overview');
 
   const scrollToSupport = () => {
@@ -181,6 +185,13 @@ const DeviceDetail = () => {
                 Issues ({issues.length})
               </TabsTrigger>
               <TabsTrigger 
+                value="fixes"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                <Lightbulb className="h-4 w-4 mr-2" />
+                User Fixes ({userFixes?.length || 0})
+              </TabsTrigger>
+              <TabsTrigger 
                 value="fda"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
@@ -213,6 +224,10 @@ const DeviceDetail = () => {
 
             <TabsContent value="issues">
               <DeviceIssuesTab issues={issues} onReportIssue={scrollToSupport} />
+            </TabsContent>
+
+            <TabsContent value="fixes">
+              <DeviceUserFixesTab deviceId={deviceId} deviceName={device.name} />
             </TabsContent>
 
             <TabsContent value="fda">
