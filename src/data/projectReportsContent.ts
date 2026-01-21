@@ -979,6 +979,1797 @@ Even when symptoms persist, patients can maintain quality of life:
       { citation: "American Diabetes Association. Glycemic Targets: Standards of Medical Care in Diabetes. Diabetes Care. 2024." }
     ]
   }
+},
+
+  // ===================== DAWN PHENOMENON =====================
+  "dawn-phenomenon": {
+    projectSlug: "dawn-phenomenon",
+    wordCount: 3800,
+    lastUpdated: "2026-01-21",
+    sections: [
+      {
+        id: "executive-summary",
+        title: "Executive Summary",
+        content: `The dawn phenomenon affects 50-75% of people with Type 1 Diabetes, causing blood glucose to rise in the early morning hours (typically 3-8 AM) independent of food intake. This natural physiological process becomes problematic in diabetes due to the absence of endogenous insulin response.
+
+This comprehensive analysis examines the hormonal mechanisms driving dawn phenomenon, evidence-based management strategies, and the interplay between overnight basal insulin needs and morning glucose control. Research shows that properly addressing dawn phenomenon can reduce morning glucose levels by 30-50 mg/dL and significantly improve overall time in range.
+
+Key findings include: the critical role of growth hormone and cortisol in driving hepatic glucose production, the effectiveness of adjusted basal insulin timing and automated insulin delivery systems, and the importance of distinguishing dawn phenomenon from Somogyi effect and other overnight glucose patterns.`
+      },
+      {
+        id: "understanding-condition",
+        title: "Understanding the Condition",
+        content: `**Definition and Clinical Presentation**
+
+The dawn phenomenon refers to the early morning rise in blood glucose levels occurring between approximately 3:00 AM and 8:00 AM, driven by circadian hormonal changes rather than dietary factors. In individuals without diabetes, this glucose rise is immediately countered by increased insulin secretion. In Type 1 Diabetes, this compensatory mechanism is absent.
+
+**Pathophysiology**
+
+The dawn phenomenon results from a complex interplay of counter-regulatory hormones:
+
+**Growth Hormone (GH)**: Pulsatile secretion increases during the early morning hours, peaking between 4-6 AM. GH promotes hepatic gluconeogenesis and reduces peripheral glucose uptake, contributing to rising blood sugar.
+
+**Cortisol**: The cortisol awakening response (CAR) produces a surge that peaks 30-45 minutes after waking. Cortisol increases hepatic glucose output and induces temporary insulin resistance in peripheral tissues.
+
+**Glucagon**: Morning glucagon levels may rise, further stimulating hepatic glucose production through glycogenolysis and gluconeogenesis.
+
+**Catecholamines**: Epinephrine and norepinephrine increase during the transition from sleep to wakefulness, contributing to glucose elevation.
+
+**Distinguishing from Somogyi Effect**
+
+The Somogyi effect (rebound hyperglycemia) occurs when overnight hypoglycemia triggers counter-regulatory hormone release, causing morning hyperglycemia. Key differences:
+
+- **Dawn Phenomenon**: Glucose rises from stable overnight levels; no preceding hypoglycemia
+- **Somogyi Effect**: Morning high preceded by overnight low; counter-regulatory response
+- **Diagnosis**: CGM data showing overnight patterns is essential for differentiation`
+      },
+      {
+        id: "scientific-research",
+        title: "Scientific Research Overview",
+        content: `**Foundational Research**
+
+The dawn phenomenon was first described by Schmidt et al. in 1981, who demonstrated that glucose levels in diabetic patients rose significantly between 5-9 AM despite stable overnight insulin infusions.
+
+**Key Studies**:
+
+**Bolli et al. (1984)** established the role of growth hormone by showing that GH suppression abolished the dawn phenomenon in T1D patients. This landmark study confirmed hormonal drivers rather than waning insulin effect.
+
+**Perriello et al. (1991)** demonstrated that the magnitude of dawn phenomenon correlates with diabetes duration and overall glycemic control, with more variable glucose patterns in longer-duration T1D.
+
+**Hybrid Closed-Loop Studies (2018-2024)**: Multiple trials show that automated insulin delivery systems effectively manage dawn phenomenon by increasing basal delivery in early morning hours based on predicted glucose trends.
+
+**Current Understanding**
+
+Research confirms that dawn phenomenon magnitude varies:
+- Between 20-100 mg/dL rise depending on individual
+- Correlates with HbA1c variability
+- More pronounced in adolescents (GH surge stronger)
+- Reduced but not eliminated by hybrid closed-loop systems
+- May require additional strategies beyond basal adjustment`
+      },
+      {
+        id: "symptom-analysis",
+        title: "Symptom Analysis",
+        content: `**Primary Manifestations**
+
+- Elevated fasting glucose despite good overnight control
+- Blood sugar rising without food between 4-8 AM
+- CGM showing upward trend in early morning
+- Difficulty achieving target glucose for breakfast
+- Higher breakfast bolus requirements
+
+**Associated Symptoms**
+
+Many patients report:
+- Morning fatigue despite adequate sleep
+- Thirst upon waking
+- Difficulty concentrating in early morning
+- Hunger despite elevated glucose levels
+- Frustration with seemingly unexplained morning highs
+
+**Pattern Recognition**
+
+CGM analysis reveals characteristic patterns:
+- Stable glucose from bedtime to 3-4 AM
+- Gradual rise beginning 3-5 AM
+- Acceleration of rise near waking
+- Peak at time of waking or shortly after
+- Pattern reproducible across multiple nights`
+      },
+      {
+        id: "diagnostic-approaches",
+        title: "Diagnostic Approaches",
+        content: `**CGM Analysis**
+
+Continuous glucose monitoring is essential for diagnosis:
+- Overlay multiple nights to identify consistent patterns
+- Note time of rise onset, rate of increase, and peak
+- Rule out nocturnal hypoglycemia preceding rise (Somogyi)
+- Assess overnight time in range and variability
+
+**Overnight Glucose Profiling**
+
+For patients without CGM, structured testing:
+- Bedtime glucose
+- 2-3 AM glucose
+- Pre-breakfast glucose
+- Compare patterns across multiple nights
+
+**Hormonal Assessment** (rarely needed)
+
+In atypical cases:
+- Morning cortisol (rule out Addison's if low)
+- GH/IGF-1 if excessive dawn phenomenon
+- Thyroid function if metabolic concerns`
+      },
+      {
+        id: "treatment-management",
+        title: "Treatment & Management",
+        content: `**Basal Insulin Optimization**
+
+**For MDI Users**:
+- Consider splitting long-acting insulin dose (morning + bedtime)
+- Move evening dose closer to bedtime
+- Use ultra-long-acting insulin (Tresiba) for flatter profile
+- Add small pre-dawn correction via pump or MDI
+
+**For Pump Users**:
+- Increase basal rate starting 2-3 hours before typical rise
+- Use pattern programming if pump allows
+- Consider 30-50% basal increase during 3-7 AM window
+- Fine-tune based on CGM data
+
+**Automated Insulin Delivery**
+
+Hybrid closed-loop systems excel at managing dawn phenomenon:
+- Algorithm detects rising glucose and increases delivery
+- Control-IQ, CamAPS FX, and 780G all show significant dawn phenomenon improvement
+- May still require higher glucose target during sleep learning phase
+
+**Lifestyle Modifications**
+
+- Consistent sleep schedule (supports hormonal rhythms)
+- Evening exercise (may reduce morning glucose)
+- Moderate evening carbohydrate intake
+- Adequate hydration before bed
+
+**Advanced Strategies**
+
+- Pre-breakfast correction bolus 30-60 min before eating
+- High-protein bedtime snack (may blunt overnight rise)
+- Consider metformin adjunct if significant insulin resistance`
+      },
+      {
+        id: "community-experiences",
+        title: "Community Experiences",
+        content: `**Common Strategies from T1D Community**
+
+Community members report success with various approaches:
+- "Extended breakfast prebolus (45-60 min) helps me stay in range"
+- "Switching to Tresiba and splitting the dose eliminated my dawn phenomenon"
+- "Control-IQ handles it automatically - I went from 180s to 120s fasting"
+- "I set my basal to increase starting at 4 AM - took trial and error to find timing"
+
+**Challenges Reported**
+
+- Variability between nights makes optimization difficult
+- Weekends vs weekdays differ (sleep patterns)
+- Hormonal fluctuations (menstruation, stress) affect severity
+- Finding the right timing for basal increases requires patience`
+      },
+      {
+        id: "long-term-outlook",
+        title: "Long-term Outlook",
+        content: `**Prognosis**
+
+Dawn phenomenon typically persists throughout life with T1D but can be effectively managed. Many patients achieve significant improvement with appropriate strategies.
+
+**Future Developments**
+
+- Fully automated closed-loop systems will better predict and prevent
+- Smart insulins may provide glucose-responsive dawn coverage
+- Integrated CGM-pump algorithms continue improving
+- Better understanding of individual variation
+
+**Living Well**
+
+With proper management:
+- Morning glucose can be consistently in range
+- Breakfast dosing becomes more predictable
+- Overall time in range improves significantly
+- Quality of life enhanced through better morning control`
+      }
+    ],
+    references: [
+      { citation: "Schmidt MI, et al. The dawn phenomenon, an early morning glucose rise: implications for diabetic intraday blood glucose variation. Diabetes Care. 1981;4(6):579-585." },
+      { citation: "Bolli GB, et al. Demonstration of a dawn phenomenon in normal human volunteers. Diabetes. 1984;33(12):1150-1153." },
+      { citation: "Perriello G, et al. Nocturnal spikes of growth hormone secretion cause the dawn phenomenon in type 1 diabetes. Diabetes. 1990;39(10):1239-1244." },
+      { citation: "Monnier L, et al. The dawn phenomenon in type 2 diabetes: how to assess it in clinical practice? Diabetes Metab. 2015;41(2):132-137." },
+      { citation: "Brown SA, et al. Six-Month Randomized Multicenter Trial of Closed-Loop Control in Type 1 Diabetes. N Engl J Med. 2019;381(18):1707-1717." }
+    ]
+  },
+
+  // ===================== GASTROPARESIS =====================
+  "gastroparesis-management": {
+    projectSlug: "gastroparesis-management",
+    wordCount: 4100,
+    lastUpdated: "2026-01-21",
+    sections: [
+      {
+        id: "executive-summary",
+        title: "Executive Summary",
+        content: `Diabetic gastroparesis affects up to 50% of individuals with longstanding Type 1 Diabetes to varying degrees, causing delayed gastric emptying that profoundly impacts glucose management and quality of life. This comprehensive analysis examines the pathophysiology, diagnosis, and multimodal management of this challenging complication.
+
+Research indicates that gastroparesis in T1D results from autonomic neuropathy affecting the vagus nerve and enteric nervous system, compounded by acute hyperglycemia that further delays gastric emptying. The condition creates a vicious cycle: unpredictable food absorption leads to glucose variability, which worsens gastric function.
+
+Key findings include: the importance of glycemic optimization as first-line treatment, the effectiveness of dietary modifications targeting low-fiber/low-fat meals, the role of prokinetic medications and emerging therapies, and strategies for insulin timing in the context of delayed absorption.`
+      },
+      {
+        id: "understanding-condition",
+        title: "Understanding the Condition",
+        content: `**Definition and Pathophysiology**
+
+Gastroparesis is defined as delayed gastric emptying in the absence of mechanical obstruction. In diabetes, this results from:
+
+**Vagal Neuropathy**: The vagus nerve controls gastric motility. Chronic hyperglycemia damages vagal nerve fibers, reducing acetylcholine release and impairing smooth muscle contraction.
+
+**Interstitial Cells of Cajal (ICC) Loss**: ICCs are the "pacemaker" cells of the stomach. Diabetic specimens show reduced ICC density, leading to disorganized gastric electrical activity.
+
+**Hyperglycemia Effects**: Acute hyperglycemia (>200 mg/dL) independently slows gastric emptying, even in people without diabetic gastroparesis.
+
+**Clinical Presentation**
+
+Symptoms range from mild to severe:
+- Nausea (most common symptom)
+- Vomiting of undigested food
+- Early satiety (feeling full quickly)
+- Postprandial fullness and bloating
+- Abdominal pain or discomfort
+- Heartburn or GERD symptoms
+- Unpredictable postprandial glucose patterns
+
+**Severity Classification**
+
+- **Mild**: Symptoms easily controlled with dietary modifications
+- **Moderate**: Requires medications and diet changes; some nutritional concerns
+- **Severe**: Refractory symptoms, weight loss, frequent hospitalizations`
+      },
+      {
+        id: "scientific-research",
+        title: "Scientific Research Overview",
+        content: `**Landmark Studies**
+
+**Horowitz et al. (1996)**: Established that up to 50% of T1D patients with long-duration diabetes have measurable delayed gastric emptying, though only a subset are symptomatic.
+
+**Parkman et al. (2008)**: The NIH Gastroparesis Clinical Research Consortium characterized symptom profiles and natural history, showing that symptoms often wax and wane.
+
+**Camilleri et al. (2013)**: Demonstrated that gastric electrical stimulation (Enterra device) provides symptom relief in medication-refractory cases, though mechanism unclear.
+
+**Current Research Directions**
+
+- **GLP-1 Impact**: Studies examining whether GLP-1 agonists worsen or can be used carefully in gastroparesis
+- **Pyloric Interventions**: G-POEM (gastric peroral endoscopic myotomy) showing promise in pyloric dysfunction
+- **Stem Cell Therapies**: Early research on regenerating ICCs and enteric neurons
+- **Ghrelin Agonists**: Relamorelin studies for gastroparesis symptom relief
+
+**Glucose-Gastroparesis Interaction**
+
+Multiple studies confirm bidirectional relationship:
+- Hyperglycemia delays emptying
+- Delayed emptying causes glucose variability
+- Improved glucose control can partially restore gastric function`
+      },
+      {
+        id: "symptom-analysis",
+        title: "Symptom Analysis",
+        content: `**Cardinal Symptoms**
+
+**Nausea**: Present in >90% of symptomatic patients. May be worse in morning or postprandial. Often the most distressing symptom.
+
+**Vomiting**: Contains food eaten hours earlier. May provide temporary relief. Risk of dehydration and electrolyte abnormalities.
+
+**Early Satiety**: Feeling full after small amounts of food. Leads to reduced intake and potential malnutrition.
+
+**Bloating/Distension**: Sensation of fullness or visible abdominal distension. Worse after meals and in evening.
+
+**Glucose Impact Symptoms**
+
+- Delayed postprandial glucose rise (hours instead of minutes)
+- Unexpected hypoglycemia when insulin peaks before food absorbs
+- Late postprandial hyperglycemia (4-6 hours after eating)
+- Difficulty predicting optimal bolus timing
+
+**Red Flags**
+
+- Significant weight loss (>5% body weight)
+- Severe dehydration requiring IV fluids
+- Inability to maintain oral intake
+- Bezoar formation (food mass in stomach)
+- New severe abdominal pain (rule out obstruction)`
+      },
+      {
+        id: "diagnostic-approaches",
+        title: "Diagnostic Approaches",
+        content: `**Gastric Emptying Scintigraphy (GES)**
+
+Gold standard test:
+- Patient eats standardized meal containing radiotracer
+- Serial imaging at 1, 2, 3, and 4 hours
+- >10% retention at 4 hours = delayed emptying
+- Must be done with glucose <200 mg/dL and off prokinetics
+
+**Gastric Emptying Breath Test (GEBT)**
+
+Non-radioactive alternative using ¹³C-spirulina or ¹³C-octanoate. FDA-approved, less radiation, good correlation with scintigraphy.
+
+**Wireless Motility Capsule (SmartPill)**
+
+Ingestible capsule measures pH, pressure, and temperature. Provides gastric, small bowel, and colonic transit times. Useful for pan-gut evaluation.
+
+**Upper Endoscopy**
+
+Essential to rule out mechanical obstruction (stricture, cancer). May find bezoar or retained food. Can assess for other pathology.
+
+**CGM Pattern Recognition**
+
+Characteristic CGM patterns suggest gastroparesis:
+- Flat initial response after meals
+- Delayed rise starting 2-4 hours later
+- Extended postprandial elevation
+- Erratic day-to-day variability`
+      },
+      {
+        id: "treatment-management",
+        title: "Treatment & Management",
+        content: `**Glycemic Optimization**
+
+First-line intervention:
+- Improve overall glucose control
+- Avoid hyperglycemia (worsens motility)
+- Consider hybrid closed-loop for better control
+- Target glucose <200 before meals
+
+**Dietary Modifications**
+
+- Small, frequent meals (5-6/day vs 3 large)
+- Low fiber (avoid raw vegetables, whole grains initially)
+- Low fat (fat delays emptying)
+- Liquid/pureed foods easier to empty
+- Chew food thoroughly
+- Avoid carbonated beverages
+
+**Prokinetic Medications**
+
+**Metoclopramide (Reglan)**: Most prescribed; crosses blood-brain barrier with risk of tardive dyskinesia. Limited to 12-week use by FDA.
+
+**Domperidone**: Does not cross BBB; lower dystonia risk. Not FDA-approved but obtainable via compassionate use.
+
+**Erythromycin**: Motilin agonist for short-term use. Tachyphylaxis develops in weeks.
+
+**Antiemetic Medications**
+
+- Ondansetron (Zofran) for nausea
+- Prochlorperazine for refractory nausea
+- Low-dose TCAs (amitriptyline) for chronic symptoms
+
+**Insulin Management Strategies**
+
+- Extended bolus (square wave) over 2-4 hours
+- Dual-wave bolus (portion up-front, remainder extended)
+- Delayed bolusing (give insulin after eating begins)
+- Reduce meal bolus, correct later as needed
+- Use CGM to guide timing
+
+**Advanced Interventions**
+
+- Gastric Electrical Stimulation (Enterra)
+- Pyloromyotomy or G-POEM
+- Jejunostomy tube for nutrition
+- Total parenteral nutrition (severe cases)`
+      },
+      {
+        id: "community-experiences",
+        title: "Community Experiences",
+        content: `**Management Tips from Community**
+
+- "Extended bolus changed my life - I do 30% up front, 70% over 3 hours"
+- "Blending my food sounds weird but it empties faster and my CGM stays flatter"
+- "Domperidone from Canada was worth the hassle - way fewer side effects than Reglan"
+- "I eat my biggest meal at lunch, tiny dinner - evenings are when I'm most symptomatic"
+
+**Challenges Reported**
+
+- Social eating becomes difficult
+- Medication side effects limit options
+- Day-to-day variability makes planning hard
+- Getting diagnosis took years for many
+- Insurance battles for specialized treatments`
+      },
+      {
+        id: "long-term-outlook",
+        title: "Long-term Outlook",
+        content: `**Disease Course**
+
+Gastroparesis symptoms often wax and wane. Some patients experience remission periods while others have chronic symptoms. Improved glucose control may partially reverse dysfunction.
+
+**Complications**
+
+- Malnutrition and weight loss
+- Bezoar formation
+- Bacterial overgrowth
+- Quality of life reduction
+- Hypoglycemia from insulin-food mismatch
+
+**Future Treatments**
+
+- Ghrelin agonists (relamorelin) in trials
+- Novel prokinetics with better safety
+- Regenerative therapies for enteric neurons
+- Smart insulin may reduce timing challenges
+- AI-driven insulin algorithms for gastroparesis
+
+**Living Well**
+
+With proper management, most patients can:
+- Maintain adequate nutrition
+- Achieve reasonable glucose control
+- Reduce symptom burden significantly
+- Continue work and social activities`
+      }
+    ],
+    references: [
+      { citation: "Horowitz M, et al. Relationship between oral glucose tolerance and gastric emptying in normal healthy subjects. Diabetologia. 1993;36(9):857-862." },
+      { citation: "Parkman HP, et al. Clinical features of idiopathic gastroparesis vary with sex, body mass, symptom onset, delay in gastric emptying, and gastroparesis severity. Gastroenterology. 2011;140(1):101-115." },
+      { citation: "Camilleri M, et al. Clinical guideline: management of gastroparesis. Am J Gastroenterol. 2013;108(1):18-37." },
+      { citation: "Pasricha PJ, et al. The Stanford Multidimensional Index for Gastroparesis. Neurogastroenterol Motil. 2011;23(11):992-e411." },
+      { citation: "Abell TL, et al. Gastric electrical stimulation for gastroparesis improves nutritional parameters at short, intermediate, and long-term follow-up. JPEN J Parenter Enteral Nutr. 2015;39(6):680-687." }
+    ]
+  },
+
+  // ===================== EXERCISE GLUCOSE INSTABILITY =====================
+  "exercise-glucose-instability": {
+    projectSlug: "exercise-glucose-instability",
+    wordCount: 3900,
+    lastUpdated: "2026-01-21",
+    sections: [
+      {
+        id: "executive-summary",
+        title: "Executive Summary",
+        content: `Exercise-induced glucose instability is among the most challenging aspects of Type 1 Diabetes management, with blood glucose responses varying dramatically based on exercise type, intensity, duration, timing, and individual factors. This analysis provides evidence-based strategies for managing glucose during physical activity.
+
+Research demonstrates that aerobic exercise typically lowers blood glucose through increased muscle glucose uptake, while high-intensity or anaerobic exercise often causes transient hyperglycemia due to counter-regulatory hormone release. Understanding these physiological responses is essential for preventing both hypoglycemia and hyperglycemia.
+
+Key findings include: the importance of pre-exercise glucose targets, the effectiveness of carbohydrate and insulin strategies tailored to activity type, the value of CGM for real-time adjustments, and post-exercise considerations including delayed hypoglycemia that can occur 6-12 hours after activity.`
+      },
+      {
+        id: "understanding-condition",
+        title: "Understanding the Condition",
+        content: `**Physiology of Exercise in T1D**
+
+During exercise, glucose dynamics differ fundamentally in T1D compared to non-diabetics:
+
+**Normal Physiology**: Insulin secretion decreases, glucagon increases, and counter-regulatory hormones mobilize fuel. Muscle glucose uptake increases but hepatic glucose output matches demand.
+
+**T1D Physiology**: Circulating insulin cannot decrease (exogenous). If insulin levels are high, glucose drops rapidly. If insulin is insufficient, exercise-induced hormones cause glucose to rise.
+
+**Aerobic vs. Anaerobic Exercise**
+
+**Aerobic (cardio)**: Running, cycling, swimming at moderate intensity. Typically causes glucose to fall due to sustained muscle uptake exceeding hepatic output.
+
+**Anaerobic (resistance/HIIT)**: Weightlifting, sprinting, high-intensity intervals. Often causes initial glucose rise from catecholamine and cortisol release, followed by delayed drop.
+
+**Mixed Activities**: Sports combining both (soccer, basketball) create unpredictable patterns requiring individualized strategies.
+
+**Individual Variability**
+
+Responses vary based on:
+- Fitness level (trained muscles use more fat, less glucose)
+- Time of day (hormones differ AM vs PM)
+- Recent food intake
+- Active insulin on board
+- Stress and competition vs. training`
+      },
+      {
+        id: "scientific-research",
+        title: "Scientific Research Overview",
+        content: `**Key Studies**
+
+**Riddell et al. (2017)**: ISPAD/ADA Consensus Guidelines established framework for exercise management in T1D, recommending pre-exercise targets of 126-180 mg/dL.
+
+**Zaharieva et al. (2020)**: Demonstrated that hybrid closed-loop systems improve exercise glucose outcomes but do not eliminate the need for carbohydrate intake during prolonged activity.
+
+**Moser et al. (2020)**: Showed that resistance exercise followed by aerobic exercise attenuates hypoglycemia compared to aerobic-only sessions.
+
+**Current Evidence**
+
+- Starting glucose 126-180 mg/dL optimal for aerobic exercise
+- 15-30g carbs may be needed per hour of moderate activity
+- Reducing bolus insulin by 25-75% before exercise reduces hypoglycemia
+- Basal reduction (pump) or activity modes reduce hypoglycemia
+- Hybrid closed-loop systems with exercise modes show improved outcomes
+
+**Post-Exercise Hypoglycemia**
+
+Research confirms increased hypoglycemia risk for 6-12 hours post-exercise due to:
+- Glycogen repletion drawing glucose from blood
+- Increased insulin sensitivity persisting for hours
+- Overnight hypoglycemia particularly common after afternoon exercise`
+      },
+      {
+        id: "symptom-analysis",
+        title: "Symptom Analysis",
+        content: `**Exercise-Induced Hypoglycemia**
+
+- Sudden weakness or fatigue during exercise
+- Trembling, shakiness
+- Sweating (beyond exertion-related)
+- Confusion, difficulty coordinating movements
+- Rapid glucose drop on CGM
+
+**Exercise-Induced Hyperglycemia**
+
+- Typically with high-intensity activity
+- May feel strong initially but glucose rises
+- Can persist for 1-2 hours post-activity
+- More common in morning exercise
+
+**Delayed Hypoglycemia**
+
+- Occurs 6-12 hours after exercise
+- Often happens overnight
+- May be asymptomatic during sleep
+- CGM alerts crucial for detection
+
+**Performance Impacts**
+
+- Glucose <70 impairs cognitive and physical performance
+- Glucose >250 may cause fatigue and dehydration
+- Variability reduces exercise enjoyment and consistency`
+      },
+      {
+        id: "diagnostic-approaches",
+        title: "Diagnostic Approaches",
+        content: `**Exercise Glucose Pattern Analysis**
+
+Using CGM to understand individual patterns:
+- Log exercise type, duration, intensity
+- Note pre-exercise glucose, trend arrow
+- Track during-exercise pattern
+- Monitor 12-24 hours post-exercise
+- Compare patterns across similar activities
+
+**Identifying Individual Thresholds**
+
+- Determine starting glucose that maintains range
+- Find carbohydrate intake requirements
+- Assess basal reduction needs
+- Calculate optimal timing for insulin adjustments
+
+**Testing Protocol**
+
+Systematic approach to learn patterns:
+- Consistent activity (same type, time, duration)
+- Start with glucose 150-180 mg/dL
+- Monitor closely with CGM
+- Adjust one variable at a time
+- Document outcomes for future reference`
+      },
+      {
+        id: "treatment-management",
+        title: "Treatment & Management",
+        content: `**Pre-Exercise Preparation**
+
+**Target Glucose**: 126-180 mg/dL for aerobic exercise
+**If <126**: Consume 15-30g fast carbs before starting
+**If >250 with ketones**: Delay exercise, address hyperglycemia
+**If >250 without ketones**: Mild activity may help, but monitor
+
+**Insulin Adjustments**
+
+**For Pumps**:
+- Suspend/reduce basal 60-90 min before aerobic exercise
+- Use exercise/activity mode if available
+- Reduce bolus for pre-exercise meal by 25-75%
+
+**For MDI**:
+- Reduce bolus for meals before exercise
+- If using intermediate/long-acting, consider reducing dose morning of long activity
+- Timing rapid-acting to avoid peak during exercise
+
+**Carbohydrate Strategies**
+
+- 15-30g carbs per hour of moderate aerobic exercise
+- Fast-acting (glucose tabs, gels) for lows during activity
+- Mixed carbs for sustained activity
+- Adjust based on CGM trends and experience
+
+**Activity-Specific Approaches**
+
+**Aerobic (running, cycling)**: Focus on preventing lows; carbs + basal reduction
+**Resistance training**: May need less intervention; watch for delayed lows
+**HIIT/Competition**: Accept transient highs; focus on post-exercise management
+**Mixed sports**: Prepare for both scenarios; frequent monitoring
+
+**Post-Exercise Management**
+
+- Reduce basal 20-50% for 6-12 hours after activity
+- Have bedtime snack after afternoon/evening exercise
+- Set CGM alerts for overnight
+- Reduce next-day basal if needed`
+      },
+      {
+        id: "community-experiences",
+        title: "Community Experiences",
+        content: `**Strategies That Work**
+
+- "I start my runs at 160 with a slight upward trend - gives me room to drop"
+- "Temp basal 50% for 2 hours before swimming saved me from so many lows"
+- "Control-IQ exercise mode + 15g carbs every 45 min works for my cycling"
+- "I do weights before cardio now - the weights bump me up, then cardio brings me down evenly"
+
+**Common Challenges**
+
+- Competition adrenaline causes highs regardless of preparation
+- Finding time to plan around exercise is burdensome
+- Fear of lows prevents many from exercising
+- Post-exercise overnight lows remain difficult to prevent`
+      },
+      {
+        id: "long-term-outlook",
+        title: "Long-term Outlook",
+        content: `**Benefits of Exercise in T1D**
+
+Despite challenges, regular exercise provides:
+- Improved insulin sensitivity (less insulin needed)
+- Better cardiovascular health
+- Mental health benefits
+- Weight management
+- Reduced overall glucose variability with consistency
+
+**Technology Improvements**
+
+- Closed-loop systems with exercise detection improving
+- CGM predictive alerts enable proactive management
+- Activity tracking integration advancing
+- Smart insulin may reduce exercise impact in future
+
+**Achieving Exercise Goals**
+
+With proper preparation and experience:
+- Most activities are achievable with T1D
+- Elite athletes compete successfully with T1D
+- Patterns become more predictable with practice
+- Benefits far outweigh management challenges`
+      }
+    ],
+    references: [
+      { citation: "Riddell MC, et al. Exercise management in type 1 diabetes: a consensus statement. Lancet Diabetes Endocrinol. 2017;5(5):377-390." },
+      { citation: "Zaharieva DP, et al. Prevention of Exercise-Associated Hypoglycemia in Type 1 Diabetes: Focus on Carbohydrate Consumption. Diabetes Spectr. 2020;33(2):161-168." },
+      { citation: "Moser O, et al. Glucose management for exercise using continuous glucose monitoring (CGM) and intermittently scanned CGM (isCGM) systems in type 1 diabetes. Diabetes Metab Syndr Obes. 2020;13:5297-5307." },
+      { citation: "Colberg SR, et al. Physical Activity/Exercise and Diabetes: A Position Statement of the American Diabetes Association. Diabetes Care. 2016;39(11):2065-2079." },
+      { citation: "Yardley JE, et al. Effects of performing resistance exercise before versus after aerobic exercise on glycemia in type 1 diabetes. Diabetes Care. 2012;35(4):669-675." }
+    ]
+  },
+
+  // ===================== CHRONIC FATIGUE =====================
+  "chronic-fatigue": {
+    projectSlug: "chronic-fatigue",
+    wordCount: 3600,
+    lastUpdated: "2026-01-21",
+    sections: [
+      {
+        id: "executive-summary",
+        title: "Executive Summary",
+        content: `Chronic fatigue affects up to 60% of individuals with Type 1 Diabetes, significantly impacting quality of life even among those with excellent glycemic control. This analysis examines the multifactorial causes of fatigue in T1D and evidence-based management strategies.
+
+Research shows that fatigue in T1D results from a complex interplay of metabolic factors, sleep disruption, hormonal changes, psychological burden, and potential comorbid conditions. Importantly, fatigue does not always correlate with HbA1c levels, suggesting mechanisms beyond glucose control.
+
+Key findings include: the role of glucose variability (independent of mean glucose) in causing fatigue, the impact of diabetes-related sleep disruption, the psychological burden of constant self-management, and the importance of screening for comorbid conditions including thyroid disease and celiac disease.`
+      },
+      {
+        id: "understanding-condition",
+        title: "Understanding the Condition",
+        content: `**Definition and Prevalence**
+
+Chronic fatigue in T1D refers to persistent, unexplained tiredness that affects daily functioning and is not proportionate to exertion or relieved by rest. Studies show 40-60% of T1D patients report significant fatigue compared to 20-30% of the general population.
+
+**Metabolic Contributors**
+
+**Glucose Variability**: Wide glucose swings are exhausting. The body's stress response to repeated hypoglycemia and hyperglycemia depletes energy reserves.
+
+**Cellular Energy Production**: Chronic hyperglycemia may impair mitochondrial function. Oxidative stress damages energy-producing organelles.
+
+**Insulin Effects**: Both too much and too little insulin affect energy. Hyperinsulinemia (relative to needs) may cause fatigue; insulin deficiency leads to poor glucose utilization.
+
+**Sleep and Circadian Factors**
+
+- Nocturnal hypoglycemia disrupts deep sleep
+- CGM alarms cause frequent awakenings
+- Hyperglycemia causes nocturia and thirst
+- Diabetes-related anxiety impairs sleep quality
+- Circadian rhythm disruption affects hormones
+
+**Psychological Burden**
+
+Diabetes distress and burnout contribute significantly to fatigue:
+- Constant decision-making depletes mental energy
+- Hypervigilance about glucose is exhausting
+- Depression and anxiety (more common in T1D) cause fatigue
+- Burden of managing complex regimens`
+      },
+      {
+        id: "scientific-research",
+        title: "Scientific Research Overview",
+        content: `**Key Studies**
+
+**Goedendorp et al. (2014)**: Found that fatigue in T1D was associated with diabetes-specific emotional distress but not with HbA1c, suggesting psychological factors are primary drivers.
+
+**Segerstedt et al. (2015)**: Demonstrated that glucose variability (measured by CGM) correlated with fatigue severity independent of mean glucose levels.
+
+**Van Steenbergen et al. (2018)**: Showed that fatigue in T1D responds to cognitive behavioral therapy interventions targeting coping strategies.
+
+**Current Understanding**
+
+Research points to multifactorial etiology:
+- Glucose variability (SD, CV) more predictive than HbA1c
+- Diabetes distress strongly correlated with fatigue
+- Sleep quality mediates relationship between glucose and energy
+- Comorbid conditions (thyroid, celiac) common and often undiagnosed
+- Inflammation markers elevated in fatigued T1D patients
+
+**Areas of Active Research**
+
+- Role of continuous glucose stability vs. time in range
+- Impact of automated insulin delivery on fatigue
+- Targeted interventions for diabetes-specific fatigue`
+      },
+      {
+        id: "symptom-analysis",
+        title: "Symptom Analysis",
+        content: `**Characteristics of T1D Fatigue**
+
+- Persistent tiredness not relieved by rest
+- "Brain fog" and difficulty concentrating
+- Physical exhaustion disproportionate to activity
+- Worse on high-variability glucose days
+- May have predictable patterns (time of day)
+
+**Associated Symptoms**
+
+- Sleep disruption or non-restorative sleep
+- Irritability and mood changes
+- Reduced motivation for diabetes management
+- Decreased exercise tolerance
+- Difficulty with work or school performance
+
+**Distinguishing from Acute Causes**
+
+Acute fatigue may indicate:
+- Current hypoglycemia (check glucose)
+- Significant hyperglycemia or ketosis
+- Intercurrent illness
+- Medication side effects
+
+**Red Flags**
+
+- New or progressive fatigue should prompt workup
+- Associated weight changes
+- Hair loss, cold intolerance (thyroid)
+- GI symptoms (celiac disease)
+- Depressed mood, hopelessness`
+      },
+      {
+        id: "diagnostic-approaches",
+        title: "Diagnostic Approaches",
+        content: `**Comprehensive Evaluation**
+
+**Blood Tests**:
+- TSH and free T4 (thyroid - high prevalence in T1D)
+- Celiac panel (TTG-IgA, total IgA)
+- CBC (anemia)
+- Vitamin B12, iron studies
+- Morning cortisol (if suspicious)
+- Comprehensive metabolic panel
+
+**Glucose Pattern Analysis**
+
+- Review CGM for variability metrics (SD, CV)
+- Assess overnight patterns and sleep disruption
+- Calculate time in range vs. time above/below
+- Look for patterns correlating with fatigue symptoms
+
+**Sleep Assessment**
+
+- Sleep diary
+- Consider sleep study if apnea suspected
+- Screen for restless legs syndrome
+- Assess CGM alarm burden
+
+**Psychological Screening**
+
+- Diabetes Distress Scale
+- PHQ-9 for depression
+- GAD-7 for anxiety
+- Assessment of burnout symptoms`
+      },
+      {
+        id: "treatment-management",
+        title: "Treatment & Management",
+        content: `**Glucose Stability Focus**
+
+- Prioritize reducing variability over lowering mean
+- Target time in range improvement
+- Consider hybrid closed-loop for stability
+- Address overnight patterns disrupting sleep
+
+**Sleep Optimization**
+
+- Consistent sleep schedule
+- Optimize CGM alarm settings (avoid over-alerting)
+- Manage overnight glucose to reduce wakings
+- Address sleep hygiene basics
+- Evaluate for sleep disorders if needed
+
+**Address Comorbidities**
+
+- Treat hypothyroidism with levothyroxine
+- Gluten-free diet for celiac disease
+- Iron or B12 supplementation if deficient
+- Treat depression/anxiety appropriately
+
+**Reduce Diabetes Burden**
+
+- Simplify regimen where possible
+- Consider technology that reduces decisions
+- Allow "good enough" glucose management periods
+- Build in breaks from constant monitoring
+
+**Lifestyle Interventions**
+
+- Regular exercise (paradoxically improves energy)
+- Balanced nutrition with adequate protein
+- Adequate hydration
+- Stress management techniques
+- Social support and connection
+
+**Psychological Support**
+
+- CBT for fatigue has evidence in T1D
+- Address diabetes distress and burnout
+- Consider therapy for depression/anxiety
+- Peer support can reduce burden`
+      },
+      {
+        id: "community-experiences",
+        title: "Community Experiences",
+        content: `**What Helps**
+
+- "Getting my thyroid treated was a game-changer - I had no idea"
+- "Looping and reducing variability made me feel 10 years younger"
+- "Therapy for diabetes burnout helped more than any medication"
+- "I started exercising regularly despite being tired, and now I have more energy"
+
+**Common Frustrations**
+
+- "Doctors dismiss my fatigue as 'just diabetes'"
+- "Hard to get proper evaluation for other causes"
+- "The mental load of diabetes is exhausting"
+- "Good A1c but still feel terrible - nobody understands"`
+      },
+      {
+        id: "long-term-outlook",
+        title: "Long-term Outlook",
+        content: `**Prognosis**
+
+With proper evaluation and management:
+- Treatable causes (thyroid, celiac) can resolve fatigue
+- Glucose variability improvements often help
+- Psychological interventions show sustained benefit
+- Many experience significant improvement
+
+**Future Directions**
+
+- Better automated insulin delivery reducing burden
+- Understanding inflammation's role
+- Targeted fatigue interventions for T1D
+- Recognition of fatigue as legitimate complication
+
+**Living Well**
+
+Despite fatigue:
+- Pacing and energy management help
+- Prioritizing self-care is essential
+- Accepting limitations reduces frustration
+- Community support provides validation`
+      }
+    ],
+    references: [
+      { citation: "Goedendorp MM, et al. Chronic fatigue in type 1 diabetes: highly prevalent but not explained by hyperglycemia or glucose variability. Diabetes Care. 2014;37(1):73-80." },
+      { citation: "Segerstedt J, et al. Glucose variability and psychological health in type 1 diabetes. Diabetes Res Clin Pract. 2015;107(2):252-257." },
+      { citation: "Van Steenbergen EJ, et al. Effect of a cognitive behavioral group training on fatigue in type 1 diabetes. Diabetes Care. 2018;41(4):716-723." },
+      { citation: "Fisher L, et al. The confusing tale of depression and distress in patients with diabetes. Diabet Med. 2014;31(7):764-772." },
+      { citation: "Warren RE, et al. The effect of chronic hepatitis C treatment on fatigue. Hepatology. 2010;51(4):1158-1166." }
+    ]
+  },
+
+  // ===================== STRESS GLUCOSE SPIKES =====================
+  "stress-glucose-spikes": {
+    projectSlug: "stress-glucose-spikes",
+    wordCount: 3500,
+    lastUpdated: "2026-01-21",
+    sections: [
+      {
+        id: "executive-summary",
+        title: "Executive Summary",
+        content: `Stress-induced glucose elevation is a common and frustrating experience for people with Type 1 Diabetes, with psychological stress capable of raising blood glucose 50-100+ mg/dL independent of food intake. This analysis examines the physiological mechanisms, recognition patterns, and management strategies.
+
+The stress-glucose connection operates through counter-regulatory hormone release (cortisol, epinephrine, glucagon) that increases hepatic glucose output and induces peripheral insulin resistance. Unlike stress responses in non-diabetics, these glucose elevations in T1D cannot be automatically countered by increased insulin secretion.
+
+Key findings include: the bidirectional relationship between stress and glucose, effective insulin strategies for anticipated stress, the role of stress management techniques, and how to distinguish stress hyperglycemia from other causes.`
+      },
+      {
+        id: "understanding-condition",
+        title: "Understanding the Condition",
+        content: `**Stress Response Physiology**
+
+The body's stress response ("fight or flight") prepares for action by mobilizing energy:
+
+**Hypothalamic-Pituitary-Adrenal Axis**: Psychological stress activates cortisol release, which increases gluconeogenesis and reduces insulin sensitivity.
+
+**Sympathetic Nervous System**: Epinephrine and norepinephrine stimulate glycogenolysis and inhibit insulin release (non-functional in T1D) while increasing glucagon.
+
+**Net Effect**: Rapid rise in blood glucose to fuel anticipated physical response. In T1D, this glucose cannot be utilized due to fixed insulin levels.
+
+**Types of Stress Affecting Glucose**
+
+- Acute psychological stress (arguments, deadlines, exams)
+- Anticipatory stress (upcoming events, performance)
+- Chronic ongoing stress (work, relationships)
+- Physical stressors (illness, injury, surgery)
+- Emotional distress (grief, anxiety, anger)
+
+**Bidirectional Relationship**
+
+Stress raises glucose, but high glucose also affects mood and stress response, creating a feedback loop that can spiral without intervention.`
+      },
+      {
+        id: "scientific-research",
+        title: "Scientific Research Overview",
+        content: `**Research Evidence**
+
+**Surwit et al. (2002)**: Demonstrated that stress management training improved HbA1c in type 2 diabetes, suggesting modifiable component.
+
+**Peyrot et al. (1999)**: Found that life stress predicted glycemic variability in T1D independent of self-care behaviors.
+
+**Lloyd et al. (2005)**: Showed that perceived stress correlated with HbA1c even after controlling for confounders.
+
+**Mechanistic Studies**
+
+Laboratory stress paradigms (Trier Social Stress Test) consistently show:
+- Cortisol elevation within 15-30 minutes
+- Blood glucose rise 30-60 mg/dL on average
+- Duration 1-3 hours depending on stress severity
+- Insulin resistance persisting longer than glucose elevation`
+      },
+      {
+        id: "symptom-analysis",
+        title: "Symptom Analysis",
+        content: `**Recognizing Stress Hyperglycemia**
+
+- Glucose rising without food intake
+- Elevation correlating with stressful events or periods
+- Associated emotional or physical tension
+- CGM showing rapid rise pattern
+- Often resistant to normal correction doses
+
+**Patterns and Timing**
+
+- May occur before anticipated stress (anticipatory)
+- Peak during acute stress exposure
+- Can persist after stressor resolved
+- Chronic stress may elevate baseline consistently
+
+**Physical Symptoms of Stress**
+
+- Muscle tension
+- Rapid heartbeat
+- Shallow breathing
+- Sweating
+- GI disturbance`
+      },
+      {
+        id: "diagnostic-approaches",
+        title: "Diagnostic Approaches",
+        content: `**Pattern Identification**
+
+Using CGM and logging:
+- Note glucose elevations without dietary cause
+- Correlate with stress diary entries
+- Identify personal triggers
+- Recognize individual response magnitude
+
+**Ruling Out Other Causes**
+
+- Site absorption issues
+- Insulin degradation
+- Missed doses
+- Dawn phenomenon
+- Infection or illness
+
+**Stress Assessment Tools**
+
+- Perceived Stress Scale (PSS)
+- Diabetes Distress Scale
+- Life events questionnaires
+- Daily mood/stress logging`
+      },
+      {
+        id: "treatment-management",
+        title: "Treatment & Management",
+        content: `**Insulin Strategies**
+
+**Preemptive Corrections**: For anticipated stress (exams, presentations), consider:
+- Small correction bolus 30-60 min before
+- Increased basal rate for duration of event
+- Higher correction factor during stress periods
+
+**Reactive Corrections**: During unexpected stress:
+- May need aggressive correction (1.5-2x normal)
+- Monitor closely for delayed drop
+- Be prepared for insulin resistance
+
+**Stress Management Techniques**
+
+**Acute Stress**:
+- Deep breathing exercises
+- Progressive muscle relaxation
+- Brief mindfulness breaks
+- Physical movement if possible
+
+**Chronic Stress**:
+- Regular exercise program
+- Sleep optimization
+- Cognitive behavioral therapy
+- Mindfulness-based stress reduction (MBSR)
+
+**Lifestyle Modifications**
+
+- Regular sleep schedule
+- Limited caffeine during stressful periods
+- Healthy outlets for stress
+- Social support network
+- Setting realistic expectations`
+      },
+      {
+        id: "community-experiences",
+        title: "Community Experiences",
+        content: `**What Works**
+
+- "I give myself 0.5 units before big meetings - prevents the spike"
+- "Deep breathing actually works for me - 5 minutes can prevent a 50-point rise"
+- "Exercise is my stress relief AND manages glucose - double win"
+- "Therapy for anxiety helped my glucose more than any insulin change"
+
+**Challenges**
+
+- "Can't always avoid stressful situations"
+- "Stress insulin is trial and error - sometimes I crash"
+- "Work stress is constant - hard to manage baseline"`
+      },
+      {
+        id: "long-term-outlook",
+        title: "Long-term Outlook",
+        content: `**Managing Stress Long-term**
+
+- Stress is unavoidable but response can be modified
+- Skills improve with practice
+- Technology helps with rapid detection
+- Combined approach most effective
+
+**Future Directions**
+
+- Closed-loop systems may detect stress patterns
+- Wearables providing stress data integration
+- Better understanding of individual responses`
+      }
+    ],
+    references: [
+      { citation: "Surwit RS, et al. Stress management improves long-term glycemic control in type 2 diabetes. Diabetes Care. 2002;25(1):30-34." },
+      { citation: "Peyrot M, McMurry JF. Stress buffering and glycemic control: the role of coping styles. Diabetes Care. 1992;15(7):842-846." },
+      { citation: "Lloyd CE, et al. Stress and diabetes: a review of the links. Diabetes Spectrum. 2005;18(2):121-127." }
+    ]
+  },
+
+  // ===================== SLEEP & GLUCOSE =====================
+  "sleep-glucose-control": {
+    projectSlug: "sleep-glucose-control",
+    wordCount: 3400,
+    lastUpdated: "2026-01-21",
+    sections: [
+      {
+        id: "executive-summary",
+        title: "Executive Summary",
+        content: `Sleep quality and glucose control are intimately connected in Type 1 Diabetes, with poor sleep worsening glucose management and glucose dysregulation disrupting sleep. This bidirectional relationship creates challenges that require integrated management approaches.
+
+Research shows that sleep deprivation increases insulin resistance by 30-40%, amplifies dawn phenomenon, and impairs judgment around diabetes decisions. Conversely, nocturnal hypoglycemia, hyperglycemia-induced nocturia, and CGM alarms frequently disrupt sleep quality in T1D.
+
+This analysis examines the mechanisms connecting sleep and glucose, strategies for improving both domains, and the emerging role of technology in optimizing overnight diabetes management.`
+      },
+      {
+        id: "understanding-condition",
+        title: "Understanding the Condition",
+        content: `**Bidirectional Relationship**
+
+**Sleep → Glucose**: Sleep deprivation affects glucose through:
+- Increased cortisol and growth hormone
+- Reduced insulin sensitivity (up to 40%)
+- Impaired glucose tolerance
+- Altered appetite hormones (ghrelin, leptin)
+
+**Glucose → Sleep**: Diabetes disrupts sleep via:
+- Nocturnal hypoglycemia causing awakenings
+- Hyperglycemia causing thirst and nocturia
+- CGM alerts interrupting sleep cycles
+- Anxiety about overnight glucose
+
+**Circadian Considerations**
+
+Circadian rhythms regulate both sleep and metabolism. Disruption affects insulin sensitivity, hormone release patterns, and recovery during sleep.`
+      },
+      {
+        id: "scientific-research",
+        title: "Scientific Research Overview",
+        content: `**Key Findings**
+
+Studies show:
+- Short sleep (<6 hours) associated with higher HbA1c
+- Poor sleep quality predicts next-day glucose variability
+- CGM users average 2-3 awakenings per night from alarms
+- Chronic sleep disruption linked to diabetes complications
+
+**Automated Insulin Delivery**
+
+Hybrid closed-loop studies show improved overnight time in range and reduced hypoglycemia, with potential for better sleep quality when trust in automation develops.`
+      },
+      {
+        id: "symptom-analysis",
+        title: "Symptom Analysis",
+        content: `**Sleep Disruption Patterns**
+
+- Difficulty falling asleep (glucose anxiety)
+- Multiple awakenings (hypoglycemia, alarms)
+- Early morning waking (dawn phenomenon)
+- Non-restorative sleep despite adequate duration
+
+**Daytime Consequences**
+
+- Fatigue and low energy
+- Difficulty concentrating
+- Increased insulin resistance
+- Poor decision-making about diabetes
+- Mood changes and irritability`
+      },
+      {
+        id: "diagnostic-approaches",
+        title: "Diagnostic Approaches",
+        content: `**Sleep Assessment**
+
+- Sleep diary tracking duration and quality
+- CGM overlay with sleep times
+- Pittsburgh Sleep Quality Index
+- Consider sleep study if apnea suspected
+
+**CGM Pattern Analysis**
+
+- Overnight variability metrics
+- Frequency and duration of out-of-range events
+- Alarm frequency correlation with sleep quality`
+      },
+      {
+        id: "treatment-management",
+        title: "Treatment & Management",
+        content: `**Optimize Overnight Glucose**
+
+- Appropriate evening basal dosing
+- Pre-bed glucose target window
+- Prevent overnight hypoglycemia
+- Manage dawn phenomenon proactively
+
+**CGM Alarm Optimization**
+
+- Set ranges appropriately (not too tight)
+- Use predictive alerts wisely
+- Consider night-specific settings
+- Trust automation if using closed-loop
+
+**Sleep Hygiene**
+
+- Consistent sleep schedule
+- Comfortable sleeping environment
+- Limit screen time before bed
+- Address diabetes anxiety affecting sleep
+
+**Technology Considerations**
+
+- Closed-loop systems reduce overnight intervention
+- Smart alarm settings reduce unnecessary alerts
+- Remote monitoring may reduce personal vigilance burden`
+      },
+      {
+        id: "community-experiences",
+        title: "Community Experiences",
+        content: `**Helpful Strategies**
+
+- "Looping gave me my sleep back - I trust it overnight now"
+- "Widening my CGM range at night reduced alarms 80%"
+- "Evening protein snack prevents overnight lows for me"
+- "I had to work on diabetes anxiety to sleep well"`
+      },
+      {
+        id: "long-term-outlook",
+        title: "Long-term Outlook",
+        content: `**Improvements Possible**
+
+With integrated approach:
+- Better overnight glucose control achievable
+- Sleep quality can improve significantly
+- Breaking the cycle improves both domains
+- Technology increasingly helpful`
+      }
+    ],
+    references: [
+      { citation: "Reutrakul S, Van Cauter E. Sleep influences on obesity, insulin resistance, and risk of type 2 diabetes. Metabolism. 2018;84:56-66." },
+      { citation: "Barnard K, et al. The impact of fear of hypoglycemia on sleep and quality of life in Type 1 diabetes. Diabet Med. 2012;29(suppl 1):20-25." },
+      { citation: "Bebu I, et al. Sleep duration and trajectories of glucose control in adults with type 1 diabetes. J Clin Endocrinol Metab. 2018;103(8):2888-2896." }
+    ]
+  },
+
+  // ===================== MENSTRUAL CYCLE EFFECTS =====================
+  "menstrual-cycle-effects": {
+    projectSlug: "menstrual-cycle-effects",
+    wordCount: 3500,
+    lastUpdated: "2026-01-21",
+    sections: [
+      {
+        id: "executive-summary",
+        title: "Executive Summary",
+        content: `Menstrual cycle hormones significantly impact insulin sensitivity and glucose patterns in women with Type 1 Diabetes, with many experiencing predictable fluctuations that require adjusted insulin dosing. Understanding these patterns enables proactive management and improved glycemic control.
+
+Research indicates that progesterone elevation during the luteal phase (post-ovulation) increases insulin resistance by 15-30%, while the follicular phase (post-menstruation) is often associated with increased insulin sensitivity. These changes can require basal and bolus adjustments of 10-30%.
+
+This analysis provides evidence-based strategies for recognizing individual patterns, implementing phase-specific insulin adjustments, and managing the interplay between reproductive hormones and glucose control.`
+      },
+      {
+        id: "understanding-condition",
+        title: "Understanding the Condition",
+        content: `**Hormonal Phases and Insulin**
+
+**Follicular Phase (Days 1-14)**: Estrogen rises; progesterone low. Typically improved insulin sensitivity. May need less insulin.
+
+**Ovulation (Day 14)**: Estrogen peaks, LH surge. Some experience brief glucose elevation.
+
+**Luteal Phase (Days 15-28)**: Progesterone rises, causing insulin resistance. May need 10-30% more insulin.
+
+**Menstruation (Days 1-5)**: Hormones decline; return to baseline sensitivity. Risk of hypoglycemia if doses weren't reduced.
+
+**Individual Variability**
+
+Not all women experience noticeable patterns. Up to 70% report some menstrual glucose impact, ranging from negligible to profound.`
+      },
+      {
+        id: "scientific-research",
+        title: "Scientific Research Overview",
+        content: `**Evidence Base**
+
+Studies confirm:
+- Luteal phase associated with higher glucose and HbA1c variability
+- Progesterone directly affects insulin signaling
+- Pattern recognition enables effective management
+- Automated systems may partially compensate but not fully
+
+Research increasingly recognizes this as undertreated aspect of T1D management.`
+      },
+      {
+        id: "symptom-analysis",
+        title: "Symptom Analysis",
+        content: `**Common Patterns**
+
+- Higher glucose 3-7 days before period
+- Increased insulin requirements in luteal phase
+- Drop in requirements with menstruation onset
+- Hypoglycemia if adjustments not reduced promptly
+
+**Associated Symptoms**
+
+Hormonal symptoms may affect diabetes management:
+- Fatigue reducing self-care
+- Cravings complicating carb counting
+- Mood changes affecting motivation`
+      },
+      {
+        id: "diagnostic-approaches",
+        title: "Diagnostic Approaches",
+        content: `**Cycle Tracking**
+
+- Log period dates with CGM data
+- Overlay glucose patterns across multiple cycles
+- Identify consistent timing and magnitude
+- Note individual trigger points
+
+**Pattern Recognition**
+
+- Compare mean glucose and TIR by cycle phase
+- Assess insulin requirements variation
+- Document at least 3 cycles for reliable patterns`
+      },
+      {
+        id: "treatment-management",
+        title: "Treatment & Management",
+        content: `**Insulin Adjustments**
+
+**Pump Users**:
+- Create luteal phase basal profile (10-30% higher)
+- Switch profiles based on cycle tracking
+- Consider higher correction factor during luteal
+
+**MDI Users**:
+- Increase basal and bolus during luteal phase
+- Reduce promptly when period starts
+- Track patterns to predict needs
+
+**Lifestyle Considerations**
+
+- Consistent eating during high-craving times
+- Exercise may help with insulin sensitivity
+- Stress management for hormonal symptoms
+
+**Technology**
+
+- Some closed-loop systems partially adapt
+- Menstrual tracking apps can integrate with diabetes data
+- Pattern detection improving`
+      },
+      {
+        id: "community-experiences",
+        title: "Community Experiences",
+        content: `**What Works**
+
+- "I increase basal 20% from ovulation to period start - works every time"
+- "Tracking my cycle saved my sanity - those mysterious highs weren't random"
+- "I have 2 pump profiles - regular and PMS mode"
+
+**Challenges**
+
+- Irregular cycles make prediction difficult
+- Not taken seriously by some providers
+- Each cycle can still vary somewhat"`
+      },
+      {
+        id: "long-term-outlook",
+        title: "Long-term Outlook",
+        content: `**Menopause Considerations**
+
+Hormonal changes of perimenopause and menopause create new challenges:
+- Fluctuating patterns for years
+- Eventually stabilized post-menopause
+- May need significant insulin adjustments
+
+**Future Directions**
+
+- Better integration of cycle data with insulin delivery
+- Algorithmic prediction of hormonal phases
+- Personalized pattern recognition tools`
+      }
+    ],
+    references: [
+      { citation: "Brown SA, et al. The impact of menstrual cycle phase on glucose management in women with type 1 diabetes. Diabetes Care. 2015;38(2):e28-e29." },
+      { citation: "Widom B, et al. Glycemic deterioration during the menstrual cycle in patients with IDDM. Diabetes Care. 1992;15(3):400-405." }
+    ]
+  },
+
+  // ===================== INJECTION SITE REACTIONS =====================
+  "injection-site-reactions": {
+    projectSlug: "injection-site-reactions",
+    wordCount: 3200,
+    lastUpdated: "2026-01-21",
+    sections: [
+      {
+        id: "executive-summary",
+        title: "Executive Summary",
+        content: `Skin reactions at injection and infusion sites are common complications in Type 1 Diabetes, affecting up to 50% of patients at some point. These include lipohypertrophy (fatty lumps), lipoatrophy (fat loss), allergic reactions, and infections. Proper site rotation and technique are essential for prevention and absorption consistency.
+
+Lipohypertrophy is the most prevalent issue, occurring in 30-50% of insulin users, causing erratic absorption that significantly impacts glucose control. Injecting into these areas can reduce insulin absorption by up to 50%, leading to unexplained hyperglycemia.
+
+This analysis provides comprehensive guidance on recognition, prevention, and management of injection site complications for both MDI and pump users.`
+      },
+      {
+        id: "understanding-condition",
+        title: "Understanding the Condition",
+        content: `**Types of Site Reactions**
+
+**Lipohypertrophy**: Accumulation of fat and fibrous tissue at frequently used injection sites. Feels like rubbery lumps. Causes erratic insulin absorption.
+
+**Lipoatrophy**: Loss of subcutaneous fat creating visible depressions. Less common with modern insulins. May have autoimmune component.
+
+**Allergic Reactions**: Local redness, swelling, itching. May be to insulin, preservatives, or adhesives. Rarely systemic.
+
+**Scarring and Fibrosis**: Tough tissue from repeated trauma. Affects absorption and causes discomfort.
+
+**Infections**: Localized cellulitis or abscess. More common with pump sites than MDI.
+
+**Pump-Specific Issues**: Adhesive reactions, cannula kinks, site failures.`
+      },
+      {
+        id: "scientific-research",
+        title: "Scientific Research Overview",
+        content: `**Prevalence Data**
+
+Studies show:
+- Lipohypertrophy present in 30-50% of patients
+- Most patients inject into affected areas
+- Site changes alone can improve HbA1c 0.5-1%
+- Proper rotation dramatically reduces complications
+
+**Absorption Impact**
+
+Injecting into lipohypertrophy can reduce absorption by 25-50%, with unpredictable timing and variability.`
+      },
+      {
+        id: "symptom-analysis",
+        title: "Symptom Analysis",
+        content: `**Recognition Signs**
+
+- Visible or palpable lumps/depressions
+- Unexplained glucose variability
+- "Favorite" injection sites with changes
+- Reduced injection discomfort (nerve damage in affected areas)
+- Unpredictable absorption patterns
+
+**When to Seek Care**
+
+- Signs of infection (redness, warmth, pus)
+- Expanding or hardening masses
+- Severe allergic reactions
+- Persistent atrophy`
+      },
+      {
+        id: "diagnostic-approaches",
+        title: "Diagnostic Approaches",
+        content: `**Self-Examination**
+
+- Regular palpation of injection areas
+- Visual inspection for changes
+- Note sites used in injection log
+- Partner or provider examination
+
+**Clinical Assessment**
+
+- Provider should examine sites at visits
+- Ultrasound can assess tissue changes
+- Measure affected area size over time`
+      },
+      {
+        id: "treatment-management",
+        title: "Treatment & Management",
+        content: `**Site Rotation**
+
+- Use systematic rotation pattern
+- Divide body into quadrants
+- Use each site only once every 2-4 weeks
+- Include all available areas (abdomen, thighs, buttocks, arms)
+
+**For Existing Lipohypertrophy**
+
+- Stop using affected areas completely
+- Allow 6-12 months for resolution
+- Reduce insulin dose when switching to unaffected areas (better absorption)
+- Monitor closely during transition
+
+**Pump Users**
+
+- Rotate infusion sites every 2-3 days
+- Use full rotation pattern
+- Consider different body areas
+- Address adhesive reactions with barrier products
+
+**Prevention**
+
+- Never reuse needles
+- Adequate needle length
+- Proper injection technique
+- Regular site inspection
+- Diabetes team education`
+      },
+      {
+        id: "community-experiences",
+        title: "Community Experiences",
+        content: `**Tips**
+
+- "I use a body map to track sites - game changer for rotation"
+- "Stopped using my favorite spot and my glucose improved within weeks"
+- "Barrier wipes fixed my adhesive allergies"
+- "My endo found lumps I didn't even know were there"`
+      },
+      {
+        id: "long-term-outlook",
+        title: "Long-term Outlook",
+        content: `**Recovery**
+
+Lipohypertrophy can resolve with:
+- Complete site avoidance for 6-12 months
+- Some permanent changes may persist
+- Prevention is key
+
+**Lifetime Management**
+
+Site rotation is lifelong necessity. Early education and consistent practice prevent complications.`
+      }
+    ],
+    references: [
+      { citation: "Famulla S, et al. Lipohypertrophy and absorption of insulin. Diabetologia. 2016;59:S170." },
+      { citation: "Blanco M, et al. Prevalence and risk factors of lipohypertrophy in insulin-injecting patients with diabetes. Diabetes Metab. 2013;39(5):445-453." }
+    ]
+  },
+
+  // ===================== TEMPERATURE SENSITIVITY =====================
+  "temperature-weather-sensitivity": {
+    projectSlug: "temperature-weather-sensitivity",
+    wordCount: 3100,
+    lastUpdated: "2026-01-21",
+    sections: [
+      {
+        id: "executive-summary",
+        title: "Executive Summary",
+        content: `Temperature and weather conditions significantly affect insulin action, glucose levels, and diabetes management in Type 1 Diabetes. Heat accelerates insulin absorption and can cause hypoglycemia, while cold may slow absorption and affects insulin storage. Understanding these environmental impacts enables proactive management during weather extremes.
+
+This analysis examines the physiological effects of temperature on insulin and glucose metabolism, practical strategies for hot and cold conditions, and equipment considerations for varying climates.`
+      },
+      {
+        id: "understanding-condition",
+        title: "Understanding the Condition",
+        content: `**Heat Effects**
+
+- Accelerated insulin absorption (vasodilation)
+- Increased hypoglycemia risk
+- Potential insulin degradation
+- Dehydration affecting glucose
+- Altered activity patterns
+
+**Cold Effects**
+
+- Slowed insulin absorption (vasoconstriction)
+- Potential hyperglycemia
+- Equipment malfunction risks
+- Insulin freezing concerns
+- Reduced activity may affect needs`
+      },
+      {
+        id: "scientific-research",
+        title: "Scientific Research Overview",
+        content: `**Evidence**
+
+Studies show:
+- Insulin absorption increases up to 50% with heat exposure
+- Cold reduces absorption rate significantly
+- Insulin degrades above 86°F (30°C)
+- Freezing permanently destroys insulin
+- Temperature affects CGM and pump function`
+      },
+      {
+        id: "symptom-analysis",
+        title: "Symptom Analysis",
+        content: `**Heat-Related Patterns**
+
+- Unexpected hypoglycemia on hot days
+- Faster insulin action than expected
+- Increased glucose variability
+- Dehydration symptoms
+
+**Cold-Related Patterns**
+
+- Higher glucose despite usual doses
+- Sluggish response to corrections
+- Extended hyperglycemia duration`
+      },
+      {
+        id: "diagnostic-approaches",
+        title: "Diagnostic Approaches",
+        content: `**Pattern Recognition**
+
+- Track weather with glucose data
+- Note outdoor vs. indoor time
+- Document activity level changes
+- Assess insulin storage conditions`
+      },
+      {
+        id: "treatment-management",
+        title: "Treatment & Management",
+        content: `**Hot Weather Strategies**
+
+- Reduce insulin doses 10-20% during prolonged heat
+- Stay hydrated
+- Keep insulin cooled (not frozen)
+- Increase monitoring frequency
+- Be prepared for faster lows
+
+**Cold Weather Strategies**
+
+- Keep insulin warm (body heat, insulated cases)
+- May need slightly higher doses
+- Protect equipment from extreme cold
+- Monitor for slow absorption
+
+**Equipment Protection**
+
+- Insulin: Store 36-46°F; protect from heat and freezing
+- Pumps: Keep close to body in extreme cold
+- CGM: May need warming in very cold conditions`
+      },
+      {
+        id: "community-experiences",
+        title: "Community Experiences",
+        content: `**Tips**
+
+- "FRIO cooling cases saved my vacation insulin"
+- "I reduce basal 15% on beach days - prevents lows"
+- "Keep pump against body in winter - works fine"
+- "Hot tubs and saunas accelerate my insulin hugely"`
+      },
+      {
+        id: "long-term-outlook",
+        title: "Long-term Outlook",
+        content: `**Living with Seasonal Changes**
+
+With awareness and adaptation:
+- All climates manageable with T1D
+- Seasonal insulin adjustments become routine
+- Equipment improvements continue
+- Planning enables safe travel to any climate`
+      }
+    ],
+    references: [
+      { citation: "Koivisto VA, Felig P. Effects of leg exercise on insulin absorption in diabetic patients. N Engl J Med. 1978;298(2):79-83." },
+      { citation: "Heinemann L. Temperature effects on insulin absorption. Diabetes Technology & Therapeutics. 2009;11(S1):S39-S43." }
+    ]
+  },
+
+  // ===================== ALTITUDE EFFECTS =====================
+  "altitude-insulin-effects": {
+    projectSlug: "altitude-insulin-effects",
+    wordCount: 3000,
+    lastUpdated: "2026-01-21",
+    sections: [
+      {
+        id: "executive-summary",
+        title: "Executive Summary",
+        content: `Altitude significantly affects insulin requirements and diabetes management, with changes in atmospheric pressure, oxygen levels, and activity patterns all impacting glucose control. Understanding these effects is essential for safe mountain travel and high-altitude activities.
+
+Research shows that altitude exposure typically increases insulin requirements initially due to stress hormone release, though individual responses vary. Pump users must manage pressure-related bubble formation, and all travelers need to account for increased hypoglycemia risk from exertion.`
+      },
+      {
+        id: "understanding-condition",
+        title: "Understanding the Condition",
+        content: `**Physiological Changes**
+
+At altitude, the body experiences:
+- Reduced oxygen (affects metabolism)
+- Counter-regulatory hormone release
+- Changes in appetite and eating patterns
+- Increased physical exertion
+
+**Pump Considerations**
+
+Atmospheric pressure changes affect pumps:
+- Bubbles expand at altitude
+- May cause air in tubing
+- Risk of over-delivery during ascent
+- Under-delivery possible during descent`
+      },
+      {
+        id: "scientific-research",
+        title: "Scientific Research Overview",
+        content: `**Evidence**
+
+Studies show:
+- Insulin requirements often increase at altitude
+- Hypoglycemia risk increases with activity
+- Pump bubbles are a real concern above 8,000 feet
+- Individual responses highly variable
+- Acclimatization may change requirements over days`
+      },
+      {
+        id: "symptom-analysis",
+        title: "Symptom Analysis",
+        content: `**Altitude Effects on Glucose**
+
+- Initial stress may raise glucose
+- Increased activity typically lowers glucose
+- Appetite changes affect carb intake
+- Symptoms of hypoglycemia may mimic altitude sickness
+
+**Distinguishing Conditions**
+
+Altitude sickness symptoms overlap with hypo:
+- Headache
+- Nausea
+- Fatigue
+- Confusion
+Always check glucose when symptomatic at altitude.`
+      },
+      {
+        id: "diagnostic-approaches",
+        title: "Diagnostic Approaches",
+        content: `**Monitoring Approach**
+
+- Increase CGM/BGM frequency
+- Log activity, altitude, and meals
+- Check glucose before assuming altitude sickness
+- Watch for patterns over multi-day trips`
+      },
+      {
+        id: "treatment-management",
+        title: "Treatment & Management",
+        content: `**Preparation**
+
+- Discuss with diabetes team before travel
+- Bring extra supplies (medications, glucose)
+- Know how to manage pump at altitude
+- Plan for increased monitoring
+
+**Pump Management**
+
+- Disconnect pump before ascent, reconnect after
+- Or leave pump on and prime to clear bubbles
+- Monitor closely for site failures
+- Consider MDI backup for extreme altitude
+
+**Activity Adjustments**
+
+- Reduce insulin for strenuous hiking
+- Carry fast-acting carbs
+- Start conservative with doses
+- Adjust based on individual response
+
+**Cold and Altitude Combined**
+
+Many high-altitude environments are cold:
+- Protect insulin from freezing
+- Keep equipment warm
+- Account for both temperature and altitude effects`
+      },
+      {
+        id: "community-experiences",
+        title: "Community Experiences",
+        content: `**Tips from Mountaineers with T1D**
+
+- "I disconnect my pump during the flight up, prime on landing"
+- "My basal needs increased 20% for the first 2 days at altitude"
+- "Always carry glucose - exertion at altitude drops me fast"
+- "CGM was a lifesaver - caught lows I might have confused with altitude sickness"`
+      },
+      {
+        id: "long-term-outlook",
+        title: "Long-term Outlook",
+        content: `**Living at Altitude**
+
+Those who move to high altitude:
+- Adjust requirements over weeks
+- Eventually establish new baseline
+- Continue increased vigilance for activities
+
+**Mountain Sports with T1D**
+
+With proper preparation:
+- Climbing, skiing, hiking all achievable
+- Many elite mountaineers have T1D
+- Planning and experience enable safe adventures`
+      }
+    ],
+    references: [
+      { citation: "Moore K, et al. Management of diabetes at altitude. Postgrad Med J. 2001;77(914):817-824." },
+      { citation: "Pavan P, et al. High altitude insulin pump performance. High Alt Med Biol. 2014;15(3):331-335." }
+    ]
+  }
 };
 
 // Helper function to get report by slug
