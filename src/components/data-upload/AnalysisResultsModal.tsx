@@ -316,6 +316,14 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
                   <TrendingUp className="h-4 w-4" />
                   Trends
                 </TabsTrigger>
+                <TabsTrigger value="risk" className="gap-1.5">
+                  <AlertTriangle className="h-4 w-4" />
+                  Risk Analysis
+                </TabsTrigger>
+                <TabsTrigger value="daycompare" className="gap-1.5">
+                  <Calendar className="h-4 w-4" />
+                  Day Compare
+                </TabsTrigger>
                 <TabsTrigger value="insights" className="gap-1.5">
                   <Lightbulb className="h-4 w-4" />
                   Insights
@@ -391,6 +399,38 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
                       <Skeleton className="h-48 w-full" />
                     </div>
                   )}
+                </TabsContent>
+
+                <TabsContent value="risk" className="mt-0 space-y-6">
+                  <GlucoseRiskMatrix 
+                    hourlyStats={hourlyData?.map(h => ({
+                      hour: h.hour,
+                      average: h.avg,
+                      min: h.min,
+                      max: h.max,
+                      count: h.count
+                    }))} 
+                  />
+                  <TrendPrediction 
+                    hourlyStats={hourlyData?.map(h => ({
+                      hour: h.hour,
+                      average: h.avg,
+                      min: h.min,
+                      max: h.max
+                    }))}
+                  />
+                </TabsContent>
+
+                <TabsContent value="daycompare" className="mt-0 space-y-6">
+                  <WeekdayComparisonChart 
+                    dailyStats={dailyData?.map(d => ({
+                      date: d.date,
+                      average: d.avg,
+                      min: d.min,
+                      max: d.max,
+                      timeInRange: d.tir
+                    }))}
+                  />
                 </TabsContent>
 
                 <TabsContent value="insights" className="mt-0 space-y-6">
