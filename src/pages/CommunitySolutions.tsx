@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, RefreshCw, AlertTriangle, Bell, Bookmark, ChevronRight } from 'lucide-react';
+import { Users, RefreshCw, AlertTriangle, Bell, Bookmark, ChevronRight, Wrench } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,6 +12,8 @@ import { FilterBar } from '@/components/community/FilterBar';
 import { SolutionCard } from '@/components/community/SolutionCard';
 import { TopicGrid } from '@/components/community/TopicGrid';
 import { TrendingSolutions } from '@/components/community/TrendingSolutions';
+import { TrendingDeviceIssues } from '@/components/community/TrendingDeviceIssues';
+import { RecentDeviceFixes } from '@/components/community/RecentDeviceFixes';
 import { DataRefreshBanner } from '@/components/community/DataRefreshBanner';
 import { SavedPostsList } from '@/components/community/SavedPostsList';
 import { AlertPreferencesModal } from '@/components/community/AlertPreferencesModal';
@@ -202,6 +204,10 @@ const CommunitySolutions: React.FC = () => {
               <Users className="h-4 w-4 mr-2" />
               All Posts
             </TabsTrigger>
+            <TabsTrigger value="devices">
+              <Wrench className="h-4 w-4 mr-2" />
+              Device Issues
+            </TabsTrigger>
             <TabsTrigger value="saved">
               <Bookmark className="h-4 w-4 mr-2" />
               My Saved
@@ -350,6 +356,23 @@ const CommunitySolutions: React.FC = () => {
                   </CardContent>
                 </Card>
               </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="devices">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <TrendingDeviceIssues 
+                onIssueClick={(issue) => {
+                  updateFilters({ query: issue.issue_title.split(' ').slice(0, 3).join(' ') });
+                  setActiveTab('all');
+                }}
+              />
+              <RecentDeviceFixes 
+                onFixClick={(fix) => {
+                  updateFilters({ query: fix.title.split(' ').slice(0, 3).join(' ') });
+                  setActiveTab('all');
+                }}
+              />
             </div>
           </TabsContent>
 
