@@ -684,6 +684,68 @@ export type Database = {
           },
         ]
       }
+      device_user_fixes: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          description: string
+          detailed_steps: string[] | null
+          device_id: string
+          difficulty: string | null
+          id: string
+          is_verified: boolean | null
+          source: string | null
+          source_url: string | null
+          success_rate: number | null
+          title: string
+          updated_at: string | null
+          votes: number | null
+          warnings: string[] | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string | null
+          description: string
+          detailed_steps?: string[] | null
+          device_id: string
+          difficulty?: string | null
+          id?: string
+          is_verified?: boolean | null
+          source?: string | null
+          source_url?: string | null
+          success_rate?: number | null
+          title: string
+          updated_at?: string | null
+          votes?: number | null
+          warnings?: string[] | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string | null
+          description?: string
+          detailed_steps?: string[] | null
+          device_id?: string
+          difficulty?: string | null
+          id?: string
+          is_verified?: boolean | null
+          source?: string | null
+          source_url?: string | null
+          success_rate?: number | null
+          title?: string
+          updated_at?: string | null
+          votes?: number | null
+          warnings?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_user_fixes_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       devices: {
         Row: {
           accuracy_mard: string | null
@@ -1327,6 +1389,53 @@ export type Database = {
         }
         Relationships: []
       }
+      glucose_analysis_entries: {
+        Row: {
+          auto_detected: boolean | null
+          avg_glucose: number | null
+          context: string | null
+          created_at: string | null
+          glucose_direction: string | null
+          id: string
+          pattern_type: string | null
+          time_of_day: string | null
+          upload_id: string | null
+          user_id: string
+        }
+        Insert: {
+          auto_detected?: boolean | null
+          avg_glucose?: number | null
+          context?: string | null
+          created_at?: string | null
+          glucose_direction?: string | null
+          id?: string
+          pattern_type?: string | null
+          time_of_day?: string | null
+          upload_id?: string | null
+          user_id: string
+        }
+        Update: {
+          auto_detected?: boolean | null
+          avg_glucose?: number | null
+          context?: string | null
+          created_at?: string | null
+          glucose_direction?: string | null
+          id?: string
+          pattern_type?: string | null
+          time_of_day?: string | null
+          upload_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "glucose_analysis_entries_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "uploads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       manufacturer_support_resources: {
         Row: {
           created_at: string | null
@@ -1533,6 +1642,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      medication_community_feedback: {
+        Row: {
+          content: string
+          created_at: string | null
+          feedback_type: string | null
+          id: string
+          medication_id: string | null
+          source: string | null
+          source_url: string | null
+          title: string
+          votes: number | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          feedback_type?: string | null
+          id?: string
+          medication_id?: string | null
+          source?: string | null
+          source_url?: string | null
+          title: string
+          votes?: number | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          feedback_type?: string | null
+          id?: string
+          medication_id?: string | null
+          source?: string | null
+          source_url?: string | null
+          title?: string
+          votes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medication_community_feedback_medication_id_fkey"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "medications"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       medication_interactions: {
         Row: {
