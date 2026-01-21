@@ -77,6 +77,20 @@ import MedicineComparison from "./pages/MedicineComparison";
 import TrialMatching from "./pages/TrialMatching";
 import QualityOfLife from "./pages/QualityOfLife";
 import { AdminRoute } from "./components/admin/AdminRoute";
+
+// New Pages - Phase 3-24
+import LowBloodSugarWorld from "./pages/LowBloodSugarWorld";
+import Diabeto18Plus from "./pages/Diabeto18Plus";
+import Articles from "./pages/Articles";
+import ArticleDetail from "./pages/ArticleDetail";
+import HealthcareExperience from "./pages/HealthcareExperience";
+import HealthcareProviders from "./pages/HealthcareProviders";
+import AppCenter from "./pages/AppCenter";
+import EmergenceOfDiabetes from "./pages/EmergenceOfDiabetes";
+import LearnExplore from "./pages/LearnExplore";
+import WarriorSpotlight from "./pages/WarriorSpotlight";
+import Shop from "./pages/Shop";
+import PublicGlucoseData from "./pages/PublicGlucoseData";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -167,6 +181,20 @@ const App = () => {
             <Route path="/quality-of-life" element={<QualityOfLife />} />
             <Route path="/donation-result" element={<DonateSuccess />} />
             <Route path="/qa-checklist" element={<QAChecklist />} />
+            
+            {/* New Routes - Phases 3-24 */}
+            <Route path="/low-blood-sugar-world" element={<LowBloodSugarWorld />} />
+            <Route path="/diabeto-18plus" element={<ProtectedRoute><Diabeto18Plus /></ProtectedRoute>} />
+            <Route path="/articles" element={<Articles />} />
+            <Route path="/articles/:slug" element={<ArticleDetail />} />
+            <Route path="/healthcare-experience" element={<HealthcareExperience />} />
+            <Route path="/healthcare-providers" element={<HealthcareProviders />} />
+            <Route path="/app-center" element={<AppCenter />} />
+            <Route path="/emergence" element={<EmergenceOfDiabetes />} />
+            <Route path="/learn" element={<LearnExplore />} />
+            <Route path="/warrior-spotlight" element={<WarriorSpotlight />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/public-glucose-data" element={<ProtectedRoute><PublicGlucoseData /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
