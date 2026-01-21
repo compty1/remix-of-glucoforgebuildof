@@ -36,7 +36,11 @@ import {
   Info,
   Pill,
   Stethoscope,
-  Sparkles as SparklesIcon
+  Sparkles as SparklesIcon,
+  Droplet,
+  Award,
+  TrendingUp,
+  ShoppingBag
 } from 'lucide-react';
 import {
   Sidebar,
@@ -74,6 +78,7 @@ const platformItemsBeforeProjects = [
   { title: "T1D Companion", url: "/t1d-companion", icon: MessageCircle },
   { title: "Community Solutions", url: "/community-solutions", icon: Users },
   { title: "Medicine Hub", url: "/medicines", icon: Pill },
+  { title: "App Center", url: "/app-center", icon: Smartphone },
   { title: "Find Clinical Trials", url: "/trials", icon: Stethoscope },
   { title: "Quality of Life", url: "/quality-of-life", icon: SparklesIcon },
 ];
@@ -91,12 +96,25 @@ const platformItemsAfterProjects = [
   { title: "Data Upload", url: "/data-upload", icon: Upload },
   { title: "Glycemic Journal", url: "/journal", icon: BookOpen },
   { title: "Scenario Lab", url: "/scenario-lab", icon: TestTube },
+  { title: "Public Glucose Data", url: "/public-glucose-data", icon: Activity },
+];
+
+const contentItems = [
+  { title: "Low Blood Sugar World", url: "/low-blood-sugar-world", icon: Droplet },
+  { title: "Diabeto 18+", url: "/diabeto-18plus", icon: AlertTriangle },
+  { title: "Articles", url: "/articles", icon: FileText },
+  { title: "Learn & Explore", url: "/learn", icon: BookOpen },
+  { title: "Healthcare Experience", url: "/healthcare-experience", icon: Stethoscope },
+  { title: "Warrior Spotlight", url: "/warrior-spotlight", icon: Award },
+  { title: "Emergence of Diabetes", url: "/emergence", icon: TrendingUp },
+  { title: "Shop", url: "/shop", icon: ShoppingBag },
 ];
 
 const supportItems = [
   { title: "About", url: "/about", icon: Info },
   { title: "Build With Us", url: "/build-with-us", icon: Hammer },
   { title: "Get Involved", url: "/get-involved", icon: HandHeart },
+  { title: "Healthcare Providers", url: "/healthcare-providers", icon: Building2 },
   { title: "Resources", url: "/resources", icon: Library },
   { title: "Settings", url: "/settings", icon: Settings },
   { title: "Help & Support", url: "/help", icon: HelpCircle },
@@ -428,6 +446,27 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {/* Content Hub */}
+        <SidebarGroup>
+          <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : ""}>
+            Content Hub
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {contentItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink to={item.url} className={getNavClasses(item.url)}>
+                      <item.icon className="h-4 w-4" />
+                      {state !== "collapsed" && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         {/* Support */}
         <SidebarGroup>
           <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : ""}>
@@ -444,10 +483,16 @@ export function AppSidebar() {
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-            ))}
-            
-            {isAdmin && (
-              <>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Admin */}
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
                 <SidebarSeparator className="my-2" />
                 {adminItems.map((item) => (
                   <SidebarMenuItem key={item.title}>
@@ -459,11 +504,10 @@ export function AppSidebar() {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
-              </>
-            )}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   );
