@@ -1,5 +1,5 @@
 import Layout from '@/components/Layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,19 +7,41 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { User, Mail, Calendar, Shield, Award, Upload } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import { 
+  User, Mail, Calendar, Shield, Award, Wand2, RefreshCw, 
+  Lock, Eye, EyeOff, Activity, FileText, MessageSquare, 
+  Upload as UploadIcon, CheckCircle2, Clock, TrendingUp
+} from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { 
+  generateNickname, 
+  generateMultipleNicknames, 
+  avatarStyles, 
+  getAvatarUrl 
+} from '@/utils/nicknameGenerator';
 
 interface Profile {
   id?: string;
   user_id: string;
   display_name?: string;
   bio?: string;
+  avatar_style?: string;
   created_at?: string;
   updated_at?: string;
+}
+
+interface ActivityItem {
+  id: string;
+  type: 'survey' | 'upload' | 'post' | 'review' | 'save';
+  title: string;
+  description: string;
+  timestamp: string;
+  icon: React.ReactNode;
 }
 
 export default function Profile() {
@@ -29,12 +51,40 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     display_name: '',
-    bio: ''
+    bio: '',
+    avatar_style: 'default'
   });
+  
+  // Nickname generation
+  const [nicknameOptions, setNicknameOptions] = useState<string[]>([]);
+  const [showNicknameDialog, setShowNicknameDialog] = useState(false);
+  
+  // Password change
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  
+  // Activity stats
+  const [activityStats, setActivityStats] = useState({
+    surveysCompleted: 0,
+    dataUploads: 0,
+    communityPosts: 0,
+    deviceReviews: 0,
+    savedItems: 0
+  });
+  
+  const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
+      fetchActivityStats();
     }
   }, [user]);
 
@@ -56,7 +106,8 @@ export default function Profile() {
         setProfile(data);
         setFormData({
           display_name: data.display_name || '',
-          bio: data.bio || ''
+          bio: data.bio || '',
+          avatar_style: (data as any).avatar_style || 'default'
         });
       }
     } catch (error) {
@@ -67,13 +118,64 @@ export default function Profile() {
     }
   };
 
+  const fetchActivityStats = async () => {
+    if (!user) return;
+
+    try {
+      // Fetch survey responses count
+      const { count: surveyCount } = await supabase
+        .from('survey_responses')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      // Fetch device reviews count
+      const { count: reviewCount } = await supabase
+        .from('device_reviews')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id);
+
+      setActivityStats({
+        surveysCompleted: surveyCount || 0,
+        dataUploads: 0,
+        communityPosts: 0,
+        deviceReviews: reviewCount || 0,
+        savedItems: 0
+      });
+
+      // Build recent activity from device reviews
+      const activities: ActivityItem[] = [];
+
+      // Add recent reviews
+      const { data: recentReviews } = await supabase
+        .from('device_reviews')
+        .select('id, created_at, title')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      recentReviews?.forEach(review => {
+        activities.push({
+          id: review.id,
+          type: 'review',
+          title: 'Device Review Posted',
+          description: review.title || 'Shared your experience',
+          timestamp: review.created_at,
+          icon: <MessageSquare className="h-4 w-4 text-primary" />
+        });
+      });
+
+      setRecentActivity(activities);
+    } catch (error) {
+      console.error('Error fetching activity stats:', error);
+    }
+  };
+
   const handleSave = async () => {
     if (!user) return;
 
     setSaving(true);
     try {
       if (profile) {
-        // Update existing profile
         const { error } = await supabase
           .from('profiles')
           .update({
@@ -85,7 +187,6 @@ export default function Profile() {
 
         if (error) throw error;
       } else {
-        // Create new profile
         const { data, error } = await supabase
           .from('profiles')
           .insert({
@@ -114,15 +215,64 @@ export default function Profile() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const generateNewNicknames = () => {
+    setNicknameOptions(generateMultipleNicknames(6));
+  };
+
+  const selectNickname = (nickname: string) => {
+    setFormData(prev => ({ ...prev, display_name: nickname }));
+    setShowNicknameDialog(false);
+    toast.success(`Nickname set to "${nickname}"`);
+  };
+
+  const handlePasswordChange = async () => {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    setChangingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: passwordData.newPassword
+      });
+
+      if (error) throw error;
+
+      toast.success('Password updated successfully');
+      setShowPasswordDialog(false);
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (error: any) {
+      console.error('Error changing password:', error);
+      toast.error(error.message || 'Failed to change password');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const selectAvatarStyle = (styleId: string) => {
+    setFormData(prev => ({ ...prev, avatar_style: styleId }));
+  };
+
+  const currentAvatarUrl = getAvatarUrl(
+    formData.display_name || user?.email || 'user',
+    formData.avatar_style
+  );
+
   if (loading) {
     return (
       <Layout>
         <div className="container mx-auto px-6 py-8">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-5xl mx-auto">
             <div className="animate-pulse space-y-4">
-              <div className="h-8 bg-gray-200 rounded w-1/4"></div>
-              <div className="h-32 bg-gray-200 rounded"></div>
-              <div className="h-64 bg-gray-200 rounded"></div>
+              <div className="h-8 bg-muted rounded w-1/4"></div>
+              <div className="h-32 bg-muted rounded"></div>
+              <div className="h-64 bg-muted rounded"></div>
             </div>
           </div>
         </div>
@@ -133,183 +283,447 @@ export default function Profile() {
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-5xl mx-auto">
           <h1 className="text-4xl font-heading font-bold text-foreground mb-6">
-            Profile
+            Your Profile
           </h1>
           
-          <div className="space-y-6">
-            {/* Profile Header */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-6">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src="" alt="Profile" />
-                    <AvatarFallback className="text-2xl">
-                      {formData.display_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <h2 className="text-2xl font-semibold">
-                      {formData.display_name || 'Anonymous User'}
-                    </h2>
-                    <p className="text-muted-foreground flex items-center gap-2">
-                      <Mail className="h-4 w-4" />
-                      {user?.email}
-                    </p>
-                    <p className="text-muted-foreground flex items-center gap-2 mt-1">
-                      <Calendar className="h-4 w-4" />
-                      Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'Recently'}
-                    </p>
+          <Tabs defaultValue="profile" className="space-y-6">
+            <TabsList>
+              <TabsTrigger value="profile">Profile</TabsTrigger>
+              <TabsTrigger value="activity">Activity</TabsTrigger>
+              <TabsTrigger value="security">Security</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="profile" className="space-y-6">
+              {/* Profile Header with Avatar */}
+              <Card>
+                <CardContent className="p-6">
+                  <div className="flex flex-col md:flex-row items-center gap-6">
+                    <div className="relative group">
+                      <Avatar className="h-24 w-24 border-4 border-primary/20">
+                        <AvatarImage src={currentAvatarUrl} alt="Profile" />
+                        <AvatarFallback className="text-3xl bg-primary/10 text-primary">
+                          {formData.display_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    
+                    <div className="flex-1 text-center md:text-left">
+                      <div className="flex flex-col md:flex-row md:items-center gap-2 mb-2">
+                        <h2 className="text-2xl font-semibold">
+                          {formData.display_name || 'Anonymous Warrior'}
+                        </h2>
+                        <Dialog open={showNicknameDialog} onOpenChange={setShowNicknameDialog}>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={generateNewNicknames}
+                              className="gap-1"
+                            >
+                              <Wand2 className="h-4 w-4" />
+                              Generate Nickname
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Choose Your Warrior Name</DialogTitle>
+                              <DialogDescription>
+                                Pick a diabetes-themed nickname or generate new ones
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-4">
+                              <div className="grid grid-cols-2 gap-2">
+                                {nicknameOptions.map((nickname, i) => (
+                                  <Button
+                                    key={i}
+                                    variant="outline"
+                                    className="justify-start h-auto py-3"
+                                    onClick={() => selectNickname(nickname)}
+                                  >
+                                    {nickname}
+                                  </Button>
+                                ))}
+                              </div>
+                              <Button 
+                                variant="secondary" 
+                                className="w-full gap-2"
+                                onClick={generateNewNicknames}
+                              >
+                                <RefreshCw className="h-4 w-4" />
+                                Generate More
+                              </Button>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                      <p className="text-muted-foreground flex items-center justify-center md:justify-start gap-2">
+                        <Mail className="h-4 w-4" />
+                        {user?.email}
+                      </p>
+                      <p className="text-muted-foreground flex items-center justify-center md:justify-start gap-2 mt-1">
+                        <Calendar className="h-4 w-4" />
+                        Member since {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'Recently'}
+                      </p>
+                    </div>
+                    
+                    <div className="flex flex-col gap-2">
+                      <Badge className="bg-primary/10 text-primary border-primary/20">
+                        <TrendingUp className="h-3 w-3 mr-1" />
+                        Active Contributor
+                      </Badge>
+                    </div>
                   </div>
-                  <Button variant="outline" size="sm">
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload Photo
-                  </Button>
+                </CardContent>
+              </Card>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Profile Form */}
+                <div className="lg:col-span-2 space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Personal Information</CardTitle>
+                      <CardDescription>
+                        Customize how you appear in the community
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="display_name">Display Name</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            id="display_name"
+                            type="text"
+                            value={formData.display_name}
+                            onChange={(e) => handleChange('display_name', e.target.value)}
+                            placeholder="Your warrior name"
+                          />
+                          <Button 
+                            variant="outline" 
+                            size="icon"
+                            onClick={() => {
+                              setFormData(prev => ({ ...prev, display_name: generateNickname() }));
+                              toast.success('Random nickname generated!');
+                            }}
+                          >
+                            <Wand2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="bio">Bio</Label>
+                        <Textarea
+                          id="bio"
+                          value={formData.bio}
+                          onChange={(e) => handleChange('bio', e.target.value)}
+                          placeholder="Share your T1D journey, tips, or anything you'd like..."
+                          className="min-h-[100px]"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Avatar Style</Label>
+                        <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                          {avatarStyles.map(style => (
+                            <button
+                              key={style.id}
+                              onClick={() => selectAvatarStyle(style.id)}
+                              className={`p-3 rounded-lg border-2 transition-all hover:scale-105 ${
+                                formData.avatar_style === style.id 
+                                  ? 'border-primary bg-primary/10' 
+                                  : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              <div className="text-2xl text-center">{style.icon}</div>
+                              <p className="text-xs text-center mt-1 text-muted-foreground">
+                                {style.name}
+                              </p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <Button onClick={handleSave} disabled={saving} className="w-full">
+                        {saving ? 'Saving...' : 'Save Changes'}
+                      </Button>
+                    </CardContent>
+                  </Card>
                 </div>
-              </CardContent>
-            </Card>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Profile Form */}
-              <div className="lg:col-span-2 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Personal Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="display_name">Display Name</Label>
-                      <Input
-                        id="display_name"
-                        type="text"
-                        value={formData.display_name}
-                        onChange={(e) => handleChange('display_name', e.target.value)}
-                        placeholder="How you'd like to be known"
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="bio">Bio</Label>
-                      <Textarea
-                        id="bio"
-                        value={formData.bio}
-                        onChange={(e) => handleChange('bio', e.target.value)}
-                        placeholder="Tell us a bit about yourself..."
-                        className="min-h-[100px]"
-                      />
-                    </div>
-
-                    <Button onClick={handleSave} disabled={saving} className="w-full">
-                      {saving ? 'Saving...' : 'Save Changes'}
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Account Information</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">Email Address</p>
-                        <p className="text-sm text-muted-foreground">{user?.email}</p>
-                      </div>
-                      <Badge variant="outline">Verified</Badge>
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">Account Created</p>
-                        <p className="text-sm text-muted-foreground">
-                          {profile?.created_at ? new Date(profile.created_at).toLocaleDateString() : 'Recently'}
-                        </p>
-                      </div>
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">Account Status</p>
-                        <p className="text-sm text-muted-foreground">Active</p>
-                      </div>
-                      <Badge className="bg-green-100 text-green-800">Active</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Sidebar */}
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Award className="h-5 w-5 text-primary" />
-                      Achievements
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
-                          <User className="h-4 w-4 text-primary" />
+                {/* Sidebar Stats */}
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Award className="h-5 w-5 text-primary" />
+                        Your Contributions
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">Surveys</span>
+                          </div>
+                          <Badge variant="secondary">{activityStats.surveysCompleted}</Badge>
                         </div>
-                        <div>
-                          <p className="font-medium text-sm">Welcome!</p>
-                          <p className="text-xs text-muted-foreground">Created your account</p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <UploadIcon className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">Data Uploads</span>
+                          </div>
+                          <Badge variant="secondary">{activityStats.dataUploads}</Badge>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">Reviews</span>
+                          </div>
+                          <Badge variant="secondary">{activityStats.deviceReviews}</Badge>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">Saved Items</span>
+                          </div>
+                          <Badge variant="secondary">{activityStats.savedItems}</Badge>
                         </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Shield className="h-5 w-5 text-primary" />
-                      Privacy & Security
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      <Shield className="h-4 w-4 mr-2" />
-                      Privacy Settings
-                    </Button>
-                    <Button variant="outline" size="sm" className="w-full justify-start">
-                      <User className="h-4 w-4 mr-2" />
-                      Data Export
-                    </Button>
-                  </CardContent>
-                </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Activity className="h-5 w-5 text-primary" />
+                        Account Info
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Email</span>
+                    <Badge variant="outline" className="gap-1">
+                      <CheckCircle2 className="h-3 w-3 text-primary" />
+                      Verified
+                    </Badge>
+                      </div>
+                      <Separator />
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Status</span>
+                        <Badge className="bg-primary/10 text-primary">
+                          Active
+                        </Badge>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+            </TabsContent>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Research Participation</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
-                        <span>Surveys Completed</span>
-                        <span className="font-medium">0</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Data Uploads</span>
-                        <span className="font-medium">0</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span>Community Posts</span>
-                        <span className="font-medium">0</span>
-                      </div>
+            <TabsContent value="activity" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    Recent Activity
+                  </CardTitle>
+                  <CardDescription>
+                    Your latest contributions and interactions
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {recentActivity.length > 0 ? (
+                    <div className="space-y-4">
+                      {recentActivity.map(activity => (
+                        <div 
+                          key={activity.id}
+                          className="flex items-start gap-4 p-3 rounded-lg bg-muted/50"
+                        >
+                          <div className="p-2 bg-background rounded-full">
+                            {activity.icon}
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium">{activity.title}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {activity.description}
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {new Date(activity.timestamp).toLocaleDateString()} at{' '}
+                              {new Date(activity.timestamp).toLocaleTimeString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </CardContent>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="font-semibold mb-2">No Activity Yet</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Start contributing by uploading data, completing surveys, or writing reviews!
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Contribution Summary */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card className="p-4 text-center">
+                  <div className="text-3xl font-bold text-foreground">
+                    {activityStats.surveysCompleted}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Surveys</p>
+                </Card>
+                <Card className="p-4 text-center">
+                  <div className="text-3xl font-bold text-foreground">
+                    {activityStats.dataUploads}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Uploads</p>
+                </Card>
+                <Card className="p-4 text-center">
+                  <div className="text-3xl font-bold text-foreground">
+                    {activityStats.deviceReviews}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Reviews</p>
+                </Card>
+                <Card className="p-4 text-center">
+                  <div className="text-3xl font-bold text-foreground">
+                    {activityStats.savedItems}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Saved</p>
                 </Card>
               </div>
-            </div>
-          </div>
+            </TabsContent>
+
+            <TabsContent value="security" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    Security Settings
+                  </CardTitle>
+                  <CardDescription>
+                    Manage your account security and privacy
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                    <div>
+                      <p className="font-medium">Password</p>
+                      <p className="text-sm text-muted-foreground">
+                        Change your account password
+                      </p>
+                    </div>
+                    <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="gap-2">
+                          <Lock className="h-4 w-4" />
+                          Change Password
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Change Password</DialogTitle>
+                          <DialogDescription>
+                            Enter a new password for your account
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="space-y-2">
+                            <Label>New Password</Label>
+                            <div className="relative">
+                              <Input
+                                type={showNewPassword ? 'text' : 'password'}
+                                value={passwordData.newPassword}
+                                onChange={(e) => setPasswordData(prev => ({
+                                  ...prev, 
+                                  newPassword: e.target.value
+                                }))}
+                                placeholder="Enter new password"
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute right-0 top-0"
+                                onClick={() => setShowNewPassword(!showNewPassword)}
+                              >
+                                {showNewPassword ? (
+                                  <EyeOff className="h-4 w-4" />
+                                ) : (
+                                  <Eye className="h-4 w-4" />
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Confirm New Password</Label>
+                            <Input
+                              type="password"
+                              value={passwordData.confirmPassword}
+                              onChange={(e) => setPasswordData(prev => ({
+                                ...prev, 
+                                confirmPassword: e.target.value
+                              }))}
+                              placeholder="Confirm new password"
+                            />
+                          </div>
+                          <Button 
+                            onClick={handlePasswordChange} 
+                            disabled={changingPassword}
+                            className="w-full"
+                          >
+                            {changingPassword ? 'Updating...' : 'Update Password'}
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                    <div>
+                      <p className="font-medium">Email Address</p>
+                      <p className="text-sm text-muted-foreground">{user?.email}</p>
+                    </div>
+                    <Badge variant="outline" className="gap-1">
+                      <CheckCircle2 className="h-3 w-3 text-primary" />
+                      Verified
+                    </Badge>
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                    <div>
+                      <p className="font-medium">Privacy Settings</p>
+                      <p className="text-sm text-muted-foreground">
+                        Control how your data is used
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      Manage
+                    </Button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                    <div>
+                      <p className="font-medium">Export Your Data</p>
+                      <p className="text-sm text-muted-foreground">
+                        Download all your contributions
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      Export
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </Layout>
