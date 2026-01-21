@@ -1611,6 +1611,56 @@ serve(async (req) => {
     // Generate AI recommendations
     const { recommendations, aiInsights } = await generateAIRecommendations(detailedAnalysis, patterns);
     
+    // Auto-create journal entries from detected patterns
+    const journalEntriesCreated: string[] = [];
+    const authHeader = req.headers.get('Authorization');
+    let userId: string | null = null;
+    
+    if (authHeader) {
+      try {
+        const token = authHeader.replace('Bearer ', '');
+        const { data: { user } } = await supabaseClient.auth.getUser(token);
+        userId = user?.id || null;
+      } catch (e) {
+        console.log('Could not get user from token for journal entries');
+      }
+    }
+    
+    if (userId && patterns.length > 0) {
+      const significantPatterns = patterns.filter(p => 
+        p.severity === 'warning' || p.severity === 'critical'
+      );
+      
+      for (const pattern of significantPatterns.slice(0, 5)) {
+        const direction = pattern.type.includes('low') || pattern.type.includes('hypo') ? 'Low' : 'High';
+        const tags = [
+          'auto-detected',
+          pattern.type.replace(/_/g, '-'),
+          pattern.severity,
+          pattern.timeOfDay || 'all-day'
+        ].filter(Boolean);
+        
+        try {
+          await supabaseClient
+            .from('shifts')
+            .insert({
+              user_id: userId,
+              shift_time: new Date().toISOString(),
+              direction,
+              context: `[Auto-detected from glucose data upload] ${pattern.title}: ${pattern.description}`,
+              tags
+            });
+          journalEntriesCreated.push(pattern.title);
+        } catch (e) {
+          console.log('Could not create journal entry for pattern:', pattern.type, e);
+        }
+      }
+      
+      if (journalEntriesCreated.length > 0) {
+        console.log(`Created ${journalEntriesCreated.length} auto-journal entries for user ${userId}`);
+      }
+    }
+    
     // Update database
     await supabaseClient
       .from('uploads')

@@ -11,7 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/store/authStore";
 import { InfoRail } from "@/components/InfoRail";
-import { TrendingUp, AlertCircle, Calendar } from "lucide-react";
+import { TrendingUp, AlertCircle, Calendar, Sparkles, Upload } from "lucide-react";
 
 interface Shift {
   id: string;
@@ -33,6 +33,7 @@ const Journal = () => {
   const { toast } = useToast();
   const { user } = useAuthStore();
   const [shifts, setShifts] = useState<Shift[]>([]);
+  const [autoDetectedShifts, setAutoDetectedShifts] = useState<Shift[]>([]);
   const [triggerReport, setTriggerReport] = useState<TriggerReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -61,8 +62,19 @@ const Journal = () => {
 
       if (error) throw error;
 
-      setShifts(data || []);
-      generateTriggerReport(data || []);
+      const allShifts = data || [];
+      
+      // Separate auto-detected vs manual entries
+      const autoDetected = allShifts.filter(s => 
+        Array.isArray(s.tags) && s.tags.includes('auto-detected')
+      );
+      const manualEntries = allShifts.filter(s => 
+        !Array.isArray(s.tags) || !s.tags.includes('auto-detected')
+      );
+      
+      setAutoDetectedShifts(autoDetected);
+      setShifts(manualEntries);
+      generateTriggerReport(allShifts);
     } catch (error) {
       console.error('Error fetching shifts:', error);
       toast({
@@ -224,12 +236,67 @@ const Journal = () => {
               </CardContent>
             </Card>
 
-            {/* Recent Entries */}
+            {/* Auto-Detected Patterns */}
+            {autoDetectedShifts.length > 0 && (
+              <Card className="border-primary/30 bg-primary/5">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                    Auto-Detected Patterns
+                  </CardTitle>
+                  <CardDescription>
+                    Patterns automatically identified from your glucose data uploads
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {autoDetectedShifts.slice(0, 5).map((shift) => (
+                      <div key={shift.id} className="border-l-4 border-primary/60 pl-4 py-2 bg-background/50 rounded-r-lg">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <Badge variant={shift.direction === 'High' ? 'destructive' : 'secondary'}>
+                                {shift.direction} Glucose
+                              </Badge>
+                              <Badge variant="outline" className="text-xs bg-primary/10">
+                                <Sparkles className="h-3 w-3 mr-1" />
+                                Auto-detected
+                              </Badge>
+                              <span className="text-sm text-muted-foreground">
+                                {new Date(shift.shift_time).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <p className="text-sm mb-2">{shift.context}</p>
+                            <div className="flex flex-wrap gap-1">
+                              {shift.tags.filter(t => t !== 'auto-detected').map((tag, index) => (
+                                <Badge key={index} variant="outline" className="text-xs">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    className="w-full mt-4" 
+                    onClick={() => navigate('/data-upload')}
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    Upload More Data
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Recent Manual Entries */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  Recent Entries
+                  Your Journal Entries
                 </CardTitle>
               </CardHeader>
               <CardContent>
