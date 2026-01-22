@@ -106,6 +106,10 @@ import AICenter from "./pages/AICenter";
 import DiabetesOrganizations from "./pages/DiabetesOrganizations";
 import BecomeAdvocate from "./pages/BecomeAdvocate";
 
+// New Pages - Phases 9-16
+import EventsNearMe from "./pages/EventsNearMe";
+import FutureOfT1D from "./pages/FutureOfT1D";
+
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -218,6 +222,8 @@ const App = () => {
             <Route path="/ai-center" element={<ProtectedRoute><AICenter /></ProtectedRoute>} />
             <Route path="/organizations" element={<DiabetesOrganizations />} />
             <Route path="/advocate" element={<ProtectedRoute><BecomeAdvocate /></ProtectedRoute>} />
+            <Route path="/events" element={<ProtectedRoute><EventsNearMe /></ProtectedRoute>} />
+            <Route path="/future" element={<FutureOfT1D />} />
             
             {/* Admin Content Management Routes */}
             <Route path="/admin/articles" element={<AdminRoute><AdminArticles /></AdminRoute>} />
