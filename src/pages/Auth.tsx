@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,15 +7,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuthStore } from '@/store/authStore';
-import { Loader2, Mail, Lock, User, AlertCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2, Mail, Lock, User, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
 import logoImage from '@/assets/glucoforge-logo.svg';
 import { signInSchema, signUpSchema } from '@/lib/validation';
+import { z } from 'zod';
+
+const emailSchema = z.string().email('Please enter a valid email address');
 
 const Auth = () => {
   const { user, loading, initialized, signIn, signUp } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('signin');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotPasswordEmail, setForgotPasswordEmail] = useState('');
+  const [forgotPasswordSent, setForgotPasswordSent] = useState(false);
   
   // Sign In form state
   const [signInEmail, setSignInEmail] = useState('');
@@ -149,6 +156,155 @@ const Auth = () => {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+
+    // Validate email
+    const result = emailSchema.safeParse(forgotPasswordEmail);
+    if (!result.success) {
+      setErrors({ forgotEmail: result.error.errors[0].message });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const redirectUrl = `${window.location.origin}/reset-password`;
+      const { error } = await supabase.auth.resetPasswordForEmail(forgotPasswordEmail, {
+        redirectTo: redirectUrl,
+      });
+
+      if (error) {
+        setErrors({ general: error.message });
+      } else {
+        setForgotPasswordSent(true);
+        toast.success('Password reset email sent!');
+      }
+    } catch (error) {
+      setErrors({ general: 'An unexpected error occurred. Please try again.' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Forgot Password View
+  if (showForgotPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 p-4">
+        <div className="w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="mx-auto mb-4 flex items-center justify-center">
+              <img src={logoImage} alt="GlucoForge" className="h-12 w-auto" />
+            </div>
+            <h1 className="text-3xl font-heading font-bold text-foreground">Reset Password</h1>
+            <p className="text-muted-foreground">We'll send you a link to reset your password</p>
+          </div>
+
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle>
+                {forgotPasswordSent ? (
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    Check Your Email
+                  </div>
+                ) : (
+                  'Forgot Password'
+                )}
+              </CardTitle>
+              <CardDescription>
+                {forgotPasswordSent
+                  ? `We've sent a password reset link to ${forgotPasswordEmail}. Check your inbox and spam folder.`
+                  : 'Enter your email address and we\'ll send you a reset link.'
+                }
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {forgotPasswordSent ? (
+                <div className="space-y-4">
+                  <Alert className="border-green-200 bg-green-50 dark:bg-green-900/10">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    <AlertDescription className="text-green-800 dark:text-green-200">
+                      Email sent! Click the link in your email to reset your password.
+                    </AlertDescription>
+                  </Alert>
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setForgotPasswordSent(false);
+                      setForgotPasswordEmail('');
+                    }}
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Sign In
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleForgotPassword} className="space-y-4">
+                  {errors.general && (
+                    <Alert variant="destructive">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>{errors.general}</AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="forgot-email">Email Address</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="forgot-email"
+                        type="email"
+                        placeholder="your.email@example.com"
+                        value={forgotPasswordEmail}
+                        onChange={(e) => setForgotPasswordEmail(e.target.value)}
+                        className={`pl-10 ${errors.forgotEmail ? 'border-destructive' : ''}`}
+                        disabled={isLoading}
+                      />
+                    </div>
+                    {errors.forgotEmail && (
+                      <p className="text-sm text-destructive">{errors.forgotEmail}</p>
+                    )}
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      'Send Reset Link'
+                    )}
+                  </Button>
+
+                  <Button 
+                    type="button"
+                    variant="ghost" 
+                    className="w-full"
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setErrors({});
+                    }}
+                  >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Sign In
+                  </Button>
+                </form>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 to-secondary/5 p-4">
       <div className="w-full max-w-md">
@@ -207,7 +363,17 @@ const Auth = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="signin-password">Password</Label>
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="h-auto p-0 text-xs text-primary"
+                        onClick={() => setShowForgotPassword(true)}
+                      >
+                        Forgot password?
+                      </Button>
+                    </div>
                     <div className="relative">
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input

@@ -26,6 +26,7 @@ import ResearchHub from "./pages/ResearchHub";
 import CitizenScience from "./pages/CitizenScience";
 import DataUpload from "./pages/DataUpload";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import Donate from "./pages/donate/Donate";
 import DonateSuccess from "./pages/donate/DonateSuccess";
@@ -139,6 +140,7 @@ const App = () => {
             <Route path="/insights" element={<Insights />} />
             <Route path="/glucose/upload" element={<ProtectedRoute><GlucoseUpload /></ProtectedRoute>} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/cure" element={<ProtectedRoute><LiveCureMonitoring /></ProtectedRoute>} />
             <Route path="/devices" element={<ProtectedRoute><DeviceAnalytics /></ProtectedRoute>} />
