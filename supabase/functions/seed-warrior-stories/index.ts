@@ -36,13 +36,9 @@ serve(async (req) => {
 
     const warriorStories = [
       {
-        name: "Marcus Chen",
-        age: 34,
-        diagnosis_age: 8,
-        location: "Seattle, WA",
-        story_title: "From Fear to Fearless: Running Ultramarathons with T1D",
-        story_excerpt: "When I was diagnosed at 8, doctors told my parents I'd need to be careful with physical activity. Now I've completed 12 ultramarathons.",
-        full_story: `When I was diagnosed with Type 1 diabetes at age 8, my world felt like it was ending. My parents were terrified, and the doctors gave us a long list of things I "couldn't" do anymore. Sports were supposed to be "carefully monitored." Adventures were out of the question.
+        person_name: "Marcus Chen",
+        title: "From Fear to Fearless: Running Ultramarathons with T1D",
+        story_content: `When I was diagnosed with Type 1 diabetes at age 8, my world felt like it was ending. My parents were terrified, and the doctors gave us a long list of things I "couldn't" do anymore. Sports were supposed to be "carefully monitored." Adventures were out of the question.
 
 But at 16, I discovered running. Not just jogging—I mean really running. My first 5K turned into a 10K, then a half marathon. Each finish line proved the doctors' limitations wrong.
 
@@ -51,23 +47,16 @@ At 28, I ran my first ultramarathon—a 50-mile race through the Cascades. My De
 Today, I've completed 12 ultramarathons. My CGM is my copilot. My insulin is my fuel. T1D isn't a limitation—it's taught me to listen to my body better than any non-diabetic athlete ever could.`,
         obstacles: ["Fear of exercise-induced hypoglycemia", "Endurance nutrition management", "Overcoming medical stigma about physical limits"],
         triumphs: ["Completed 12 ultramarathons", "Became a certified diabetes sports coach", "Founded a running group for T1D athletes"],
-        diagnosis_story: "Diagnosed after DKA episode at summer camp. Spent a week in ICU.",
-        management_approach: "Loop DIY closed-loop system with Omnipod",
-        advice_to_newly_diagnosed: "Your diagnosis is the beginning of a journey, not an ending. Every limitation someone puts on you is just a challenge waiting to be overcome.",
-        image_url: null,
         is_anonymous: false,
-        featured: true,
-        social_source: null,
-        status: "published",
+        is_featured: true,
+        is_published: true,
+        platform: null,
+        social_handle: null,
       },
       {
-        name: "Sarah Thompson",
-        age: 28,
-        diagnosis_age: 22,
-        location: "Austin, TX",
-        story_title: "Late Diagnosis: Finding Myself After LADA at 22",
-        story_excerpt: "They said I was 'too old' for Type 1. Six months of misdiagnosis nearly cost me everything. Now I advocate for adult-onset T1D awareness.",
-        full_story: `At 22, I was a senior in college when I started losing weight rapidly. "Great!" I thought. My doctor agreed—must be stress and my new gym routine. For six months, I was treated for Type 2 diabetes with oral medications that did nothing.
+        person_name: "Sarah Thompson",
+        title: "Late Diagnosis: Finding Myself After LADA at 22",
+        story_content: `At 22, I was a senior in college when I started losing weight rapidly. "Great!" I thought. My doctor agreed—must be stress and my new gym routine. For six months, I was treated for Type 2 diabetes with oral medications that did nothing.
 
 By the time I was correctly diagnosed with LADA (Latent Autoimmune Diabetes in Adults), I was in DKA with a blood sugar of 680. I woke up in the ICU with an insulin drip and a new identity.
 
@@ -78,23 +67,16 @@ But grief transformed into purpose. Now I run a support group for adult-onset T1
 Type 1 found me late, but it didn't find me weak.`,
         obstacles: ["Misdiagnosis as Type 2 for 6 months", "DKA hospitalization", "College graduation delayed", "Mental health challenges post-diagnosis"],
         triumphs: ["Founded adult-onset T1D support group", "JDRF advocate and speaker", "Completed psychology degree focused on chronic illness"],
-        diagnosis_story: "Misdiagnosed as Type 2 at 22. Correctly diagnosed with LADA after DKA hospitalization 6 months later.",
-        management_approach: "Tandem t:slim X2 with Control-IQ and Dexcom G7",
-        advice_to_newly_diagnosed: "Grief is normal. Rage is normal. But so is joy, and it will come back. Give yourself permission to feel everything.",
-        image_url: null,
         is_anonymous: false,
-        featured: true,
-        social_source: null,
-        status: "published",
+        is_featured: true,
+        is_published: true,
+        platform: null,
+        social_handle: null,
       },
       {
-        name: "Anonymous Warrior",
-        age: 45,
-        diagnosis_age: 5,
-        location: "Midwest USA",
-        story_title: "40 Years of T1D: Complications, Comebacks, and Counting Blessings",
-        story_excerpt: "Four decades with Type 1 brought retinopathy and neuropathy. But also a family, a career, and a life I wouldn't trade.",
-        full_story: `I was diagnosed in 1985 when I was five years old. Back then, we used urine strips and pork insulin. There were no CGMs, no pumps, no hope for anything close to "normal" control.
+        person_name: null,
+        title: "40 Years of T1D: Complications, Comebacks, and Counting Blessings",
+        story_content: `I was diagnosed in 1985 when I was five years old. Back then, we used urine strips and pork insulin. There were no CGMs, no pumps, no hope for anything close to "normal" control.
 
 I won't sugarcoat it: 40 years took a toll. At 35, I was diagnosed with retinopathy. At 40, neuropathy started in my feet. Every diabetes educator's warning came true.
 
@@ -105,23 +87,16 @@ I've been married for 20 years to someone who learned to treat my lows in her sl
 Complications are part of my story, but they're not the whole story. I'm still here. Still fighting. Still grateful.`,
         obstacles: ["Pre-CGM era management", "Retinopathy requiring laser surgery", "Peripheral neuropathy", "Diabetes burnout periods"],
         triumphs: ["40 years of T1D survival", "Raised 2 healthy children", "30-year engineering career", "Mentor to newly diagnosed adults"],
-        diagnosis_story: "Diagnosed at age 5 in 1985. Parents noticed extreme thirst and weight loss.",
-        management_approach: "Medtronic 780G with Guardian 4 sensors",
-        advice_to_newly_diagnosed: "Technology keeps getting better. What I managed with in 1985 would be unrecognizable today. There's so much hope now.",
-        image_url: null,
         is_anonymous: true,
-        featured: true,
-        social_source: null,
-        status: "published",
+        is_featured: true,
+        is_published: true,
+        platform: null,
+        social_handle: null,
       },
       {
-        name: "Jordan Rivera",
-        age: 19,
-        diagnosis_age: 14,
-        location: "Miami, FL",
-        story_title: "Gen Z Diabetic: Thriving Through TikTok and Technology",
-        story_excerpt: "I was diagnosed during finals week of 8th grade. Now my diabetes TikTok has 200K followers and I'm pre-med at UMiami.",
-        full_story: `I found out I had Type 1 during finals week of 8th grade. Classic timing, right? I went from worrying about algebra tests to learning how to give myself shots in the span of a week.
+        person_name: "Jordan Rivera",
+        title: "Gen Z Diabetic: Thriving Through TikTok and Technology",
+        story_content: `I found out I had Type 1 during finals week of 8th grade. Classic timing, right? I went from worrying about algebra tests to learning how to give myself shots in the span of a week.
 
 High school was... complicated. I was the kid who had to leave class to check blood sugar. The kid who couldn't just grab pizza without doing math first. The kid with the weird device on their arm.
 
@@ -132,23 +107,16 @@ Now I have 200K followers. I make content about everything from date night with 
 I'm pre-med now, planning to become an endocrinologist. Type 1 gave me my career path, my community, and my purpose.`,
         obstacles: ["Diagnosis during stressful school period", "Teenage social stigma", "Dating with diabetes", "College transition"],
         triumphs: ["Built 200K follower diabetes education platform", "JDRF youth ambassador", "Accepted to pre-med program", "Diabetes tech advocate"],
-        diagnosis_story: "Diagnosed at 14 during 8th grade finals week. Teacher noticed frequent bathroom trips and fatigue.",
-        management_approach: "Omnipod 5 with Dexcom G7, DIY Loop backup",
-        advice_to_newly_diagnosed: "Social media can be your friend. Find your people online. The T1D community is the best community.",
-        image_url: null,
         is_anonymous: false,
-        featured: true,
-        social_source: "tiktok",
-        status: "published",
+        is_featured: true,
+        is_published: true,
+        platform: "tiktok",
+        social_handle: "jordanT1D",
       },
       {
-        name: "Dr. Patricia Okafor",
-        age: 52,
-        diagnosis_age: 12,
-        location: "Chicago, IL",
-        story_title: "From Patient to Physician: Treating the Disease That Shaped Me",
-        story_excerpt: "Type 1 diabetes made me a patient at 12. It made me an endocrinologist at 32. Now I treat the next generation of diabetic kids.",
-        full_story: `I was 12 years old in Nigeria when I was diagnosed with Type 1 diabetes. In 1985 Lagos, this was practically a death sentence. Insulin was scarce. CGMs didn't exist. My family was told to prepare for the worst.
+        person_name: "Dr. Patricia Okafor",
+        title: "From Patient to Physician: Treating the Disease That Shaped Me",
+        story_content: `I was 12 years old in Nigeria when I was diagnosed with Type 1 diabetes. In 1985 Lagos, this was practically a death sentence. Insulin was scarce. CGMs didn't exist. My family was told to prepare for the worst.
 
 But my mother refused to accept it. She found a doctor who believed I could live. She smuggled insulin from relatives abroad. She kept me alive long enough for me to get a scholarship to study in the US.
 
@@ -159,23 +127,16 @@ I've been practicing for 20 years now. I've treated thousands of Type 1 patients
 Every patient I see is a younger version of myself. Every success story proves what my mother knew in 1985: Type 1 diabetes is not the end.`,
         obstacles: ["Diagnosed in 1985 Nigeria with limited insulin access", "Immigration challenges", "Medical school while managing T1D", "Imposter syndrome as diabetic doctor"],
         triumphs: ["Became board-certified endocrinologist", "20 years treating T1D patients", "Founded pediatric diabetes clinic", "Published research on diabetes in African populations"],
-        diagnosis_story: "Diagnosed at 12 in Lagos, Nigeria in 1985. Family had to source insulin internationally.",
-        management_approach: "Tandem t:slim X2 with Control-IQ",
-        advice_to_newly_diagnosed: "Find healthcare providers who believe in your potential. Doctors who focus only on what you can't do are not the right doctors for you.",
-        image_url: null,
         is_anonymous: false,
-        featured: true,
-        social_source: null,
-        status: "published",
+        is_featured: true,
+        is_published: true,
+        platform: null,
+        social_handle: null,
       },
       {
-        name: "Jake Morrison",
-        age: 27,
-        diagnosis_age: 16,
-        location: "Denver, CO",
-        story_title: "Climbing Mountains: Literal and Metaphorical",
-        story_excerpt: "Diagnosed at 16, I was told to give up my dream of mountaineering. Last year I summited Denali with my insulin pump.",
-        full_story: `I was 16 and already obsessed with climbing when diabetes found me. My endocrinologist's first question was: "Are you still planning to climb?" When I said yes, she smiled and said, "Good. Let's figure out how."
+        person_name: "Jake Morrison",
+        title: "Climbing Mountains: Literal and Metaphorical",
+        story_content: `I was 16 and already obsessed with climbing when diabetes found me. My endocrinologist's first question was: "Are you still planning to climb?" When I said yes, she smiled and said, "Good. Let's figure out how."
 
 That attitude changed everything. Instead of being told what I couldn't do, I was asked how I wanted to live. Together, we developed strategies for altitude, cold, and exertion.
 
@@ -186,23 +147,16 @@ The diabetes community often focuses on what we lose. But climbing taught me wha
 Every mountain I climb is dedicated to every diabetic kid who was ever told to stay on the ground.`,
         obstacles: ["Cold weather insulin management", "Altitude effects on blood sugar", "Remote location diabetes care", "Equipment failures in extreme conditions"],
         triumphs: ["Summited Denali (20,310 ft)", "Completed all Colorado 14ers", "Became certified mountain guide", "Leads expeditions for diabetic climbers"],
-        diagnosis_story: "Diagnosed at 16 during routine sports physical. Coach noticed extreme thirst during practices.",
-        management_approach: "Omnipod 5 with backup MDI for extreme conditions",
-        advice_to_newly_diagnosed: "Find a healthcare team that asks 'how can we make this work?' not 'why would you even try?'",
-        image_url: null,
         is_anonymous: false,
-        featured: false,
-        social_source: "instagram",
-        status: "published",
+        is_featured: false,
+        is_published: true,
+        platform: "instagram",
+        social_handle: "jakeclimbsT1D",
       },
       {
-        name: "Anonymous Parent",
-        age: 41,
-        diagnosis_age: null,
-        location: "Northeast USA",
-        story_title: "A Mother's Perspective: When Your Child Gets Diagnosed",
-        story_excerpt: "My daughter was diagnosed at 4. The first year, I slept in 2-hour increments. Now she's 12 and teaching ME about her Dexcom.",
-        full_story: `The day my daughter was diagnosed, I thought our lives were over. She was 4 years old, barely old enough to understand why Mommy was crying. I remember the hospital room, the smell of antiseptic, the nurse teaching me to draw up insulin into a syringe.
+        person_name: null,
+        title: "A Mother's Perspective: When Your Child Gets Diagnosed",
+        story_content: `The day my daughter was diagnosed, I thought our lives were over. She was 4 years old, barely old enough to understand why Mommy was crying. I remember the hospital room, the smell of antiseptic, the nurse teaching me to draw up insulin into a syringe.
 
 For the first year, I didn't sleep more than two hours at a stretch. I would set alarms, check her blood sugar, adjust, and try to sleep again. I became obsessed with numbers. Every high felt like failure. Every low felt like I was killing her.
 
@@ -211,25 +165,18 @@ But kids are resilient. My daughter adapted faster than I did. At 6, she was tel
 Now she's 12. She manages her own diabetes better than I ever could. She teaches me about new Dexcom features. She reminds me when it's time to reorder supplies.
 
 Type 1 diabetes didn't break our family. It made us stronger, more connected, more aware of how precious health really is.`,
-        obstacles: ["Sleep deprivation for years", "School management challenges", "Insurance battles", "Parental guilt and anxiety", "Watching child experience lows"],
+        obstacles: ["Sleep deprivation for years", "School management challenges", "Insurance battles", "Parental guilt and anxiety"],
         triumphs: ["Daughter now self-managing at 12", "Became school diabetes policy advocate", "Started parent support group", "Both children mentally thriving"],
-        diagnosis_story: "Daughter diagnosed at 4 after rapid weight loss and lethargy. Initial misdiagnosis as flu.",
-        management_approach: "Daughter uses Omnipod 5 + Dexcom G7",
-        advice_to_newly_diagnosed: "To parents: You will not always be this tired. You will not always be this scared. Your child will amaze you with their strength.",
-        image_url: null,
         is_anonymous: true,
-        featured: false,
-        social_source: null,
-        status: "published",
+        is_featured: false,
+        is_published: true,
+        platform: null,
+        social_handle: null,
       },
       {
-        name: "Tyler Washington",
-        age: 31,
-        diagnosis_age: 19,
-        location: "Atlanta, GA",
-        story_title: "Black, Diabetic, and Invisible: Fighting for Recognition",
-        story_excerpt: "Type 1 in the Black community is often overlooked. Doctors assumed I was Type 2 three times before proper testing. Now I fight for equity.",
-        full_story: `When I was 19, I walked into an urgent care with a blood sugar of 450. The doctor barely looked at me before prescribing metformin for "Type 2." I was young, Black, and to him, that meant one thing.
+        person_name: "Tyler Washington",
+        title: "Black, Diabetic, and Invisible: Fighting for Recognition",
+        story_content: `When I was 19, I walked into an urgent care with a blood sugar of 450. The doctor barely looked at me before prescribing metformin for "Type 2." I was young, Black, and to him, that meant one thing.
 
 It took three more visits—and DKA—before someone finally tested my C-peptide and antibodies. The diagnosis came back: Type 1 diabetes. The Type 2 medications I'd been taking for months had done nothing while my pancreas completed its shutdown.
 
@@ -240,14 +187,11 @@ Now I'm a health equity consultant specializing in diabetes care. I train medica
 Type 1 diabetes doesn't discriminate. But the healthcare system does. And I'm working to change that.`,
         obstacles: ["Racial misdiagnosis bias", "DKA from delayed treatment", "Lack of representation in diabetes community", "Medical trauma"],
         triumphs: ["Health equity consultant career", "Medical school bias training programs", "Policy change advocacy", "Founded Black T1D support network"],
-        diagnosis_story: "Initially misdiagnosed as Type 2 at 19 due to racial bias. Correctly diagnosed with Type 1 after DKA three months later.",
-        management_approach: "Tandem t:slim X2 with Control-IQ",
-        advice_to_newly_diagnosed: "If something feels wrong, demand answers. Request antibody testing. Advocate for yourself, especially if you're part of a marginalized community.",
-        image_url: null,
         is_anonymous: false,
-        featured: true,
-        social_source: null,
-        status: "published",
+        is_featured: true,
+        is_published: true,
+        platform: null,
+        social_handle: null,
       },
     ];
 

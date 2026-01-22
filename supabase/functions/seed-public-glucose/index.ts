@@ -34,76 +34,97 @@ serve(async (req) => {
       );
     }
 
-    // Generate population glucose patterns
+    // Generate realistic glucose readings matching actual schema:
+    // id, source_dataset, anonymized_user_id, timestamp, glucose_value, insulin_dose, carbs, notes
     const glucoseData = [];
-    const ageGroups = ["0-17", "18-30", "31-45", "46-60", "61+"];
-    const deviceTypes = ["Dexcom", "Libre", "Medtronic", "Multiple"];
-    const a1cRanges = ["<6.0", "6.0-6.5", "6.5-7.0", "7.0-7.5", "7.5-8.0", ">8.0"];
-
-    // Generate hourly averages for each demographic segment
-    for (const ageGroup of ageGroups) {
-      for (const deviceType of deviceTypes) {
-        for (const a1cRange of a1cRanges) {
-          // Generate 24 hours of data
-          for (let hour = 0; hour < 24; hour++) {
-            // Base glucose varies by A1C
-            let baseGlucose = 120;
-            if (a1cRange === "<6.0") baseGlucose = 105;
-            else if (a1cRange === "6.0-6.5") baseGlucose = 115;
-            else if (a1cRange === "6.5-7.0") baseGlucose = 130;
-            else if (a1cRange === "7.0-7.5") baseGlucose = 145;
-            else if (a1cRange === "7.5-8.0") baseGlucose = 160;
-            else if (a1cRange === ">8.0") baseGlucose = 185;
-
-            // Add hourly patterns (dawn phenomenon, post-meal spikes)
-            let hourlyAdjustment = 0;
-            if (hour >= 4 && hour <= 7) hourlyAdjustment = 15; // Dawn phenomenon
-            else if (hour >= 8 && hour <= 10) hourlyAdjustment = 25; // Post-breakfast
-            else if (hour >= 12 && hour <= 14) hourlyAdjustment = 20; // Post-lunch
-            else if (hour >= 18 && hour <= 20) hourlyAdjustment = 22; // Post-dinner
-            else if (hour >= 0 && hour <= 3) hourlyAdjustment = -10; // Night lows
-
-            // Age adjustments
-            if (ageGroup === "0-17") hourlyAdjustment += 10; // More variability in kids
-            else if (ageGroup === "61+") hourlyAdjustment += 5;
-
-            // Add some randomness
-            const randomFactor = Math.floor(Math.random() * 15) - 7;
-            const averageGlucose = baseGlucose + hourlyAdjustment + randomFactor;
-            const minGlucose = Math.max(50, averageGlucose - 30 - Math.floor(Math.random() * 20));
-            const maxGlucose = averageGlucose + 40 + Math.floor(Math.random() * 30);
-
-            // Calculate time in range (70-180)
-            let timeInRange = 70;
-            if (a1cRange === "<6.0") timeInRange = 85;
-            else if (a1cRange === "6.0-6.5") timeInRange = 78;
-            else if (a1cRange === "6.5-7.0") timeInRange = 70;
-            else if (a1cRange === "7.0-7.5") timeInRange = 60;
-            else if (a1cRange === "7.5-8.0") timeInRange = 50;
-            else if (a1cRange === ">8.0") timeInRange = 35;
-
-            glucoseData.push({
-              hour_of_day: hour,
-              age_group: ageGroup,
-              device_type: deviceType,
-              a1c_range: a1cRange,
-              average_glucose: averageGlucose,
-              min_glucose: minGlucose,
-              max_glucose: maxGlucose,
-              std_deviation: Math.floor(Math.random() * 15) + 20,
-              sample_size: Math.floor(Math.random() * 500) + 100,
-              time_in_range_percent: timeInRange + Math.floor(Math.random() * 10) - 5,
-              time_below_range_percent: Math.max(0, Math.floor(Math.random() * 8)),
-              time_above_range_percent: 100 - timeInRange - Math.floor(Math.random() * 8),
-              data_source: ["OpenAPS", "Nightscout", "Tidepool"][Math.floor(Math.random() * 3)],
-              collection_period: "2023-2024",
-            });
+    const datasets = ["OpenAPS", "Nightscout", "Tidepool", "OpenHumans"];
+    const userCount = 20; // Simulated anonymous users
+    
+    // Generate data for each user
+    for (let userIdx = 0; userIdx < userCount; userIdx++) {
+      const userId = `anon_user_${String(userIdx + 1).padStart(3, '0')}`;
+      const dataset = datasets[Math.floor(Math.random() * datasets.length)];
+      
+      // Each user gets ~50 readings over 3 days
+      const baseDate = new Date('2024-01-15');
+      baseDate.setDate(baseDate.getDate() + Math.floor(Math.random() * 30)); // Random start date
+      
+      // User's baseline glucose (varies by "control level")
+      const controlLevel = Math.random();
+      let baseGlucose = 120;
+      if (controlLevel < 0.2) baseGlucose = 95;  // Excellent control
+      else if (controlLevel < 0.4) baseGlucose = 110; // Good control
+      else if (controlLevel < 0.6) baseGlucose = 130; // Average
+      else if (controlLevel < 0.8) baseGlucose = 150; // Needs improvement
+      else baseGlucose = 170; // Poor control
+      
+      for (let dayOffset = 0; dayOffset < 3; dayOffset++) {
+        // Readings throughout the day
+        const readingHours = [0, 3, 6, 7, 8, 10, 12, 14, 17, 18, 20, 22];
+        
+        for (const hour of readingHours) {
+          const timestamp = new Date(baseDate);
+          timestamp.setDate(timestamp.getDate() + dayOffset);
+          timestamp.setHours(hour, Math.floor(Math.random() * 60), 0, 0);
+          
+          // Hourly glucose patterns
+          let hourlyAdjust = 0;
+          let carbs = null;
+          let insulin = null;
+          let notes = null;
+          
+          // Dawn phenomenon (4-7 AM rise)
+          if (hour >= 4 && hour <= 7) hourlyAdjust = 20;
+          
+          // Post-breakfast spike
+          if (hour === 8 || hour === 10) {
+            hourlyAdjust = 35 + Math.floor(Math.random() * 20);
           }
+          if (hour === 8) { carbs = 30 + Math.floor(Math.random() * 30); insulin = 3 + Math.random() * 4; }
+          
+          // Post-lunch
+          if (hour === 12 || hour === 14) {
+            hourlyAdjust = 25 + Math.floor(Math.random() * 15);
+          }
+          if (hour === 12) { carbs = 40 + Math.floor(Math.random() * 25); insulin = 4 + Math.random() * 3; }
+          
+          // Post-dinner
+          if (hour === 18 || hour === 20) {
+            hourlyAdjust = 30 + Math.floor(Math.random() * 20);
+          }
+          if (hour === 18) { carbs = 50 + Math.floor(Math.random() * 30); insulin = 5 + Math.random() * 4; }
+          
+          // Night lows
+          if (hour >= 0 && hour <= 3) {
+            hourlyAdjust = -15;
+            if (Math.random() < 0.1) notes = "Low alarm";
+          }
+          
+          // Add randomness
+          const randomFactor = Math.floor(Math.random() * 30) - 15;
+          const glucoseValue = Math.max(45, Math.min(350, baseGlucose + hourlyAdjust + randomFactor));
+          
+          // Add notes for extreme values
+          if (glucoseValue < 70 && !notes) notes = "Low glucose alert";
+          else if (glucoseValue > 250) notes = "High glucose alert";
+          
+          glucoseData.push({
+            source_dataset: dataset,
+            anonymized_user_id: userId,
+            timestamp: timestamp.toISOString(),
+            glucose_value: glucoseValue,
+            insulin_dose: insulin ? Math.round(insulin * 10) / 10 : null,
+            carbs: carbs,
+            notes: notes,
+          });
         }
       }
     }
 
-    // Insert in batches of 100 to avoid timeouts
+    // Shuffle the data to mix users
+    glucoseData.sort(() => Math.random() - 0.5);
+
+    // Insert in batches
     const batchSize = 100;
     let insertedCount = 0;
 
@@ -123,7 +144,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Seeded ${insertedCount} public glucose data records across ${ageGroups.length} age groups, ${deviceTypes.length} device types, and ${a1cRanges.length} A1C ranges`,
+        message: `Seeded ${insertedCount} public glucose readings from ${userCount} anonymized users across ${datasets.length} data sources`,
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
