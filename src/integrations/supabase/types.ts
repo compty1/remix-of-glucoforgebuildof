@@ -462,6 +462,48 @@ export type Database = {
           },
         ]
       }
+      claimed_projects: {
+        Row: {
+          claimed_at: string | null
+          claimed_tasks: string[] | null
+          completed_tasks: string[] | null
+          id: string
+          notes: string | null
+          progress: number | null
+          project_id: string
+          project_title: string
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          claimed_at?: string | null
+          claimed_tasks?: string[] | null
+          completed_tasks?: string[] | null
+          id?: string
+          notes?: string | null
+          progress?: number | null
+          project_id: string
+          project_title: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          claimed_at?: string | null
+          claimed_tasks?: string[] | null
+          completed_tasks?: string[] | null
+          id?: string
+          notes?: string | null
+          progress?: number | null
+          project_id?: string
+          project_title?: string
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       clinical_trials_detailed: {
         Row: {
           accepts_healthy_volunteers: boolean | null
@@ -1656,6 +1698,42 @@ export type Database = {
           status?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      donation_subscriptions: {
+        Row: {
+          amount_cents: number
+          created_at: string | null
+          frequency: string | null
+          id: string
+          next_charge_date: string | null
+          status: string | null
+          stripe_subscription_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount_cents: number
+          created_at?: string | null
+          frequency?: string | null
+          id?: string
+          next_charge_date?: string | null
+          status?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount_cents?: number
+          created_at?: string | null
+          frequency?: string | null
+          id?: string
+          next_charge_date?: string | null
+          status?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -3885,6 +3963,87 @@ export type Database = {
         }
         Relationships: []
       }
+      t1d_events: {
+        Row: {
+          address: string | null
+          city: string | null
+          cost_info: string | null
+          country: string | null
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          event_type: string | null
+          id: string
+          image_url: string | null
+          is_free: boolean | null
+          is_virtual: boolean | null
+          latitude: number | null
+          location_name: string | null
+          longitude: number | null
+          max_attendees: number | null
+          organizer: string | null
+          registration_url: string | null
+          start_date: string
+          state: string | null
+          tags: string[] | null
+          title: string
+          website_url: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          address?: string | null
+          city?: string | null
+          cost_info?: string | null
+          country?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          event_type?: string | null
+          id?: string
+          image_url?: string | null
+          is_free?: boolean | null
+          is_virtual?: boolean | null
+          latitude?: number | null
+          location_name?: string | null
+          longitude?: number | null
+          max_attendees?: number | null
+          organizer?: string | null
+          registration_url?: string | null
+          start_date: string
+          state?: string | null
+          tags?: string[] | null
+          title: string
+          website_url?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          address?: string | null
+          city?: string | null
+          cost_info?: string | null
+          country?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          event_type?: string | null
+          id?: string
+          image_url?: string | null
+          is_free?: boolean | null
+          is_virtual?: boolean | null
+          latitude?: number | null
+          location_name?: string | null
+          longitude?: number | null
+          max_attendees?: number | null
+          organizer?: string | null
+          registration_url?: string | null
+          start_date?: string
+          state?: string | null
+          tags?: string[] | null
+          title?: string
+          website_url?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       t1d_news_articles: {
         Row: {
           author: string | null
@@ -4262,6 +4421,42 @@ export type Database = {
           id?: string
           metadata?: Json | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_bookmarks: {
+        Row: {
+          bookmark_type: string
+          created_at: string | null
+          id: string
+          resource_description: string | null
+          resource_icon: string | null
+          resource_id: string | null
+          resource_title: string
+          resource_url: string
+          user_id: string | null
+        }
+        Insert: {
+          bookmark_type: string
+          created_at?: string | null
+          id?: string
+          resource_description?: string | null
+          resource_icon?: string | null
+          resource_id?: string | null
+          resource_title: string
+          resource_url: string
+          user_id?: string | null
+        }
+        Update: {
+          bookmark_type?: string
+          created_at?: string | null
+          id?: string
+          resource_description?: string | null
+          resource_icon?: string | null
+          resource_id?: string | null
+          resource_title?: string
+          resource_url?: string
+          user_id?: string | null
         }
         Relationships: []
       }

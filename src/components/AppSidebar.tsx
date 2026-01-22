@@ -42,7 +42,9 @@ import {
   TrendingUp,
   ShoppingBag,
   Brain,
-  Megaphone
+  Megaphone,
+  Calendar,
+  Rocket
 } from 'lucide-react';
 import {
   Sidebar,
@@ -99,6 +101,11 @@ const platformItemsAfterProjects = [
   { title: "Glycemic Journal", url: "/journal", icon: BookOpen },
   { title: "Scenario Lab", url: "/scenario-lab", icon: TestTube },
   { title: "Public Glucose Data", url: "/public-glucose-data", icon: Activity },
+  { title: "AI Center", url: "/ai-center", icon: Brain },
+  { title: "Organizations", url: "/organizations", icon: Building2 },
+  { title: "Become Advocate", url: "/advocate", icon: Megaphone },
+  { title: "Events Near Me", url: "/events", icon: Calendar },
+  { title: "Future of T1D", url: "/future", icon: Rocket },
 ];
 
 const contentItems = [
