@@ -40,7 +40,9 @@ import {
   Droplet,
   Award,
   TrendingUp,
-  ShoppingBag
+  ShoppingBag,
+  Brain,
+  Megaphone
 } from 'lucide-react';
 import {
   Sidebar,
@@ -112,6 +114,9 @@ const contentItems = [
 
 const supportItems = [
   { title: "About", url: "/about", icon: Info },
+  { title: "AI Center", url: "/ai-center", icon: Brain },
+  { title: "Organizations", url: "/organizations", icon: Building2 },
+  { title: "Become Advocate", url: "/advocate", icon: Megaphone },
   { title: "Build With Us", url: "/build-with-us", icon: Hammer },
   { title: "Get Involved", url: "/get-involved", icon: HandHeart },
   { title: "Healthcare Providers", url: "/healthcare-providers", icon: Building2 },

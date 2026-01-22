@@ -11,6 +11,7 @@ import { CompanyCard } from '@/components/companies/CompanyCard';
 import CompanyComparisonBar from '@/components/companies/CompanyComparisonBar';
 import FundingTimelineChart from '@/components/companies/FundingTimelineChart';
 import { useT1DCompanies, CompanyFilters } from '@/hooks/useT1DCompanies';
+import { BackButton } from '@/components/ui/back-button';
 import { 
   Search, Building2, DollarSign, TrendingUp, Globe, 
   Filter, RefreshCw, Users, Beaker, Heart, GitCompare
@@ -79,6 +80,8 @@ const Companies = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6 space-y-6">
+        <BackButton fallbackPath="/dashboard" />
+        
         {/* Hero Section */}
         <div className="text-center space-y-3 py-6">
           <div className="flex items-center justify-center gap-3">

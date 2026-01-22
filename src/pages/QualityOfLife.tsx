@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQualityOfLifeResources } from "@/hooks/useQualityOfLifeResources";
+import { BackButton } from "@/components/ui/back-button";
+import RealExperiencesSection from "@/components/quality-of-life/RealExperiencesSection";
 import { 
   Sparkles, 
   Pill, 
@@ -49,7 +51,9 @@ export default function QualityOfLife() {
       <div className="min-h-screen bg-background">
         {/* Hero Section */}
         <section className="relative py-12 md:py-16 px-4 bg-gradient-to-b from-primary/5 via-background to-background">
-          <div className="container mx-auto max-w-4xl text-center">
+          <div className="container mx-auto max-w-4xl">
+            <BackButton fallbackPath="/dashboard" className="mb-6" />
+            <div className="text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
               <Sparkles className="h-8 w-8 text-highlight" />
               <Badge variant="secondary">Quality of Life</Badge>
@@ -61,6 +65,7 @@ export default function QualityOfLife() {
               Evidence-based resources, supplements, and tools to reduce the daily burden of 
               Type 1 Diabetes management and improve your overall well-being.
             </p>
+          </div>
           </div>
         </section>
 
@@ -128,6 +133,9 @@ export default function QualityOfLife() {
             )}
           </div>
         </section>
+
+        {/* Real Experiences Section */}
+        <RealExperiencesSection />
 
         {/* Main Resources Section */}
         <section className="py-8 px-4">
