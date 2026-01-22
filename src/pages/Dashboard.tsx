@@ -46,6 +46,9 @@ interface DashboardWidget {
   defaultSize: { w: number; h: number };
 }
 
+import { BookmarkedItemsWidget } from '@/components/dashboard/BookmarkedItemsWidget';
+import { ClaimedProjectsWidget } from '@/components/dashboard/ClaimedProjectsWidget';
+
 const availableWidgets: DashboardWidget[] = [
   {
     id: 'glucose-trends',
@@ -109,6 +112,24 @@ const availableWidgets: DashboardWidget[] = [
     description: 'Sign up for weekly T1D research updates',
     icon: Mail,
     defaultSize: { w: 4, h: 3 }
+  },
+  {
+    id: 'bookmarked-items',
+    title: 'Bookmarked Items',
+    component: () => <BookmarkedItemsWidget />,
+    category: 'Personal',
+    description: 'Quick access to your saved articles, research, and resources',
+    icon: Bookmark,
+    defaultSize: { w: 4, h: 4 }
+  },
+  {
+    id: 'claimed-projects',
+    title: 'My Projects',
+    component: () => <ClaimedProjectsWidget />,
+    category: 'Community',
+    description: 'Track your claimed development projects and contributions',
+    icon: FileText,
+    defaultSize: { w: 4, h: 4 }
   }
 ];
 
