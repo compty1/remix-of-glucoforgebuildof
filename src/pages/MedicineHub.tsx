@@ -6,11 +6,13 @@ import { MedicationFilters } from '@/components/medicine/MedicationFilters';
 import { MedicationDetailModal } from '@/components/medicine/MedicationDetailModal';
 import { InsulinTimingChart } from '@/components/medicine/InsulinTimingChart';
 import { InteractionChecker } from '@/components/medicine/InteractionChecker';
+import { TopMedicationsSection } from '@/components/medicine/TopMedicationsSection';
 import { useMedications, useMedicationCategories, MedicationCategory, SortOption } from '@/hooks/useMedications';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { BackButton } from '@/components/ui/back-button';
 import { Pill, Syringe, PillBottle, Activity, Shield } from 'lucide-react';
 
 const INSULIN_COLORS = [
@@ -170,8 +172,10 @@ export default function MedicineHub() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 pb-24">
+        <BackButton fallbackPath="/dashboard" />
+        
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 mt-4">
           <div className="flex items-center gap-3 mb-2">
             <Pill className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold">Medicine Hub</h1>
@@ -181,6 +185,9 @@ export default function MedicineHub() {
             and non-insulin injectables. Compare options, view clinical data, and read community reviews.
           </p>
         </div>
+
+        {/* Top Medications Section */}
+        <TopMedicationsSection />
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">

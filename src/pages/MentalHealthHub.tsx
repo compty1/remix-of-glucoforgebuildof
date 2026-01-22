@@ -6,8 +6,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CommandCenterWidget } from '@/components/CommandCenterWidget';
 import { InfoRail } from '@/components/InfoRail';
 import Layout from '@/components/Layout';
+import { BackButton } from '@/components/ui/back-button';
 import MentalHealthConditionsSection from '@/components/mental-health/MentalHealthConditionsSection';
 import PsychLoadComparisonSection from '@/components/mental-health/PsychLoadComparisonSection';
+import DeviceFearDistressSection from '@/components/mental-health/DeviceFearDistressSection';
 import MentalHealthAssessmentSection from '@/components/mental-health/MentalHealthAssessmentSection';
 import { 
   Heart, 
@@ -178,8 +180,10 @@ const MentalHealthHub = () => {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <BackButton fallbackPath="/dashboard" />
+        
         {/* Header */}
-        <section className="text-center mb-12">
+        <section className="text-center mb-12 mt-6">
           <div className="flex items-center justify-center mb-6">
             <div className="w-16 h-16 forge-gradient rounded-full flex items-center justify-center animate-forge-glow">
               <Heart className="h-8 w-8 text-white" />
@@ -221,6 +225,9 @@ const MentalHealthHub = () => {
             </CardContent>
           </Card>
         </section>
+
+        {/* Device Fear & Distress Section - NEW */}
+        <DeviceFearDistressSection />
 
         {/* Mental Health Conditions Linked to T1D */}
         <MentalHealthConditionsSection />
