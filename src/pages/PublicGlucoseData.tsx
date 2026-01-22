@@ -1,70 +1,79 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
 import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
 import { Database, Activity, TrendingUp, Clock, AlertTriangle, Info } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area, BarChart, Bar } from 'recharts';
 
-interface GlucoseDataPoint {
-  hour_of_day: number;
-  age_group: string;
-  device_type: string;
-  a1c_range: string;
-  average_glucose: number;
-  min_glucose: number;
-  max_glucose: number;
-  std_deviation: number;
-  sample_size: number;
-  time_in_range_percent: number;
-  time_below_range_percent: number;
-  time_above_range_percent: number;
-  data_source: string;
+interface GlucoseReading {
+  id: string;
+  source_dataset: string;
+  anonymized_user_id: string | null;
+  timestamp: string | null;
+  glucose_value: number | null;
+  insulin_dose: number | null;
+  carbs: number | null;
+  notes: string | null;
 }
 
 export default function PublicGlucoseData() {
-  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string>('all');
-  const [selectedDevice, setSelectedDevice] = useState<string>('all');
-  const [selectedA1C, setSelectedA1C] = useState<string>('all');
+  const [selectedDataset, setSelectedDataset] = useState<string>('all');
 
   const { data: glucoseData, isLoading } = useQuery({
-    queryKey: ['public-glucose-data', selectedAgeGroup, selectedDevice, selectedA1C],
+    queryKey: ['public-glucose-data', selectedDataset],
     queryFn: async () => {
-      let query = supabase.from('public_glucose_data').select('*');
+      let query = supabase
+        .from('public_glucose_data')
+        .select('*')
+        .not('glucose_value', 'is', null)
+        .order('timestamp', { ascending: true })
+        .limit(500);
       
-      if (selectedAgeGroup !== 'all') {
-        query = query.eq('age_group', selectedAgeGroup);
-      }
-      if (selectedDevice !== 'all') {
-        query = query.eq('device_type', selectedDevice);
-      }
-      if (selectedA1C !== 'all') {
-        query = query.eq('a1c_range', selectedA1C);
+      if (selectedDataset !== 'all') {
+        query = query.eq('source_dataset', selectedDataset);
       }
       
-      const { data, error } = await query.order('hour_of_day', { ascending: true });
+      const { data, error } = await query;
       if (error) throw error;
-      return data as GlucoseDataPoint[];
+      return data as GlucoseReading[];
+    },
+  });
+
+  // Get unique datasets
+  const { data: datasets } = useQuery({
+    queryKey: ['glucose-datasets'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('public_glucose_data')
+        .select('source_dataset')
+        .limit(100);
+      
+      if (error) throw error;
+      const unique = [...new Set(data.map(d => d.source_dataset))];
+      return unique;
     },
   });
 
   // Aggregate hourly data
-  const hourlyAverages = React.useMemo(() => {
-    if (!glucoseData) return [];
+  const hourlyAverages = useMemo(() => {
+    if (!glucoseData || glucoseData.length === 0) return [];
     
     const hourlyMap = new Map<number, { sum: number; count: number; min: number; max: number }>();
     
-    glucoseData.forEach(point => {
-      const existing = hourlyMap.get(point.hour_of_day) || { sum: 0, count: 0, min: Infinity, max: -Infinity };
-      hourlyMap.set(point.hour_of_day, {
-        sum: existing.sum + point.average_glucose,
+    glucoseData.forEach(reading => {
+      if (!reading.timestamp || reading.glucose_value === null) return;
+      
+      const hour = new Date(reading.timestamp).getHours();
+      const existing = hourlyMap.get(hour) || { sum: 0, count: 0, min: Infinity, max: -Infinity };
+      hourlyMap.set(hour, {
+        sum: existing.sum + reading.glucose_value,
         count: existing.count + 1,
-        min: Math.min(existing.min, point.min_glucose),
-        max: Math.max(existing.max, point.max_glucose),
+        min: Math.min(existing.min, reading.glucose_value),
+        max: Math.max(existing.max, reading.glucose_value),
       });
     });
 
@@ -74,47 +83,43 @@ export default function PublicGlucoseData() {
         average: Math.round(data.sum / data.count),
         min: data.min,
         max: data.max,
-        range: data.max - data.min,
       }))
       .sort((a, b) => parseInt(a.hour) - parseInt(b.hour));
   }, [glucoseData]);
 
-  // Time in range by A1C
-  const timeInRangeByA1C = React.useMemo(() => {
-    if (!glucoseData) return [];
+  // Time in range distribution
+  const rangeDistribution = useMemo(() => {
+    if (!glucoseData || glucoseData.length === 0) return [];
     
-    const a1cMap = new Map<string, { tir: number; below: number; above: number; count: number }>();
+    let below = 0, inRange = 0, above = 0;
     
-    glucoseData.forEach(point => {
-      const existing = a1cMap.get(point.a1c_range) || { tir: 0, below: 0, above: 0, count: 0 };
-      a1cMap.set(point.a1c_range, {
-        tir: existing.tir + point.time_in_range_percent,
-        below: existing.below + point.time_below_range_percent,
-        above: existing.above + point.time_above_range_percent,
-        count: existing.count + 1,
-      });
+    glucoseData.forEach(reading => {
+      if (reading.glucose_value === null) return;
+      if (reading.glucose_value < 70) below++;
+      else if (reading.glucose_value <= 180) inRange++;
+      else above++;
     });
 
-    const order = ["<6.0", "6.0-6.5", "6.5-7.0", "7.0-7.5", "7.5-8.0", ">8.0"];
-    return Array.from(a1cMap.entries())
-      .map(([a1c, data]) => ({
-        a1c,
-        timeInRange: Math.round(data.tir / data.count),
-        timeBelowRange: Math.round(data.below / data.count),
-        timeAboveRange: Math.round(data.above / data.count),
-      }))
-      .sort((a, b) => order.indexOf(a.a1c) - order.indexOf(b.a1c));
+    const total = below + inRange + above;
+    return [
+      { name: 'Below Range (<70)', value: Math.round((below / total) * 100), color: 'hsl(var(--chart-2))' },
+      { name: 'In Range (70-180)', value: Math.round((inRange / total) * 100), color: 'hsl(var(--chart-1))' },
+      { name: 'Above Range (>180)', value: Math.round((above / total) * 100), color: 'hsl(var(--chart-3))' },
+    ];
   }, [glucoseData]);
 
   // Calculate overall stats
-  const overallStats = React.useMemo(() => {
+  const overallStats = useMemo(() => {
     if (!glucoseData || glucoseData.length === 0) return null;
     
-    const totalSamples = glucoseData.reduce((acc, d) => acc + d.sample_size, 0);
-    const avgGlucose = Math.round(glucoseData.reduce((acc, d) => acc + d.average_glucose, 0) / glucoseData.length);
-    const avgTIR = Math.round(glucoseData.reduce((acc, d) => acc + d.time_in_range_percent, 0) / glucoseData.length);
+    const validReadings = glucoseData.filter(d => d.glucose_value !== null);
+    const glucoseValues = validReadings.map(d => d.glucose_value!);
     
-    return { totalSamples, avgGlucose, avgTIR };
+    const avgGlucose = Math.round(glucoseValues.reduce((a, b) => a + b, 0) / glucoseValues.length);
+    const inRangeCount = glucoseValues.filter(v => v >= 70 && v <= 180).length;
+    const avgTIR = Math.round((inRangeCount / glucoseValues.length) * 100);
+    
+    return { totalReadings: validReadings.length, avgGlucose, avgTIR };
   }, [glucoseData]);
 
   return (
@@ -142,8 +147,7 @@ export default function PublicGlucoseData() {
               <p className="font-medium text-blue-900 dark:text-blue-100">About This Data</p>
               <p className="text-blue-800 dark:text-blue-200">
                 This data is aggregated and anonymized from public sources including OpenAPS, Nightscout, 
-                and Tidepool. Individual data points represent population averages, not individual patients.
-                Data collection period: 2023-2024.
+                and Tidepool. Individual data points represent real readings, anonymized for privacy.
               </p>
             </div>
           </CardContent>
@@ -152,50 +156,16 @@ export default function PublicGlucoseData() {
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div>
-            <label className="text-sm font-medium mb-2 block">Age Group</label>
-            <Select value={selectedAgeGroup} onValueChange={setSelectedAgeGroup}>
+            <label className="text-sm font-medium mb-2 block">Data Source</label>
+            <Select value={selectedDataset} onValueChange={setSelectedDataset}>
               <SelectTrigger>
-                <SelectValue placeholder="All Age Groups" />
+                <SelectValue placeholder="All Sources" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Age Groups</SelectItem>
-                <SelectItem value="0-17">0-17 (Pediatric)</SelectItem>
-                <SelectItem value="18-30">18-30 (Young Adult)</SelectItem>
-                <SelectItem value="31-45">31-45 (Adult)</SelectItem>
-                <SelectItem value="46-60">46-60 (Middle Age)</SelectItem>
-                <SelectItem value="61+">61+ (Senior)</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <label className="text-sm font-medium mb-2 block">Device Type</label>
-            <Select value={selectedDevice} onValueChange={setSelectedDevice}>
-              <SelectTrigger>
-                <SelectValue placeholder="All Devices" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Devices</SelectItem>
-                <SelectItem value="Dexcom">Dexcom</SelectItem>
-                <SelectItem value="Libre">Freestyle Libre</SelectItem>
-                <SelectItem value="Medtronic">Medtronic</SelectItem>
-                <SelectItem value="Multiple">Multiple Devices</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <label className="text-sm font-medium mb-2 block">A1C Range</label>
-            <Select value={selectedA1C} onValueChange={setSelectedA1C}>
-              <SelectTrigger>
-                <SelectValue placeholder="All A1C Ranges" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All A1C Ranges</SelectItem>
-                <SelectItem value="<6.0">&lt;6.0%</SelectItem>
-                <SelectItem value="6.0-6.5">6.0-6.5%</SelectItem>
-                <SelectItem value="6.5-7.0">6.5-7.0%</SelectItem>
-                <SelectItem value="7.0-7.5">7.0-7.5%</SelectItem>
-                <SelectItem value="7.5-8.0">7.5-8.0%</SelectItem>
-                <SelectItem value=">8.0">&gt;8.0%</SelectItem>
+                <SelectItem value="all">All Sources</SelectItem>
+                {datasets?.map(dataset => (
+                  <SelectItem key={dataset} value={dataset}>{dataset}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -232,7 +202,7 @@ export default function PublicGlucoseData() {
                     </div>
                     <div>
                       <p className="text-2xl font-bold">{overallStats.avgTIR}%</p>
-                      <p className="text-sm text-muted-foreground">Avg Time in Range (70-180)</p>
+                      <p className="text-sm text-muted-foreground">Time in Range (70-180)</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -242,7 +212,7 @@ export default function PublicGlucoseData() {
                       <Clock className="h-6 w-6 text-blue-600" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold">{overallStats.totalSamples.toLocaleString()}</p>
+                      <p className="text-2xl font-bold">{overallStats.totalReadings.toLocaleString()}</p>
                       <p className="text-sm text-muted-foreground">Data Points</p>
                     </div>
                   </CardContent>
@@ -274,7 +244,6 @@ export default function PublicGlucoseData() {
                     <Area 
                       type="monotone" 
                       dataKey="max" 
-                      stackId="1"
                       stroke="hsl(var(--chart-3))" 
                       fill="hsl(var(--chart-3))" 
                       fillOpacity={0.2}
@@ -283,7 +252,6 @@ export default function PublicGlucoseData() {
                     <Area 
                       type="monotone" 
                       dataKey="average" 
-                      stackId="2"
                       stroke="hsl(var(--primary))" 
                       fill="hsl(var(--primary))" 
                       fillOpacity={0.3}
@@ -312,25 +280,22 @@ export default function PublicGlucoseData() {
               </CardContent>
             </Card>
 
-            {/* Time in Range by A1C */}
+            {/* Time in Range Distribution */}
             <Card className="command-center-widget">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <TrendingUp className="h-5 w-5" />
-                  Time in Range by A1C Level
+                  Time in Range Distribution
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={timeInRangeByA1C} layout="vertical">
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={rangeDistribution} layout="vertical">
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" domain={[0, 100]} unit="%" />
-                    <YAxis type="category" dataKey="a1c" width={80} />
+                    <YAxis type="category" dataKey="name" width={140} />
                     <Tooltip formatter={(value: number) => [`${value}%`]} />
-                    <Legend />
-                    <Bar dataKey="timeBelowRange" stackId="a" fill="hsl(var(--chart-2))" name="Below Range (<70)" />
-                    <Bar dataKey="timeInRange" stackId="a" fill="hsl(var(--chart-1))" name="In Range (70-180)" />
-                    <Bar dataKey="timeAboveRange" stackId="a" fill="hsl(var(--chart-3))" name="Above Range (>180)" />
+                    <Bar dataKey="value" fill="hsl(var(--primary))" />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -342,7 +307,7 @@ export default function PublicGlucoseData() {
               <Activity className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">No Data Available</h3>
               <p className="text-muted-foreground">
-                No glucose data matches your selected filters. Try adjusting your filters.
+                No glucose data matches your selected filters. Try adjusting your filters or seed data.
               </p>
             </CardContent>
           </Card>

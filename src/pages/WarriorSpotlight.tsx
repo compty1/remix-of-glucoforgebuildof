@@ -13,22 +13,18 @@ import { WarriorStoryModal } from '@/components/warrior/WarriorStoryModal';
 
 interface WarriorStory {
   id: string;
-  name: string;
-  age: number | null;
-  diagnosis_age: number | null;
-  location: string | null;
-  story_title: string;
-  story_excerpt: string | null;
-  full_story: string | null;
+  title: string;
+  story_content: string;
+  person_name: string | null;
+  is_anonymous: boolean | null;
+  social_handle: string | null;
+  platform: string | null;
+  contact_info: string | null;
   obstacles: string[] | null;
   triumphs: string[] | null;
-  diagnosis_story: string | null;
-  management_approach: string | null;
-  advice_to_newly_diagnosed: string | null;
-  is_anonymous: boolean | null;
-  featured: boolean | null;
-  social_source: string | null;
-  status: string | null;
+  is_published: boolean | null;
+  is_featured: boolean | null;
+  created_at: string | null;
 }
 
 export default function WarriorSpotlight() {
@@ -40,8 +36,8 @@ export default function WarriorSpotlight() {
       const { data, error } = await supabase
         .from('warrior_stories')
         .select('*')
-        .eq('status', 'published')
-        .order('featured', { ascending: false })
+        .eq('is_published', true)
+        .order('is_featured', { ascending: false })
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -49,8 +45,8 @@ export default function WarriorSpotlight() {
     },
   });
 
-  const featuredStories = stories?.filter(s => s.featured) || [];
-  const regularStories = stories?.filter(s => !s.featured) || [];
+  const featuredStories = stories?.filter(s => s.is_featured) || [];
+  const regularStories = stories?.filter(s => !s.is_featured) || [];
 
   return (
     <Layout>
@@ -101,13 +97,8 @@ export default function WarriorSpotlight() {
                 <Trophy className="h-6 w-6 text-green-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold">
-                  {stories?.reduce((acc, s) => {
-                    const years = s.age && s.diagnosis_age ? s.age - s.diagnosis_age : 0;
-                    return acc + years;
-                  }, 0) || 0}+
-                </p>
-                <p className="text-sm text-muted-foreground">Combined Years with T1D</p>
+                <p className="text-2xl font-bold">{featuredStories.length}</p>
+                <p className="text-sm text-muted-foreground">Featured Warriors</p>
               </div>
             </CardContent>
           </Card>

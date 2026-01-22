@@ -8,24 +8,22 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Trophy, MapPin, Calendar, Heart, Target, Lightbulb, User, Quote } from 'lucide-react';
+import { Trophy, Heart, Target, User, Star } from 'lucide-react';
 
 interface WarriorStory {
   id: string;
-  name: string;
-  age: number | null;
-  diagnosis_age: number | null;
-  location: string | null;
-  story_title: string;
-  story_excerpt: string | null;
-  full_story: string | null;
+  title: string;
+  story_content: string;
+  person_name: string | null;
+  is_anonymous: boolean | null;
+  social_handle: string | null;
+  platform: string | null;
+  contact_info: string | null;
   obstacles: string[] | null;
   triumphs: string[] | null;
-  diagnosis_story: string | null;
-  management_approach: string | null;
-  advice_to_newly_diagnosed: string | null;
-  is_anonymous: boolean | null;
-  featured: boolean | null;
+  is_published: boolean | null;
+  is_featured: boolean | null;
+  created_at: string | null;
 }
 
 interface WarriorStoryModalProps {
@@ -37,8 +35,7 @@ interface WarriorStoryModalProps {
 export const WarriorStoryModal: React.FC<WarriorStoryModalProps> = ({ story, open, onClose }) => {
   if (!story) return null;
 
-  const displayName = story.is_anonymous ? 'Anonymous Warrior' : story.name;
-  const yearsWithT1D = story.age && story.diagnosis_age ? story.age - story.diagnosis_age : null;
+  const displayName = story.is_anonymous ? 'Anonymous Warrior' : (story.person_name || 'T1D Warrior');
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -53,24 +50,20 @@ export const WarriorStoryModal: React.FC<WarriorStoryModalProps> = ({ story, ope
               )}
             </div>
             <div>
-              <DialogTitle className="text-2xl">{displayName}</DialogTitle>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1">
-                {story.location && (
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    {story.location}
-                  </span>
+              <DialogTitle className="text-2xl flex items-center gap-2">
+                {displayName}
+                {story.is_featured && (
+                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                    <Star className="h-3 w-3 mr-1" />
+                    Featured
+                  </Badge>
                 )}
-                {yearsWithT1D && (
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    {yearsWithT1D}+ years with T1D
-                  </span>
-                )}
-                {story.diagnosis_age && (
-                  <Badge variant="outline">Diagnosed at {story.diagnosis_age}</Badge>
-                )}
-              </div>
+              </DialogTitle>
+              {story.platform && story.social_handle && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  @{story.social_handle} on {story.platform}
+                </p>
+              )}
             </div>
           </div>
         </DialogHeader>
@@ -78,16 +71,14 @@ export const WarriorStoryModal: React.FC<WarriorStoryModalProps> = ({ story, ope
         <ScrollArea className="max-h-[60vh] pr-4">
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold text-foreground mb-4">{story.story_title}</h2>
-              {story.full_story && (
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  {story.full_story.split('\n\n').map((paragraph, idx) => (
-                    <p key={idx} className="text-muted-foreground leading-relaxed mb-4">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-              )}
+              <h2 className="text-xl font-semibold text-foreground mb-4">{story.title}</h2>
+              <div className="prose prose-sm dark:prose-invert max-w-none">
+                {story.story_content.split('\n\n').map((paragraph, idx) => (
+                  <p key={idx} className="text-muted-foreground leading-relaxed mb-4">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
             </div>
 
             {story.obstacles && story.obstacles.length > 0 && (
@@ -126,34 +117,6 @@ export const WarriorStoryModal: React.FC<WarriorStoryModalProps> = ({ story, ope
                       </li>
                     ))}
                   </ul>
-                </div>
-              </>
-            )}
-
-            {story.management_approach && (
-              <>
-                <Separator />
-                <div className="p-4 rounded-lg bg-muted/50">
-                  <h3 className="font-semibold mb-2">Management Approach</h3>
-                  <p className="text-sm text-muted-foreground">{story.management_approach}</p>
-                </div>
-              </>
-            )}
-
-            {story.advice_to_newly_diagnosed && (
-              <>
-                <Separator />
-                <div className="p-4 rounded-lg bg-primary/5 border-l-4 border-primary">
-                  <h3 className="flex items-center gap-2 font-semibold mb-2">
-                    <Lightbulb className="h-5 w-5 text-primary" />
-                    Advice to Newly Diagnosed
-                  </h3>
-                  <div className="flex gap-2">
-                    <Quote className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-muted-foreground italic">
-                      {story.advice_to_newly_diagnosed}
-                    </p>
-                  </div>
                 </div>
               </>
             )}
