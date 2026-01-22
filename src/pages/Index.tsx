@@ -61,25 +61,25 @@ const Index = () => {
     <Layout>
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center hero-gradient overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-highlight/20"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-purple-dark/20 via-transparent to-brand-purple-light/20"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center mb-8">
-            <img src={logoImage} alt="GlucoForge" className="h-20 w-auto max-w-md animate-forge-glow" />
+            <img src={logoImage} alt="GlycoForge" className="h-20 w-auto max-w-md animate-forge-glow" />
           </div>
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-heading font-bold text-white mb-6 leading-tight">
+          <h1 className="heading-hero text-white mb-6 leading-tight">
             Forging tools. Fueling hope.<br />
-            <span className="text-gradient bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
+            <span className="text-white/90">
               Fighting diabetes together.
             </span>
           </h1>
-          <p className="text-xl sm:text-2xl text-white/90 mb-12 max-w-4xl mx-auto leading-relaxed">
+          <p className="text-hero text-white/80 mb-12 max-w-4xl mx-auto leading-relaxed">
             Where scientific rigor meets real-world experience. An arsenal, command center, 
             and sanctuary for every T1D warrior.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Button 
               size="lg" 
-              className="accent-gradient text-xl px-12 py-4 h-auto font-semibold shadow-glow hover:shadow-elegant transition-forge"
+              className="bg-brand-red hover:bg-brand-red-dark text-white text-xl px-12 py-4 h-auto font-bold shadow-brand hover:shadow-glow transition-all"
               onClick={async () => {
                 try {
                   const { data, error } = await supabase.functions.invoke('create-donation', {
@@ -102,7 +102,7 @@ const Index = () => {
             <Button 
               variant="outline" 
               size="lg" 
-              className="text-xl px-12 py-4 h-auto font-semibold border-white/30 text-white hover:bg-white/10 backdrop-blur-sm"
+              className="text-xl px-12 py-4 h-auto font-semibold border-2 border-white text-white hover:bg-white/10 backdrop-blur-sm"
               onClick={() => navigate(user ? "/dashboard" : "/auth")}
             >
               {user ? "Go to Dashboard" : "Get Started"}
@@ -112,18 +112,18 @@ const Index = () => {
         
         {/* Floating elements */}
         <div className="absolute top-20 left-20 animate-float">
-          <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-            <Beaker className="h-8 w-8 text-white/80" />
+          <div className="w-16 h-16 rounded-full bg-brand-teal/20 backdrop-blur-sm flex items-center justify-center">
+            <Beaker className="h-8 w-8 text-brand-teal" />
           </div>
         </div>
         <div className="absolute bottom-32 right-32 animate-float" style={{ animationDelay: '2s' }}>
-          <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-            <Brain className="h-10 w-10 text-white/80" />
+          <div className="w-20 h-20 rounded-full bg-brand-red/20 backdrop-blur-sm flex items-center justify-center">
+            <Brain className="h-10 w-10 text-brand-red" />
           </div>
         </div>
         <div className="absolute top-1/3 right-20 animate-float" style={{ animationDelay: '4s' }}>
           <div className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
-            <Heart className="h-6 w-6 text-white/80" />
+            <Heart className="h-6 w-6 text-white" />
           </div>
         </div>
       </section>
@@ -132,29 +132,29 @@ const Index = () => {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-heading font-bold text-foreground mb-4">
+            <h2 className="heading-section text-foreground mb-4">
               Our Journey to 501(c)(3) Status
             </h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-hero text-muted-foreground max-w-3xl mx-auto">
               Transparent roadmap showing our path to becoming a fully registered nonprofit organization
             </p>
           </div>
           
           <div className="relative">
-            <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gradient-to-b from-primary via-highlight to-accent"></div>
+            <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gradient-to-b from-brand-purple-dark via-brand-teal to-brand-red"></div>
             
             <div className="space-y-12">
               {/* Pre-launch */}
               <div className="flex items-center">
                 <div className="w-1/2 pr-8 text-right">
-                  <div className="command-center-widget">
-                    <h3 className="text-xl font-heading font-semibold text-foreground mb-2">Pre-launch</h3>
+                  <div className="command-center-widget border-l-4 border-brand-teal">
+                    <h3 className="heading-subsection text-foreground mb-2">Pre-launch</h3>
                     <p className="text-muted-foreground">Platform development, community building, and initial research</p>
                   </div>
                 </div>
-                <div className="w-4 h-4 bg-primary rounded-full relative z-10 border-4 border-background"></div>
+                <div className="w-4 h-4 bg-brand-purple-dark rounded-full relative z-10 border-4 border-background"></div>
                 <div className="w-1/2 pl-8">
-                  <Badge className="bg-primary text-primary-foreground">Current Phase</Badge>
+                  <Badge className="bg-brand-purple-dark text-white">Current Phase</Badge>
                 </div>
               </div>
               
@@ -163,10 +163,10 @@ const Index = () => {
                 <div className="w-1/2 pr-8 text-right">
                   <Badge className="bg-muted text-muted-foreground">Next: 3 Months</Badge>
                 </div>
-                <div className="w-4 h-4 bg-highlight rounded-full relative z-10 border-4 border-background"></div>
+                <div className="w-4 h-4 bg-brand-teal rounded-full relative z-10 border-4 border-background"></div>
                 <div className="w-1/2 pl-8">
-                  <div className="command-center-widget">
-                    <h3 className="text-xl font-heading font-semibold text-foreground mb-2">File Paperwork</h3>
+                  <div className="command-center-widget border-l-4 border-brand-teal">
+                    <h3 className="heading-subsection text-foreground mb-2">File Paperwork</h3>
                     <p className="text-muted-foreground">Submit 501(c)(3) application and establish legal framework</p>
                   </div>
                 </div>
@@ -175,26 +175,26 @@ const Index = () => {
               {/* 6 Months */}
               <div className="flex items-center">
                 <div className="w-1/2 pr-8 text-right">
-                  <div className="command-center-widget">
-                    <h3 className="text-xl font-heading font-semibold text-foreground mb-2">Launch Public Beta</h3>
+                  <div className="command-center-widget border-l-4 border-brand-red">
+                    <h3 className="heading-subsection text-foreground mb-2">Launch Public Beta</h3>
                     <p className="text-muted-foreground">Open platform to T1D community with full feature set</p>
                   </div>
                 </div>
-                <div className="w-4 h-4 bg-accent rounded-full relative z-10 border-4 border-background"></div>
+                <div className="w-4 h-4 bg-brand-red rounded-full relative z-10 border-4 border-background"></div>
                 <div className="w-1/2 pl-8">
-                  <Badge className="bg-muted text-muted-foreground">6 Months</Badge>
+                  <Badge variant="secondary">6 Months</Badge>
                 </div>
               </div>
               
               {/* 1 Year */}
               <div className="flex items-center">
                 <div className="w-1/2 pr-8 text-right">
-                  <Badge className="bg-muted text-muted-foreground">1 Year</Badge>
+                  <Badge variant="secondary">1 Year</Badge>
                 </div>
                 <div className="w-4 h-4 bg-success rounded-full relative z-10 border-4 border-background"></div>
                 <div className="w-1/2 pl-8">
-                  <div className="command-center-widget">
-                    <h3 className="text-xl font-heading font-semibold text-foreground mb-2">Scale Impact</h3>
+                  <div className="command-center-widget border-l-4 border-success">
+                    <h3 className="heading-subsection text-foreground mb-2">Scale Impact</h3>
                     <p className="text-muted-foreground">Expand reach, partnerships, and research capabilities</p>
                   </div>
                 </div>
