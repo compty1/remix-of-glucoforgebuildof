@@ -24,6 +24,13 @@ export default {
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
+				// GlycoForge Brand Colors
+				'brand-red': 'hsl(var(--brand-red))',
+				'brand-red-dark': 'hsl(var(--brand-red-dark))',
+				'brand-purple-dark': 'hsl(var(--brand-purple-dark))',
+				'brand-purple-light': 'hsl(var(--brand-purple-light))',
+				'brand-teal': 'hsl(var(--brand-teal))',
+				'brand-teal-light': 'hsl(var(--brand-teal-light))',
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))',
@@ -81,11 +88,26 @@ export default {
 				'gradient-forge': 'var(--gradient-primary)',
 				'gradient-hero': 'var(--gradient-hero)',
 				'gradient-accent': 'var(--gradient-accent)',
+				'gradient-teal': 'var(--gradient-teal)',
 			},
 			boxShadow: {
+				'sm': 'var(--shadow-sm)',
+				'md': 'var(--shadow-md)',
+				'lg': 'var(--shadow-lg)',
 				'elegant': 'var(--shadow-elegant)',
 				'glow': 'var(--shadow-glow)',
 				'card': 'var(--shadow-card)',
+				'brand': 'var(--shadow-brand)',
+			},
+			fontFamily: {
+				'sans': ['Inter', 'system-ui', 'sans-serif'],
+			},
+			fontWeight: {
+				'normal': '400',
+				'medium': '500',
+				'semibold': '600',
+				'bold': '700',
+				'extrabold': '800',
 			},
 			keyframes: {
 				'accordion-down': {
@@ -106,10 +128,10 @@ export default {
 				},
 				'forge-glow': {
 					"0%": { 
-						boxShadow: "0 0 20px hsl(262 38% 50% / 0.3)",
+						boxShadow: "0 0 20px hsl(4 100% 63% / 0.3)",
 					},
 					"100%": { 
-						boxShadow: "0 0 30px hsl(262 38% 50% / 0.6), 0 0 60px hsl(262 38% 50% / 0.2)",
+						boxShadow: "0 0 30px hsl(4 100% 63% / 0.6), 0 0 60px hsl(4 100% 63% / 0.2)",
 					},
 				},
 				'pulse-forge': {
@@ -120,12 +142,34 @@ export default {
 						opacity: "0.7",
 					},
 				},
+				'fade-in': {
+					"0%": {
+						opacity: "0",
+						transform: "translateY(10px)"
+					},
+					"100%": {
+						opacity: "1",
+						transform: "translateY(0)"
+					}
+				},
+				'scale-in': {
+					"0%": {
+						transform: "scale(0.95)",
+						opacity: "0"
+					},
+					"100%": {
+						transform: "scale(1)",
+						opacity: "1"
+					}
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'forge-glow': 'forge-glow 2s ease-in-out infinite alternate',
 				'pulse-forge': 'pulse-forge 2s ease-in-out infinite',
+				'fade-in': 'fade-in 0.3s ease-out',
+				'scale-in': 'scale-in 0.2s ease-out',
 			}
 		}
 	},

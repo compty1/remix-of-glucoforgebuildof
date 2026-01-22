@@ -32,27 +32,27 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <AppSidebar />
         
         <div className="flex flex-col flex-1">
-          {/* Header with sidebar trigger */}
-          <header className="h-16 flex items-center justify-between px-6 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+          {/* Header with brand purple gradient */}
+          <header className="h-16 flex items-center justify-between px-6 hero-gradient sticky top-0 z-50">
             <div className="flex items-center gap-4">
-              <SidebarTrigger>
+              <SidebarTrigger className="text-white hover:bg-white/10">
                 <Menu className="h-5 w-5" />
               </SidebarTrigger>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-white/80 font-medium">
                 Where scientific rigor meets real-world experience
               </div>
             </div>
             
-            <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/settings")}>
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="text-white hover:bg-white/10">
                 <User className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={handleSignOut}>
+              <Button variant="ghost" size="icon" onClick={handleSignOut} className="text-white hover:bg-white/10">
                 <LogOut className="h-4 w-4" />
               </Button>
               <Button 
                 size="sm" 
-                className="accent-gradient"
+                className="bg-brand-red hover:bg-brand-red-dark text-white shadow-brand"
                 onClick={() => setDonationModalOpen(true)}
               >
                 <Heart className="h-4 w-4 mr-2" />
@@ -62,62 +62,62 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </header>
           
           {/* Main content */}
-          <main className="flex-1">
+          <main className="flex-1 bg-background">
             {children}
           </main>
           
-          {/* Footer */}
-          <footer className="border-t border-border bg-muted/30 py-8">
+          {/* Footer with brand purple */}
+          <footer className="bg-brand-purple-dark py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div className="space-y-4">
-                  <h3 className="font-heading font-semibold text-foreground">GlucoForge</h3>
-                  <p className="text-sm text-muted-foreground">
+                  <h3 className="font-bold text-white text-lg">GlycoForge</h3>
+                  <p className="text-sm text-white/70">
                     Forging tools. Fueling hope. Fighting diabetes together.
                   </p>
                 </div>
                 <div className="space-y-3">
-                  <h4 className="font-medium text-foreground">Platform</h4>
+                  <h4 className="font-semibold text-white">Platform</h4>
                   <div className="space-y-2 text-sm">
-                    <Link to="/cure" className="block text-muted-foreground hover:text-foreground transition-colors">
+                    <Link to="/cure" className="block text-white/70 hover:text-brand-teal transition-colors">
                       Live Cure Monitoring
                     </Link>
-                    <Link to="/devices" className="block text-muted-foreground hover:text-foreground transition-colors">
+                    <Link to="/devices" className="block text-white/70 hover:text-brand-teal transition-colors">
                       Devices
                     </Link>
-                    <Link to="/research" className="block text-muted-foreground hover:text-foreground transition-colors">
+                    <Link to="/research" className="block text-white/70 hover:text-brand-teal transition-colors">
                       Research Hub
                     </Link>
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <h4 className="font-medium text-foreground">Community</h4>
+                  <h4 className="font-semibold text-white">Community</h4>
                   <div className="space-y-2 text-sm">
-                    <Link to="/surveys" className="block text-muted-foreground hover:text-foreground transition-colors">
+                    <Link to="/surveys" className="block text-white/70 hover:text-brand-teal transition-colors">
                       Citizen Science
                     </Link>
-                    <Link to="/mental-health" className="block text-muted-foreground hover:text-foreground transition-colors">
+                    <Link to="/mental-health" className="block text-white/70 hover:text-brand-teal transition-colors">
                       Mental Health Hub
                     </Link>
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <h4 className="font-medium text-foreground">Organization</h4>
+                  <h4 className="font-semibold text-white">Organization</h4>
                   <div className="space-y-2 text-sm">
-                    <a href="#" className="block text-muted-foreground hover:text-foreground transition-colors">
+                    <Link to="/about" className="block text-white/70 hover:text-brand-teal transition-colors">
                       About Us
-                    </a>
-                    <a href="#" className="block text-muted-foreground hover:text-foreground transition-colors">
+                    </Link>
+                    <a href="#" className="block text-white/70 hover:text-brand-teal transition-colors">
                       501(c)(3) Status
                     </a>
-                    <a href="#" className="block text-muted-foreground hover:text-foreground transition-colors">
+                    <Link to="/contact" className="block text-white/70 hover:text-brand-teal transition-colors">
                       Contact
-                    </a>
+                    </Link>
                   </div>
                 </div>
               </div>
-              <div className="mt-8 pt-8 border-t border-border text-center text-sm text-muted-foreground">
-                <p>&copy; 2024 GlucoForge. An emerging 501(c)(3) nonprofit organization.</p>
+              <div className="mt-8 pt-8 border-t border-white/20 text-center text-sm text-white/60">
+                <p>&copy; 2024 GlycoForge. An emerging 501(c)(3) nonprofit organization.</p>
               </div>
             </div>
           </footer>

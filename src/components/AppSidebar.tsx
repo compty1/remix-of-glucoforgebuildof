@@ -233,19 +233,19 @@ export function AppSidebar() {
   
   const getNavClasses = (path: string) => {
     return isActive(path) 
-      ? "bg-primary text-primary-foreground font-medium shadow-sm" 
-      : "hover:bg-muted/50 transition-colors";
+      ? "bg-brand-purple-dark text-white font-semibold shadow-sm" 
+      : "hover:bg-muted text-foreground transition-colors";
   };
 
   const getDeviceNavClasses = (deviceId: string) => {
     return isDeviceActive(deviceId)
-      ? "bg-primary text-primary-foreground font-medium"
-      : "hover:bg-muted/50 transition-colors";
+      ? "bg-brand-purple-dark text-white font-semibold"
+      : "hover:bg-muted text-foreground transition-colors";
   };
 
   return (
-    <Sidebar className={state === "collapsed" ? "w-14" : "w-64"} variant="sidebar" collapsible="icon">
-      <SidebarContent className="py-4">
+    <Sidebar className={`${state === "collapsed" ? "w-14" : "w-64"} border-r border-border bg-background`} variant="sidebar" collapsible="icon">
+      <SidebarContent className="py-4 bg-background">
         {/* Logo */}
         <div className="flex items-center justify-center mb-6 px-4">
           {state === "collapsed" ? (
@@ -254,14 +254,14 @@ export function AppSidebar() {
             </div>
           ) : (
             <div className="flex items-center justify-start w-full">
-              <img src={logoImage} alt="GlucoForge" className="h-8 w-auto max-w-full flex-shrink-0" />
+              <img src={logoImage} alt="GlycoForge" className="h-8 w-auto max-w-full flex-shrink-0" />
             </div>
           )}
         </div>
 
         {/* Main Navigation */}
         <SidebarGroup>
-          <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : ""}>
+          <SidebarGroupLabel className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider`}>
             Main
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -270,7 +270,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavClasses(item.url)}>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className={`h-4 w-4 ${isActive(item.url) ? '' : 'text-brand-teal'}`} />
                       {state !== "collapsed" && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -282,7 +282,7 @@ export function AppSidebar() {
 
         {/* T1D Intelligence Hub */}
         <SidebarGroup>
-          <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : ""}>
+          <SidebarGroupLabel className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider`}>
             T1D Intelligence Hub
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -292,7 +292,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavClasses(item.url)}>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className={`h-4 w-4 ${isActive(item.url) ? '' : 'text-brand-teal'}`} />
                       {state !== "collapsed" && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -381,7 +381,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavClasses(item.url)}>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className={`h-4 w-4 ${isActive(item.url) ? '' : 'text-brand-teal'}`} />
                       {state !== "collapsed" && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -399,12 +399,12 @@ export function AppSidebar() {
                     <SidebarMenuButton 
                       className={`w-full justify-between ${
                         currentPath === '/devices' || currentPath.startsWith('/devices/')
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "hover:bg-muted/50"
+                          ? "bg-brand-purple-dark/10 text-brand-purple-dark font-semibold"
+                          : "hover:bg-muted"
                       }`}
                     >
                       <div className="flex items-center gap-2">
-                        <Smartphone className="h-4 w-4" />
+                        <Smartphone className={`h-4 w-4 ${currentPath.startsWith('/devices') ? '' : 'text-brand-teal'}`} />
                         {state !== "collapsed" && <span>Devices</span>}
                       </div>
                       {state !== "collapsed" && (
@@ -448,7 +448,7 @@ export function AppSidebar() {
 
         {/* Content Hub */}
         <SidebarGroup>
-          <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : ""}>
+          <SidebarGroupLabel className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider`}>
             Content Hub
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -457,7 +457,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavClasses(item.url)}>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className={`h-4 w-4 ${isActive(item.url) ? '' : 'text-brand-teal'}`} />
                       {state !== "collapsed" && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -469,7 +469,7 @@ export function AppSidebar() {
 
         {/* Support */}
         <SidebarGroup>
-          <SidebarGroupLabel className={state === "collapsed" ? "sr-only" : ""}>
+          <SidebarGroupLabel className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider`}>
             Support
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -478,7 +478,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavClasses(item.url)}>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className={`h-4 w-4 ${isActive(item.url) ? '' : 'text-brand-teal'}`} />
                       {state !== "collapsed" && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
@@ -498,7 +498,7 @@ export function AppSidebar() {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
                       <NavLink to={item.url} className={getNavClasses(item.url)}>
-                        <item.icon className="h-4 w-4" />
+                        <item.icon className={`h-4 w-4 ${isActive(item.url) ? '' : 'text-brand-red'}`} />
                         {state !== "collapsed" && <span>{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>

@@ -1,40 +1,50 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* GlucoForge Design System - Award-winning diabetes research platform */
+/* GlycoForge Brand Design System */
 
 @layer base {
   :root {
-    /* GlucoForge Brand Colors */
-    --primary: 210 85% 14%; /* Deep Navy #0B1F3A */
-    --primary-foreground: 0 0% 98%;
-    --accent: 350 80% 43%; /* Blood Red #B22234 */
-    --accent-foreground: 0 0% 98%;
-    --highlight: 262 38% 50%; /* Tech Purple #6A4C93 */
-    --highlight-foreground: 0 0% 98%;
+    /* GlycoForge Brand Colors - from brand guide */
+    --brand-red: 4 100% 63%; /* #FF4541 - Primary CTAs, stats */
+    --brand-red-dark: 2 70% 53%; /* #D93A36 - Hover states */
+    --brand-purple-dark: 269 60% 25%; /* #3D1A66 - Navigation, hero, footer */
+    --brand-purple-light: 270 35% 61%; /* #9C7ABF - Accents, gradient endpoints */
+    --brand-teal: 168 65% 55%; /* #3DD9C4 - Links, icons, highlights */
+    --brand-teal-light: 168 60% 65%; /* #6DE3D3 - Teal hover states */
     
-    /* Core Colors */
-    --background: 0 0% 96%; /* Light Neutral #F5F5F5 */
-    --foreground: 0 0% 20%; /* Charcoal #333333 */
+    /* Core Semantic Colors */
+    --background: 0 0% 100%; /* Pure white */
+    --foreground: 222 47% 11%; /* #0F172A - Dark navy text */
+    
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 20%;
+    --card-foreground: 222 47% 11%;
+    
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 20%;
+    --popover-foreground: 222 47% 11%;
     
-    /* Secondary & Supporting */
-    --secondary: 210 15% 95%;
-    --secondary-foreground: 210 85% 14%;
-    --muted: 210 10% 92%;
-    --muted-foreground: 0 0% 45%;
+    --primary: 269 60% 25%; /* Brand purple dark */
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 270 35% 61%;
     
-    /* Interactive States */
+    --secondary: 220 14% 96%; /* #F4F5F7 */
+    --secondary-foreground: 222 47% 11%;
+    
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%; /* #6B7280 */
+    
+    --accent: 4 100% 63%; /* Brand red */
+    --accent-foreground: 0 0% 100%;
+    
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
+    
     --warning: 40 84% 55%;
     --warning-foreground: 0 0% 98%;
+    
     --success: 142 76% 36%;
     --success-foreground: 0 0% 98%;
     
@@ -43,71 +53,77 @@
     --credibility-medium: 40 84% 55%;
     --credibility-low: 0 84% 60%;
     
-    --border: 210 10% 85%;
-    --input: 210 10% 90%;
-    --ring: 210 85% 14%;
+    --border: 220 13% 91%; /* #E5E7EB */
+    --input: 220 14% 96%;
+    --ring: 269 60% 25%;
     
     /* Chart Colors */
-    --chart-1: 210 85% 14%; /* Primary Navy */
-    --chart-2: 262 38% 50%; /* Tech Purple */
-    --chart-3: 350 80% 43%; /* Blood Red */
-    --chart-4: 195 80% 45%; /* Complementary Blue */
-    --chart-5: 30 80% 55%; /* Warm Orange */
+    --chart-1: 269 60% 25%; /* Primary Purple */
+    --chart-2: 168 65% 55%; /* Teal */
+    --chart-3: 4 100% 63%; /* Brand Red */
+    --chart-4: 220 70% 50%; /* Blue */
+    --chart-5: 40 84% 55%; /* Orange */
     
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(210 85% 14%), hsl(262 38% 50%));
-    --gradient-hero: linear-gradient(135deg, hsl(210 85% 14% / 0.95), hsl(262 38% 50% / 0.9));
-    --gradient-accent: linear-gradient(135deg, hsl(350 80% 43%), hsl(350 70% 50%));
-    --gradient-card: linear-gradient(180deg, hsl(var(--background)), hsl(210 10% 98%));
+    /* GlycoForge Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(269 60% 25%), hsl(270 35% 61%));
+    --gradient-hero: linear-gradient(135deg, hsl(269 60% 25%), hsl(270 35% 61%));
+    --gradient-accent: linear-gradient(135deg, hsl(4 100% 63%), hsl(4 85% 55%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 14% 98%));
+    --gradient-teal: linear-gradient(135deg, hsl(168 65% 55%), hsl(168 60% 65%));
     
-    /* Shadows */
-    --shadow-elegant: 0 10px 30px -10px hsl(210 85% 14% / 0.15);
-    --shadow-glow: 0 0 40px hsl(262 38% 50% / 0.2);
-    --shadow-card: 0 4px 20px -5px hsl(210 50% 20% / 0.1);
+    /* GlycoForge Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-elegant: 0 10px 30px -10px hsl(269 60% 25% / 0.15);
+    --shadow-glow: 0 0 40px hsl(4 100% 63% / 0.2);
+    --shadow-card: 0 4px 20px -5px hsl(220 50% 20% / 0.08);
+    --shadow-brand: 0 0 20px hsl(4 100% 63% / 0.3);
     
-    /* Animations */
+    /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-forge: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --animation-float: float 6s ease-in-out infinite;
     
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    /* Sidebar */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 269 60% 25%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 168 65% 55%;
   }
 
   .dark {
-    --background: 210 85% 8%;
-    --foreground: 0 0% 95%;
-    --card: 210 80% 10%;
-    --card-foreground: 0 0% 95%;
-    --popover: 210 80% 10%;
-    --popover-foreground: 0 0% 95%;
+    --background: 222 47% 8%;
+    --foreground: 0 0% 98%;
+    --card: 222 47% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 222 47% 10%;
+    --popover-foreground: 0 0% 98%;
     --primary: 0 0% 98%;
-    --primary-foreground: 210 85% 14%;
-    --secondary: 210 50% 15%;
-    --secondary-foreground: 0 0% 95%;
-    --muted: 210 50% 12%;
+    --primary-foreground: 269 60% 25%;
+    --secondary: 222 47% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 222 47% 12%;
     --muted-foreground: 0 0% 65%;
-    --accent: 350 80% 50%;
+    --accent: 4 100% 63%;
     --accent-foreground: 0 0% 98%;
-    --border: 210 50% 20%;
-    --input: 210 50% 15%;
-    --ring: 0 0% 95%;
-    --sidebar-background: 210 85% 8%;
-    --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 350 80% 50%;
+    --border: 222 47% 20%;
+    --input: 222 47% 15%;
+    --ring: 0 0% 98%;
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 4 100% 63%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 210 50% 15%;
-    --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 210 50% 20%;
-    --sidebar-ring: 350 80% 50%;
+    --sidebar-accent: 222 47% 15%;
+    --sidebar-accent-foreground: 0 0% 98%;
+    --sidebar-border: 222 47% 20%;
+    --sidebar-ring: 4 100% 63%;
   }
 }
 
@@ -123,12 +139,35 @@
   }
   
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold;
-    font-family: 'Poppins', sans-serif;
+    @apply font-semibold tracking-tight;
+    font-family: 'Inter', sans-serif;
   }
 }
 
+/* GlycoForge Typography Utilities */
 @layer components {
+  .heading-hero {
+    @apply text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight;
+  }
+  
+  .heading-section {
+    @apply text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight;
+  }
+  
+  .heading-subsection {
+    @apply text-xl font-semibold;
+  }
+  
+  .text-hero {
+    @apply text-lg md:text-xl font-medium;
+  }
+  
+  .stat-number {
+    @apply text-3xl md:text-4xl lg:text-5xl font-extrabold;
+    color: hsl(var(--brand-red));
+  }
+  
+  /* GlycoForge Gradients */
   .forge-gradient {
     background: var(--gradient-primary);
   }
@@ -145,6 +184,11 @@
     background: var(--gradient-card);
   }
   
+  .teal-gradient {
+    background: var(--gradient-teal);
+  }
+  
+  /* GlycoForge Shadows */
   .shadow-elegant {
     box-shadow: var(--shadow-elegant);
   }
@@ -157,14 +201,55 @@
     box-shadow: var(--shadow-card);
   }
   
+  .shadow-brand {
+    box-shadow: var(--shadow-brand);
+  }
+  
+  /* Transitions */
   .transition-forge {
     transition: var(--transition-forge);
   }
   
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+  
+  /* Animations */
   .animate-forge-glow {
     animation: forgeGlow 2s ease-in-out infinite alternate;
   }
   
+  /* Brand Text Colors */
+  .text-brand-red {
+    color: hsl(var(--brand-red));
+  }
+  
+  .text-brand-teal {
+    color: hsl(var(--brand-teal));
+  }
+  
+  .text-brand-purple {
+    color: hsl(var(--brand-purple-dark));
+  }
+  
+  /* Brand Background Colors */
+  .bg-brand-red {
+    background-color: hsl(var(--brand-red));
+  }
+  
+  .bg-brand-teal {
+    background-color: hsl(var(--brand-teal));
+  }
+  
+  .bg-brand-purple {
+    background-color: hsl(var(--brand-purple-dark));
+  }
+  
+  .bg-brand-purple-light {
+    background-color: hsl(var(--brand-purple-light));
+  }
+  
+  /* Credibility Classes */
   .credibility-high {
     @apply bg-success/10 text-success border-success/20;
   }
@@ -177,6 +262,7 @@
     @apply bg-destructive/10 text-destructive border-destructive/20;
   }
   
+  /* Text Gradient */
   .text-gradient {
     background: var(--gradient-primary);
     -webkit-background-clip: text;
@@ -184,12 +270,56 @@
     background-clip: text;
   }
   
-  .info-rail {
-    @apply border-l-4 border-primary bg-primary/5 p-4 rounded-r-lg;
+  .text-gradient-accent {
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   
+  /* Info Rail */
+  .info-rail {
+    @apply border-l-4 p-4 rounded-r-lg;
+    border-color: hsl(var(--brand-teal));
+    background-color: hsl(var(--brand-teal) / 0.05);
+  }
+  
+  /* Command Center Widget */
   .command-center-widget {
-    @apply bg-card border border-border rounded-lg p-4 shadow-card transition-forge hover:shadow-elegant;
+    @apply bg-card border border-border rounded-lg p-4 transition-forge;
+    box-shadow: var(--shadow-card);
+  }
+  
+  .command-center-widget:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: hsl(var(--brand-teal) / 0.3);
+  }
+  
+  /* Interactive Card Hover */
+  .card-interactive {
+    @apply transition-all duration-300;
+  }
+  
+  .card-interactive:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: hsl(var(--brand-teal) / 0.5);
+    transform: translateY(-2px);
+  }
+  
+  /* Teal Accent Border */
+  .border-accent-teal {
+    border-left: 4px solid hsl(var(--brand-teal));
+  }
+  
+  /* Brand Link Styles */
+  .link-brand {
+    color: hsl(var(--brand-teal));
+    @apply transition-colors;
+  }
+  
+  .link-brand:hover {
+    color: hsl(var(--brand-teal-light));
+    text-decoration: underline;
   }
 }
 
@@ -201,10 +331,10 @@
 
 @keyframes forgeGlow {
   0% { 
-    box-shadow: 0 0 20px hsl(262 38% 50% / 0.3);
+    box-shadow: 0 0 20px hsl(4 100% 63% / 0.3);
   }
   100% { 
-    box-shadow: 0 0 30px hsl(262 38% 50% / 0.6), 0 0 60px hsl(262 38% 50% / 0.2);
+    box-shadow: 0 0 30px hsl(4 100% 63% / 0.6), 0 0 60px hsl(4 100% 63% / 0.2);
   }
 }
 
