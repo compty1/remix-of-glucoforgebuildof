@@ -77,7 +77,7 @@ export const useMedicationDetails = (medicationId: string | undefined) => {
         console.error("Error fetching user reviews:", reviewError);
       }
 
-      // Fetch external reviews
+      // Fetch external reviews from external_medication_reviews
       const { data: externalReviews, error: extError } = await supabase
         .from("external_medication_reviews")
         .select("*")
@@ -87,6 +87,38 @@ export const useMedicationDetails = (medicationId: string | undefined) => {
       if (extError) {
         console.error("Error fetching external reviews:", extError);
       }
+
+      // Fetch community buzz posts
+      const { data: buzzPosts, error: buzzError } = await supabase
+        .from("medication_community_buzz")
+        .select("*")
+        .eq("medication_id", medicationId)
+        .order("engagement_score", { ascending: false });
+
+      if (buzzError) {
+        console.error("Error fetching community buzz:", buzzError);
+      }
+
+      // Combine external reviews and community buzz into a unified format
+      const combinedReviews: ExternalMedicationReview[] = [
+        ...(externalReviews || []).map(r => r as ExternalMedicationReview),
+        ...(buzzPosts || []).map(buzz => ({
+          id: buzz.id,
+          medication_id: buzz.medication_id,
+          source: buzz.source || 'Community',
+          external_id: null,
+          author_anonymous: buzz.author_handle,
+          title: null,
+          content: buzz.post_content || '',
+          sentiment: buzz.sentiment,
+          helpful_count: buzz.engagement_score,
+          published_at: buzz.post_date,
+          source_url: buzz.post_url,
+          subreddit: null,
+          fetched_at: null,
+          created_at: buzz.created_at
+        }))
+      ].sort((a, b) => (b.helpful_count || 0) - (a.helpful_count || 0));
 
       // Fetch related medications (same category)
       const { data: related, error: relatedError } = await supabase
@@ -105,7 +137,7 @@ export const useMedicationDetails = (medicationId: string | undefined) => {
         ...medication,
         usage_statistics: medication.usage_statistics as Record<string, unknown> | null,
         userReviews: (userReviews || []) as MedicationReview[],
-        externalReviews: (externalReviews || []) as ExternalMedicationReview[],
+        externalReviews: combinedReviews,
         relatedMedications: (related || []) as Medication[],
       } as MedicationWithDetails;
     },
