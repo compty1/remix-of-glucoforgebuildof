@@ -95,10 +95,11 @@ const LiveCureMonitoring = () => {
         <section className="mb-12">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-heading font-bold text-foreground mb-4">
-              Live Cure Monitoring Dashboard
+              Live Cure Tracker
             </h1>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-6">
-              Real-time tracking of the most promising T1D cure research, with progress percentages based on clinical trial milestones
+              Real-time updates on the latest approaches to curing Type 1 Diabetes. Track clinical trials, 
+              timelines, and breakthrough developments from leading research institutions.
             </p>
             <Button size="lg" onClick={() => setShowReport(true)} className="gap-2">
               <FileText className="h-5 w-5" />

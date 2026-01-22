@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Activity, Search, TrendingUp, Users, Database, Heart, ArrowRight, Zap, Shield, Globe, Beaker, Brain, Hammer } from 'lucide-react';
+import { Activity, Search, TrendingUp, Users, Database, Heart, ArrowRight, Zap, Shield, Globe, Beaker, Brain, Hammer, Code, Palette, PieChart, Server, FileText, Clock, Smartphone, Quote } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +10,7 @@ import { WeeklyDigestSignup } from '@/components/WeeklyDigestSignup';
 import { StatementJar } from '@/components/home/StatementJar';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
-import logoImage from '@/assets/glucoforge-logo.svg';
+import logoImage from '@/assets/glucoforge-logo-new.png';
 
 interface DiscoveryCardData {
   id: string;
@@ -22,6 +22,15 @@ interface DiscoveryCardData {
   sources: Array<{ title: string; url: string }>;
   created_at: string;
 }
+
+const volunteerRoles = [
+  { id: 'frontend', title: 'Frontend Developer', description: 'Build user interfaces with React and TypeScript', icon: Code },
+  { id: 'backend', title: 'Backend Developer', description: 'Build APIs and data infrastructure', icon: Server },
+  { id: 'data', title: 'Data Scientist', description: 'Analyze patterns and build AI models', icon: PieChart },
+  { id: 'design', title: 'UI/UX Designer', description: 'Design beautiful, accessible experiences', icon: Palette },
+  { id: 'devops', title: 'DevOps Engineer', description: 'Build infrastructure and deployment pipelines', icon: Server },
+  { id: 'writer', title: 'Technical Writer', description: 'Document features and create guides', icon: FileText },
+];
 
 const Index = () => {
   const navigate = useNavigate();
@@ -59,22 +68,19 @@ const Index = () => {
 
   return (
     <Layout>
-      {/* Hero Section */}
+      {/* Hero Section - Updated Copy */}
       <section className="relative min-h-screen flex items-center justify-center hero-gradient overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-brand-purple-dark/20 via-transparent to-brand-purple-light/20"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center mb-8">
-            <img src={logoImage} alt="GlycoForge" className="h-20 w-auto max-w-md animate-forge-glow" />
+            <img src={logoImage} alt="GlucoForge" className="h-24 w-auto max-w-md" />
           </div>
           <h1 className="heading-hero text-white mb-6 leading-tight">
-            Forging tools. Fueling hope.<br />
-            <span className="text-white/90">
-              Fighting diabetes together.
-            </span>
+            For the Warriors in a Vicious Battle
           </h1>
           <p className="text-hero text-white/80 mb-12 max-w-4xl mx-auto leading-relaxed">
-            Where scientific rigor meets real-world experience. An arsenal, command center, 
-            and sanctuary for every T1D warrior.
+            Living with Type 1 diabetes means navigating relentless chaos. Broken tools. Missing context. 
+            Daily stress shards that could be eliminated with simple, smart solutions. We're building them — together.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Button 
@@ -127,146 +133,296 @@ const Index = () => {
           </div>
         </div>
       </section>
-      
-      {/* Nonprofit Roadmap */}
+
+      {/* The Challenge We're Solving */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="heading-section text-foreground mb-4">
-              Our Journey to 501(c)(3) Status
+              The Challenge We're Solving
             </h2>
-            <p className="text-hero text-muted-foreground max-w-3xl mx-auto">
-              Transparent roadmap showing our path to becoming a fully registered nonprofit organization
-            </p>
           </div>
           
-          <div className="relative">
-            <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-1 bg-gradient-to-b from-brand-purple-dark via-brand-teal to-brand-red"></div>
-            
-            <div className="space-y-12">
-              {/* Pre-launch */}
-              <div className="flex items-center">
-                <div className="w-1/2 pr-8 text-right">
-                  <div className="command-center-widget border-l-4 border-brand-teal">
-                    <h3 className="heading-subsection text-foreground mb-2">Pre-launch</h3>
-                    <p className="text-muted-foreground">Platform development, community building, and initial research</p>
-                  </div>
-                </div>
-                <div className="w-4 h-4 bg-brand-purple-dark rounded-full relative z-10 border-4 border-background"></div>
-                <div className="w-1/2 pl-8">
-                  <Badge className="bg-brand-purple-dark text-white">Current Phase</Badge>
-                </div>
-              </div>
-              
-              {/* 3 Months */}
-              <div className="flex items-center">
-                <div className="w-1/2 pr-8 text-right">
-                  <Badge className="bg-muted text-muted-foreground">Next: 3 Months</Badge>
-                </div>
-                <div className="w-4 h-4 bg-brand-teal rounded-full relative z-10 border-4 border-background"></div>
-                <div className="w-1/2 pl-8">
-                  <div className="command-center-widget border-l-4 border-brand-teal">
-                    <h3 className="heading-subsection text-foreground mb-2">File Paperwork</h3>
-                    <p className="text-muted-foreground">Submit 501(c)(3) application and establish legal framework</p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* 6 Months */}
-              <div className="flex items-center">
-                <div className="w-1/2 pr-8 text-right">
-                  <div className="command-center-widget border-l-4 border-brand-red">
-                    <h3 className="heading-subsection text-foreground mb-2">Launch Public Beta</h3>
-                    <p className="text-muted-foreground">Open platform to T1D community with full feature set</p>
-                  </div>
-                </div>
-                <div className="w-4 h-4 bg-brand-red rounded-full relative z-10 border-4 border-background"></div>
-                <div className="w-1/2 pl-8">
-                  <Badge variant="secondary">6 Months</Badge>
-                </div>
-              </div>
-              
-              {/* 1 Year */}
-              <div className="flex items-center">
-                <div className="w-1/2 pr-8 text-right">
-                  <Badge variant="secondary">1 Year</Badge>
-                </div>
-                <div className="w-4 h-4 bg-success rounded-full relative z-10 border-4 border-background"></div>
-                <div className="w-1/2 pl-8">
-                  <div className="command-center-widget border-l-4 border-success">
-                    <h3 className="heading-subsection text-foreground mb-2">Scale Impact</h3>
-                    <p className="text-muted-foreground">Expand reach, partnerships, and research capabilities</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+            <Card className="text-center command-center-widget">
+              <CardContent className="pt-6">
+                <p className="text-4xl md:text-5xl font-bold text-primary mb-2">8.4M</p>
+                <p className="text-sm text-muted-foreground">People with Type 1 diabetes worldwide</p>
+              </CardContent>
+            </Card>
+            <Card className="text-center command-center-widget">
+              <CardContent className="pt-6">
+                <p className="text-4xl md:text-5xl font-bold text-primary mb-2">24/7</p>
+                <p className="text-sm text-muted-foreground">Constant management required</p>
+              </CardContent>
+            </Card>
+            <Card className="text-center command-center-widget">
+              <CardContent className="pt-6">
+                <p className="text-4xl md:text-5xl font-bold text-primary mb-2">100+</p>
+                <p className="text-sm text-muted-foreground">Daily micro-decisions about health</p>
+              </CardContent>
+            </Card>
+            <Card className="text-center command-center-widget">
+              <CardContent className="pt-6">
+                <p className="text-4xl md:text-5xl font-bold text-primary mb-2">5+</p>
+                <p className="text-sm text-muted-foreground">Apps needed to manage T1D effectively</p>
+              </CardContent>
+            </Card>
           </div>
+
+          {/* Small Fixes. Massive Relief. */}
+          <Card className="command-center-widget border-primary/20 mb-16">
+            <CardContent className="p-8 md:p-12">
+              <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-6 text-center">
+                Small Fixes. Massive Relief.
+              </h3>
+              <p className="text-lg text-muted-foreground leading-relaxed text-center max-w-4xl mx-auto">
+                Living with Type 1 diabetes isn't just about managing blood sugar — it's about navigating hundreds of tiny, 
+                relentless stressors every single day. Device alerts that don't sync. Data scattered across five apps. 
+                Missing context that turns a simple decision into a mental marathon. The truth? Many of these stress shards 
+                can be eliminated with simple, smart tools — the kind that should already exist, but don't. We're going to build them.
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Emma's Story */}
+          <Card className="command-center-widget border-l-4 border-l-primary bg-primary/5">
+            <CardContent className="p-8 md:p-12">
+              <div className="flex flex-col md:flex-row gap-8 items-center">
+                <div className="flex-shrink-0">
+                  <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center">
+                    <Quote className="h-10 w-10 text-primary" />
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-xl font-semibold text-foreground mb-2">
+                    Your Impact in Action: Emma's Story
+                  </h4>
+                  <p className="text-muted-foreground mb-4 leading-relaxed">
+                    When 16-year-old Emma's Dexcom sensor kept failing during her soccer games, she felt defeated. 
+                    Through GlucoForge's AI-powered community insights, Emma discovered a sports-specific adhesive 
+                    technique shared by other T1D athletes. Within days, she was back on the field with confidence.
+                  </p>
+                  <blockquote className="text-lg font-medium text-primary italic border-l-2 border-primary pl-4">
+                    "GlucoForge didn't just solve my technical problem—it gave me back my dreams."
+                  </blockquote>
+                </div>
+              </div>
+              <div className="mt-8 text-center">
+                <Button 
+                  size="lg" 
+                  onClick={() => navigate("/get-involved")}
+                  className="gap-2"
+                >
+                  <Heart className="h-5 w-5" />
+                  Help Create More Stories
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
-      {/* Platform Stats */}
+      {/* Unified Platform Section */}
       <section className="py-20 bg-muted/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-heading font-bold text-foreground mb-4">
-              Small Fixes. Massive Relief.
+              A Unified, Intelligent Platform
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Our platform delivers the tools T1D warriors need to forge their path forward
+              Everything T1D warriors need, in one place
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+            {[
+              { icon: Heart, label: 'Personalized Health' },
+              { icon: Activity, label: 'CGM Insights' },
+              { icon: Beaker, label: 'Mega Discoveries' },
+              { icon: Globe, label: 'Global Data' },
+              { icon: TrendingUp, label: 'New Findings' },
+              { icon: Database, label: 'Clinical Data' },
+              { icon: Brain, label: 'Advanced AI Patterns' },
+              { icon: Users, label: 'Community Discussions' },
+              { icon: PieChart, label: 'Impact Visualizer' },
+            ].map((item, i) => (
+              <Card key={i} className="text-center command-center-widget hover:border-primary/50 transition-colors">
+                <CardContent className="p-6">
+                  <div className="w-12 h-12 mx-auto mb-3 forge-gradient rounded-full flex items-center justify-center">
+                    <item.icon className="h-6 w-6 text-white" />
+                  </div>
+                  <p className="font-medium text-foreground">{item.label}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Our Roadmap */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-background">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="heading-section text-foreground mb-4">
+              Our Roadmap
+            </h2>
+            <p className="text-hero text-muted-foreground max-w-3xl mx-auto">
+              Building the platform step by step, with transparency and community input.
             </p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="text-center command-center-widget group hover:animate-forge-glow">
-              <CardHeader>
-                <div className="w-16 h-16 mx-auto mb-4 forge-gradient rounded-full flex items-center justify-center">
-                  <Shield className="h-8 w-8 text-white" />
-                </div>
-                <CardTitle className="text-2xl font-heading text-primary">Evidence-Based</CardTitle>
+            <Card className="command-center-widget relative">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-lg">
+                1
+              </div>
+              <CardHeader className="pt-8">
+                <CardTitle className="text-center">Foundation</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-4xl font-bold text-primary mb-3 font-heading">50,000+</p>
-                <p className="text-muted-foreground leading-relaxed">
-                  Global sources continuously scanned for breakthrough T1D research
+              <CardContent className="text-center">
+                <p className="text-muted-foreground">
+                  Core infrastructure, volunteer system, and community outreach. File 501(c)(3) paperwork.
+                </p>
+                <Badge className="mt-4">Current Phase</Badge>
+              </CardContent>
+            </Card>
+            
+            <Card className="command-center-widget relative">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-muted text-muted-foreground flex items-center justify-center font-bold text-lg border-2 border-border">
+                2
+              </div>
+              <CardHeader className="pt-8">
+                <CardTitle className="text-center">Platform Alpha</CardTitle>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-muted-foreground">
+                  First features live: data ingestion, AI insights, device management tools.
                 </p>
               </CardContent>
             </Card>
             
-            <Card className="text-center command-center-widget group hover:animate-forge-glow">
-              <CardHeader>
-                <div className="w-16 h-16 mx-auto mb-4 forge-gradient rounded-full flex items-center justify-center">
-                  <Users className="h-8 w-8 text-white" />
-                </div>
-                <CardTitle className="text-2xl font-heading text-primary">Community-Driven</CardTitle>
+            <Card className="command-center-widget relative">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-muted text-muted-foreground flex items-center justify-center font-bold text-lg border-2 border-border">
+                3
+              </div>
+              <CardHeader className="pt-8">
+                <CardTitle className="text-center">Community Beta</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-4xl font-bold text-primary mb-3 font-heading">120+</p>
-                <p className="text-muted-foreground leading-relaxed">
-                  Verified T1D communities analyzed for real-world insights
+              <CardContent className="text-center">
+                <p className="text-muted-foreground">
+                  Open beta with community testing, feedback loops, and continuous improvement.
                 </p>
               </CardContent>
             </Card>
+          </div>
+          
+          <div className="text-center mt-12">
+            <Button 
+              size="lg" 
+              variant="outline"
+              onClick={() => navigate("/get-involved")}
+              className="gap-2"
+            >
+              I'm Ready to Help
+              <ArrowRight className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      {/* Grounded in Science */}
+      <section className="py-20 bg-muted/20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div>
+              <Badge className="mb-4" variant="outline">Evidence-Based Approach</Badge>
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
+                Grounded in Science
+              </h2>
+              <div className="space-y-4 text-muted-foreground">
+                <p>
+                  <strong className="text-foreground">DCCT/EDIC Studies:</strong> Decades of research prove that 
+                  reducing glycemic variability prevents complications and improves quality of life.
+                </p>
+                <p>
+                  <strong className="text-foreground">Glycemic Damage Index:</strong> We're building metrics that 
+                  capture not just average glucose, but the volatility and chaos that cause real harm.
+                </p>
+              </div>
+              <Button variant="link" className="px-0 mt-4" asChild>
+                <Link to="/research">
+                  Read the Science <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
             
-            <Card className="text-center command-center-widget group hover:animate-forge-glow">
-              <CardHeader>
-                <div className="w-16 h-16 mx-auto mb-4 forge-gradient rounded-full flex items-center justify-center">
-                  <Zap className="h-8 w-8 text-white" />
-                </div>
-                <CardTitle className="text-2xl font-heading text-primary">Real-Time</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-4xl font-bold text-primary mb-3 font-heading">24/7</p>
-                <p className="text-muted-foreground leading-relaxed">
-                  Continuous monitoring for device issues and emerging patterns
+            {/* Emma's Story Repeat (Real Impact) */}
+            <Card className="command-center-widget border-l-4 border-l-success">
+              <CardContent className="p-8">
+                <h4 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-success" />
+                  Real Impact
+                </h4>
+                <p className="text-muted-foreground mb-4 leading-relaxed">
+                  When 16-year-old Emma's Dexcom sensor kept failing during her soccer games, she felt defeated. 
+                  Through GlucoForge's AI-powered community insights, Emma discovered a sports-specific adhesive 
+                  technique shared by other T1D athletes. Within days, she was back on the field with confidence.
                 </p>
+                <blockquote className="text-primary font-medium italic">
+                  "GlucoForge didn't just solve my technical problem—it gave me back my dreams."
+                </blockquote>
               </CardContent>
             </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* We Need Warriors of Every Kind */}
+      <section className="py-20 bg-background">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              We Need Warriors of Every Kind
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Click a role to learn more about how your skills can make a difference.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {volunteerRoles.map((role) => (
+              <Card 
+                key={role.id} 
+                className="command-center-widget cursor-pointer hover:border-primary/50 transition-all hover:shadow-md"
+                onClick={() => navigate("/get-involved")}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <role.icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground">{role.title}</h3>
+                      <p className="text-sm text-muted-foreground">{role.description}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          <div className="text-center">
+            <Button size="lg" onClick={() => navigate("/get-involved")} className="gap-2">
+              View All Opportunities
+              <ArrowRight className="h-5 w-5" />
+            </Button>
           </div>
         </div>
       </section>
 
       {/* Featured Insights */}
-      <section className="py-20 bg-background">
+      <section className="py-20 bg-muted/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-heading font-bold text-foreground mb-4">
@@ -395,7 +551,8 @@ const Index = () => {
               className="text-lg px-8 bg-white/20 hover:bg-white/30"
               onClick={() => navigate("/research")}
             >
-              Learn More
+              Explore Research
+              <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
         </div>

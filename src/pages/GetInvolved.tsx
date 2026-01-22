@@ -53,11 +53,11 @@ export default function GetInvolved() {
         {/* Hero Section */}
         <section className="text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-            Get Involved
+            Be Part of the Solution
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-6">
-            Whether you're a developer, designer, healthcare professional, or community advocate — 
-            there's a place for you here. Your skills can help millions living with Type 1 diabetes.
+            Your skills, support, and voice can help us forge a better future for millions. 
+            Here's how you can help build GlucoForge.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Button size="lg" asChild>

@@ -85,3 +85,6 @@ verify_jwt = false
 
 [functions.stripe-shop-webhook]
 verify_jwt = false
+
+[functions.seed-medication-buzz]
+verify_jwt = false
