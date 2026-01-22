@@ -5,7 +5,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { developmentProjects } from "@/data/developmentProjects";
+import { useClaimedProjects } from "@/hooks/useClaimedProjects";
+import { useAuthStore } from "@/store/authStore";
+import { toast } from "sonner";
 import { 
   ArrowLeft, 
   Target, 
@@ -18,7 +22,8 @@ import {
   Rocket,
   ListTodo,
   FileText,
-  Zap
+  Zap,
+  Check
 } from "lucide-react";
 
 const categoryColors: Record<string, string> = {
@@ -48,6 +53,35 @@ const taskStatusColors: Record<string, string> = {
 export default function DevelopmentProjectDetail() {
   const { projectId } = useParams<{ projectId: string }>();
   const project = developmentProjects.find(p => p.id === projectId);
+  const { user } = useAuthStore();
+  const { claimedProjects, claimProject, updateProgress, isLoading } = useClaimedProjects();
+  
+  const claimedProject = claimedProjects.find(cp => cp.project_id === projectId);
+  const isProjectClaimed = !!claimedProject;
+
+  const handleClaimProject = async () => {
+    if (!user) {
+      toast.error('Please sign in to claim projects');
+      return;
+    }
+    if (!project) return;
+    
+    await claimProject(project.id, project.title);
+  };
+
+  const handleToggleTask = async (taskId: string) => {
+    if (!claimedProject) return;
+    
+    const isCompleted = claimedProject.completed_tasks?.includes(taskId);
+    const newCompletedTasks = isCompleted 
+      ? claimedProject.completed_tasks?.filter(t => t !== taskId) || []
+      : [...(claimedProject.completed_tasks || []), taskId];
+    
+    const totalTasks = project?.tasks?.length || 1;
+    const newProgress = Math.round((newCompletedTasks.length / totalTasks) * 100);
+    
+    await updateProgress(claimedProject.id, newProgress, newCompletedTasks);
+  };
 
   if (!project) {
     return (
@@ -69,7 +103,7 @@ export default function DevelopmentProjectDetail() {
     );
   }
 
-  const completedTasks = project.tasks?.filter(t => t.status === 'done').length || 0;
+  const completedTasks = claimedProject?.completed_tasks?.length || project.tasks?.filter(t => t.status === 'done').length || 0;
   const totalTasks = project.tasks?.length || 0;
   const taskProgress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
@@ -223,42 +257,56 @@ export default function DevelopmentProjectDetail() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
-                        {project.tasks.map((task) => (
-                          <div 
-                            key={task.id} 
-                            className="p-4 border rounded-lg hover:bg-muted/50 transition-colors"
-                          >
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <h4 className="font-medium">{task.title}</h4>
-                                  <Badge 
-                                    variant="outline" 
-                                    className={`text-xs ${taskStatusColors[task.status]}`}
-                                  >
-                                    {task.status.replace('_', ' ')}
-                                  </Badge>
+                        {project.tasks.map((task) => {
+                          const isTaskCompleted = claimedProject?.completed_tasks?.includes(task.id);
+                          return (
+                            <div 
+                              key={task.id} 
+                              className={`p-4 border rounded-lg hover:bg-muted/50 transition-colors ${isTaskCompleted ? 'bg-success/5 border-success/20' : ''}`}
+                            >
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex items-start gap-3 flex-1">
+                                  {isProjectClaimed && (
+                                    <Checkbox
+                                      checked={isTaskCompleted}
+                                      onCheckedChange={() => handleToggleTask(task.id)}
+                                      className="mt-1"
+                                    />
+                                  )}
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <h4 className={`font-medium ${isTaskCompleted ? 'line-through text-muted-foreground' : ''}`}>
+                                        {task.title}
+                                      </h4>
+                                      <Badge 
+                                        variant="outline" 
+                                        className={`text-xs ${isTaskCompleted ? 'bg-success/10 text-success' : taskStatusColors[task.status]}`}
+                                      >
+                                        {isTaskCompleted ? 'completed' : task.status.replace('_', ' ')}
+                                      </Badge>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground mb-2">
+                                      {task.description}
+                                    </p>
+                                    <div className="flex flex-wrap gap-1">
+                                      {task.skills.map((skill) => (
+                                        <Badge key={skill} variant="secondary" className="text-xs">
+                                          {skill}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
                                 </div>
-                                <p className="text-sm text-muted-foreground mb-2">
-                                  {task.description}
-                                </p>
-                                <div className="flex flex-wrap gap-1">
-                                  {task.skills.map((skill) => (
-                                    <Badge key={skill} variant="secondary" className="text-xs">
-                                      {skill}
-                                    </Badge>
-                                  ))}
-                                </div>
+                                <Badge 
+                                  variant="outline" 
+                                  className={`text-xs ${priorityColors[task.priority]}`}
+                                >
+                                  {task.priority}
+                                </Badge>
                               </div>
-                              <Badge 
-                                variant="outline" 
-                                className={`text-xs ${priorityColors[task.priority]}`}
-                              >
-                                {task.priority}
-                              </Badge>
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </CardContent>
                   </Card>
@@ -333,18 +381,46 @@ export default function DevelopmentProjectDetail() {
                 )}
 
                 {/* CTA */}
-                <Card className="bg-primary/5 border-primary/20">
+                <Card className={isProjectClaimed ? "bg-success/5 border-success/20" : "bg-primary/5 border-primary/20"}>
                   <CardContent className="pt-6">
                     <div className="text-center">
-                      <Rocket className="h-8 w-8 mx-auto mb-3 text-primary" />
-                      <h3 className="font-semibold mb-2">Ready to Contribute?</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Claim this project or specific tasks to start building.
-                      </p>
-                      <Button className="w-full gap-2">
-                        <Zap className="h-4 w-4" />
-                        Claim Project
-                      </Button>
+                      {isProjectClaimed ? (
+                        <>
+                          <Check className="h-8 w-8 mx-auto mb-3 text-success" />
+                          <h3 className="font-semibold mb-2">Project Claimed!</h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            You're working on this project. Track your progress below.
+                          </p>
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-sm">
+                              <span>Progress</span>
+                              <span className="font-medium">{claimedProject?.progress || 0}%</span>
+                            </div>
+                            <Progress value={claimedProject?.progress || 0} className="h-2" />
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <Rocket className="h-8 w-8 mx-auto mb-3 text-primary" />
+                          <h3 className="font-semibold mb-2">Ready to Contribute?</h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Claim this project or specific tasks to start building.
+                          </p>
+                          <Button 
+                            className="w-full gap-2"
+                            onClick={handleClaimProject}
+                            disabled={isLoading || !user}
+                          >
+                            <Zap className="h-4 w-4" />
+                            {isLoading ? 'Claiming...' : 'Claim Project'}
+                          </Button>
+                          {!user && (
+                            <p className="text-xs text-muted-foreground mt-2">
+                              Sign in to claim projects
+                            </p>
+                          )}
+                        </>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

@@ -3,19 +3,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { Heart, Users, Target, TrendingUp, Check, Sparkles } from 'lucide-react';
-import { useState, useMemo } from 'react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Heart, Users, Target, TrendingUp, Check, Sparkles, Calendar, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { DonationImpactVisualization } from '@/components/donate/DonationImpactVisualization';
+import { BackButton } from '@/components/ui/back-button';
 
 const quickAmounts = [25, 50, 100, 250, 500, 1000];
 
 export default function Donate() {
   const [sliderValue, setSliderValue] = useState<number[]>([100]);
   const [processing, setProcessing] = useState(false);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringFrequency, setRecurringFrequency] = useState<'monthly' | 'quarterly' | 'annual'>('monthly');
   const navigate = useNavigate();
   const { user } = useAuthStore();
 
@@ -52,6 +58,7 @@ export default function Donate() {
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">
+        <BackButton fallbackPath="/dashboard" className="mb-6" />
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl font-heading font-bold text-foreground mb-4">
@@ -143,6 +150,57 @@ export default function Donate() {
                   </div>
                 </div>
 
+                {/* Recurring Donation Toggle */}
+                <div className="p-4 bg-muted/30 rounded-lg space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <RefreshCw className="h-4 w-4 text-primary" />
+                      <Label htmlFor="recurring" className="font-medium">Make it recurring</Label>
+                    </div>
+                    <Switch
+                      id="recurring"
+                      checked={isRecurring}
+                      onCheckedChange={setIsRecurring}
+                    />
+                  </div>
+                  
+                  {isRecurring && (
+                    <div className="space-y-2">
+                      <Label className="text-sm text-muted-foreground">Frequency</Label>
+                      <Select value={recurringFrequency} onValueChange={(val: 'monthly' | 'quarterly' | 'annual') => setRecurringFrequency(val)}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="monthly">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4" />
+                              Monthly - ${currentAmount}/month
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="quarterly">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4" />
+                              Quarterly - ${currentAmount}/quarter
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="annual">
+                            <div className="flex items-center gap-2">
+                              <Calendar className="h-4 w-4" />
+                              Annually - ${currentAmount}/year
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground">
+                        {recurringFrequency === 'monthly' && `You'll be charged $${currentAmount} every month. Cancel anytime.`}
+                        {recurringFrequency === 'quarterly' && `You'll be charged $${currentAmount} every 3 months. Cancel anytime.`}
+                        {recurringFrequency === 'annual' && `You'll be charged $${currentAmount} once a year. Cancel anytime.`}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
                 {/* Impact Visualization */}
                 <DonationImpactVisualization amount={currentAmount} />
 
@@ -157,7 +215,7 @@ export default function Donate() {
                   ) : (
                     <>
                       <Heart className="h-4 w-4 mr-2" />
-                      Donate ${currentAmount}
+                      {isRecurring ? `Donate $${currentAmount}/${recurringFrequency === 'monthly' ? 'mo' : recurringFrequency === 'quarterly' ? 'qtr' : 'yr'}` : `Donate $${currentAmount}`}
                     </>
                   )}
                 </Button>

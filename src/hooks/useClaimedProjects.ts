@@ -119,6 +119,41 @@ export function useClaimedProjects() {
     }
   };
 
+  const updateProgress = async (
+    claimedProjectId: string, 
+    progress: number,
+    completedTasks?: string[]
+  ) => {
+    if (!user) return false;
+
+    try {
+      const updateData: any = { 
+        progress, 
+        updated_at: new Date().toISOString(),
+        status: progress === 100 ? 'completed' : 'in_progress'
+      };
+      
+      if (completedTasks !== undefined) {
+        updateData.completed_tasks = completedTasks;
+      }
+
+      const { error } = await supabase
+        .from('claimed_projects')
+        .update(updateData)
+        .eq('id', claimedProjectId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      await fetchClaimedProjects();
+      return true;
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      toast.error('Failed to update progress');
+      return false;
+    }
+  };
+
   const completeTask = async (claimedProjectId: string, taskId: string) => {
     if (!user) return false;
 
@@ -190,8 +225,10 @@ export function useClaimedProjects() {
   return {
     claimedProjects,
     loading,
+    isLoading: loading,
     claimProject,
     updateProjectStatus,
+    updateProgress,
     completeTask,
     abandonProject,
     isProjectClaimed,
