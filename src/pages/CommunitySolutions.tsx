@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, RefreshCw, AlertTriangle, Bell, Bookmark, ChevronRight, Wrench } from 'lucide-react';
+import { Users, RefreshCw, AlertTriangle, Bell, Bookmark, ChevronRight, Wrench, Sparkles } from 'lucide-react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import { TopicGrid } from '@/components/community/TopicGrid';
 import { TrendingSolutions } from '@/components/community/TrendingSolutions';
 import { TrendingDeviceIssues } from '@/components/community/TrendingDeviceIssues';
 import { RecentDeviceFixes } from '@/components/community/RecentDeviceFixes';
+import { RecentImprovements } from '@/components/community/RecentImprovements';
 import { DataRefreshBanner } from '@/components/community/DataRefreshBanner';
 import { SavedPostsList } from '@/components/community/SavedPostsList';
 import { AlertPreferencesModal } from '@/components/community/AlertPreferencesModal';
@@ -360,19 +361,38 @@ const CommunitySolutions: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="devices">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <TrendingDeviceIssues 
-                onIssueClick={(issue) => {
-                  updateFilters({ query: issue.issue_title.split(' ').slice(0, 3).join(' ') });
-                  setActiveTab('all');
-                }}
-              />
-              <RecentDeviceFixes 
-                onFixClick={(fix) => {
-                  updateFilters({ query: fix.title.split(' ').slice(0, 3).join(' ') });
-                  setActiveTab('all');
-                }}
-              />
+            <div className="space-y-6">
+              {/* Trending Issues and Recent Fixes */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <TrendingDeviceIssues 
+                  onIssueClick={(issue) => {
+                    updateFilters({ query: issue.issue_title.split(' ').slice(0, 3).join(' ') });
+                    setActiveTab('all');
+                  }}
+                />
+                <RecentDeviceFixes 
+                  onFixClick={(fix) => {
+                    updateFilters({ query: fix.title.split(' ').slice(0, 3).join(' ') });
+                    setActiveTab('all');
+                  }}
+                />
+              </div>
+              
+              {/* Manufacturer Improvements Section */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  Manufacturer Improvements & Updates
+                </h3>
+                <RecentImprovements 
+                  limit={12}
+                  onImprovementClick={(improvement) => {
+                    if (improvement.source_url) {
+                      window.open(improvement.source_url, '_blank', 'noopener,noreferrer');
+                    }
+                  }}
+                />
+              </div>
             </div>
           </TabsContent>
 

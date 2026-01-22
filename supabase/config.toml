@@ -61,3 +61,12 @@ verify_jwt = false
 
 [functions.seed-citation-network]
 verify_jwt = false
+
+[functions.seed-research-surveys]
+verify_jwt = false
+
+[functions.seed-trending-issues]
+verify_jwt = false
+
+[functions.seed-device-improvements]
+verify_jwt = false
