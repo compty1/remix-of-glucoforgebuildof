@@ -54,11 +54,12 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
           </div>
         ) : medication ? (
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
+            <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="clinical">Clinical</TabsTrigger>
               <TabsTrigger value="pricing">Pricing</TabsTrigger>
               <TabsTrigger value="usage">Real Usage</TabsTrigger>
+              <TabsTrigger value="buzz">Community Buzz</TabsTrigger>
               <TabsTrigger value="reviews">Reviews</TabsTrigger>
             </TabsList>
 
@@ -350,6 +351,59 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                 <p className="text-xs text-muted-foreground italic">
                   Data aggregated from community forums, patient surveys, and public health databases.
                 </p>
+              </TabsContent>
+
+              <TabsContent value="buzz" className="space-y-4">
+                {/* Community Buzz from Forums */}
+                <div className="space-y-4">
+                  <h4 className="font-medium flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-primary" />
+                    Real Experiences from the Community
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Authentic discussions and experiences shared by people with diabetes across forums and social media.
+                  </p>
+                  
+                  {externalReviews.length > 0 ? (
+                    <div className="space-y-3">
+                      {externalReviews.map((review) => (
+                        <div key={review.id} className="p-4 border rounded-lg space-y-2 hover:bg-muted/50 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">{review.source}</Badge>
+                              {review.sentiment && (
+                                <Badge 
+                                  variant={review.sentiment === 'positive' ? 'default' : review.sentiment === 'negative' ? 'destructive' : 'secondary'}
+                                  className="text-xs"
+                                >
+                                  {review.sentiment}
+                                </Badge>
+                              )}
+                            </div>
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <ThumbsUp className="h-3 w-3" />
+                              {review.helpful_count || 0}
+                            </span>
+                          </div>
+                          <p className="text-sm">{review.content}</p>
+                          {review.source_url && (
+                            <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
+                              <a href={review.source_url} target="_blank" rel="noopener noreferrer">
+                                View original post <ExternalLink className="h-3 w-3 ml-1" />
+                              </a>
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p>No community discussions found yet.</p>
+                      <p className="text-xs mt-1">Check back soon as we aggregate more content.</p>
+                    </div>
+                  )}
+                </div>
               </TabsContent>
 
               <TabsContent value="reviews" className="space-y-4">

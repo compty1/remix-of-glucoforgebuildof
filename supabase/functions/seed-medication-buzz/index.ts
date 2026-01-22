@@ -128,17 +128,19 @@ serve(async (req) => {
       { medication: 'mounjaro', source: 'tudiabetes', author: 'appetite_reset', content: "Mounjaro reset my hunger signals. For the first time in 30 years of diabetes, I'm not constantly hungry. This alone is transformative.", sentiment: 'positive', upvotes: 178, posted_at: '2024-03-01' },
     ];
 
-    // Map posts to medications and insert
+    // Map posts to medications and insert using correct column names
     const postsToInsert = buzzPosts
       .filter(post => medMap.has(post.medication))
       .map(post => ({
         medication_id: medMap.get(post.medication),
         source: post.source,
-        author_anonymous: post.author,
-        content: post.content,
+        author_handle: post.author,
+        post_content: post.content,
         sentiment: post.sentiment,
-        upvotes: post.upvotes,
-        posted_at: post.posted_at,
+        engagement_score: post.upvotes,
+        post_date: post.posted_at,
+        post_url: `https://${post.source === 'reddit' ? 'reddit.com/r/diabetes' : 'tudiabetes.org'}`,
+        is_verified: true,
         created_at: new Date().toISOString()
       }));
 
