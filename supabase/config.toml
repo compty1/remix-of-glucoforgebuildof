@@ -70,3 +70,18 @@ verify_jwt = false
 
 [functions.seed-device-improvements]
 verify_jwt = false
+
+[functions.seed-warrior-stories]
+verify_jwt = false
+
+[functions.seed-diabetes-myths]
+verify_jwt = false
+
+[functions.seed-public-glucose]
+verify_jwt = false
+
+[functions.create-shop-checkout]
+verify_jwt = false
+
+[functions.stripe-shop-webhook]
+verify_jwt = false

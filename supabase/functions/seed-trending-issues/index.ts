@@ -106,7 +106,7 @@ serve(async (req) => {
         affected_users_estimate: 14200,
         first_reported: "2023-02-15",
         last_reported: new Date().toISOString(),
-        status: "known_limitation",
+        status: "investigating",
         sources: ["reddit", "medical_studies", "user_reports"],
       },
       {
@@ -158,7 +158,7 @@ serve(async (req) => {
         affected_users_estimate: 8900,
         first_reported: "2022-11-15",
         last_reported: new Date().toISOString(),
-        status: "known_limitation",
+        status: "investigating",
         sources: ["reddit", "tandem_forums", "endocrinology_studies"],
       },
       {
@@ -168,7 +168,7 @@ serve(async (req) => {
         affected_users_estimate: 4200,
         first_reported: "2022-12-01",
         last_reported: new Date().toISOString(),
-        status: "known_limitation",
+        status: "investigating",
         sources: ["reddit", "outdoor_diabetes_groups"],
       },
       {
@@ -242,7 +242,7 @@ serve(async (req) => {
         affected_users_estimate: 2800,
         first_reported: "2024-01-15",
         last_reported: new Date().toISOString(),
-        status: "known_limitation",
+        status: "investigating",
         sources: ["reddit", "beta_bionics_community"],
       },
     ];
