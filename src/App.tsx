@@ -101,6 +101,11 @@ import AdminLowSugarStories from "./pages/admin/AdminLowSugarStories";
 import AdminWarriors from "./pages/admin/AdminWarriors";
 import AdminShop from "./pages/admin/AdminShop";
 
+// New Pages - Phases 1-8
+import AICenter from "./pages/AICenter";
+import DiabetesOrganizations from "./pages/DiabetesOrganizations";
+import BecomeAdvocate from "./pages/BecomeAdvocate";
+
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -208,6 +213,11 @@ const App = () => {
             <Route path="/shop/success" element={<ShopSuccess />} />
             <Route path="/shop/cancel" element={<ShopCancel />} />
             <Route path="/public-glucose-data" element={<ProtectedRoute><PublicGlucoseData /></ProtectedRoute>} />
+            
+            {/* New Pages - Phases 1-8 */}
+            <Route path="/ai-center" element={<ProtectedRoute><AICenter /></ProtectedRoute>} />
+            <Route path="/organizations" element={<DiabetesOrganizations />} />
+            <Route path="/advocate" element={<ProtectedRoute><BecomeAdvocate /></ProtectedRoute>} />
             
             {/* Admin Content Management Routes */}
             <Route path="/admin/articles" element={<AdminRoute><AdminArticles /></AdminRoute>} />

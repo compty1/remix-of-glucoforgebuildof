@@ -95,6 +95,87 @@ export type Database = {
         }
         Relationships: []
       }
+      advocate_applications: {
+        Row: {
+          advocacy_interests: string[] | null
+          approved_at: string | null
+          availability: string | null
+          city: string | null
+          connection_to_t1d: string | null
+          consent_to_contact: boolean | null
+          consent_to_share_story: boolean | null
+          country: string | null
+          created_at: string | null
+          diagnosis_year: number | null
+          email: string
+          full_name: string
+          how_heard_about: string | null
+          id: string
+          notes: string | null
+          personal_story: string | null
+          phone: string | null
+          prior_advocacy_experience: string | null
+          skills: string[] | null
+          state: string | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          advocacy_interests?: string[] | null
+          approved_at?: string | null
+          availability?: string | null
+          city?: string | null
+          connection_to_t1d?: string | null
+          consent_to_contact?: boolean | null
+          consent_to_share_story?: boolean | null
+          country?: string | null
+          created_at?: string | null
+          diagnosis_year?: number | null
+          email: string
+          full_name: string
+          how_heard_about?: string | null
+          id?: string
+          notes?: string | null
+          personal_story?: string | null
+          phone?: string | null
+          prior_advocacy_experience?: string | null
+          skills?: string[] | null
+          state?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          advocacy_interests?: string[] | null
+          approved_at?: string | null
+          availability?: string | null
+          city?: string | null
+          connection_to_t1d?: string | null
+          consent_to_contact?: boolean | null
+          consent_to_share_story?: boolean | null
+          country?: string | null
+          created_at?: string | null
+          diagnosis_year?: number | null
+          email?: string
+          full_name?: string
+          how_heard_about?: string | null
+          id?: string
+          notes?: string | null
+          personal_story?: string | null
+          phone?: string | null
+          prior_advocacy_experience?: string | null
+          skills?: string[] | null
+          state?: string | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          zip_code?: string | null
+        }
+        Relationships: []
+      }
       ai_found_connections: {
         Row: {
           ai_analysis: Json | null
@@ -1299,6 +1380,108 @@ export type Database = {
         }
         Relationships: []
       }
+      diabetes_organizations: {
+        Row: {
+          acronym: string | null
+          annual_donations: number | null
+          annual_revenue: number | null
+          charity_navigator_rating: number | null
+          country: string | null
+          created_at: string | null
+          current_projects: Json | null
+          donate_url: string | null
+          executive_compensation: Json | null
+          facebook_url: string | null
+          founded_year: number | null
+          future_plans: string | null
+          guidestar_rating: string | null
+          headquarters: string | null
+          history_summary: string | null
+          id: string
+          instagram_url: string | null
+          is_verified: boolean | null
+          linkedin_url: string | null
+          logo_url: string | null
+          mission_statement: string | null
+          name: string
+          notable_achievements: Json | null
+          org_type: string | null
+          purpose: string | null
+          recent_projects: Json | null
+          staff_count: number | null
+          twitter_url: string | null
+          updated_at: string | null
+          volunteer_count: number | null
+          website_url: string | null
+        }
+        Insert: {
+          acronym?: string | null
+          annual_donations?: number | null
+          annual_revenue?: number | null
+          charity_navigator_rating?: number | null
+          country?: string | null
+          created_at?: string | null
+          current_projects?: Json | null
+          donate_url?: string | null
+          executive_compensation?: Json | null
+          facebook_url?: string | null
+          founded_year?: number | null
+          future_plans?: string | null
+          guidestar_rating?: string | null
+          headquarters?: string | null
+          history_summary?: string | null
+          id?: string
+          instagram_url?: string | null
+          is_verified?: boolean | null
+          linkedin_url?: string | null
+          logo_url?: string | null
+          mission_statement?: string | null
+          name: string
+          notable_achievements?: Json | null
+          org_type?: string | null
+          purpose?: string | null
+          recent_projects?: Json | null
+          staff_count?: number | null
+          twitter_url?: string | null
+          updated_at?: string | null
+          volunteer_count?: number | null
+          website_url?: string | null
+        }
+        Update: {
+          acronym?: string | null
+          annual_donations?: number | null
+          annual_revenue?: number | null
+          charity_navigator_rating?: number | null
+          country?: string | null
+          created_at?: string | null
+          current_projects?: Json | null
+          donate_url?: string | null
+          executive_compensation?: Json | null
+          facebook_url?: string | null
+          founded_year?: number | null
+          future_plans?: string | null
+          guidestar_rating?: string | null
+          headquarters?: string | null
+          history_summary?: string | null
+          id?: string
+          instagram_url?: string | null
+          is_verified?: boolean | null
+          linkedin_url?: string | null
+          logo_url?: string | null
+          mission_statement?: string | null
+          name?: string
+          notable_achievements?: Json | null
+          org_type?: string | null
+          purpose?: string | null
+          recent_projects?: Json | null
+          staff_count?: number | null
+          twitter_url?: string | null
+          updated_at?: string | null
+          volunteer_count?: number | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       diabetic_health_projects: {
         Row: {
           affected_population_estimate: number | null
@@ -2256,6 +2439,56 @@ export type Database = {
         }
         Relationships: []
       }
+      medication_community_buzz: {
+        Row: {
+          author_handle: string | null
+          created_at: string | null
+          engagement_score: number | null
+          id: string
+          is_verified: boolean | null
+          medication_id: string | null
+          post_content: string
+          post_date: string | null
+          post_url: string | null
+          sentiment: string | null
+          source: string
+        }
+        Insert: {
+          author_handle?: string | null
+          created_at?: string | null
+          engagement_score?: number | null
+          id?: string
+          is_verified?: boolean | null
+          medication_id?: string | null
+          post_content: string
+          post_date?: string | null
+          post_url?: string | null
+          sentiment?: string | null
+          source: string
+        }
+        Update: {
+          author_handle?: string | null
+          created_at?: string | null
+          engagement_score?: number | null
+          id?: string
+          is_verified?: boolean | null
+          medication_id?: string | null
+          post_content?: string
+          post_date?: string | null
+          post_url?: string | null
+          sentiment?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medication_community_buzz_medication_id_fkey"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "medications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medication_community_feedback: {
         Row: {
           content: string
@@ -2963,6 +3196,7 @@ export type Database = {
           availability: string | null
           benefits_for_t1d: string | null
           category: string
+          community_testimonials: Json | null
           cost_range: string | null
           created_at: string
           description: string | null
@@ -2974,12 +3208,15 @@ export type Database = {
           recommended_by_community: boolean | null
           scientific_evidence_level: string | null
           source_url: string | null
+          success_stories: Json | null
           updated_at: string
+          user_tips: string[] | null
         }
         Insert: {
           availability?: string | null
           benefits_for_t1d?: string | null
           category: string
+          community_testimonials?: Json | null
           cost_range?: string | null
           created_at?: string
           description?: string | null
@@ -2991,12 +3228,15 @@ export type Database = {
           recommended_by_community?: boolean | null
           scientific_evidence_level?: string | null
           source_url?: string | null
+          success_stories?: Json | null
           updated_at?: string
+          user_tips?: string[] | null
         }
         Update: {
           availability?: string | null
           benefits_for_t1d?: string | null
           category?: string
+          community_testimonials?: Json | null
           cost_range?: string | null
           created_at?: string
           description?: string | null
@@ -3008,7 +3248,9 @@ export type Database = {
           recommended_by_community?: boolean | null
           scientific_evidence_level?: string | null
           source_url?: string | null
+          success_stories?: Json | null
           updated_at?: string
+          user_tips?: string[] | null
         }
         Relationships: []
       }
@@ -3563,6 +3805,7 @@ export type Database = {
           logo_url: string | null
           name: string
           parent_company: string | null
+          product_image_url: string | null
           products: Json | null
           technology_summary: string | null
           total_funding_usd: number | null
@@ -3597,6 +3840,7 @@ export type Database = {
           logo_url?: string | null
           name: string
           parent_company?: string | null
+          product_image_url?: string | null
           products?: Json | null
           technology_summary?: string | null
           total_funding_usd?: number | null
@@ -3631,6 +3875,7 @@ export type Database = {
           logo_url?: string | null
           name?: string
           parent_company?: string | null
+          product_image_url?: string | null
           products?: Json | null
           technology_summary?: string | null
           total_funding_usd?: number | null

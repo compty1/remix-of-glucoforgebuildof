@@ -9,6 +9,7 @@ import { useT1DNews } from '@/hooks/useT1DNews';
 import { NewsCard } from '@/components/news/NewsCard';
 import { FeaturedNewsCard } from '@/components/news/FeaturedNewsCard';
 import { NewsCategoryFilter } from '@/components/news/NewsCategoryFilter';
+import { BackButton } from '@/components/ui/back-button';
 
 const NewsCardSkeleton = () => (
   <Card className="overflow-hidden">
@@ -57,6 +58,7 @@ const News = () => {
       {/* Hero Section */}
       <div className="bg-gradient-to-b from-primary/5 to-background border-b border-border/50">
         <div className="container mx-auto px-4 py-8 md:py-12">
+          <BackButton fallbackPath="/dashboard" className="mb-4" />
           {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
