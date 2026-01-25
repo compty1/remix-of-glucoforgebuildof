@@ -498,6 +498,13 @@ export default function FutureOfT1D() {
             </Card>
           </div>
         </div>
+
+        {/* Prediction Detail Modal */}
+        <PredictionDetailModal
+          prediction={selectedPrediction}
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+        />
       </div>
     </Layout>
   );
