@@ -17,6 +17,7 @@ interface TopicDetailModalProps {
   topic: {
     title: string;
     description: string;
+    categoryId?: string;
     category?: string;
     color?: string;
   } | null;

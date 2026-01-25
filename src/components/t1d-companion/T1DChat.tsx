@@ -62,9 +62,49 @@ const CATEGORIES = [
   'Technical',
 ];
 
+// Keywords that indicate the user is describing an issue
+const ISSUE_KEYWORDS = [
+  'problem', 'issue', 'trouble', 'not working', 'struggling', 'help with',
+  'can\'t figure', 'having difficulty', 'keeps happening', 'frustrated',
+  'high blood sugar', 'low blood sugar', 'hypo', 'hyper', 'spike', 'drop',
+  'alarm', 'sensor', 'pump', 'cgm', 'error', 'fail', 'broken',
+  'worried about', 'scared of', 'anxiety', 'stress', 'burnout'
+];
+
+// Function to detect if a message describes an issue
+const detectIssue = (message: string): { isIssue: boolean; suggestedTitle: string; suggestedCategory: string } => {
+  const lowerMessage = message.toLowerCase();
+  const hasIssueKeyword = ISSUE_KEYWORDS.some(kw => lowerMessage.includes(kw));
+  
+  if (!hasIssueKeyword) {
+    return { isIssue: false, suggestedTitle: '', suggestedCategory: '' };
+  }
+  
+  // Generate a suggested title (first 60 chars, cleaned up)
+  const suggestedTitle = message.length > 60 
+    ? message.substring(0, 60).trim() + '...'
+    : message.trim();
+  
+  // Detect category based on content
+  let suggestedCategory = 'Lifestyle';
+  if (lowerMessage.includes('cgm') || lowerMessage.includes('pump') || lowerMessage.includes('sensor') || lowerMessage.includes('device')) {
+    suggestedCategory = 'Device Issues';
+  } else if (lowerMessage.includes('low') || lowerMessage.includes('high') || lowerMessage.includes('spike') || lowerMessage.includes('pattern')) {
+    suggestedCategory = 'Glucose Patterns';
+  } else if (lowerMessage.includes('stress') || lowerMessage.includes('anxiety') || lowerMessage.includes('burnout') || lowerMessage.includes('worried')) {
+    suggestedCategory = 'Emotional';
+  } else if (lowerMessage.includes('app') || lowerMessage.includes('algorithm') || lowerMessage.includes('loop') || lowerMessage.includes('setting')) {
+    suggestedCategory = 'Technical';
+  }
+  
+  return { isIssue: true, suggestedTitle, suggestedCategory };
+};
+
 export function T1DChat({ initialMessage, initialContext, sessionId }: T1DChatProps) {
   const [input, setInput] = useState('');
   const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [showIssuePrompt, setShowIssuePrompt] = useState(false);
+  const [detectedIssue, setDetectedIssue] = useState<{ title: string; category: string } | null>(null);
   const [issueTitle, setIssueTitle] = useState('');
   const [issueDescription, setIssueDescription] = useState('');
   const [issueCategory, setIssueCategory] = useState('');
@@ -117,6 +157,17 @@ export function T1DChat({ initialMessage, initialContext, sessionId }: T1DChatPr
     if (!input.trim() || isLoading) return;
 
     const message = input.trim();
+    
+    // Detect if this is an issue that should be saved
+    const detection = detectIssue(message);
+    if (detection.isIssue && user) {
+      setDetectedIssue({ title: detection.suggestedTitle, category: detection.suggestedCategory });
+      // Show the prompt after a delay (after response comes back)
+      setTimeout(() => {
+        setShowIssuePrompt(true);
+      }, 3000);
+    }
+    
     setInput('');
     await sendMessage(message);
   };
@@ -152,9 +203,33 @@ export function T1DChat({ initialMessage, initialContext, sessionId }: T1DChatPr
     });
 
     setShowSaveDialog(false);
+    setShowIssuePrompt(false);
+    setDetectedIssue(null);
     setIssueTitle('');
     setIssueDescription('');
     setIssueCategory('');
+  };
+
+  const handleQuickSaveIssue = async () => {
+    if (!detectedIssue) return;
+    
+    await createIssue.mutateAsync({
+      title: detectedIssue.title,
+      description: getLastAssistantMessage().substring(0, 500),
+      category: detectedIssue.category,
+    });
+    
+    setShowIssuePrompt(false);
+    setDetectedIssue(null);
+    toast({
+      title: 'Issue Saved',
+      description: 'Added to your My Issues for tracking.',
+    });
+  };
+
+  const handleDismissIssuePrompt = () => {
+    setShowIssuePrompt(false);
+    setDetectedIssue(null);
   };
 
   const openSaveDialog = () => {
@@ -262,6 +337,25 @@ export function T1DChat({ initialMessage, initialContext, sessionId }: T1DChatPr
                   questions={suggestedQuestions} 
                   onSelectQuestion={handleSelectQuestion} 
                 />
+              </div>
+            )}
+            
+            {/* Issue Detection Prompt */}
+            {showIssuePrompt && detectedIssue && !isLoading && (
+              <div className="mt-4 p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                <p className="text-sm font-medium mb-2">💡 Save this as an issue to track?</p>
+                <p className="text-xs text-muted-foreground mb-3">
+                  "{detectedIssue.title}"
+                </p>
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleQuickSaveIssue}>
+                    <Bookmark className="h-3 w-3 mr-1" />
+                    Save to My Issues
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={handleDismissIssuePrompt}>
+                    Not now
+                  </Button>
+                </div>
               </div>
             )}
           </div>

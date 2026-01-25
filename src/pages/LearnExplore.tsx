@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabase } from '@/integrations/supabase/client';
+import { TopicDetailModal } from '@/components/learn/TopicDetailModal';
 import { 
   BookOpen, 
   Brain, 
@@ -95,11 +94,23 @@ const topicCategories = [
   }
 ];
 
-const TopicCard: React.FC<{ topic: { title: string; description: string } }> = ({ topic }) => {
+interface TopicCardProps {
+  topic: { title: string; description: string };
+  categoryId: string;
+  onClick: () => void;
+}
+
+const TopicCard: React.FC<TopicCardProps> = ({ topic, categoryId, onClick }) => {
   return (
-    <div className="p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors cursor-pointer">
+    <div 
+      className="p-4 rounded-lg border bg-card hover:bg-muted/50 hover:border-primary/50 transition-colors cursor-pointer"
+      onClick={onClick}
+    >
       <h4 className="font-medium mb-1">{topic.title}</h4>
       <p className="text-sm text-muted-foreground">{topic.description}</p>
+      <Button variant="link" size="sm" className="p-0 h-auto mt-2 text-primary">
+        Read full article →
+      </Button>
     </div>
   );
 };
@@ -107,6 +118,7 @@ const TopicCard: React.FC<{ topic: { title: string; description: string } }> = (
 export default function LearnExplore() {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState('biology');
+  const [selectedTopic, setSelectedTopic] = useState<{ title: string; description: string; categoryId: string } | null>(null);
 
   const activeTopics = topicCategories.find(c => c.id === activeCategory);
 
@@ -195,7 +207,12 @@ export default function LearnExplore() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {activeTopics.topics.map((topic, index) => (
-                  <TopicCard key={index} topic={topic} />
+                  <TopicCard 
+                    key={index} 
+                    topic={topic}
+                    categoryId={activeTopics.id}
+                    onClick={() => setSelectedTopic({ ...topic, categoryId: activeTopics.id })}
+                  />
                 ))}
               </div>
             </CardContent>
@@ -203,7 +220,14 @@ export default function LearnExplore() {
         )}
 
         {/* Featured Deep Dive */}
-        <Card className="command-center-widget mt-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+        <Card 
+          className="command-center-widget mt-8 bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 cursor-pointer hover:border-primary/40 transition-colors"
+          onClick={() => setSelectedTopic({ 
+            title: 'Why Water Matters More When You\'re High', 
+            description: 'Understanding cellular dehydration during hyperglycemia', 
+            categoryId: 'biology' 
+          })}
+        >
           <CardContent className="p-8">
             <div className="flex items-start gap-6">
               <div className="w-16 h-16 rounded-2xl bg-primary/20 flex items-center justify-center flex-shrink-0">
@@ -228,6 +252,13 @@ export default function LearnExplore() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Topic Detail Modal */}
+        <TopicDetailModal 
+          topic={selectedTopic}
+          open={!!selectedTopic}
+          onOpenChange={(open) => !open && setSelectedTopic(null)}
+        />
       </div>
     </Layout>
   );
