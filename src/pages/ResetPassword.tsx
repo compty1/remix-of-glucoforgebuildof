@@ -122,7 +122,7 @@ const ResetPassword = () => {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="mx-auto mb-4 flex items-center justify-center">
-              <img src={logoImage} alt="GlucoForge" className="h-12 w-auto" />
+              <img src={logoImage} alt="GlucoForge" className="h-12 w-auto logo-animated-drop" />
             </div>
           </div>
 
@@ -155,7 +155,7 @@ const ResetPassword = () => {
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <div className="mx-auto mb-4 flex items-center justify-center">
-              <img src={logoImage} alt="GlucoForge" className="h-12 w-auto" />
+              <img src={logoImage} alt="GlucoForge" className="h-12 w-auto logo-animated-drop" />
             </div>
           </div>
 
@@ -187,7 +187,7 @@ const ResetPassword = () => {
         {/* Logo/Header */}
         <div className="text-center mb-8">
           <div className="mx-auto mb-4 flex items-center justify-center">
-            <img src={logoImage} alt="GlucoForge" className="h-12 w-auto" />
+            <img src={logoImage} alt="GlucoForge" className="h-12 w-auto logo-animated-drop" />
           </div>
           <h1 className="text-3xl font-heading font-bold text-foreground">Reset Password</h1>
           <p className="text-muted-foreground">Enter your new password below</p>

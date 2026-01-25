@@ -73,7 +73,7 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-brand-purple-dark/20 via-transparent to-brand-purple-light/20"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center mb-8">
-            <img src={logoImage} alt="GlucoForge" className="h-24 w-auto max-w-md" />
+            <img src={logoImage} alt="GlucoForge" className="h-24 w-auto max-w-md logo-animated-drop" />
           </div>
           <h1 className="heading-hero text-white mb-6 leading-tight">
             For the Warriors in a Vicious Battle
