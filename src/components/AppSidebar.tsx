@@ -109,6 +109,8 @@ const platformItemsAfterProjects = [
 ];
 
 const contentItems = [
+  { title: "Explore T1D History", url: "/explore", icon: BookOpen },
+  { title: "Your Experience", url: "/your-experience", icon: Heart },
   { title: "Low Blood Sugar World", url: "/low-blood-sugar-world", icon: Droplet },
   { title: "Diabeto 18+", url: "/diabeto-18plus", icon: AlertTriangle },
   { title: "Articles", url: "/articles", icon: FileText },

@@ -224,6 +224,8 @@ const App = () => {
             <Route path="/advocate" element={<ProtectedRoute><BecomeAdvocate /></ProtectedRoute>} />
             <Route path="/events" element={<ProtectedRoute><EventsNearMe /></ProtectedRoute>} />
             <Route path="/future" element={<FutureOfT1D />} />
+            <Route path="/explore" element={<Explore />} />
+            <Route path="/your-experience" element={<ProtectedRoute><YourExperience /></ProtectedRoute>} />
             
             {/* Admin Content Management Routes */}
             <Route path="/admin/articles" element={<AdminRoute><AdminArticles /></AdminRoute>} />
