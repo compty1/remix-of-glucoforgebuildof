@@ -172,9 +172,14 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
   const [activeTab, setActiveTab] = useState('overview');
   const [isExporting, setIsExporting] = useState(false);
 
-  const hasDetailedData = detailedAnalysis && (detailedAnalysis.readingsCount ?? 0) > 0;
+  // Check if we have any meaningful analysis data (either raw readings or PDF-extracted metrics)
+  const hasDetailedData = detailedAnalysis && (
+    (detailedAnalysis.readingsCount ?? 0) > 0 || 
+    detailedAnalysis.fromSummaryReport === true ||
+    detailedAnalysis.avgGlucose !== undefined
+  );
   const isFromSummary = detailedAnalysis?.fromSummaryReport === true || readingsCount === 0;
-  const hasEnhancedData = confidenceScore !== undefined && confidenceBand !== 'unknown';
+  const hasEnhancedData = confidenceScore !== undefined && confidenceBand && confidenceBand !== 'unknown';
 
   const exportReport = async () => {
     setIsExporting(true);
