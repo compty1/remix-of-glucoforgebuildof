@@ -97,3 +97,6 @@ verify_jwt = false
 
 [functions.seed-bounties]
 verify_jwt = false
+
+[functions.seed-t1d-history]
+verify_jwt = false
