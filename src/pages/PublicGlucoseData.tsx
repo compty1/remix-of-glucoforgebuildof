@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, Activity, TrendingUp, Clock, AlertTriangle, Info, Users, MapPin, Cpu, Heart, Lightbulb, BarChart3, Utensils, Syringe, Globe, BookOpen, ExternalLink } from 'lucide-react';
+import { Database, Activity, TrendingUp, Clock, AlertTriangle, Info, Users, MapPin, Cpu, Heart, Lightbulb, BarChart3, Utensils, Syringe, Globe, BookOpen, ExternalLink, Stethoscope } from 'lucide-react';
 import { GlucoseInsightCard, type GlucoseInsight } from '@/components/data-upload/GlucoseInsightCard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +14,9 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   Legend, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, ScatterChart, Scatter
 } from 'recharts';
+import ClinicalExplanationsPanel from '@/components/glucose/ClinicalExplanationsPanel';
+import PatternInterpretationPanel from '@/components/glucose/PatternInterpretationPanel';
+import ResearchComparisonPanel from '@/components/glucose/ResearchComparisonPanel';
 
 interface GlucoseReading {
   id: string;
@@ -926,6 +929,10 @@ export default function PublicGlucoseData() {
                   <BookOpen className="h-4 w-4" />
                   Research
                 </TabsTrigger>
+                <TabsTrigger value="clinical" className="gap-1">
+                  <Stethoscope className="h-4 w-4" />
+                  Clinical Insights
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="insights" className="space-y-6">
@@ -1652,6 +1659,49 @@ export default function PublicGlucoseData() {
                     </div>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              {/* Clinical Insights Tab */}
+              <TabsContent value="clinical" className="space-y-6">
+                {overallStats && (
+                  <>
+                    <ClinicalExplanationsPanel
+                      tir={overallStats.avgTIR}
+                      cv={variabilityAnalysis?.overallCV || 0}
+                      avgGlucose={overallStats.avgGlucose}
+                      tirBelow70={rangeDistribution.find(r => r.name.includes('<70'))?.value || 0}
+                      tirAbove180={rangeDistribution.find(r => r.name.includes('>180'))?.value || 0}
+                    />
+                    
+                    <PatternInterpretationPanel
+                      dawnPhenomenonRise={(() => {
+                        const earlyMorning = hourlyAverages.filter(h => parseInt(h.hour) >= 4 && parseInt(h.hour) <= 7);
+                        const nightTime = hourlyAverages.filter(h => parseInt(h.hour) >= 0 && parseInt(h.hour) <= 3);
+                        if (earlyMorning.length > 0 && nightTime.length > 0) {
+                          const earlyAvg = earlyMorning.reduce((sum, h) => sum + h.average, 0) / earlyMorning.length;
+                          const nightAvg = nightTime.reduce((sum, h) => sum + h.average, 0) / nightTime.length;
+                          return Math.round(earlyAvg - nightAvg);
+                        }
+                        return 0;
+                      })()}
+                      nightHypoPercentage={rangeDistribution.find(r => r.name.includes('<70'))?.value || 0}
+                      postMealSpikes={(variabilityAnalysis?.overallCV || 0) > 36}
+                      highVariabilityTimes={
+                        variabilityAnalysis?.timeBlockVariability
+                          ?.filter(t => t.cv > 40)
+                          ?.map(t => t.name) || []
+                      }
+                    />
+                    
+                    <ResearchComparisonPanel
+                      tir={overallStats.avgTIR}
+                      cv={variabilityAnalysis?.overallCV || 0}
+                      avgGlucose={overallStats.avgGlucose}
+                      timeBelow70={rangeDistribution.find(r => r.name.includes('<70'))?.value || 0}
+                      timeAbove180={rangeDistribution.find(r => r.name.includes('>180'))?.value || 0}
+                    />
+                  </>
+                )}
               </TabsContent>
             </Tabs>
           </div>
