@@ -98,7 +98,35 @@ export const linkFallbacks = {
   semanticScholar: (paperId: string) => `https://www.semanticscholar.org/paper/${paperId}`,
   crunchbase: (slug: string) => `https://www.crunchbase.com/organization/${slug}`,
   linkedin: (slug: string) => `https://www.linkedin.com/company/${slug}`,
+  openAlex: (id: string) => `https://openalex.org/works/${id}`,
+  googleScholar: (title: string) => `https://scholar.google.com/scholar?q=${encodeURIComponent(title)}`,
+  waybackMachine: (url: string) => `https://web.archive.org/web/${url}`,
+  pmc: (pmcId: string) => `https://www.ncbi.nlm.nih.gov/pmc/articles/${pmcId}`,
+  biorxiv: (doi: string) => `https://www.biorxiv.org/content/${doi}`,
+  medrxiv: (doi: string) => `https://www.medrxiv.org/content/${doi}`,
 };
+
+/**
+ * Try to construct a fallback URL from identifiers in the data
+ */
+export function getFallbackUrl(data: {
+  doi?: string | null;
+  pubmed_id?: string | null;
+  pmc_id?: string | null;
+  nct_id?: string | null;
+  patent_id?: string | null;
+  title?: string | null;
+  original_url?: string | null;
+}): string | null {
+  if (data.doi) return linkFallbacks.doi(data.doi);
+  if (data.pubmed_id) return linkFallbacks.pubmed(data.pubmed_id);
+  if (data.pmc_id) return linkFallbacks.pmc(data.pmc_id);
+  if (data.nct_id) return linkFallbacks.clinicalTrials(data.nct_id);
+  if (data.patent_id) return linkFallbacks.googlePatents(data.patent_id);
+  if (data.title) return linkFallbacks.googleScholar(data.title);
+  if (data.original_url) return linkFallbacks.waybackMachine(data.original_url);
+  return null;
+}
 
 /**
  * Normalizes and validates a URL, returning null if invalid
