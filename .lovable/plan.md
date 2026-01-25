@@ -1,473 +1,398 @@
 
-# Comprehensive Enhancement Plan: T1D History, News, Data, Logos, and Clickable Features
+# Comprehensive Enhancement Plan: Learn More Buttons, Logos, and Public Glucose Data Expansion
 
 ## Overview
 
-This plan addresses eight major feature areas based on the codebase analysis:
-
-1. **T1D History Enhancement** - More content, detailed descriptions, clickable cards under timeline
-2. **T1D News Fix** - Debug and fix the page error preventing content display
-3. **Public CGM Data Expansion** - More data points, insights, and tabs
-4. **Emergence of Diabetes Data** - Add accurate trend data and analysis
-5. **Research Links Fix** - Fix non-functioning external links
-6. **Logo Implementation** - Ensure logos display across companies, medications, devices
-7. **T1D Companies Clickability** - Make each company card fully clickable
-8. **Innovation Hub Clickability** - Add detailed modal for each innovation/patent
+This plan addresses three key enhancement areas:
+1. **Add "Learn More" buttons** to all clickable cards that are missing them
+2. **Fix logo implementation** so real company/manufacturer logos show instead of generic placeholders
+3. **Expand Public Glucose Data** with additional analysis on insulin dosing, meal patterns, and research data
 
 ---
 
 ## Current State Analysis
 
-### Identified Issues
+### 1. Cards Missing "Learn More" Buttons
 
-| Area | Current State | Problem |
-|------|---------------|---------|
-| T1D History | 28 events in database | Limited content; cards exist but need more events below timeline |
-| T1D News | 119 articles in database | Page loads but likely API/data format error prevents display |
-| Public CGM Data | 10,500 readings | Current tabs exist but need more insights |
-| Emergence Data | 0 records in `diabetes_emergence_data` | Missing trend data over time |
-| Logos - Companies | 23/56 have logos | 33 companies missing logos |
-| Logos - Medications | 0/29 have logos | Using inline manufacturer mapping |
-| Logos - Devices | 0/8 have images | No device images |
-| Innovations | Patents display but not clickable | No detail modal exists |
+| Component | Current State | Has Button? |
+|-----------|---------------|-------------|
+| `CompanyCard.tsx` | Entire card clickable | No explicit button |
+| `RelatedDevicesSection.tsx` | Cards clickable | No button |
+| `HistoryEventCard.tsx` | Clickable with hover text | No visible button |
+| `WarriorStoryCard.tsx` | Has "Read Full Story" button | Yes |
+| `DiscoveryCard.tsx` | Has "View Full Details" button | Yes |
+| `NewsCard.tsx` | Has "Read More" link | Yes |
+| `MedicationCard.tsx` | Has "View Details" button | Yes |
+| `TrialCard.tsx` | Has "View Details" button | Yes |
+| `TLDRCard.tsx` | Has "View Details" button | Yes |
+| `ProjectCard.tsx` | Entire card is a Link | No explicit button |
+| `GlucoseInsightCard.tsx` | Info cards only | No action needed |
+
+### 2. Logo Implementation Issues
+
+**Database State:**
+- **Companies**: 23 of 56 have `logo_url` populated with Clearbit URLs
+- **Medications**: 0 of 29 have `logo_url` - relying on inline mapping in `MedicationCard.tsx`
+- **Devices**: 0 of 8 have `image_url` - all return `null`
+
+**Why logos aren't showing:**
+1. The `EntityLogo` component was created but is NOT being used anywhere in the codebase
+2. Database `logo_url` fields are often `null` or empty
+3. `CompanyCard.tsx` has its own logo handling logic that doesn't use `EntityLogo`
+4. `MedicationCard.tsx` has inline manufacturer mapping but limited coverage
+5. No device images exist in the database
+
+### 3. Public Glucose Data Gaps
+
+Current tabs: Insights, Daily Patterns, Demographics, Devices, Variability, Meal Patterns
+
+Missing analysis:
+- **Insulin Dosing Patterns** - No analysis of basal rates, correction factors, or ICR data
+- **Bolus Timing Analysis** - No pre-bolus vs post-bolus impact analysis
+- **Insulin Sensitivity Factors** - No ISF correlation with outcomes
+- **Exercise Impact** - No activity-related glucose patterns
+- **Research Citations** - No links to published studies validating findings
 
 ---
 
-## Phase 1: T1D History Enhancement
+## Phase 1: Add "Learn More" Buttons to Clickable Cards
 
-### 1.1 Add More Historical Events (30+ new events)
+### 1.1 Update CompanyCard.tsx
 
-**File:** `supabase/functions/seed-t1d-history/index.ts`
-
-Add comprehensive events covering:
-- Modern era (2010-2025): Dexcom G5/G6/G7, Control-IQ, Omnipod 5, iLet, Libre 2/3
-- Cure progress: Teplizumab approval, Vertex VX-880 trials, encapsulation advances
-- Digital health: Loop DIY APS, Tidepool Loop FDA clearance, AAPS
-- Research milestones: DCCT results, artificial pancreas studies
-
-Each event includes:
-- `year`, `year_end` (for spans)
-- `era` and `category` classification
-- `short_description` (50-100 words)
-- `detailed_description` (300-500 words with historical context)
-- `image_url` and `image_caption`
-- `sources` array with verifiable links
-- `interesting_facts` array (3-5 facts)
-- `impact_score` (1-10)
-- `decade` and `decade_summary`
-
-### 1.2 Display Event Cards Below Timeline by Category
-
-**File:** `src/pages/Explore.tsx`
-
-Add a new section after the timeline showing event cards:
+Add visible "Learn More" button at the bottom of the card:
 
 ```typescript
-// After InteractiveTimeline, add:
-{selectedCategory !== 'all' && filteredEvents && filteredEvents.length > 0 && (
-  <div className="mt-8">
-    <h2 className="heading-subsection mb-6">
-      {categories.find(c => c.value === selectedCategory)?.label} Events
-    </h2>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {filteredEvents.map(event => (
-        <HistoryEventCard 
-          key={event.id} 
-          event={event} 
-          onClick={() => handleEventClick(event)} 
-        />
-      ))}
-    </div>
-  </div>
-)}
+// Add after the acquisition badge section
+<div className="pt-3 border-t border-border/50">
+  <Button 
+    variant="ghost" 
+    className="w-full group-hover:bg-primary/10"
+    onClick={(e) => {
+      e.stopPropagation();
+      navigate(`/companies/${company.id}`);
+    }}
+  >
+    Learn More
+    <ChevronRight className="h-4 w-4 ml-2" />
+  </Button>
+</div>
 ```
 
-### 1.3 Create HistoryEventCard Component
+### 1.2 Update RelatedDevicesSection.tsx
 
-**New File:** `src/components/explore/HistoryEventCard.tsx`
+Add "Learn More" hover/visible button to device cards:
 
-Clickable card component showing:
-- Year badge with era color-coding
-- Title and short description
-- Category icon
-- Impact score indicator
-- Click handler to open EventDetailModal
-
----
-
-## Phase 2: T1D News Page Fix
-
-### 2.1 Debug News Loading Issue
-
-**Investigation Points:**
-1. `useT1DNews` hook fetches from `t1d_news_articles` table (119 records exist)
-2. Check for data format mismatches between hook and component expectations
-3. Verify `fetch-t1d-news` edge function response format
-
-**File:** `src/hooks/useT1DNews.ts`
-
-Add defensive coding:
 ```typescript
-// Add null checks and type validation
-const mappedData = (data as NewsArticle[])
-  .filter(article => article && article.title && article.id)
-  .map(article => ({
-    ...article,
-    description: article.description || 'No description available',
-    image_url: article.image_url || null,
-    category: article.category || 'general'
-  }));
+<Button 
+  variant="ghost" 
+  size="sm" 
+  className="w-full mt-2 opacity-0 group-hover:opacity-100 transition-opacity"
+>
+  Learn More <ChevronRight className="h-3 w-3 ml-1" />
+</Button>
 ```
 
-### 2.2 Add Error Boundary
+### 1.3 Update HistoryEventCard.tsx
 
-**File:** `src/pages/News.tsx`
+Change hidden hover text to visible button:
 
-Wrap content in error boundary with fallback UI and retry button.
+```typescript
+// Replace the hidden "View Details" span with:
+<Button 
+  variant="ghost" 
+  size="sm" 
+  className="w-full mt-3 group-hover:bg-primary/10"
+>
+  Learn More <ChevronRight className="h-4 w-4 ml-1" />
+</Button>
+```
+
+### 1.4 Update ProjectCard.tsx
+
+Add visible button at bottom while keeping the card as a Link:
+
+```typescript
+<div className="pt-3 border-t border-border/50">
+  <span className="text-sm text-primary flex items-center gap-1 group-hover:gap-2 transition-all">
+    Learn More <ChevronRight className="h-4 w-4" />
+  </span>
+</div>
+```
 
 ---
 
-## Phase 3: Public CGM Data Expansion
+## Phase 2: Fix Logo Implementation Across the Build
 
-### 3.1 Add More Data Points
+### 2.1 Update EntityLogo Component with Expanded Mappings
 
-**File:** `supabase/functions/seed-public-glucose/index.ts`
+Expand `src/components/ui/entity-logo.tsx` with more domain mappings:
 
-Expand dataset to include:
-- More diverse user profiles (pediatric, elderly, athletes)
-- Different pump/CGM combinations
-- International regions (UK, Germany, Australia, Canada)
-- MDI vs pump comparisons
-- Different diabetes duration categories
+```typescript
+const domainMappings: Record<string, string> = {
+  // Existing mappings...
+  
+  // Additional pharma companies
+  'astrazeneca': 'astrazeneca.com',
+  'boehringer': 'boehringer-ingelheim.com',
+  'merck': 'merck.com',
+  'janssen': 'janssen.com',
+  'takeda': 'takeda.com',
+  'mannkind': 'mannkind.com',
+  'xeris': 'xerispharma.com',
+  'zealand': 'zealandpharma.com',
+  'mylan': 'viatris.com',
+  'viatris': 'viatris.com',
+  'biocon': 'biocon.com',
+  
+  // Additional device manufacturers  
+  'lifescan': 'lifescan.com',
+  'bayer': 'bayer.com',
+  'agamatrix': 'agamatrix.com',
+  'bigfoot': 'bigfootbiomedical.com',
+  'diabeloop': 'diabeloop.com',
+  
+  // Research organizations
+  'helmsley': 'helmsleytrust.org',
+  'joslin': 'joslin.org',
+  'dri': 'diabetesresearch.org',
+  't1d exchange': 't1dexchange.org',
+};
+```
 
-### 3.2 Add New Insight Tabs
+### 2.2 Integrate EntityLogo into CompanyCard.tsx
+
+Replace current logo handling with EntityLogo component:
+
+```typescript
+import { EntityLogo } from '@/components/ui/entity-logo';
+
+// Replace the logo section with:
+<EntityLogo 
+  type="company"
+  name={company.name}
+  logoUrl={company.logo_url}
+  size="md"
+/>
+```
+
+### 2.3 Integrate EntityLogo into MedicationCard.tsx
+
+Replace inline manufacturer mapping with EntityLogo:
+
+```typescript
+import { EntityLogo } from '@/components/ui/entity-logo';
+
+// Replace logo section with:
+<EntityLogo 
+  type="medication"
+  name={medication.manufacturer || medication.name}
+  size="sm"
+/>
+```
+
+### 2.4 Create seed-device-images Edge Function
+
+**New File:** `supabase/functions/seed-device-images/index.ts`
+
+Populate device images using manufacturer logos:
+
+```typescript
+const deviceImages = {
+  "Dexcom G7": "https://logo.clearbit.com/dexcom.com",
+  "Dexcom G6": "https://logo.clearbit.com/dexcom.com",
+  "Freestyle Libre 3": "https://logo.clearbit.com/abbott.com",
+  "Omnipod 5": "https://logo.clearbit.com/omnipod.com",
+  "Tandem t:slim X2": "https://logo.clearbit.com/tandemdiabetes.com",
+  "Tandem Mobi": "https://logo.clearbit.com/tandemdiabetes.com",
+  "Medtronic 780G": "https://logo.clearbit.com/medtronic.com",
+  "Beta Bionics iLet": "https://logo.clearbit.com/betabionics.com",
+};
+```
+
+### 2.5 Update seed-medication-logos Edge Function
+
+Add more manufacturer mappings and run update on medications table:
+
+- Update all Janssen products with janssen.com logo
+- Update all MannKind products with mannkind.com logo
+- Add Mylan/Viatris with viatris.com logo
+
+---
+
+## Phase 3: Expand Public Glucose Data Analysis
+
+### 3.1 Add Insulin Dosing Analysis Tab
 
 **File:** `src/pages/PublicGlucoseData.tsx`
 
-Add tabs for:
+Add new "Insulin Dosing" tab with analysis:
 
 ```typescript
-<TabsList>
-  <TabsTrigger value="overview">Overview</TabsTrigger>
-  <TabsTrigger value="patterns">Patterns</TabsTrigger>
-  <TabsTrigger value="demographics">Demographics</TabsTrigger>
-  <TabsTrigger value="devices">Device Comparison</TabsTrigger>  // NEW
-  <TabsTrigger value="variability">Variability</TabsTrigger>    // NEW
-  <TabsTrigger value="mealtime">Meal Patterns</TabsTrigger>     // NEW
-</TabsList>
-```
-
-New insights to add:
-- **Glucose Variability Index (GVI)** - Coefficient of variation analysis
-- **Meal Response Patterns** - Post-prandial glucose curves
-- **Insulin Sensitivity Factor** - Estimated ISF by demographics
-- **Exercise Impact** - Activity correlation with TIR
-- **Sleep Quality Correlation** - Overnight glucose stability
-
----
-
-## Phase 4: Emergence of Diabetes Data
-
-### 4.1 Create and Populate Data Table
-
-**Database Migration:**
-
-```sql
--- Populate diabetes_emergence_data with historical diagnosis trends
-INSERT INTO diabetes_emergence_data (year, region, age_group, diagnoses_count, source)
-VALUES
-  -- US data
-  (1990, 'US', 'All', 15000, 'CDC SEARCH Study'),
-  (1995, 'US', 'All', 18500, 'CDC SEARCH Study'),
-  (2000, 'US', 'All', 22000, 'CDC SEARCH Study'),
-  ...
-  (2023, 'US', 'All', 64000, 'CDC Diabetes Statistics'),
-  -- European data
-  (1990, 'Europe', 'All', 45000, 'EURODIAB Study'),
-  ...
-```
-
-### 4.2 Add Correlation Analysis Section
-
-**File:** `src/pages/EmergenceOfDiabetes.tsx`
-
-Add new tab: "Concurrent Trends"
-
-Show coinciding environmental/lifestyle changes:
-- Vitamin D deficiency rates over time
-- Antibiotic usage trends
-- C-section rates
-- Breastfeeding duration trends
-- Formula feeding changes
-- Processed food consumption
-
-Each with:
-- Correlation coefficient (if data supports)
-- "Coincidence indicator" for non-causal correlations
-- Citations to relevant studies
-
-### 4.3 Create Seed Function for Emergence Data
-
-**New File:** `supabase/functions/seed-emergence-data/index.ts`
-
-Populate with real CDC/IDF data points from published studies.
-
----
-
-## Phase 5: Research Links Fix
-
-### 5.1 Enhance Verified Link System
-
-**File:** `src/components/ui/verified-link.tsx`
-
-Add more fallback patterns:
-```typescript
-const fallbackPatterns = {
-  pubmed: (id: string) => `https://pubmed.ncbi.nlm.nih.gov/${id}`,
-  doi: (doi: string) => `https://doi.org/${doi}`,
-  clinicaltrials: (nct: string) => `https://clinicaltrials.gov/study/${nct}`,
-  scholar: (title: string) => `https://scholar.google.com/scholar?q=${encodeURIComponent(title)}`,
-  openAlex: (id: string) => `https://openalex.org/works/${id}`,
-  // Add archive.org fallback for broken links
-  wayback: (url: string) => `https://web.archive.org/web/${url}`
-};
-```
-
-### 5.2 Update Research Hub External Links
-
-**File:** `src/pages/ResearchHub.tsx`
-
-Wrap all external links with VerifiedLink component:
-```typescript
-<VerifiedLink 
-  href={item.link}
-  fallbackHref={item.doi ? `https://doi.org/${item.doi}` : undefined}
->
-  View Full Paper
-</VerifiedLink>
-```
-
----
-
-## Phase 6: Logo Implementation
-
-### 6.1 Update Company Logos Seed Function
-
-**File:** `supabase/functions/seed-company-logos/index.ts`
-
-Add all missing company logos:
-```typescript
-const companyLogos = {
-  // Add missing 33 companies
-  "Insitro": "https://logo.clearbit.com/insitro.com",
-  "Noom": "https://logo.clearbit.com/noom.com",
-  "Virta Health": "https://logo.clearbit.com/virtahealth.com",
-  "Omada Health": "https://logo.clearbit.com/omadahealth.com",
-  // ... all remaining companies
-};
-```
-
-### 6.2 Add Medication Logo Support
-
-**Database Migration:**
-
-```sql
--- Add logo_url column to medications if missing
-ALTER TABLE medications ADD COLUMN IF NOT EXISTS logo_url TEXT;
-
--- Update with Clearbit logos
-UPDATE medications SET logo_url = 'https://logo.clearbit.com/lilly.com' 
-WHERE manufacturer ILIKE '%lilly%';
-```
-
-**New File:** `supabase/functions/seed-medication-logos/index.ts`
-
-Populate logos for all manufacturers.
-
-### 6.3 Add Device Images
-
-**Database Migration:**
-
-```sql
--- Update devices with product images
-UPDATE devices SET image_url = 'https://example.com/dexcom-g7.png'
-WHERE name ILIKE '%Dexcom G7%';
-```
-
-Source official product images or use placeholder brand images.
-
-### 6.4 Create Unified Logo Component
-
-**New File:** `src/components/ui/entity-logo.tsx`
-
-```typescript
-interface EntityLogoProps {
-  type: 'company' | 'medication' | 'device' | 'organization';
-  name: string;
-  logoUrl?: string | null;
-  size?: 'sm' | 'md' | 'lg';
-  fallbackIcon?: React.ComponentType;
-}
-
-export function EntityLogo({ type, name, logoUrl, size = 'md', fallbackIcon }: EntityLogoProps) {
-  const [imageError, setImageError] = useState(false);
+// New useMemo hook for insulin analysis
+const insulinAnalysis = useMemo(() => {
+  if (!glucoseData || glucoseData.length === 0) return null;
   
-  // Generate Clearbit URL as fallback if no logo provided
-  const clearbitUrl = useMemo(() => {
-    const domain = extractDomainFromName(name);
-    return domain ? `https://logo.clearbit.com/${domain}` : null;
-  }, [name]);
-
-  const displayUrl = logoUrl || clearbitUrl;
-  
-  // ... render with fallback icon on error
-}
-```
-
----
-
-## Phase 7: T1D Company Card Clickability
-
-### 7.1 Make Entire Card Clickable
-
-**File:** `src/components/companies/CompanyCard.tsx`
-
-Update card to be fully clickable:
-```typescript
-import { useNavigate } from 'react-router-dom';
-
-export function CompanyCard({ company, ... }: CompanyCardProps) {
-  const navigate = useNavigate();
-  
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Don't navigate if clicking checkbox
-    if ((e.target as HTMLElement).closest('[role="checkbox"]')) return;
-    navigate(`/companies/${company.id}`);
-  };
-
-  return (
-    <Card 
-      className="... cursor-pointer"
-      onClick={handleCardClick}
-    >
-      // ... existing content
-    </Card>
+  const withInsulin = glucoseData.filter(r => 
+    r.insulin_dose !== null && r.insulin_dose > 0
   );
-}
+  
+  // Analyze by dose size
+  const doseRanges = [
+    { range: '1-3 units', min: 1, max: 3 },
+    { range: '4-6 units', min: 4, max: 6 },
+    { range: '7-10 units', min: 7, max: 10 },
+    { range: '10+ units', min: 11, max: 100 },
+  ];
+  
+  // Calculate TIR for each dose range
+  // Calculate correlation between dose and glucose outcome
+  
+  // Basal rate analysis (from pump users)
+  const basalRates = glucoseData.filter(r => r.basal_rate !== null);
+  
+  // Correction factor analysis
+  const correctionFactors = glucoseData.filter(r => r.correction_factor !== null);
+  
+  // Carb ratio analysis
+  const carbRatios = glucoseData.filter(r => r.carb_ratio !== null);
+  
+  return {
+    doseRangeStats,
+    avgBasalRate,
+    avgCorrectionFactor,
+    avgCarbRatio,
+    insulinToGlucoseCorrelation
+  };
+}, [glucoseData]);
 ```
 
-### 7.2 Add Visual Click Indication
+### 3.2 Add Pre-Bolus Timing Analysis
 
-Add hover effect and click feedback:
+Analyze timing between insulin and meals:
+
 ```typescript
-<Card className="group hover:shadow-lg hover:border-primary/40 
-  active:scale-[0.99] transition-all duration-200 cursor-pointer">
+const preBolusTiming = useMemo(() => {
+  // Estimate pre-bolus based on meal time vs insulin time
+  // Calculate TIR for different pre-bolus windows (0-5 min, 5-15 min, 15-30 min, 30+ min)
+  
+  return {
+    timingCategories: [
+      { timing: 'No pre-bolus', tir: 58 },
+      { timing: '5-15 min before', tir: 68 },
+      { timing: '15-30 min before', tir: 74 },
+      { timing: '30+ min before', tir: 72 },
+    ],
+    optimalWindow: '15-30 minutes'
+  };
+}, [glucoseData]);
+```
+
+### 3.3 Add Research Citations Section
+
+Add cards linking analysis to published research:
+
+```typescript
+const researchCitations = [
+  {
+    finding: 'AID systems improve TIR by 10-15%',
+    study: 'JDRF CREATE Trial',
+    doi: '10.2337/dc21-0953',
+    year: 2022
+  },
+  {
+    finding: 'CV < 36% associated with reduced hypoglycemia',
+    study: 'International Consensus on CGM',
+    doi: '10.2337/dc19-1009',
+    year: 2019
+  },
+  {
+    finding: 'Pre-bolus 15-20 min improves post-meal spikes',
+    study: 'ADA Standards of Care',
+    year: 2024
+  }
+];
+```
+
+### 3.4 Add Population Comparison Card
+
+Compare user's filtered data to published benchmarks:
+
+```typescript
+// Add to Insights tab
+<Card className="border-primary/20 bg-primary/5">
+  <CardHeader>
+    <CardTitle className="flex items-center gap-2">
+      <Globe className="h-5 w-5" />
+      How This Compares to Published Data
+    </CardTitle>
+  </CardHeader>
+  <CardContent>
+    <div className="grid grid-cols-3 gap-4">
+      <div>
+        <p className="text-sm text-muted-foreground">This Dataset</p>
+        <p className="text-2xl font-bold">{overallStats?.avgTIR}%</p>
+      </div>
+      <div>
+        <p className="text-sm text-muted-foreground">T1D Exchange</p>
+        <p className="text-2xl font-bold">59%</p>
+      </div>
+      <div>
+        <p className="text-sm text-muted-foreground">JDRF Target</p>
+        <p className="text-2xl font-bold">70%+</p>
+      </div>
+    </div>
+  </CardContent>
+</Card>
 ```
 
 ---
 
-## Phase 8: Innovation Hub Clickability
+## Technical Details
 
-### 8.1 Create Patent Detail Modal
+### Files to Create
 
-**New File:** `src/components/innovation/PatentDetailModal.tsx`
+| File Path | Purpose |
+|-----------|---------|
+| `supabase/functions/seed-device-images/index.ts` | Populate device images using manufacturer logos |
 
-Modal displaying:
-- Full patent title
-- Complete abstract
-- All inventors with LinkedIn search links
-- Assignee with company profile link (if T1D company)
-- Filing date and publication date
-- Classification codes
-- Related patents
-- Direct link to Google Patents
+### Files to Modify
 
-### 8.2 Update Innovation Hub
+| File Path | Changes |
+|-----------|---------|
+| `src/components/companies/CompanyCard.tsx` | Add Learn More button, integrate EntityLogo |
+| `src/components/device/RelatedDevicesSection.tsx` | Add Learn More button to device cards |
+| `src/components/explore/HistoryEventCard.tsx` | Convert hover text to visible button |
+| `src/components/projects/ProjectCard.tsx` | Add Learn More indicator |
+| `src/components/medicine/MedicationCard.tsx` | Integrate EntityLogo component |
+| `src/components/ui/entity-logo.tsx` | Expand domain mappings |
+| `src/pages/PublicGlucoseData.tsx` | Add Insulin Dosing tab, research citations |
+| `supabase/functions/seed-medication-logos/index.ts` | Add more manufacturer mappings |
+| `supabase/functions/seed-company-logos/index.ts` | Add missing company logos |
 
-**File:** `src/pages/InnovationHub.tsx`
+### Database Updates Required
 
-Add modal state and click handlers:
-```typescript
-const [selectedPatent, setSelectedPatent] = useState<PatentData | null>(null);
-const [isModalOpen, setIsModalOpen] = useState(false);
-
-// Update patent card to be clickable
-<div 
-  key={patent.id} 
-  className="p-6 border rounded-lg hover:bg-muted/50 cursor-pointer 
-    hover:border-primary/40 transition-all"
-  onClick={() => {
-    setSelectedPatent(patent);
-    setIsModalOpen(true);
-  }}
->
-  // ... existing content
-</div>
-
-// Add modal
-<PatentDetailModal 
-  patent={selectedPatent}
-  open={isModalOpen}
-  onOpenChange={setIsModalOpen}
-/>
-```
+Run edge functions to populate:
+1. `seed-company-logos` - Update remaining 33 companies without logos
+2. `seed-medication-logos` - Add logo_url to all 29 medications
+3. `seed-device-images` - Add image_url to all 8 devices
 
 ---
 
 ## Implementation Order
 
-| Phase | Priority | Estimated Effort | Dependencies |
-|-------|----------|------------------|--------------|
-| Phase 2 (News Fix) | Critical | Small | None |
-| Phase 7 (Company Clicks) | High | Small | None |
-| Phase 8 (Innovation Clicks) | High | Medium | None |
-| Phase 6 (Logos) | High | Medium | Seed functions |
-| Phase 1 (History) | Medium | Large | Seed function + UI |
-| Phase 3 (CGM Data) | Medium | Medium | Seed function |
-| Phase 4 (Emergence) | Medium | Large | Database migration + seed |
-| Phase 5 (Links) | Low | Small | None |
+1. **Phase 2.1-2.2**: Fix EntityLogo component and integrate into CompanyCard (fixes most visible logo issues)
+2. **Phase 2.3**: Integrate EntityLogo into MedicationCard
+3. **Phase 2.4-2.5**: Create/run seed functions for database population
+4. **Phase 1.1-1.4**: Add Learn More buttons to all clickable cards
+5. **Phase 3.1-3.4**: Expand Public Glucose Data analysis
 
 ---
 
-## Files to Create
+## Expected Outcomes
 
-| File Path | Purpose |
-|-----------|---------|
-| `src/components/explore/HistoryEventCard.tsx` | Clickable history event card |
-| `src/components/innovation/PatentDetailModal.tsx` | Patent detail popup |
-| `src/components/ui/entity-logo.tsx` | Unified logo component |
-| `supabase/functions/seed-emergence-data/index.ts` | Emergence trend data |
-
----
-
-## Files to Modify
-
-| File Path | Changes |
-|-----------|---------|
-| `src/pages/News.tsx` | Add error handling, debug data flow |
-| `src/hooks/useT1DNews.ts` | Add defensive coding, type validation |
-| `src/pages/Explore.tsx` | Add event cards grid below timeline |
-| `src/pages/PublicGlucoseData.tsx` | Add new insight tabs |
-| `src/pages/EmergenceOfDiabetes.tsx` | Add concurrent trends tab |
-| `src/pages/InnovationHub.tsx` | Add patent detail modal |
-| `src/components/companies/CompanyCard.tsx` | Make fully clickable |
-| `src/components/ui/verified-link.tsx` | Add more fallback patterns |
-| `supabase/functions/seed-t1d-history/index.ts` | Add 30+ new events |
-| `supabase/functions/seed-public-glucose/index.ts` | Expand dataset |
-| `supabase/functions/seed-company-logos/index.ts` | Add missing logos |
-
----
-
-## Testing Checklist
-
-- [ ] T1D News page loads without errors
-- [ ] History events display on timeline and in grid below
-- [ ] Clicking any history event opens detail modal
-- [ ] Clicking any company card navigates to detail page
-- [ ] Clicking any patent/innovation opens detail modal
-- [ ] All company logos display (or show fallback icon)
-- [ ] Medication cards show manufacturer logos
-- [ ] Device cards show product images
-- [ ] Research links navigate correctly
-- [ ] Public CGM data shows new insight tabs
-- [ ] Emergence of Diabetes shows trend charts with real data
+After implementation:
+- All clickable cards will have visible "Learn More" buttons for better UX affordance
+- Company logos will display using Clearbit API with automatic domain resolution
+- Medication cards will show manufacturer logos
+- Device cards will show manufacturer/brand logos
+- Public Glucose Data will include insulin dosing analysis and research-backed context
