@@ -407,6 +407,13 @@ const ProjectDetail: React.FC = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="full-report">
+            <ProjectFullReport 
+              projectSlug={project.slug || slug || ''}
+              projectTitle={project.title}
+            />
+          </TabsContent>
+
           <TabsContent value="research">
             <ResearchSection researchLinks={researchLinks} />
           </TabsContent>
