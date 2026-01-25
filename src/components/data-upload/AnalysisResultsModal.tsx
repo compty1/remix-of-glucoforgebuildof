@@ -20,7 +20,9 @@ import {
   Download,
   Loader2,
   AlertTriangle,
-  Calendar
+  Calendar,
+  ShieldCheck,
+  Zap
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 
@@ -34,6 +36,18 @@ import RecommendationCard from './RecommendationCard';
 import GlucoseRiskMatrix from './GlucoseRiskMatrix';
 import WeekdayComparisonChart from './WeekdayComparisonChart';
 import TrendPrediction from './TrendPrediction';
+import ConfidenceScoreBadge from './ConfidenceScoreBadge';
+import NovelSignalsCard from './NovelSignalsCard';
+import DataQualityPanel from './DataQualityPanel';
+import ExecutiveSummary from './ExecutiveSummary';
+import type { 
+  ConfidenceBand, 
+  ValidationFlag, 
+  DataQuality, 
+  NovelSignals, 
+  ExecutiveSummary as ExecutiveSummaryType,
+  DayNightMetrics 
+} from '@/types/glucose-analysis';
 
 interface DetailedAnalysis {
   readingsCount?: number;
@@ -123,6 +137,14 @@ interface AnalysisResultsModalProps {
   patterns?: Pattern[];
   recommendations?: string[];
   aiInsights?: AIInsights;
+  // Enhanced analysis props
+  confidenceScore?: number;
+  confidenceBand?: ConfidenceBand;
+  validationFlags?: ValidationFlag[];
+  dataQuality?: DataQuality;
+  novelSignals?: NovelSignals;
+  executiveSummary?: ExecutiveSummaryType;
+  dayNightAnalysis?: DayNightMetrics;
 }
 
 const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
@@ -138,12 +160,21 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
   patterns,
   recommendations,
   aiInsights,
+  // Enhanced analysis props
+  confidenceScore,
+  confidenceBand,
+  validationFlags,
+  dataQuality,
+  novelSignals,
+  executiveSummary,
+  dayNightAnalysis,
 }) => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isExporting, setIsExporting] = useState(false);
 
   const hasDetailedData = detailedAnalysis && (detailedAnalysis.readingsCount ?? 0) > 0;
   const isFromSummary = detailedAnalysis?.fromSummaryReport === true || readingsCount === 0;
+  const hasEnhancedData = confidenceScore !== undefined && confidenceBand !== 'unknown';
 
   const exportReport = async () => {
     setIsExporting(true);
@@ -273,11 +304,22 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] p-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-2">
-          <DialogTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-primary" />
-            Glucose Analysis Results
-          </DialogTitle>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Glucose Analysis Results
+            </DialogTitle>
+            {hasEnhancedData && confidenceScore !== undefined && confidenceBand && (
+              <ConfidenceScoreBadge
+                score={confidenceScore}
+                band={confidenceBand}
+                validationFlags={validationFlags}
+                showDetails={true}
+                size="md"
+              />
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
             <span>{fileName}</span>
             {readingsCount > 0 ? (
               <Badge variant="outline">{readingsCount.toLocaleString()} readings</Badge>
@@ -303,7 +345,7 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
         {hasDetailedData ? (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
             <div className="px-6 border-b">
-              <TabsList className="h-10">
+              <TabsList className="h-10 flex-wrap">
                 <TabsTrigger value="overview" className="gap-1.5">
                   <Target className="h-4 w-4" />
                   Overview
@@ -316,13 +358,25 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
                   <TrendingUp className="h-4 w-4" />
                   Trends
                 </TabsTrigger>
+                {hasEnhancedData && dataQuality && (
+                  <TabsTrigger value="quality" className="gap-1.5">
+                    <ShieldCheck className="h-4 w-4" />
+                    Quality
+                  </TabsTrigger>
+                )}
+                {hasEnhancedData && novelSignals && (
+                  <TabsTrigger value="signals" className="gap-1.5">
+                    <Zap className="h-4 w-4" />
+                    Signals
+                  </TabsTrigger>
+                )}
                 <TabsTrigger value="risk" className="gap-1.5">
                   <AlertTriangle className="h-4 w-4" />
-                  Risk Analysis
+                  Risk
                 </TabsTrigger>
                 <TabsTrigger value="daycompare" className="gap-1.5">
                   <Calendar className="h-4 w-4" />
-                  Day Compare
+                  Days
                 </TabsTrigger>
                 <TabsTrigger value="insights" className="gap-1.5">
                   <Lightbulb className="h-4 w-4" />
@@ -334,8 +388,10 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
             <ScrollArea className="flex-1 max-h-[calc(90vh-140px)]">
               <div className="p-6">
                 <TabsContent value="overview" className="mt-0 space-y-6">
-                  {/* AI Summary Card */}
-                  {aiInsights?.summary && (
+                  {/* Executive Summary - Enhanced */}
+                  {executiveSummary ? (
+                    <ExecutiveSummary summary={executiveSummary} />
+                  ) : aiInsights?.summary ? (
                     <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
                       <h3 className="font-semibold text-primary mb-2 flex items-center gap-2">
                         ✨ AI Summary
@@ -345,7 +401,7 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
                         <p className="text-sm text-primary mt-2">{aiInsights.encouragement}</p>
                       )}
                     </div>
-                  )}
+                  ) : null}
                   
                   <GlucoseMetricsGrid analysis={detailedAnalysis} />
                   
@@ -401,8 +457,22 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
                   )}
                 </TabsContent>
 
+                {/* Quality Tab - Enhanced */}
+                {hasEnhancedData && dataQuality && (
+                  <TabsContent value="quality" className="mt-0 space-y-6">
+                    <DataQualityPanel dataQuality={dataQuality} />
+                  </TabsContent>
+                )}
+
+                {/* Signals Tab - Enhanced */}
+                {hasEnhancedData && novelSignals && (
+                  <TabsContent value="signals" className="mt-0 space-y-6">
+                    <NovelSignalsCard novelSignals={novelSignals} />
+                  </TabsContent>
+                )}
+
                 <TabsContent value="risk" className="mt-0 space-y-6">
-                  <GlucoseRiskMatrix 
+                  <GlucoseRiskMatrix
                     hourlyStats={hourlyData?.map(h => ({
                       hour: h.hour,
                       average: h.avg,
