@@ -110,6 +110,10 @@ import BecomeAdvocate from "./pages/BecomeAdvocate";
 import EventsNearMe from "./pages/EventsNearMe";
 import FutureOfT1D from "./pages/FutureOfT1D";
 
+// New Pages - Explore & Your Experience
+import Explore from "./pages/Explore";
+import YourExperience from "./pages/YourExperience";
+
 const queryClient = new QueryClient();
 
 const App = () => {
