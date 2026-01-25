@@ -56,6 +56,17 @@ interface AppReview {
   created_at: string;
 }
 
+interface AppBuzz {
+  id: string;
+  content: string;
+  source_platform: string;
+  sentiment: string | null;
+  upvotes: number | null;
+  category: string | null;
+  author_anonymous: string | null;
+  published_at: string | null;
+}
+
 // Open source apps that use GitHub
 const openSourceApps = ['xDrip+', 'Nightscout', 'Loop', 'AndroidAPS', 'AAPS'];
 
@@ -150,6 +161,7 @@ const AppCard: React.FC<{ app: DiabetesApp; onClick: () => void }> = ({ app, onC
 export default function AppCenter() {
   const [apps, setApps] = useState<DiabetesApp[]>([]);
   const [reviews, setReviews] = useState<AppReview[]>([]);
+  const [buzz, setBuzz] = useState<AppBuzz[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -193,9 +205,26 @@ export default function AppCenter() {
     }
   };
 
+  const fetchAppBuzz = async (appName: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('app_community_buzz')
+        .select('*')
+        .eq('app_name', appName)
+        .order('upvotes', { ascending: false })
+        .limit(15);
+
+      if (error) throw error;
+      setBuzz(data || []);
+    } catch (error) {
+      console.error('Error fetching app buzz:', error);
+    }
+  };
+
   const handleAppClick = (app: DiabetesApp) => {
     setSelectedApp(app);
     fetchAppReviews(app.id);
+    fetchAppBuzz(app.name);
   };
 
   const categories = ['all', ...Array.from(new Set(apps.map(a => a.category).filter(Boolean)))];
@@ -334,6 +363,7 @@ export default function AppCenter() {
                   <TabsList>
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="reviews">Reviews</TabsTrigger>
+                    <TabsTrigger value="buzz">Community Buzz</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="overview" className="space-y-6 mt-4">
@@ -471,6 +501,74 @@ export default function AppCenter() {
                     ) : (
                       <p className="text-center text-muted-foreground py-8">
                         No reviews yet for this app.
+                      </p>
+                    )}
+                  </TabsContent>
+
+                  <TabsContent value="buzz" className="space-y-4 mt-4">
+                    {buzz.length > 0 ? (
+                      <>
+                        {/* Sentiment Summary */}
+                        <div className="grid grid-cols-3 gap-3 mb-4">
+                          <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-center">
+                            <div className="text-2xl font-bold text-green-600">
+                              {buzz.filter(b => b.sentiment === 'positive').length}
+                            </div>
+                            <div className="text-xs text-green-700 dark:text-green-300">Positive</div>
+                          </div>
+                          <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-center">
+                            <div className="text-2xl font-bold text-yellow-600">
+                              {buzz.filter(b => b.sentiment === 'neutral').length}
+                            </div>
+                            <div className="text-xs text-yellow-700 dark:text-yellow-300">Neutral</div>
+                          </div>
+                          <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-center">
+                            <div className="text-2xl font-bold text-red-600">
+                              {buzz.filter(b => b.sentiment === 'negative').length}
+                            </div>
+                            <div className="text-xs text-red-700 dark:text-red-300">Negative</div>
+                          </div>
+                        </div>
+
+                        {/* Buzz Posts */}
+                        {buzz.map(post => (
+                          <Card key={post.id}>
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`text-xs ${
+                                      post.sentiment === 'positive' ? 'bg-green-50 text-green-700 border-green-200' :
+                                      post.sentiment === 'negative' ? 'bg-red-50 text-red-700 border-red-200' :
+                                      'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                    }`}
+                                  >
+                                    {post.sentiment || 'neutral'}
+                                  </Badge>
+                                  <Badge variant="outline" className="text-xs">{post.source_platform}</Badge>
+                                </div>
+                                {post.upvotes && (
+                                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <ThumbsUp className="h-3 w-3" />
+                                    {post.upvotes}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm">{post.content}</p>
+                              <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                                {post.author_anonymous && <span>{post.author_anonymous}</span>}
+                                {post.category && (
+                                  <Badge variant="secondary" className="text-[10px]">{post.category.replace('_', ' ')}</Badge>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </>
+                    ) : (
+                      <p className="text-center text-muted-foreground py-8">
+                        No community buzz yet for this app.
                       </p>
                     )}
                   </TabsContent>

@@ -124,3 +124,6 @@ verify_jwt = false
 
 [functions.seed-app-community-buzz]
 verify_jwt = false
+
+[functions.seed-donations-data]
+verify_jwt = false
