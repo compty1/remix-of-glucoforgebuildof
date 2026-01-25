@@ -872,10 +872,10 @@ serve(async (req) => {
       }
     ];
 
-    // Insert all posts
+    // Insert all posts (regular insert, not upsert)
     const { data, error } = await supabase
       .from('adult_content_posts')
-      .upsert(adultContentPosts, { onConflict: 'title' });
+      .insert(adultContentPosts);
 
     if (error) {
       console.error('Error seeding adult content posts:', error);

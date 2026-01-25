@@ -68,8 +68,8 @@ import {
 } from "@/components/ui/collapsible";
 import { useAuthStore } from '@/store/authStore';
 import { supabase } from '@/integrations/supabase/client';
-import logoImage from '@/assets/glucoforge-logo.svg';
-import iconImage from '@/assets/glucoforge-icon.svg';
+import logoImage from '@/assets/glycoforge-logo.png';
+import iconImage from '@/assets/glycoforge-icon.png';
 
 const navigationItems = [
   { title: "Home", url: "/", icon: Home },
