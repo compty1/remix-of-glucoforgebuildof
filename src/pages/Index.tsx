@@ -10,7 +10,7 @@ import { WeeklyDigestSignup } from '@/components/WeeklyDigestSignup';
 import { StatementJar } from '@/components/home/StatementJar';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
-import logoImage from '@/assets/glucoforge-logo-new.png';
+import logoImage from '@/assets/glycoforge-logo.png';
 
 interface DiscoveryCardData {
   id: string;

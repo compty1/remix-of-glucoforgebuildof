@@ -214,10 +214,10 @@ serve(async (req) => {
       }
     ];
 
-    // Insert bounties
+    // Insert bounties (regular insert, not upsert)
     const { data, error } = await supabase
       .from('bounties')
-      .upsert(bounties, { onConflict: 'title' });
+      .insert(bounties);
 
     if (error) {
       console.error('Error seeding bounties:', error);
