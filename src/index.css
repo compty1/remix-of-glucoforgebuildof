@@ -354,3 +354,70 @@
 .animate-pulse-forge {
   animation: pulseForge 2s ease-in-out infinite;
 }
+
+/* Blood Drop Animation - simulates dripping/falling effect */
+@keyframes bloodDropFall {
+  0% {
+    transform: translateY(-8px) scale(0.95);
+    opacity: 0.7;
+  }
+  40% {
+    transform: translateY(0px) scale(1);
+    opacity: 1;
+  }
+  60% {
+    transform: translateY(2px) scale(1.02, 0.98);
+  }
+  80% {
+    transform: translateY(-1px) scale(0.99, 1.01);
+  }
+  100% {
+    transform: translateY(0px) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes dropBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes dropPulse {
+  0%, 100% {
+    filter: drop-shadow(0 2px 8px hsl(var(--brand-purple-light) / 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 4px 12px hsl(var(--brand-purple-light) / 0.6));
+  }
+}
+
+.animate-drop-fall {
+  animation: bloodDropFall 1.2s ease-out forwards;
+}
+
+.animate-drop-bounce {
+  animation: dropBounce 2s ease-in-out infinite;
+}
+
+.animate-drop-pulse {
+  animation: dropPulse 3s ease-in-out infinite;
+}
+
+/* Combined animation for logo on load */
+.logo-animated-drop {
+  animation: bloodDropFall 1s ease-out, dropBounce 2.5s ease-in-out 1s infinite, dropPulse 4s ease-in-out 1s infinite;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .logo-animated-drop,
+  .animate-drop-fall,
+  .animate-drop-bounce,
+  .animate-drop-pulse {
+    animation: none;
+  }
+}
