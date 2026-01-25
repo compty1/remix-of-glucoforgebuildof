@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
 import { InfoRail } from '@/components/InfoRail';
+import { PredictionDetailModal } from '@/components/future/PredictionDetailModal';
 import { 
   Rocket, 
   Calendar, 
@@ -240,10 +241,17 @@ const qualityOfLifeProjections = [
 
 export default function FutureOfT1D() {
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>('3 Years');
+  const [selectedPrediction, setSelectedPrediction] = useState<TimelinePrediction | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
 
   const timeframes = ['3 Years', '5 Years', '10 Years', '15 Years', '20 Years'];
   
   const filteredPredictions = predictions.filter(p => p.timeframe === selectedTimeframe);
+
+  const handlePredictionClick = (prediction: TimelinePrediction) => {
+    setSelectedPrediction(prediction);
+    setModalOpen(true);
+  };
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -341,8 +349,12 @@ export default function FutureOfT1D() {
 
             {/* Predictions */}
             <div className="space-y-4">
-              {filteredPredictions.map((prediction) => (
-                <Card key={prediction.id} className="hover:shadow-md transition-shadow">
+            {filteredPredictions.map((prediction) => (
+                <Card 
+                  key={prediction.id} 
+                  className="hover:shadow-md transition-shadow cursor-pointer hover:border-primary/50"
+                  onClick={() => handlePredictionClick(prediction)}
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-4">
                       <div>
