@@ -245,12 +245,27 @@ const DataUpload = () => {
       ));
 
       toast.success(`${file.name} analyzed - ${readingsCount} readings processed`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
       setUploadedFiles(prev => prev.map(f => 
         f.id === tempId ? { ...f, status: 'error' as const } : f
       ));
-      toast.error(`Failed to analyze ${file.name}`);
+      
+      // Extract meaningful error message from the response
+      const errorMessage = error?.message || error?.error || 'Analysis failed';
+      const suggestion = error?.suggestion || '';
+      
+      if (errorMessage.includes('does not appear to contain') || errorMessage.includes('CGM glucose data')) {
+        toast.error('This PDF doesn\'t appear to be a CGM report. Please upload a report from Dexcom Clarity, LibreView, or your pump app.', {
+          duration: 6000
+        });
+      } else if (errorMessage.includes('Insufficient data')) {
+        toast.error('Not enough glucose readings found. Please check the file format.', {
+          duration: 5000
+        });
+      } else {
+        toast.error(`Failed to analyze ${file.name}${suggestion ? ': ' + suggestion : ''}`);
+      }
     }
   };
   const getFileIcon = (type: string) => {
