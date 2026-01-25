@@ -19,9 +19,10 @@ import {
   ExternalLink,
   FileText,
   Users,
-  FlaskConical
+  FlaskConical,
+  GitCompare
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area, ComposedChart, Bar } from 'recharts';
 import { toast } from 'sonner';
 
 interface EmergenceData {
@@ -569,8 +570,12 @@ export default function EmergenceOfDiabetes() {
         </div>
 
         <Tabs defaultValue="trends" className="space-y-6">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto gap-1">
             <TabsTrigger value="trends">Rising Trends</TabsTrigger>
+            <TabsTrigger value="concurrent" className="gap-1">
+              <GitCompare className="h-4 w-4" />
+              Concurrent Trends
+            </TabsTrigger>
             <TabsTrigger value="myths">Myths & Facts</TabsTrigger>
             <TabsTrigger value="factors">Contributing Factors</TabsTrigger>
           </TabsList>
@@ -639,6 +644,288 @@ export default function EmergenceOfDiabetes() {
                   <li>• <a href="https://idf.org/aboutdiabetes/what-is-diabetes/facts-figures.html" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">International Diabetes Federation</a></li>
                   <li>• <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7071134/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">SEARCH for Diabetes in Youth Study</a></li>
                 </ul>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="concurrent" className="space-y-6">
+            {/* Explanation Card */}
+            <Card className="command-center-widget border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium mb-1">Correlation ≠ Causation</h4>
+                    <p className="text-sm text-muted-foreground">
+                      The trends shown below coincide with the rise in T1D but may not directly cause it. 
+                      These are observations from epidemiological data that warrant further investigation. 
+                      Some may be confounding factors, while others may contribute to autoimmune dysregulation.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Concurrent Environmental Trends */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Vitamin D Deficiency Trend */}
+              <Card className="command-center-widget">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-orange-500" />
+                    Vitamin D Deficiency Rates
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <AreaChart data={[
+                      { year: 1990, rate: 15, t1d: 20 },
+                      { year: 1995, rate: 22, t1d: 24 },
+                      { year: 2000, rate: 30, t1d: 28 },
+                      { year: 2005, rate: 36, t1d: 33 },
+                      { year: 2010, rate: 42, t1d: 38 },
+                      { year: 2015, rate: 45, t1d: 42 },
+                      { year: 2020, rate: 48, t1d: 48 },
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="year" />
+                      <YAxis />
+                      <Tooltip />
+                      <Area type="monotone" dataKey="rate" stroke="hsl(var(--chart-1))" fill="hsl(var(--chart-1))" fillOpacity={0.3} name="Deficiency %" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                  <p className="text-sm text-muted-foreground mt-3">
+                    Vitamin D deficiency has tripled since 1990, paralleling indoor lifestyle shifts and sunscreen use. 
+                    <span className="block mt-1 text-xs">Source: NHANES surveys, CDC</span>
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Antibiotic Usage Trend */}
+              <Card className="command-center-widget">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-blue-500" />
+                    Pediatric Antibiotic Prescriptions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <AreaChart data={[
+                      { year: 1990, rate: 550, t1d: 20 },
+                      { year: 1995, rate: 620, t1d: 24 },
+                      { year: 2000, rate: 680, t1d: 28 },
+                      { year: 2005, rate: 750, t1d: 33 },
+                      { year: 2010, rate: 820, t1d: 38 },
+                      { year: 2015, rate: 780, t1d: 42 },
+                      { year: 2020, rate: 720, t1d: 48 },
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="year" />
+                      <YAxis />
+                      <Tooltip />
+                      <Area type="monotone" dataKey="rate" stroke="hsl(var(--chart-2))" fill="hsl(var(--chart-2))" fillOpacity={0.3} name="Prescriptions per 1000" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                  <p className="text-sm text-muted-foreground mt-3">
+                    Early-life antibiotic exposure disrupts gut microbiome development and may affect immune tolerance.
+                    <span className="block mt-1 text-xs">Source: CDC NAMCS, AAP Pediatrics</span>
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* C-Section Rates */}
+              <Card className="command-center-widget">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-purple-500" />
+                    Cesarean Section Rates
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <AreaChart data={[
+                      { year: 1990, rate: 22.7 },
+                      { year: 1995, rate: 20.8 },
+                      { year: 2000, rate: 22.9 },
+                      { year: 2005, rate: 30.3 },
+                      { year: 2010, rate: 32.8 },
+                      { year: 2015, rate: 32.0 },
+                      { year: 2020, rate: 31.8 },
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="year" />
+                      <YAxis domain={[15, 40]} unit="%" />
+                      <Tooltip />
+                      <Area type="monotone" dataKey="rate" stroke="hsl(var(--chart-3))" fill="hsl(var(--chart-3))" fillOpacity={0.3} name="C-Section Rate %" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                  <p className="text-sm text-muted-foreground mt-3">
+                    C-section delivery bypasses vaginal microbiome transfer, affecting infant gut colonization and immune development.
+                    <span className="block mt-1 text-xs">Source: CDC NCHS, WHO</span>
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Breastfeeding Duration */}
+              <Card className="command-center-widget">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-green-500" />
+                    Exclusive Breastfeeding Duration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <AreaChart data={[
+                      { year: 1990, rate: 52 },
+                      { year: 1995, rate: 45 },
+                      { year: 2000, rate: 42 },
+                      { year: 2005, rate: 38 },
+                      { year: 2010, rate: 35 },
+                      { year: 2015, rate: 40 },
+                      { year: 2020, rate: 46 },
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="year" />
+                      <YAxis domain={[20, 60]} unit="%" />
+                      <Tooltip />
+                      <Area type="monotone" dataKey="rate" stroke="hsl(var(--chart-4))" fill="hsl(var(--chart-4))" fillOpacity={0.3} name="6mo exclusive %" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                  <p className="text-sm text-muted-foreground mt-3">
+                    Breastmilk provides protective immunoglobulins and shapes healthy gut microbiome development.
+                    <span className="block mt-1 text-xs">Source: CDC Breastfeeding Report Card</span>
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Ultra-Processed Food */}
+              <Card className="command-center-widget">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-red-500" />
+                    Ultra-Processed Food Consumption
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <AreaChart data={[
+                      { year: 1990, rate: 42 },
+                      { year: 1995, rate: 48 },
+                      { year: 2000, rate: 52 },
+                      { year: 2005, rate: 55 },
+                      { year: 2010, rate: 58 },
+                      { year: 2015, rate: 62 },
+                      { year: 2020, rate: 67 },
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="year" />
+                      <YAxis domain={[30, 80]} unit="%" />
+                      <Tooltip />
+                      <Area type="monotone" dataKey="rate" stroke="hsl(var(--chart-5))" fill="hsl(var(--chart-5))" fillOpacity={0.3} name="% of diet" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                  <p className="text-sm text-muted-foreground mt-3">
+                    Ultra-processed foods now comprise 67% of children's diets. Additives and emulsifiers may affect gut barrier integrity.
+                    <span className="block mt-1 text-xs">Source: NHANES, BMJ Open</span>
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Screen Time / Outdoor Play */}
+              <Card className="command-center-widget">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <span className="h-3 w-3 rounded-full bg-cyan-500" />
+                    Childhood Outdoor Play Time
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <AreaChart data={[
+                      { year: 1990, rate: 8.2 },
+                      { year: 1995, rate: 7.5 },
+                      { year: 2000, rate: 6.8 },
+                      { year: 2005, rate: 5.5 },
+                      { year: 2010, rate: 4.5 },
+                      { year: 2015, rate: 4.0 },
+                      { year: 2020, rate: 3.5 },
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="year" />
+                      <YAxis domain={[0, 10]} unit=" hrs" />
+                      <Tooltip />
+                      <Area type="monotone" dataKey="rate" stroke="hsl(var(--chart-1))" fill="hsl(var(--chart-1))" fillOpacity={0.3} name="Hours/week" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                  <p className="text-sm text-muted-foreground mt-3">
+                    Reduced outdoor play decreases sun exposure (vitamin D) and microbial diversity exposure.
+                    <span className="block mt-1 text-xs">Source: Kaiser Family Foundation, AAP</span>
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Correlation Summary */}
+            <Card className="command-center-widget">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <GitCompare className="h-5 w-5" />
+                  Correlation Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-2 px-3">Environmental Factor</th>
+                        <th className="text-center py-2 px-3">Trend Direction</th>
+                        <th className="text-center py-2 px-3">Evidence Strength</th>
+                        <th className="text-left py-2 px-3">Key Studies</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b">
+                        <td className="py-2 px-3">Vitamin D Deficiency</td>
+                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-red-500 inline" /> Rising</td>
+                        <td className="text-center py-2 px-3"><Badge variant="default">Strong</Badge></td>
+                        <td className="py-2 px-3 text-muted-foreground">TEDDY Study, DAISY Cohort</td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="py-2 px-3">Gut Microbiome Disruption</td>
+                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-red-500 inline" /> Rising</td>
+                        <td className="text-center py-2 px-3"><Badge variant="default">Strong</Badge></td>
+                        <td className="py-2 px-3 text-muted-foreground">DIABIMMUNE, TEDDY</td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="py-2 px-3">C-Section Births</td>
+                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-orange-500 inline" /> Increased</td>
+                        <td className="text-center py-2 px-3"><Badge variant="secondary">Moderate</Badge></td>
+                        <td className="py-2 px-3 text-muted-foreground">Meta-analysis (Cardwell 2008)</td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="py-2 px-3">Ultra-Processed Foods</td>
+                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-red-500 inline" /> Rising</td>
+                        <td className="text-center py-2 px-3"><Badge variant="outline">Emerging</Badge></td>
+                        <td className="py-2 px-3 text-muted-foreground">NHANES longitudinal</td>
+                      </tr>
+                      <tr className="border-b">
+                        <td className="py-2 px-3">Outdoor Play / Sun Exposure</td>
+                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-green-500 inline rotate-180" /> Declining</td>
+                        <td className="text-center py-2 px-3"><Badge variant="secondary">Moderate</Badge></td>
+                        <td className="py-2 px-3 text-muted-foreground">Hygiene hypothesis studies</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2 px-3">Exclusive Breastfeeding</td>
+                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-green-500 inline rotate-180" /> Was declining</td>
+                        <td className="text-center py-2 px-3"><Badge variant="secondary">Moderate</Badge></td>
+                        <td className="py-2 px-3 text-muted-foreground">BABYDIAB, EURODIAB</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
