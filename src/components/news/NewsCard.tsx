@@ -19,9 +19,18 @@ const categoryColors: Record<string, string> = {
 };
 
 export const NewsCard = ({ article }: NewsCardProps) => {
-  const formattedDate = article.published_at
-    ? formatDistanceToNow(new Date(article.published_at), { addSuffix: true })
-    : 'Recently';
+  const getFormattedDate = () => {
+    if (!article.published_at) return 'Recently';
+    try {
+      const date = new Date(article.published_at);
+      if (isNaN(date.getTime())) return 'Recently';
+      return formatDistanceToNow(date, { addSuffix: true });
+    } catch {
+      return 'Recently';
+    }
+  };
+  
+  const formattedDate = getFormattedDate();
 
   const handleShare = async () => {
     if (navigator.share) {
