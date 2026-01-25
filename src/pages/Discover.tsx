@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, SortDesc, Loader2 } from 'lucide-react';
+import { Search, Filter, SortDesc, Loader2, Sparkles, TrendingUp, FlaskConical, Cpu, Users, Pill } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,17 +17,28 @@ interface DiscoveryCardData {
   mechanism: string;
   sources: Array<{ title: string; url: string }>;
   created_at: string;
+  category?: string;
 }
+
+const CATEGORIES = [
+  { id: 'all', label: 'All Insights', icon: Sparkles },
+  { id: 'cure_breakthrough', label: 'Cure Progress', icon: FlaskConical },
+  { id: 'medication', label: 'Medications', icon: Pill },
+  { id: 'device', label: 'Devices', icon: Cpu },
+  { id: 'research', label: 'Research', icon: TrendingUp },
+  { id: 'community', label: 'Community', icon: Users },
+];
 
 const Discover = () => {
   const [insights, setInsights] = useState<DiscoveryCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCredibility, setSelectedCredibility] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   useEffect(() => {
     fetchInsights();
-  }, [searchTerm, selectedCredibility]);
+  }, [searchTerm, selectedCredibility, selectedCategory]);
 
   const fetchInsights = async () => {
     try {
@@ -38,11 +49,15 @@ const Discover = () => {
         .order('created_at', { ascending: false });
 
       if (searchTerm) {
-        query = query.textSearch('search_vector', searchTerm);
+        query = query.or(`title.ilike.%${searchTerm}%,snippet.ilike.%${searchTerm}%,mechanism.ilike.%${searchTerm}%`);
       }
 
       if (selectedCredibility) {
         query = query.eq('credibility', selectedCredibility);
+      }
+
+      if (selectedCategory !== 'all') {
+        query = query.eq('category', selectedCategory);
       }
 
       const { data, error } = await query;
@@ -69,18 +84,63 @@ const Discover = () => {
 
   const credibilityFilters = ['High', 'Medium', 'Low'];
 
+  // Get featured insight (highest credibility, most recent)
+  const featuredInsight = insights.find(i => i.credibility === 'High') || insights[0];
+
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
+        {/* Hero Section */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-4">
+            <Sparkles className="h-4 w-4" />
+            Evidence-Based T1D Intelligence
+          </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Discover Evidence-Based Insights
+            Discover What Matters
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Explore peer-reviewed glucose management strategies, community discoveries, 
-            and cutting-edge research findings all validated with credibility scores.
+            Curated research findings, community discoveries, and breakthrough insights—all validated with credibility scores.
           </p>
+        </div>
+
+        {/* Featured Insight */}
+        {featuredInsight && !loading && (
+          <Card className="mb-8 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-primary/20">
+            <CardContent className="p-6">
+              <div className="flex items-start gap-4">
+                <div className="h-16 w-16 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="h-8 w-8 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge className="bg-primary text-primary-foreground">Featured Insight</Badge>
+                    <Badge variant="outline">{featuredInsight.credibility} Credibility</Badge>
+                  </div>
+                  <h3 className="text-xl font-semibold mb-2">{featuredInsight.title}</h3>
+                  <p className="text-muted-foreground">{featuredInsight.snippet}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Category Tabs */}
+        <div className="flex flex-wrap gap-2 mb-6">
+          {CATEGORIES.map((cat) => {
+            const Icon = cat.icon;
+            return (
+              <Button
+                key={cat.id}
+                variant={selectedCategory === cat.id ? "default" : "outline"}
+                onClick={() => setSelectedCategory(cat.id)}
+                className="flex items-center gap-2"
+              >
+                <Icon className="h-4 w-4" />
+                {cat.label}
+              </Button>
+            );
+          })}
         </div>
 
         {/* Search and Filters */}
@@ -127,8 +187,8 @@ const Discover = () => {
             </div>
 
             {/* Active Filters */}
-            {(searchTerm || selectedCredibility) && (
-              <div className="flex items-center gap-2 mt-4">
+            {(searchTerm || selectedCredibility || selectedCategory !== 'all') && (
+              <div className="flex items-center gap-2 mt-4 flex-wrap">
                 <span className="text-sm text-muted-foreground">Active filters:</span>
                 {searchTerm && (
                   <Badge variant="secondary">
@@ -140,12 +200,18 @@ const Discover = () => {
                     Credibility: {selectedCredibility}
                   </Badge>
                 )}
+                {selectedCategory !== 'all' && (
+                  <Badge variant="secondary">
+                    Category: {CATEGORIES.find(c => c.id === selectedCategory)?.label}
+                  </Badge>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
                     setSearchTerm('');
                     setSelectedCredibility(null);
+                    setSelectedCategory('all');
                   }}
                   className="text-muted-foreground hover:text-foreground"
                 >
@@ -198,6 +264,7 @@ const Discover = () => {
                 onClick={() => {
                   setSearchTerm('');
                   setSelectedCredibility(null);
+                  setSelectedCategory('all');
                 }}
               >
                 Clear filters
