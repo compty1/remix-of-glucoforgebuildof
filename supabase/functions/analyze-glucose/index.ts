@@ -38,6 +38,95 @@ const analyzeRequestSchema = z.object({
 interface GlucoseReading {
   timestamp: Date;
   value: number;
+  eventType?: string;
+  insulinUnits?: number;
+  carbGrams?: number;
+  sensorStatus?: string;
+}
+
+// ============= VALIDATION RULES (Confidence Scoring) =============
+interface ValidationFlag {
+  id: string;
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  penalty: number;
+  message: string;
+  evidence?: string;
+}
+
+interface DataQuality {
+  percentCGMActive: number;
+  totalExpectedReadings: number;
+  actualReadings: number;
+  gapCount: number;
+  largestGapMinutes: number;
+  medianIntervalMinutes: number;
+  dataStartDate: string;
+  dataEndDate: string;
+  daysOfData: number;
+  isSufficientForAnalysis: boolean;
+  samplingIntervalSeconds: number;
+}
+
+interface GapInfo {
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  type: 'sensor_warmup' | 'calibration' | 'wear_off' | 'signal_loss' | 'unknown';
+}
+
+interface DeviceMetadata {
+  deviceType: string;
+  firmwareVersion: string | null;
+  sensorAge: number | null;
+  uploadSource: string;
+  parserVersion: string;
+}
+
+interface NovelSignals {
+  missedBoluses: MissedBolusEvent[];
+  mealTimingScore: number;
+  mealTimingMismatches: any[];
+  sensorDrift: { driftIndex: number; direction: string; confidencePairs: number; recommendation: string | null } | null;
+  autoModeMetrics: any | null;
+  insulinStackingEvents: any[];
+  recurringPatterns: RecurringPattern[];
+  weekdayVsWeekendDiff: { weekdayTIR: number; weekendTIR: number; significantDifference: boolean } | null;
+}
+
+interface MissedBolusEvent {
+  timestamp: string;
+  peakGlucose: number;
+  riseMagnitude: number;
+  durationAboveTarget: number;
+  severity: 'low' | 'medium' | 'high';
+  confidence: number;
+  timeOfDay: string;
+}
+
+interface RecurringPattern {
+  dayOfWeek: string;
+  timeWindow: string;
+  patternType: 'high' | 'low' | 'variable';
+  frequency: number;
+  avgMagnitude: number;
+  confidence: number;
+}
+
+interface DayNightMetrics {
+  dayStart: string;
+  nightStart: string;
+  day: { timeInRange: number; avgGlucose: number; cv: number; lowEvents: number; highEvents: number; readingsCount: number };
+  night: { timeInRange: number; avgGlucose: number; cv: number; lowEvents: number; highEvents: number; readingsCount: number };
+}
+
+interface ExecutiveSummary {
+  overallTIR: number;
+  tirTarget: number;
+  topRisks: Array<{ title: string; severity: 'critical' | 'warning' | 'info'; description: string }>;
+  confidencePercent: number;
+  encouragement: string;
+  keyMetrics: { avgGlucose: number; gmi: number; cv: number; timeBelow70: number };
+  dataQualityNote: string;
 }
 
 interface HourlyStats {
@@ -1661,7 +1750,18 @@ serve(async (req) => {
       }
     }
     
-    // Update database
+    // Calculate enhanced analysis fields
+    const dataQuality = calculateDataQuality(readings);
+    const gapAnalysis = detectGaps(readings);
+    const validationFlags = evaluateValidationRules(readings, dataQuality);
+    const confidenceScore = Math.max(0, 100 - validationFlags.reduce((sum, f) => sum + f.penalty, 0));
+    const confidenceBand = confidenceScore >= 85 ? 'high' : confidenceScore >= 60 ? 'moderate' : confidenceScore >= 30 ? 'low' : 'unreliable';
+    const dayNightAnalysis = calculateDayNightMetrics(readings);
+    const novelSignals = detectNovelSignals(readings, hourlyData);
+    const executiveSummary = generateExecutiveSummary(detailedAnalysis, patterns, confidenceScore, dataQuality);
+    const deviceMetadata = { deviceType: detectCSVFormat(fileContent), firmwareVersion: null, sensorAge: null, uploadSource: 'cloud_export', parserVersion: '2.0.0' };
+
+    // Update database with enhanced fields
     await supabaseClient
       .from('uploads')
       .update({
@@ -1675,7 +1775,17 @@ serve(async (req) => {
         agp_data: agpData,
         patterns,
         recommendations,
-        ai_insights: aiInsights
+        ai_insights: aiInsights,
+        // New enhanced fields
+        confidence_score: confidenceScore,
+        confidence_band: confidenceBand,
+        validation_flags: validationFlags,
+        wear_time_percent: dataQuality.percentCGMActive,
+        gap_analysis: gapAnalysis,
+        data_quality: dataQuality,
+        device_metadata: deviceMetadata,
+        novel_signals: novelSignals,
+        day_night_analysis: dayNightAnalysis
       })
       .eq('id', uploadId);
     

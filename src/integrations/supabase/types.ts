@@ -4513,14 +4513,23 @@ export type Database = {
           agp_data: Json | null
           ai_insights: Json | null
           analysis_results: Json | null
+          confidence_band: string | null
+          confidence_score: number | null
           daily_data: Json | null
+          data_quality: Json | null
+          day_night_analysis: Json | null
           detailed_analysis: Json | null
+          device_metadata: Json | null
           file_name: string
           file_size: number | null
           file_type: string | null
+          gap_analysis: Json | null
           hourly_data: Json | null
           id: string
           insights: string[] | null
+          insulin_events: Json | null
+          meal_events: Json | null
+          novel_signals: Json | null
           patterns: Json | null
           readings_count: number | null
           recommendations: string[] | null
@@ -4528,19 +4537,30 @@ export type Database = {
           storage_path: string | null
           uploaded_at: string
           user_id: string
+          validation_flags: Json | null
+          wear_time_percent: number | null
         }
         Insert: {
           agp_data?: Json | null
           ai_insights?: Json | null
           analysis_results?: Json | null
+          confidence_band?: string | null
+          confidence_score?: number | null
           daily_data?: Json | null
+          data_quality?: Json | null
+          day_night_analysis?: Json | null
           detailed_analysis?: Json | null
+          device_metadata?: Json | null
           file_name: string
           file_size?: number | null
           file_type?: string | null
+          gap_analysis?: Json | null
           hourly_data?: Json | null
           id?: string
           insights?: string[] | null
+          insulin_events?: Json | null
+          meal_events?: Json | null
+          novel_signals?: Json | null
           patterns?: Json | null
           readings_count?: number | null
           recommendations?: string[] | null
@@ -4548,19 +4568,30 @@ export type Database = {
           storage_path?: string | null
           uploaded_at?: string
           user_id: string
+          validation_flags?: Json | null
+          wear_time_percent?: number | null
         }
         Update: {
           agp_data?: Json | null
           ai_insights?: Json | null
           analysis_results?: Json | null
+          confidence_band?: string | null
+          confidence_score?: number | null
           daily_data?: Json | null
+          data_quality?: Json | null
+          day_night_analysis?: Json | null
           detailed_analysis?: Json | null
+          device_metadata?: Json | null
           file_name?: string
           file_size?: number | null
           file_type?: string | null
+          gap_analysis?: Json | null
           hourly_data?: Json | null
           id?: string
           insights?: string[] | null
+          insulin_events?: Json | null
+          meal_events?: Json | null
+          novel_signals?: Json | null
           patterns?: Json | null
           readings_count?: number | null
           recommendations?: string[] | null
@@ -4568,6 +4599,8 @@ export type Database = {
           storage_path?: string | null
           uploaded_at?: string
           user_id?: string
+          validation_flags?: Json | null
+          wear_time_percent?: number | null
         }
         Relationships: []
       }
