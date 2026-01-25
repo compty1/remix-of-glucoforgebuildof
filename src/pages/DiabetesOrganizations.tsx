@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InfoRail } from '@/components/InfoRail';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EntityLogo } from '@/components/ui/entity-logo';
 import { 
   Building2, 
   Search, 
@@ -427,22 +428,32 @@ export default function DiabetesOrganizations() {
               {filteredOrganizations.map((org) => (
                 <Card key={org.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          {org.name}
-                          {org.charity_navigator_rating >= 4 && (
-                            <Star className="h-4 w-4 text-warning fill-current" />
-                          )}
-                        </CardTitle>
-                        <CardDescription className="flex items-center gap-2 mt-1">
-                          <Calendar className="h-3 w-3" />
-                          Est. {org.founded_year} • {org.headquarters}
-                        </CardDescription>
+                    <div className="flex items-start gap-3">
+                      <EntityLogo
+                        type="organization"
+                        name={org.name}
+                        websiteUrl={org.website_url}
+                        size="lg"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <CardTitle className="text-lg flex items-center gap-2">
+                              {org.name}
+                              {org.charity_navigator_rating >= 4 && (
+                                <Star className="h-4 w-4 text-warning fill-current" />
+                              )}
+                            </CardTitle>
+                            <CardDescription className="flex items-center gap-2 mt-1">
+                              <Calendar className="h-3 w-3" />
+                              Est. {org.founded_year} • {org.headquarters}
+                            </CardDescription>
+                          </div>
+                          <Badge variant="outline" className={getTypeColor(org.org_type)}>
+                            {org.org_type}
+                          </Badge>
+                        </div>
                       </div>
-                      <Badge variant="outline" className={getTypeColor(org.org_type)}>
-                        {org.org_type}
-                      </Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">

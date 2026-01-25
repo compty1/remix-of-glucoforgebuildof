@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EntityLogo } from "@/components/ui/entity-logo";
 import { 
   MapPin, 
   Calendar, 
@@ -95,7 +96,12 @@ export function TrialCard({ trial, onViewDetails }: TrialCardProps) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           {trial.sponsor && (
             <div className="flex items-start gap-2">
-              <Building2 className="h-4 w-4 text-muted-foreground mt-0.5" />
+              <EntityLogo
+                type="company"
+                name={trial.sponsor}
+                size="sm"
+                className="mt-0.5"
+              />
               <div>
                 <p className="text-xs text-muted-foreground">Sponsor</p>
                 <p className="text-sm font-medium line-clamp-1">{trial.sponsor}</p>

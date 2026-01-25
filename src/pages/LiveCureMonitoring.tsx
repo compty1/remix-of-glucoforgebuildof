@@ -8,6 +8,7 @@ import { CommandCenterWidget } from '@/components/CommandCenterWidget';
 import { InfoRail } from '@/components/InfoRail';
 import { TherapyDetailsModal } from '@/components/TherapyDetailsModal';
 import { CureApproachesReport } from '@/components/cure/CureApproachesReport';
+import { EntityLogo } from '@/components/ui/entity-logo';
 import Layout from '@/components/Layout';
 import { useCureMonitoring, CureTherapy } from '@/hooks/useCureMonitoring';
 import { 
@@ -253,7 +254,14 @@ const LiveCureMonitoring = () => {
                     <Badge variant="outline">{therapy.category}</Badge>
                   </div>
                   <CardTitle className="text-xl font-heading">{therapy.name}</CardTitle>
-                  <p className="text-sm text-muted-foreground">{therapy.sponsor}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <EntityLogo
+                      type="company"
+                      name={therapy.sponsor}
+                      size="sm"
+                    />
+                    <p className="text-sm text-muted-foreground">{therapy.sponsor}</p>
+                  </div>
                   {therapy.approach_type && (
                     <Badge variant="secondary" className="mt-2 w-fit">
                       {therapy.approach_type}
