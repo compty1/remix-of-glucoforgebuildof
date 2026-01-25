@@ -208,6 +208,481 @@ interface PDFSummaryMetrics {
   reportPeriodDays?: number;
 }
 
+// ============= ENHANCED ANALYSIS FUNCTIONS =============
+
+function calculateDataQuality(readings: GlucoseReading[]): DataQuality {
+  if (readings.length === 0) {
+    return {
+      percentCGMActive: 0,
+      totalExpectedReadings: 0,
+      actualReadings: 0,
+      gapCount: 0,
+      largestGapMinutes: 0,
+      medianIntervalMinutes: 0,
+      dataStartDate: '',
+      dataEndDate: '',
+      daysOfData: 0,
+      isSufficientForAnalysis: false,
+      samplingIntervalSeconds: 300
+    };
+  }
+
+  const sorted = [...readings].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  const startDate = sorted[0].timestamp;
+  const endDate = sorted[sorted.length - 1].timestamp;
+  const totalMs = endDate.getTime() - startDate.getTime();
+  const daysOfData = Math.max(1, totalMs / (24 * 60 * 60 * 1000));
+  
+  // Calculate intervals between readings
+  const intervals: number[] = [];
+  for (let i = 1; i < sorted.length; i++) {
+    const diffMs = sorted[i].timestamp.getTime() - sorted[i - 1].timestamp.getTime();
+    intervals.push(diffMs / 1000); // seconds
+  }
+  
+  // Detect sampling interval (5 min = 300s for most CGMs)
+  const sortedIntervals = [...intervals].sort((a, b) => a - b);
+  const medianIntervalSeconds = sortedIntervals[Math.floor(sortedIntervals.length / 2)] || 300;
+  const samplingIntervalSeconds = medianIntervalSeconds < 180 ? 60 : medianIntervalSeconds < 400 ? 300 : 900;
+  
+  // Expected readings based on sampling interval
+  const expectedReadings = Math.floor(totalMs / (samplingIntervalSeconds * 1000));
+  const percentActive = Math.min(100, (readings.length / expectedReadings) * 100);
+  
+  // Count gaps > 2 hours (7200 seconds)
+  let gapCount = 0;
+  let largestGapSeconds = 0;
+  for (const interval of intervals) {
+    if (interval > 7200) gapCount++;
+    if (interval > largestGapSeconds) largestGapSeconds = interval;
+  }
+
+  return {
+    percentCGMActive: Math.round(percentActive * 10) / 10,
+    totalExpectedReadings: expectedReadings,
+    actualReadings: readings.length,
+    gapCount,
+    largestGapMinutes: Math.round(largestGapSeconds / 60),
+    medianIntervalMinutes: Math.round(medianIntervalSeconds / 60 * 10) / 10,
+    dataStartDate: startDate.toISOString().split('T')[0],
+    dataEndDate: endDate.toISOString().split('T')[0],
+    daysOfData: Math.round(daysOfData * 10) / 10,
+    isSufficientForAnalysis: percentActive >= 70 && daysOfData >= 3,
+    samplingIntervalSeconds
+  };
+}
+
+function detectGaps(readings: GlucoseReading[]): GapInfo[] {
+  if (readings.length < 2) return [];
+  
+  const sorted = [...readings].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  const gaps: GapInfo[] = [];
+  const GAP_THRESHOLD_MINUTES = 30; // Consider gap if > 30 min
+  
+  for (let i = 1; i < sorted.length; i++) {
+    const diffMs = sorted[i].timestamp.getTime() - sorted[i - 1].timestamp.getTime();
+    const diffMinutes = diffMs / (60 * 1000);
+    
+    if (diffMinutes > GAP_THRESHOLD_MINUTES) {
+      // Determine gap type based on context
+      let gapType: GapInfo['type'] = 'unknown';
+      const hour = sorted[i - 1].timestamp.getHours();
+      
+      if (diffMinutes <= 120 && sorted[i - 1].sensorStatus === 'warmup') {
+        gapType = 'sensor_warmup';
+      } else if (diffMinutes >= 480 && diffMinutes <= 600 && hour >= 22 || hour <= 6) {
+        gapType = 'wear_off'; // Likely sensor removal overnight
+      } else if (diffMinutes <= 60) {
+        gapType = 'signal_loss';
+      }
+      
+      gaps.push({
+        startTime: sorted[i - 1].timestamp.toISOString(),
+        endTime: sorted[i].timestamp.toISOString(),
+        durationMinutes: Math.round(diffMinutes),
+        type: gapType
+      });
+    }
+  }
+  
+  return gaps.sort((a, b) => b.durationMinutes - a.durationMinutes);
+}
+
+function evaluateValidationRules(readings: GlucoseReading[], dataQuality: DataQuality): ValidationFlag[] {
+  const flags: ValidationFlag[] = [];
+  const now = new Date();
+  
+  // Rule: low_wear_time
+  if (dataQuality.percentCGMActive < 70) {
+    flags.push({
+      id: 'low_wear_time',
+      severity: 'high',
+      penalty: 30,
+      message: `CGM active time is ${dataQuality.percentCGMActive.toFixed(1)}% (target: ≥70%)`,
+      evidence: `${dataQuality.actualReadings} of ${dataQuality.totalExpectedReadings} expected readings`
+    });
+  }
+  
+  // Rule: large_gaps
+  if (dataQuality.gapCount > 3) {
+    flags.push({
+      id: 'large_gaps',
+      severity: 'medium',
+      penalty: 10,
+      message: `${dataQuality.gapCount} data gaps > 2 hours detected`,
+      evidence: `Largest gap: ${dataQuality.largestGapMinutes} minutes`
+    });
+  }
+  
+  // Rule: sampling_interval_high
+  if (dataQuality.medianIntervalMinutes > 10) {
+    flags.push({
+      id: 'sampling_interval_high',
+      severity: 'medium',
+      penalty: 12,
+      message: `Sparse data: median interval ${dataQuality.medianIntervalMinutes.toFixed(1)} min (expected ~5 min)`,
+      evidence: 'Time-based metrics may be less accurate'
+    });
+  }
+  
+  // Rule: insufficient_data_period
+  if (dataQuality.daysOfData < 7) {
+    flags.push({
+      id: 'insufficient_data_period',
+      severity: 'medium',
+      penalty: 15,
+      message: `Only ${dataQuality.daysOfData.toFixed(1)} days of data (recommend ≥14 days for patterns)`,
+      evidence: 'Pattern detection may be limited'
+    });
+  }
+  
+  // Rule: out_of_range_glucose (check for implausible values)
+  const outOfRange = readings.filter(r => r.value < 20 || r.value > 600);
+  if (outOfRange.length > 0) {
+    flags.push({
+      id: 'out_of_range_glucose',
+      severity: 'critical',
+      penalty: 35,
+      message: `${outOfRange.length} readings outside plausible range (20-600 mg/dL)`,
+      evidence: 'These values are excluded from analysis'
+    });
+  }
+  
+  // Rule: future timestamps
+  const futureReadings = readings.filter(r => r.timestamp > now);
+  if (futureReadings.length > 0) {
+    flags.push({
+      id: 'timestamp_future',
+      severity: 'critical',
+      penalty: 40,
+      message: `${futureReadings.length} readings have future timestamps`,
+      evidence: 'Check device clock settings'
+    });
+  }
+  
+  return flags;
+}
+
+function calculateDayNightMetrics(readings: GlucoseReading[]): DayNightMetrics | null {
+  if (readings.length < 24) return null;
+  
+  const DAY_START = 6; // 6 AM
+  const NIGHT_START = 22; // 10 PM
+  
+  const dayReadings: number[] = [];
+  const nightReadings: number[] = [];
+  
+  for (const r of readings) {
+    const hour = r.timestamp.getHours();
+    if (hour >= DAY_START && hour < NIGHT_START) {
+      dayReadings.push(r.value);
+    } else {
+      nightReadings.push(r.value);
+    }
+  }
+  
+  const calcMetrics = (values: number[]) => {
+    if (values.length === 0) return { timeInRange: 0, avgGlucose: 0, cv: 0, lowEvents: 0, highEvents: 0, readingsCount: 0 };
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    const inRange = values.filter(v => v >= 70 && v <= 180).length;
+    const stdDev = Math.sqrt(values.reduce((sum, v) => sum + Math.pow(v - avg, 2), 0) / values.length);
+    return {
+      timeInRange: (inRange / values.length) * 100,
+      avgGlucose: Math.round(avg),
+      cv: avg > 0 ? (stdDev / avg) * 100 : 0,
+      lowEvents: values.filter(v => v < 70).length,
+      highEvents: values.filter(v => v > 180).length,
+      readingsCount: values.length
+    };
+  };
+  
+  return {
+    dayStart: `${DAY_START}:00`,
+    nightStart: `${NIGHT_START}:00`,
+    day: calcMetrics(dayReadings),
+    night: calcMetrics(nightReadings)
+  };
+}
+
+function detectNovelSignals(readings: GlucoseReading[], hourlyData: HourlyStats[]): NovelSignals {
+  const missedBoluses = detectMissedBoluses(readings);
+  const recurringPatterns = detectRecurringPatterns(readings);
+  const weekdayVsWeekend = analyzeWeekdayVsWeekend(readings);
+  
+  return {
+    missedBoluses,
+    mealTimingScore: 0, // Requires insulin/meal data
+    mealTimingMismatches: [],
+    sensorDrift: null, // Requires SMBG pairs
+    autoModeMetrics: null, // Requires pump data
+    insulinStackingEvents: [],
+    recurringPatterns,
+    weekdayVsWeekendDiff: weekdayVsWeekend
+  };
+}
+
+function detectMissedBoluses(readings: GlucoseReading[]): MissedBolusEvent[] {
+  const events: MissedBolusEvent[] = [];
+  if (readings.length < 12) return events;
+  
+  const sorted = [...readings].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  const SLOPE_THRESHOLD = 2; // mg/dL per 5 min
+  const RISE_MAGNITUDE_THRESHOLD = 40;
+  
+  for (let i = 3; i < sorted.length - 6; i++) {
+    const prev = sorted[i - 3].value;
+    const current = sorted[i].value;
+    const slopeOver15min = (current - prev) / 3; // approx per 5 min
+    
+    if (slopeOver15min > SLOPE_THRESHOLD && current < 200) {
+      // Look ahead 60 min for peak
+      let peakValue = current;
+      let peakIdx = i;
+      for (let j = i; j < Math.min(i + 12, sorted.length); j++) {
+        if (sorted[j].value > peakValue) {
+          peakValue = sorted[j].value;
+          peakIdx = j;
+        }
+      }
+      
+      const riseMagnitude = peakValue - prev;
+      if (riseMagnitude > RISE_MAGNITUDE_THRESHOLD) {
+        // Check if there's an insulin event nearby
+        const hasNearbyBolus = sorted.slice(Math.max(0, i - 6), Math.min(sorted.length, i + 12))
+          .some(r => r.insulinUnits && r.insulinUnits > 0);
+        
+        if (!hasNearbyBolus) {
+          const hour = sorted[i].timestamp.getHours();
+          const timeOfDay = hour >= 5 && hour < 11 ? 'morning' : 
+                           hour >= 11 && hour < 14 ? 'lunch' :
+                           hour >= 17 && hour < 21 ? 'dinner' : 'other';
+          
+          // Calculate time above target
+          let durationAbove = 0;
+          for (let j = peakIdx; j < Math.min(peakIdx + 24, sorted.length); j++) {
+            if (sorted[j].value > 180) durationAbove++;
+          }
+          
+          events.push({
+            timestamp: sorted[i].timestamp.toISOString(),
+            peakGlucose: Math.round(peakValue),
+            riseMagnitude: Math.round(riseMagnitude),
+            durationAboveTarget: durationAbove * 5, // Convert to minutes
+            severity: riseMagnitude > 80 ? 'high' : riseMagnitude > 60 ? 'medium' : 'low',
+            confidence: 0.7,
+            timeOfDay
+          });
+          
+          // Skip ahead to avoid duplicate detections
+          i += 10;
+        }
+      }
+    }
+  }
+  
+  return events.slice(0, 10); // Return top 10
+}
+
+function detectRecurringPatterns(readings: GlucoseReading[]): RecurringPattern[] {
+  const patterns: RecurringPattern[] = [];
+  if (readings.length < 288) return patterns; // Need at least 1 day
+  
+  // Group by day of week and hour
+  const weekdayHourlyData: Record<string, number[]> = {};
+  
+  for (const r of readings) {
+    const day = r.timestamp.getDay(); // 0-6
+    const hour = r.timestamp.getHours();
+    const key = `${day}-${hour}`;
+    if (!weekdayHourlyData[key]) weekdayHourlyData[key] = [];
+    weekdayHourlyData[key].push(r.value);
+  }
+  
+  // Find time windows with consistent high or low patterns
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  
+  for (let day = 0; day < 7; day++) {
+    for (let hour = 0; hour < 24; hour++) {
+      const key = `${day}-${hour}`;
+      const values = weekdayHourlyData[key] || [];
+      if (values.length < 2) continue;
+      
+      const avg = values.reduce((a, b) => a + b, 0) / values.length;
+      const highCount = values.filter(v => v > 180).length;
+      const lowCount = values.filter(v => v < 70).length;
+      
+      const highFreq = highCount / values.length;
+      const lowFreq = lowCount / values.length;
+      
+      if (highFreq > 0.5 && values.length >= 3) {
+        patterns.push({
+          dayOfWeek: days[day],
+          timeWindow: `${hour.toString().padStart(2, '0')}:00-${(hour + 1).toString().padStart(2, '0')}:00`,
+          patternType: 'high',
+          frequency: highFreq,
+          avgMagnitude: Math.round(avg),
+          confidence: Math.min(0.95, 0.5 + (values.length / 20))
+        });
+      } else if (lowFreq > 0.3 && values.length >= 3) {
+        patterns.push({
+          dayOfWeek: days[day],
+          timeWindow: `${hour.toString().padStart(2, '0')}:00-${(hour + 1).toString().padStart(2, '0')}:00`,
+          patternType: 'low',
+          frequency: lowFreq,
+          avgMagnitude: Math.round(avg),
+          confidence: Math.min(0.95, 0.5 + (values.length / 20))
+        });
+      }
+    }
+  }
+  
+  // Sort by frequency and return top patterns
+  return patterns.sort((a, b) => b.frequency - a.frequency).slice(0, 8);
+}
+
+function analyzeWeekdayVsWeekend(readings: GlucoseReading[]): { weekdayTIR: number; weekendTIR: number; significantDifference: boolean } | null {
+  const weekday: number[] = [];
+  const weekend: number[] = [];
+  
+  for (const r of readings) {
+    const day = r.timestamp.getDay();
+    if (day === 0 || day === 6) {
+      weekend.push(r.value);
+    } else {
+      weekday.push(r.value);
+    }
+  }
+  
+  if (weekday.length < 100 || weekend.length < 50) return null;
+  
+  const calcTIR = (values: number[]) => (values.filter(v => v >= 70 && v <= 180).length / values.length) * 100;
+  
+  const weekdayTIR = calcTIR(weekday);
+  const weekendTIR = calcTIR(weekend);
+  const diff = Math.abs(weekdayTIR - weekendTIR);
+  
+  return {
+    weekdayTIR: Math.round(weekdayTIR * 10) / 10,
+    weekendTIR: Math.round(weekendTIR * 10) / 10,
+    significantDifference: diff > 10
+  };
+}
+
+function generateExecutiveSummary(
+  analysis: DetailedAnalysis, 
+  patterns: PatternResult[], 
+  confidenceScore: number, 
+  dataQuality: DataQuality
+): ExecutiveSummary {
+  const topRisks: ExecutiveSummary['topRisks'] = [];
+  
+  // Prioritize hypoglycemia
+  if (analysis.timeBelow54 > 1) {
+    topRisks.push({
+      title: 'Severe Hypoglycemia Risk',
+      severity: 'critical',
+      description: `${analysis.timeBelow54.toFixed(1)}% time below 54 mg/dL requires immediate attention`
+    });
+  } else if (analysis.timeBelow70 > 4) {
+    topRisks.push({
+      title: 'Hypoglycemia Frequency',
+      severity: 'warning',
+      description: `${analysis.timeBelow70.toFixed(1)}% time below 70 mg/dL (target: <4%)`
+    });
+  }
+  
+  // High glucose
+  if (analysis.timeAbove250 > 10) {
+    topRisks.push({
+      title: 'Very High Glucose',
+      severity: 'critical',
+      description: `${analysis.timeAbove250.toFixed(1)}% time above 250 mg/dL`
+    });
+  } else if (analysis.timeAbove180 > 25) {
+    topRisks.push({
+      title: 'Hyperglycemia',
+      severity: 'warning',
+      description: `${(analysis.timeAbove180).toFixed(1)}% time above range (target: <25%)`
+    });
+  }
+  
+  // Variability
+  if (analysis.cv > 36) {
+    topRisks.push({
+      title: 'High Variability',
+      severity: 'warning',
+      description: `CV of ${analysis.cv.toFixed(1)}% indicates unstable glucose (target: ≤36%)`
+    });
+  }
+  
+  // Add pattern-based risks
+  const criticalPatterns = patterns.filter(p => p.severity === 'critical');
+  for (const p of criticalPatterns.slice(0, 2)) {
+    topRisks.push({
+      title: p.title,
+      severity: 'critical',
+      description: p.description
+    });
+  }
+  
+  // Generate encouragement based on TIR
+  let encouragement = '';
+  if (analysis.timeInRange >= 70) {
+    encouragement = 'Excellent glucose control! Keep up the great work.';
+  } else if (analysis.timeInRange >= 60) {
+    encouragement = 'Good progress! Small adjustments could help reach optimal targets.';
+  } else if (analysis.timeInRange >= 50) {
+    encouragement = 'You\'re making progress. Review the patterns below to identify improvement areas.';
+  } else {
+    encouragement = 'The patterns identified below can help guide improvements. Consider reviewing with your healthcare team.';
+  }
+  
+  // Data quality note
+  let dataQualityNote = '';
+  if (confidenceScore >= 85) {
+    dataQualityNote = 'High data quality - metrics are reliable for clinical interpretation.';
+  } else if (confidenceScore >= 60) {
+    dataQualityNote = 'Moderate data quality - review flagged issues for best accuracy.';
+  } else {
+    dataQualityNote = `Limited data quality (${dataQuality.percentCGMActive.toFixed(0)}% CGM active) - consider longer wear time.`;
+  }
+  
+  return {
+    overallTIR: Math.round(analysis.timeInRange * 10) / 10,
+    tirTarget: 70,
+    topRisks: topRisks.slice(0, 3),
+    confidencePercent: confidenceScore,
+    encouragement,
+    keyMetrics: {
+      avgGlucose: Math.round(analysis.avgGlucose),
+      gmi: Math.round(analysis.gmi * 10) / 10,
+      cv: Math.round(analysis.cv * 10) / 10,
+      timeBelow70: Math.round(analysis.timeBelow70 * 10) / 10
+    },
+    dataQualityNote
+  };
+}
+
 // ============= DATE VALIDATION =============
 function validateReadings(readings: GlucoseReading[]): GlucoseReading[] {
   const now = new Date();
@@ -1754,7 +2229,7 @@ serve(async (req) => {
     const dataQuality = calculateDataQuality(readings);
     const gapAnalysis = detectGaps(readings);
     const validationFlags = evaluateValidationRules(readings, dataQuality);
-    const confidenceScore = Math.max(0, 100 - validationFlags.reduce((sum, f) => sum + f.penalty, 0));
+    const confidenceScore = Math.max(0, 100 - validationFlags.reduce((sum: number, f: ValidationFlag) => sum + f.penalty, 0));
     const confidenceBand = confidenceScore >= 85 ? 'high' : confidenceScore >= 60 ? 'moderate' : confidenceScore >= 30 ? 'low' : 'unreliable';
     const dayNightAnalysis = calculateDayNightMetrics(readings);
     const novelSignals = detectNovelSignals(readings, hourlyData);
