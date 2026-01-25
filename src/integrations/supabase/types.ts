@@ -2420,9 +2420,11 @@ export type Database = {
           abstract: string | null
           authors: string[] | null
           citation_count: number | null
+          classification_confidence: number | null
           created_at: string
           device_mentions: string[] | null
           diabetes_relevance_score: number | null
+          diabetes_type: string | null
           doi: string | null
           drug_mentions: string[] | null
           europe_pmc_id: string | null
@@ -2431,6 +2433,7 @@ export type Database = {
           id: string
           impact_factor: number | null
           influential_citation_count: number | null
+          is_type1_relevant: boolean | null
           journal_name: string | null
           keywords: string[] | null
           mesh_terms: string[] | null
@@ -2452,9 +2455,11 @@ export type Database = {
           abstract?: string | null
           authors?: string[] | null
           citation_count?: number | null
+          classification_confidence?: number | null
           created_at?: string
           device_mentions?: string[] | null
           diabetes_relevance_score?: number | null
+          diabetes_type?: string | null
           doi?: string | null
           drug_mentions?: string[] | null
           europe_pmc_id?: string | null
@@ -2463,6 +2468,7 @@ export type Database = {
           id?: string
           impact_factor?: number | null
           influential_citation_count?: number | null
+          is_type1_relevant?: boolean | null
           journal_name?: string | null
           keywords?: string[] | null
           mesh_terms?: string[] | null
@@ -2484,9 +2490,11 @@ export type Database = {
           abstract?: string | null
           authors?: string[] | null
           citation_count?: number | null
+          classification_confidence?: number | null
           created_at?: string
           device_mentions?: string[] | null
           diabetes_relevance_score?: number | null
+          diabetes_type?: string | null
           doi?: string | null
           drug_mentions?: string[] | null
           europe_pmc_id?: string | null
@@ -2495,6 +2503,7 @@ export type Database = {
           id?: string
           impact_factor?: number | null
           influential_citation_count?: number | null
+          is_type1_relevant?: boolean | null
           journal_name?: string | null
           keywords?: string[] | null
           mesh_terms?: string[] | null

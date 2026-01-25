@@ -221,9 +221,10 @@ const ResearchHub = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState<ResearchItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showType1Only, setShowType1Only] = useState(true);
   
   const { data: researchData, loading: rssLoading, error: rssError, refreshFeed } = useResearchFeed();
-  const { data: medicalPapers, loading: papersLoading, error: papersError, refreshData: refreshPapers } = useMedicalResearchPapers();
+  const { data: medicalPapers, loading: papersLoading, error: papersError, refreshData: refreshPapers } = useMedicalResearchPapers({ type1Only: showType1Only });
   const { data: clinicalTrials, loading: trialsLoading, error: trialsError, refreshData: refreshTrials } = useClinicalTrialsDetailed();
   
   const loading = rssLoading || papersLoading || trialsLoading;
@@ -307,9 +308,13 @@ const ResearchHub = () => {
             Research & Discovery Hub
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            Plain-language breakdowns of the most important new scientific studies. 
+            Plain-language breakdowns of the most important Type 1 Diabetes scientific studies. 
             Where complex research meets actionable insights.
           </p>
+          <Badge variant="outline" className="gap-1">
+            <Star className="h-3 w-3 fill-current" />
+            Focused on Type 1 Diabetes Research
+          </Badge>
         </section>
 
         {/* Breaking Research Highlight */}
@@ -429,6 +434,19 @@ const ResearchHub = () => {
                   </Select>
                 </div>
 
+                <div className="flex-1 min-w-[200px]">
+                  <label className="text-sm font-medium mb-2 block">Research Focus</label>
+                  <Select value={showType1Only ? 'type1' : 'all'} onValueChange={(v) => setShowType1Only(v === 'type1')}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Research focus" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="type1">Type 1 Diabetes Only</SelectItem>
+                      <SelectItem value="all">All Diabetes Research</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="flex items-end">
                   <Button 
                     variant="outline" 
@@ -437,6 +455,7 @@ const ResearchHub = () => {
                       setSelectedImpact('all');
                       setSelectedTimePeriod('all');
                       setSearchTerm('');
+                      setShowType1Only(true);
                     }}
                   >
                     <Filter className="h-4 w-4 mr-2" />
