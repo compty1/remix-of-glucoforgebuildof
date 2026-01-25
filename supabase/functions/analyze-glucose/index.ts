@@ -949,17 +949,40 @@ function validateAnalysisResults(analysis: DetailedAnalysis): DetailedAnalysis {
 }
 
 // ============= FILE FORMAT DETECTION =============
-function detectFileFormat(filename: string, content: string): 'pdf' | 'csv' | 'json' | 'txt' | 'unknown' {
+function detectFileFormat(filename: string, content: string): 'pdf' | 'csv' | 'json' | 'txt' | 'xlsx' | 'xml' | 'image' | 'unknown' {
   const lowerFilename = filename.toLowerCase();
   
+  // Excel files (binary, sent as base64)
+  if (lowerFilename.endsWith('.xlsx') || lowerFilename.endsWith('.xls')) {
+    return 'xlsx';
+  }
+  
+  // Image files (binary, sent as base64)
+  if (lowerFilename.match(/\.(png|jpg|jpeg|webp)$/)) {
+    return 'image';
+  }
+  
+  // XML files
+  if (lowerFilename.endsWith('.xml')) {
+    return 'xml';
+  }
+  
+  // PDF files
   if (lowerFilename.endsWith('.pdf') || content.startsWith('%PDF') || /^[A-Za-z0-9+/=]+$/.test(content.replace(/\s/g, '').substring(0, 100))) {
     return 'pdf';
   }
+  
   if (lowerFilename.endsWith('.json')) return 'json';
   if (lowerFilename.endsWith('.csv')) return 'csv';
   if (lowerFilename.endsWith('.txt')) return 'txt';
   
   const trimmed = content.trim();
+  
+  // Check for XML content
+  if (trimmed.startsWith('<?xml') || trimmed.startsWith('<entries') || trimmed.startsWith('<data')) {
+    return 'xml';
+  }
+  
   if (trimmed.startsWith('{') || trimmed.startsWith('[')) return 'json';
   if (trimmed.includes(',') && (trimmed.includes('glucose') || trimmed.includes('timestamp') || trimmed.includes('date'))) {
     return 'csv';
@@ -1388,20 +1411,357 @@ function parseJSON(content: string): GlucoseReading[] {
     const data = JSON.parse(content);
     const readings: GlucoseReading[] = [];
     
-    if (Array.isArray(data)) {
-      for (const item of data) {
-        const timestamp = new Date(item.timestamp || item.time || item.date);
-        const value = parseFloat(item.value || item.glucose || item.bg);
+  const items = Array.isArray(data) ? data : data.result || data.entries || data.sgv || [];
+    
+    for (const item of items) {
+      let timestamp: Date;
+      let value: number;
+      
+      // Nightscout format detection - uses 'sgv' for sensor glucose value
+      // and 'date' as Unix timestamp in milliseconds
+      if ('sgv' in item) {
+        // Nightscout format
+        timestamp = new Date(item.date || item.dateString || item.created_at);
+        value = parseFloat(item.sgv);
+      } else if ('mbg' in item) {
+        // Nightscout manual blood glucose
+        timestamp = new Date(item.date || item.dateString || item.created_at);
+        value = parseFloat(item.mbg);
+      } else {
+        // Generic JSON format
+        timestamp = new Date(item.timestamp || item.time || item.date || item.created_at || item.displayTime);
+        value = parseFloat(item.value || item.glucose || item.bg || item.glucoseValue);
+      }
+      
+      // Extract additional Nightscout fields if available
+      const reading: GlucoseReading = {
+        timestamp,
+        value,
+        eventType: item.type || item.eventType,
+        insulinUnits: item.insulin,
+        carbGrams: item.carbs
+      };
+      
+      if (!isNaN(timestamp.getTime()) && !isNaN(value) && value > 0 && value < 600) {
+        readings.push(reading);
+      }
+    }
+    
+    return readings;
+  } catch (e) {
+    console.error('JSON parse error:', e);
+    return [];
+  }
+}
+
+// ============= EXCEL PARSING =============
+async function parseExcel(base64Content: string): Promise<GlucoseReading[]> {
+  const readings: GlucoseReading[] = [];
+  
+  try {
+    console.log('Parsing Excel file with dynamic import...');
+    
+    // Dynamic import to avoid build-time issues
+    const XLSX = await import("https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs");
+    
+    const workbook = XLSX.read(base64Content, { type: 'base64' });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const data = XLSX.utils.sheet_to_json(sheet);
+    
+    console.log(`Excel: Found ${data.length} rows in sheet "${sheetName}"`);
+    
+    // Common column name variations across different CGM exports
+    const timestampAliases = ['timestamp', 'date', 'time', 'datetime', 'device timestamp', 'reader timestamp', 'local time', 'created_at'];
+    const valueAliases = ['glucose', 'bg', 'value', 'historic glucose', 'scan glucose', 'glucose value', 'sgv', 'glucose mg/dl', 'blood glucose'];
+    
+    for (const row of data as Record<string, any>[]) {
+      // Find timestamp column (case-insensitive)
+      let timestampValue: any = null;
+      let glucoseValue: any = null;
+      
+      for (const key of Object.keys(row)) {
+        const lowerKey = key.toLowerCase().trim();
         
-        if (!isNaN(timestamp.getTime()) && !isNaN(value) && value > 0 && value < 600) {
+        // Check for timestamp
+        if (!timestampValue) {
+          for (const alias of timestampAliases) {
+            if (lowerKey.includes(alias)) {
+              timestampValue = row[key];
+              break;
+            }
+          }
+        }
+        
+        // Check for glucose value
+        if (!glucoseValue) {
+          for (const alias of valueAliases) {
+            if (lowerKey.includes(alias)) {
+              glucoseValue = row[key];
+              break;
+            }
+          }
+        }
+      }
+      
+      // Fallback: try first two columns if no matches
+      const keys = Object.keys(row);
+      if (!timestampValue && keys.length > 0) timestampValue = row[keys[0]];
+      if (!glucoseValue && keys.length > 1) glucoseValue = row[keys[1]];
+      
+      // Parse values
+      const timestamp = new Date(timestampValue);
+      const value = parseFloat(String(glucoseValue).replace(/[^0-9.]/g, ''));
+      
+      if (!isNaN(timestamp.getTime()) && !isNaN(value) && value > 0 && value < 600) {
+        readings.push({ timestamp, value });
+      }
+    }
+    
+    console.log(`Excel: Parsed ${readings.length} valid glucose readings`);
+    return readings;
+  } catch (error) {
+    console.error('Excel parse error:', error);
+    return [];
+  }
+}
+
+// ============= XML PARSING =============
+function parseXML(content: string): GlucoseReading[] {
+  const readings: GlucoseReading[] = [];
+  
+  try {
+    console.log('Parsing XML file...');
+    
+    // Nightscout XML format: <entries><sgv>...</sgv></entries>
+    const sgvRegex = /<sgv[^>]*>(\d+)<\/sgv>/gi;
+    const dateRegex = /<date[^>]*>(\d+)<\/date>/gi;
+    const dateStringRegex = /<dateString[^>]*>([^<]+)<\/dateString>/gi;
+    
+    // Try Nightscout-style entry parsing
+    const entryRegex = /<entry[^>]*>([\s\S]*?)<\/entry>/gi;
+    let entryMatch;
+    
+    while ((entryMatch = entryRegex.exec(content)) !== null) {
+      const entry = entryMatch[1];
+      
+      const sgvMatch = entry.match(/<sgv[^>]*>(\d+)<\/sgv>/i);
+      const dateMatch = entry.match(/<date[^>]*>(\d+)<\/date>/i);
+      const dateStringMatch = entry.match(/<dateString[^>]*>([^<]+)<\/dateString>/i);
+      
+      if (sgvMatch) {
+        const value = parseFloat(sgvMatch[1]);
+        let timestamp: Date;
+        
+        if (dateMatch) {
+          timestamp = new Date(parseInt(dateMatch[1]));
+        } else if (dateStringMatch) {
+          timestamp = new Date(dateStringMatch[1]);
+        } else {
+          continue;
+        }
+        
+        if (!isNaN(timestamp.getTime()) && value > 0 && value < 600) {
           readings.push({ timestamp, value });
         }
       }
     }
     
+    // If no entries found, try generic CGM XML formats
+    if (readings.length === 0) {
+      // Try <reading> or <glucose> tags
+      const readingRegex = /<(?:reading|glucose|measurement)[^>]*>([\s\S]*?)<\/(?:reading|glucose|measurement)>/gi;
+      let readingMatch;
+      
+      while ((readingMatch = readingRegex.exec(content)) !== null) {
+        const reading = readingMatch[1];
+        
+        const valueMatch = reading.match(/<(?:value|glucose|bg)[^>]*>(\d+\.?\d*)<\/[^>]+>/i) || 
+                          reading.match(/(\d{2,3})/);
+        const timeMatch = reading.match(/<(?:time|timestamp|date)[^>]*>([^<]+)<\/[^>]+>/i);
+        
+        if (valueMatch && timeMatch) {
+          const value = parseFloat(valueMatch[1]);
+          const timestamp = new Date(timeMatch[1]);
+          
+          if (!isNaN(timestamp.getTime()) && value > 0 && value < 600) {
+            readings.push({ timestamp, value });
+          }
+        }
+      }
+    }
+    
+    // Try attribute-based XML format: <reading time="..." value="..." />
+    if (readings.length === 0) {
+      const attrRegex = /<(?:reading|glucose|entry)[^>]*(?:time|timestamp|date)=["']([^"']+)["'][^>]*(?:value|glucose|sgv)=["'](\d+\.?\d*)["'][^>]*\/?>/gi;
+      let attrMatch;
+      
+      while ((attrMatch = attrRegex.exec(content)) !== null) {
+        const timestamp = new Date(attrMatch[1]);
+        const value = parseFloat(attrMatch[2]);
+        
+        if (!isNaN(timestamp.getTime()) && value > 0 && value < 600) {
+          readings.push({ timestamp, value });
+        }
+      }
+      
+      // Also try reverse order (value before time)
+      const attrRegex2 = /<(?:reading|glucose|entry)[^>]*(?:value|glucose|sgv)=["'](\d+\.?\d*)["'][^>]*(?:time|timestamp|date)=["']([^"']+)["'][^>]*\/?>/gi;
+      while ((attrMatch = attrRegex2.exec(content)) !== null) {
+        const value = parseFloat(attrMatch[1]);
+        const timestamp = new Date(attrMatch[2]);
+        
+        if (!isNaN(timestamp.getTime()) && value > 0 && value < 600) {
+          readings.push({ timestamp, value });
+        }
+      }
+    }
+    
+    console.log(`XML: Parsed ${readings.length} valid glucose readings`);
     return readings;
-  } catch {
+  } catch (error) {
+    console.error('XML parse error:', error);
     return [];
+  }
+}
+
+// ============= IMAGE EXTRACTION (VISION API) =============
+async function extractImageWithVision(base64Image: string, filename: string): Promise<{ metrics: PDFSummaryMetrics | null; text: string }> {
+  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+  
+  if (!LOVABLE_API_KEY) {
+    console.error("LOVABLE_API_KEY not configured for image extraction");
+    return { metrics: null, text: '' };
+  }
+  
+  console.log('Using AI Vision to extract image content...');
+  
+  // Determine MIME type from filename
+  const lowerFilename = filename.toLowerCase();
+  let mimeType = 'image/jpeg';
+  if (lowerFilename.endsWith('.png')) mimeType = 'image/png';
+  else if (lowerFilename.endsWith('.webp')) mimeType = 'image/webp';
+  
+  try {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content: `You are a CGM (Continuous Glucose Monitor) screenshot data extractor. Your task is to extract glucose metrics from diabetes app screenshots.
+
+COMMON SCREENSHOT SOURCES:
+- Dexcom G6/G7 App: Look for average glucose, time in range percentages, GMI
+- Libre App: Look for average glucose, time in target, glucose variability
+- Tandem t:connect: Look for time in range, average glucose, bolus data
+- Nightscout: Look for current glucose, time in range charts
+- Loop App: Look for glucose values, time in range statistics
+
+EXTRACTION RULES:
+1. GMI (Glucose Management Indicator): A number between 5.0 and 10.0, similar to A1C percentage
+2. Average Glucose: A number between 80-250 mg/dL typically
+3. Time in Range (70-180 mg/dL): A percentage, typically 40-90%
+4. Time Above Range (>180): A percentage
+5. Time Below Range (<70): A percentage, usually 0-10%
+6. CV (Coefficient of Variation): A percentage, typically 20-50%
+7. Report Period: Number of days shown (7, 14, 30, 90, etc.)
+
+OUTPUT FORMAT: Return ONLY a valid JSON object with these fields (use null for missing values):
+{
+  "gmi": number or null,
+  "avgGlucose": number or null,
+  "timeInRange": number or null,
+  "timeAbove180": number or null,
+  "timeBelow70": number or null,
+  "cv": number or null,
+  "reportPeriodDays": number or null,
+  "extractedText": "key text excerpts visible in the screenshot"
+}`
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: `Extract CGM metrics from this ${filename} screenshot. Return the JSON object with extracted values.`
+              },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:${mimeType};base64,${base64Image}`
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 1000,
+        temperature: 0
+      }),
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Image Vision API error: ${response.status} - ${errorText}`);
+      return { metrics: null, text: '' };
+    }
+    
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content || '';
+    console.log('Image Vision API response:', content.substring(0, 500));
+    
+    // Parse JSON from response
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        const metrics: PDFSummaryMetrics = {};
+        
+        // Validate and extract each metric
+        if (parsed.gmi && typeof parsed.gmi === 'number' && parsed.gmi >= 4 && parsed.gmi <= 15) {
+          metrics.gmi = parsed.gmi;
+        }
+        if (parsed.avgGlucose && typeof parsed.avgGlucose === 'number' && parsed.avgGlucose >= 50 && parsed.avgGlucose <= 400) {
+          metrics.avgGlucose = parsed.avgGlucose;
+        }
+        if (parsed.timeInRange !== null && typeof parsed.timeInRange === 'number' && parsed.timeInRange >= 0 && parsed.timeInRange <= 100) {
+          metrics.timeInRange = parsed.timeInRange;
+        }
+        if (parsed.timeAbove180 !== null && typeof parsed.timeAbove180 === 'number' && parsed.timeAbove180 >= 0 && parsed.timeAbove180 <= 100) {
+          metrics.timeAbove180 = parsed.timeAbove180;
+        }
+        if (parsed.timeBelow70 !== null && typeof parsed.timeBelow70 === 'number' && parsed.timeBelow70 >= 0 && parsed.timeBelow70 <= 100) {
+          metrics.timeBelow70 = parsed.timeBelow70;
+        }
+        if (parsed.cv && typeof parsed.cv === 'number' && parsed.cv >= 0 && parsed.cv <= 100) {
+          metrics.cv = parsed.cv;
+        }
+        if (parsed.reportPeriodDays && typeof parsed.reportPeriodDays === 'number' && parsed.reportPeriodDays >= 1 && parsed.reportPeriodDays <= 365) {
+          metrics.reportPeriodDays = parsed.reportPeriodDays;
+        }
+        
+        const extractedText = parsed.extractedText || '';
+        console.log('Image vision extracted metrics:', JSON.stringify(metrics));
+        
+        // Check if we got any meaningful metrics
+        if (Object.keys(metrics).length > 0) {
+          console.log('Image extraction successful!');
+          return { metrics, text: extractedText };
+        }
+      } catch (parseError) {
+        console.error('Failed to parse image vision response JSON:', parseError);
+      }
+    }
+    
+    return { metrics: null, text: content };
+  } catch (error) {
+    console.error("Image vision extraction error:", error);
+    return { metrics: null, text: '' };
   }
 }
 
@@ -2142,11 +2502,116 @@ serve(async (req) => {
       );
     }
     
-    // ============= CSV/JSON/TXT PROCESSING =============
+    // ============= CSV/JSON/TXT/XLSX/XML/IMAGE PROCESSING =============
     if (fileFormat === 'csv' || fileFormat === 'txt') {
       readings = parseCSV(fileContent);
     } else if (fileFormat === 'json') {
       readings = parseJSON(fileContent);
+    } else if (fileFormat === 'xlsx') {
+      console.log('Processing Excel file...');
+      readings = await parseExcel(fileContent);
+    } else if (fileFormat === 'xml') {
+      console.log('Processing XML file...');
+      readings = parseXML(fileContent);
+    } else if (fileFormat === 'image') {
+      // Process image using AI Vision (similar to PDF)
+      console.log('Processing image file with AI Vision...');
+      const { metrics: imageMetrics } = await extractImageWithVision(fileContent, filename);
+      
+      if (imageMetrics && (imageMetrics.avgGlucose || imageMetrics.timeInRange || imageMetrics.gmi)) {
+        console.log('Image extraction successful!');
+        
+        // Build synthetic analysis from extracted metrics
+        const syntheticAnalysis: DetailedAnalysis = {
+          readingsCount: 0,
+          avgGlucose: imageMetrics.avgGlucose || 0,
+          medianGlucose: imageMetrics.avgGlucose || 0,
+          stdDev: 0,
+          cv: imageMetrics.cv || 0,
+          timeInRange: imageMetrics.timeInRange || 0,
+          timeInTightRange: 0,
+          timeAbove180: imageMetrics.timeAbove180 || 0,
+          timeAbove250: 0,
+          timeBelow70: imageMetrics.timeBelow70 || 0,
+          timeBelow54: 0,
+          gmi: imageMetrics.gmi || 0,
+          gvi: 0,
+          mage: 0,
+          lowEvents: 0,
+          severeLowEvents: 0,
+          highEvents: 0,
+          severeHighEvents: 0,
+          dataStart: '',
+          dataEnd: '',
+          daysOfData: imageMetrics.reportPeriodDays || 0,
+          fromSummaryReport: true
+        };
+        
+        const insights: string[] = [];
+        if (imageMetrics.avgGlucose) insights.push(`📊 Average Glucose: ${imageMetrics.avgGlucose} mg/dL`);
+        if (imageMetrics.timeInRange) insights.push(`🎯 Time in Range: ${imageMetrics.timeInRange}%`);
+        if (imageMetrics.gmi) insights.push(`📈 GMI: ${imageMetrics.gmi}%`);
+        if (imageMetrics.cv) insights.push(`📉 CV: ${imageMetrics.cv}%`);
+        if (imageMetrics.reportPeriodDays) insights.push(`📅 Data from ${imageMetrics.reportPeriodDays} days`);
+        insights.push('📸 Extracted from screenshot via AI Vision');
+        
+        await supabaseClient
+          .from('uploads')
+          .update({
+            status: 'completed',
+            insights,
+            readings_count: 0,
+            analysis_results: { insights, readingsCount: 0 },
+            detailed_analysis: syntheticAnalysis,
+            hourly_data: [],
+            daily_data: [],
+            agp_data: [],
+            patterns: [],
+            recommendations: ['Upload raw CGM data (CSV, Excel, JSON) for detailed pattern analysis.'],
+            ai_insights: { summary: 'Summary extracted from screenshot.', fromSummary: true }
+          })
+          .eq('id', uploadId);
+        
+        return new Response(
+          JSON.stringify({
+            success: true,
+            insights,
+            readingsCount: 0,
+            detailedAnalysis: syntheticAnalysis,
+            hourlyData: [],
+            dailyData: [],
+            agpData: [],
+            patterns: [],
+            recommendations: ['Upload raw CGM data (CSV, Excel, JSON) for detailed pattern analysis.'],
+            aiInsights: { summary: 'Summary metrics extracted from screenshot.', fromSummary: true },
+            fromSummary: true
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+        );
+      } else {
+        // Image extraction failed
+        await supabaseClient
+          .from('uploads')
+          .update({ 
+            status: 'error', 
+            insights: [
+              '❌ Could not extract CGM data from this image.',
+              '📸 Supported: Screenshots from Dexcom, Libre, Tandem, Nightscout apps showing glucose statistics',
+              '💡 For best results, take a clear screenshot of your CGM app summary screen'
+            ] 
+          })
+          .eq('id', uploadId);
+          
+        return new Response(
+          JSON.stringify({ 
+            error: 'Could not extract glucose data from this image.',
+            details: 'We could not find glucose metrics in this screenshot.',
+            suggestion: 'Please take a clear screenshot of your CGM app summary showing average glucose, time in range, or GMI.',
+            supportedFormats: ['Dexcom App screenshot', 'Libre App screenshot', 'Tandem t:connect screenshot', 'Nightscout screenshot']
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     } else {
       // Try CSV as fallback
       readings = parseCSV(fileContent);

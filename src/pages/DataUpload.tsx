@@ -22,7 +22,11 @@ import {
   BarChart3,
   Zap,
   Calendar,
-  Activity
+  Activity,
+  FileImage,
+  FileSpreadsheet,
+  Database,
+  FileCode
 } from 'lucide-react';
 
 interface UploadedFile {
@@ -172,12 +176,18 @@ const DataUpload = () => {
     setUploadedFiles(prev => [newFile, ...prev]);
 
     try {
-      // PDFs must be sent as base64 (file.text() corrupts binary PDFs and breaks extraction)
+      // Determine if file is binary (needs base64 encoding)
       const fileContent = await (async () => {
         const lowerName = file.name.toLowerCase();
-        const isPdf = file.type === 'application/pdf' || lowerName.endsWith('.pdf');
-        if (!isPdf) return await file.text();
+        const isBinary = file.type === 'application/pdf' || 
+                         lowerName.endsWith('.pdf') ||
+                         lowerName.endsWith('.xlsx') ||
+                         lowerName.endsWith('.xls') ||
+                         lowerName.match(/\.(png|jpg|jpeg|webp)$/);
+        
+        if (!isBinary) return await file.text();
 
+        // PDFs, Excel files, and images must be sent as base64
         const buffer = await file.arrayBuffer();
         const bytes = new Uint8Array(buffer);
         let binary = '';
@@ -330,13 +340,13 @@ const DataUpload = () => {
                     Drag & drop files here
                   </h3>
                   <p className="text-muted-foreground mb-4">
-                    Support for CGM exports, pump data, logbook PDFs, and lab results
+                    Support for CGM exports (CSV, XLSX, JSON), Nightscout exports, PDF reports, and screenshots
                   </p>
                   <Button
                     onClick={() => {
                       const input = document.createElement('input');
                       input.type = 'file';
-                      input.accept = '.csv,.json,.pdf';
+                      input.accept = '.csv,.json,.pdf,.xlsx,.xls,.xml,.png,.jpg,.jpeg';
                       input.multiple = true;
                       input.onchange = async (e) => {
                         const files = Array.from((e.target as HTMLInputElement).files || []);
@@ -356,22 +366,22 @@ const DataUpload = () => {
                   <div className="text-center p-3 rounded-lg bg-muted/50">
                     <Activity className="h-6 w-6 mx-auto mb-2 text-primary" />
                     <p className="text-sm font-medium">CGM Data</p>
-                    <p className="text-xs text-muted-foreground">CSV, JSON</p>
+                    <p className="text-xs text-muted-foreground">CSV, JSON, XLSX</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-muted/50">
-                    <Zap className="h-6 w-6 mx-auto mb-2 text-primary" />
-                    <p className="text-sm font-medium">Pump Logs</p>
-                    <p className="text-xs text-muted-foreground">JSON, CSV</p>
+                    <FileImage className="h-6 w-6 mx-auto mb-2 text-primary" />
+                    <p className="text-sm font-medium">Reports</p>
+                    <p className="text-xs text-muted-foreground">PDF, PNG, JPG</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-muted/50">
-                    <FileText className="h-6 w-6 mx-auto mb-2 text-primary" />
-                    <p className="text-sm font-medium">Logbooks</p>
-                    <p className="text-xs text-muted-foreground">PDF, Images</p>
+                    <Database className="h-6 w-6 mx-auto mb-2 text-primary" />
+                    <p className="text-sm font-medium">Nightscout</p>
+                    <p className="text-xs text-muted-foreground">JSON Export</p>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-muted/50">
-                    <BarChart3 className="h-6 w-6 mx-auto mb-2 text-primary" />
-                    <p className="text-sm font-medium">Lab Results</p>
-                    <p className="text-xs text-muted-foreground">PDF, Images</p>
+                    <FileCode className="h-6 w-6 mx-auto mb-2 text-primary" />
+                    <p className="text-sm font-medium">XML Data</p>
+                    <p className="text-xs text-muted-foreground">CGM XML Exports</p>
                   </div>
                 </div>
               </CardContent>
