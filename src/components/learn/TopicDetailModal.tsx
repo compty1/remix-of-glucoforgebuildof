@@ -427,6 +427,96 @@ const topicContent: Record<string, {
       { title: 'ADA: Mental Health and Diabetes' },
       { title: 'Diabetes Spectrum: Diabetes Distress' }
     ]
+  },
+  'Insulin Resistance in T1D': {
+    introduction: 'Many people assume insulin resistance is only a Type 2 diabetes issue, but it significantly affects those with Type 1 diabetes as well. Understanding insulin resistance in T1D can explain why your insulin needs change over time and how lifestyle factors impact your daily management.',
+    sections: [
+      { title: 'What Causes Insulin Resistance in T1D', content: 'Several factors contribute: genetics, weight gain, puberty, pregnancy, illness, and certain medications. Chronically elevated blood sugars themselves cause "glucose toxicity" that impairs cellular insulin receptors. Unlike T2D where resistance precedes beta cell failure, in T1D the resistance develops after diagnosis and compounds the challenge of external insulin replacement.' },
+      { title: 'Recognizing the Signs', content: 'Signs include: gradually increasing total daily insulin doses, stubborn high blood sugars that don\'t respond normally to correction doses, weight gain concentrated around the abdomen, and worsening insulin:carb ratios over time.' },
+      { title: 'Improving Insulin Sensitivity', content: 'Regular exercise (especially strength training) is the most powerful intervention. Weight loss, dietary changes, and sleep optimization help. Metformin is sometimes prescribed for T1Ds with significant resistance.' }
+    ],
+    practicalTips: ['Incorporate strength training 2-3 times weekly', 'Prioritize sleep - aim for 7-9 hours consistently', 'Reduce processed food intake and increase fiber', 'Track total daily insulin over time to spot resistance trends early'],
+    sources: [{ title: 'Diabetes Care: Insulin Resistance in Type 1 Diabetes' }, { title: 'The Lancet Diabetes & Endocrinology: Double Diabetes Concept' }]
+  },
+  'Weather & Blood Sugar': {
+    introduction: 'Weather affects blood sugar in ways that many T1Ds discover through frustrating trial and error. Heat, cold, humidity, and barometric pressure changes can influence insulin absorption, insulin potency, and glucose metabolism.',
+    sections: [
+      { title: 'Heat and High Temperatures', content: 'Heat accelerates insulin absorption dramatically as blood vessels dilate. Insulin itself degrades faster when exposed to heat. Summer sports often require significant insulin reductions (30-50% less bolus).' },
+      { title: 'Cold Weather Challenges', content: 'Insulin absorption slows when skin is cold due to vasoconstriction. The body burns more calories maintaining temperature, which can lower blood sugars during winter outdoor activities.' },
+      { title: 'Practical Weather Adaptations', content: 'For hot weather: reduce bolus doses for outdoor activity, store insulin in cooled containers. For cold: warm injection sites before delivery, keep devices close to your body.' }
+    ],
+    practicalTips: ['Create seasonal pump profiles with adjusted basal rates', 'Reduce bolus by 20-30% before hot outdoor activities', 'Keep insulin and devices insulated against temperature extremes'],
+    sources: [{ title: 'Diabetes Technology & Therapeutics: Environmental Factors' }, { title: 'JDRF: Diabetes Management in Summer and Winter' }]
+  },
+  'Cardio vs Strength Training': {
+    introduction: 'Different types of exercise have remarkably different effects on blood sugar. Aerobic exercise typically lowers glucose while anaerobic exercise often raises it initially. Understanding this physiology helps predict and manage glucose responses.',
+    sections: [
+      { title: 'Aerobic Exercise and Glucose', content: 'Aerobic exercise (running, cycling, swimming) typically lowers blood sugar. Working muscles increase glucose uptake up to 50 times normal rates through insulin-independent pathways. This effect can last 24-48 hours post-exercise.' },
+      { title: 'Anaerobic Exercise and the Spike', content: 'Anaerobic exercise (weightlifting, HIIT, sprinting) often raises blood sugar initially due to adrenaline and cortisol release. However, 6-12 hours later, many T1Ds experience delayed lows as insulin sensitivity increases.' },
+      { title: 'The Hybrid Approach', content: 'Combining cardio and strength training in the same session often produces the most stable blood sugars. Do strength training first (causing a small rise), then follow with cardio (which brings glucose back down).' }
+    ],
+    practicalTips: ['Expect glucose to DROP during sustained cardio', 'Expect glucose to SPIKE during intense anaerobic work', 'Try hybrid workouts: strength first, cardio second for stability', 'Watch for delayed lows 6-12 hours after strength training'],
+    sources: [{ title: 'Diabetes Care: Exercise and Type 1 Diabetes Consensus' }, { title: 'The Lancet Diabetes & Endocrinology: Exercise Physiology in T1D' }]
+  },
+  'Post-Exercise Lows': {
+    introduction: 'Delayed hypoglycemia occurring 6-12+ hours after activity is one of the most frustrating aspects of exercise with T1D. Understanding the mechanism allows for effective prevention strategies.',
+    sections: [
+      { title: 'Why Delayed Lows Happen', content: 'After exercise, muscles continue actively taking up glucose to refill glycogen stores for up to 24-48 hours. This glucose uptake occurs independently of insulin. Additionally, insulin sensitivity remains elevated post-exercise.' },
+      { title: 'The Overnight Risk', content: 'Evening exercise carries particular risk for nocturnal hypoglycemia. Studies show moderate evening exercise increases nocturnal hypoglycemia risk by 2-3 fold.' },
+      { title: 'Prevention Strategies', content: 'Reduce basal insulin by 10-30% for 6-12 hours post-exercise. Have a bedtime snack including protein and fat. Set higher CGM alerts on exercise days.' }
+    ],
+    practicalTips: ['Reduce basal insulin by 10-30% for 6-12 hours after intense exercise', 'Have a bedtime snack with protein and carbs on exercise days', 'Set CGM low alerts 10-15 mg/dL higher on heavy exercise days'],
+    sources: [{ title: 'Diabetes Care: Exercise-Induced Hypoglycemia Prevention' }, { title: 'Journal of Diabetes Science: Nocturnal Hypoglycemia After Exercise' }]
+  },
+  'Overnight Basal Optimization': {
+    introduction: 'Getting basal insulin right overnight is one of the most impactful improvements you can make. The ideal overnight profile keeps you stable from bedtime to morning without lows or highs.',
+    sections: [
+      { title: 'The Flat Line Goal', content: 'The goal is a relatively flat glucose line from bedtime to waking within target range. You should not require corrections overnight or need to eat to prevent lows.' },
+      { title: 'Testing Your Overnight Basal', content: 'Eat dinner early (4-5 hours before bed) with minimal fat/protein. Start at stable glucose. Don\'t consume bedtime snacks. Track CGM data through the night. Repeat 2-3 times to confirm patterns.' },
+      { title: 'Making Adjustments', content: 'For pumps: adjust basal rates in small increments at specific times. For MDI: changing long-acting dose affects all hours, making targeted overnight adjustment more difficult.' }
+    ],
+    practicalTips: ['Test overnight basal by eating early dinner with no bedtime snack', 'Make small adjustments (10-20%) and retest before changing again', 'Address Dawn Phenomenon by increasing basal 1-2 hours before the rise'],
+    sources: [{ title: 'Diabetes Care: Basal Insulin Optimization Guidelines' }, { title: 'JDRF: Pump Therapy Basal Rate Adjustment' }]
+  },
+  'CGM Alarms Strategy': {
+    introduction: 'CGM alarms keep you safe, but poorly configured alerts cause alarm fatigue - where you start ignoring even critical alarms. A thoughtful strategy balances safety with quality of life.',
+    sections: [
+      { title: 'The Alarm Fatigue Problem', content: 'Repeated alerts lead to desensitization. If you\'ve been woken four times for alerts at 75 mg/dL, you\'re less likely to wake for the critical 55 mg/dL alarm.' },
+      { title: 'Threshold vs. Predictive Alerts', content: 'Predictive alerts give advance warning but create more false alarms. For overnight, many T1Ds prefer threshold alerts only at genuinely concerning levels (below 70 mg/dL).' },
+      { title: 'Configuring Your Strategy', content: 'Low alert at 70-75 mg/dL, urgent low at 55-60 mg/dL, and either no high alerts overnight or high alert at 250+. Use follower apps so a partner can backup.' }
+    ],
+    practicalTips: ['Set overnight low alerts at 70-75 mg/dL (real lows only)', 'Consider disabling high alerts overnight or setting threshold at 250+', 'Use CGM follower apps so a partner can serve as backup'],
+    sources: [{ title: 'Diabetes Technology & Therapeutics: CGM Alert Optimization' }, { title: 'Diabetes Care: Alarm Fatigue in CGM Users' }]
+  },
+  'Shift Work Challenges': {
+    introduction: 'Shift work disrupts circadian rhythm, affecting hormone cycles, eating patterns, and insulin sensitivity in ways that confound standard management strategies.',
+    sections: [
+      { title: 'How Shift Work Affects Blood Sugar', content: 'Circadian rhythm influences cortisol, growth hormone, and melatonin release. When your schedule shifts, hormonal patterns don\'t immediately adjust. Dawn Phenomenon can hit at unexpected times.' },
+      { title: 'Managing Night Shifts', content: 'Maintain consistent eating patterns relative to your waking hours. Watch for "reversed" Dawn Phenomenon during work hours. Consider higher temp basals during the first 2-3 days of adjustment.' },
+      { title: 'Rotating Schedules', content: 'Create different basal profiles for day-shift weeks vs. night-shift weeks. Accept that control will be harder during transition days. Prioritize sleep quality.' }
+    ],
+    practicalTips: ['Create separate pump basal profiles for different shift patterns', 'Eat meals on a schedule relative to waking time, not clock time', 'Track patterns by shift type separately to identify specific needs'],
+    sources: [{ title: 'Diabetes Care: Shift Work and Diabetes Management' }, { title: 'Sleep Medicine Reviews: Circadian Disruption and Metabolic Health' }]
+  },
+  'Fiber\'s Impact on Absorption': {
+    introduction: 'Fiber affects how other carbohydrates in the same meal are absorbed. Understanding this relationship can improve bolus timing and reduce post-meal spikes.',
+    sections: [
+      { title: 'How Fiber Affects Carb Absorption', content: 'Soluble fiber forms a gel that slows digestive transit. A high-fiber meal may produce a slower, flatter glucose rise than the same carbs without fiber.' },
+      { title: 'Net Carbs: The Fiber Subtraction Debate', content: 'For naturally high-fiber foods (vegetables, whole grains), subtracting fiber from total carbs is reasonable. For products with added processed fiber, the effect may be less pronounced.' },
+      { title: 'Bolus Timing for High-Fiber Meals', content: 'High-fiber meals may benefit from bolus at meal start or slightly delayed, rather than pre-bolusing. Some T1Ds use extended boluses for high-fiber meals.' }
+    ],
+    practicalTips: ['Subtract fiber from total carbs for naturally high-fiber foods', 'Consider delayed or extended bolus for very high-fiber meals', 'Start meals with salad or vegetables to slow carb absorption'],
+    sources: [{ title: 'American Journal of Clinical Nutrition: Fiber and Glycemic Response' }, { title: 'Diabetes Care: Dietary Fiber and Diabetes Management' }]
+  },
+  'Glycemic Index Realities': {
+    introduction: 'The Glycemic Index ranks foods by how quickly they raise blood sugar. While useful, its real-world application is more complicated than it appears.',
+    sections: [
+      { title: 'What GI Actually Measures', content: 'GI measures blood sugar response to 50g of carbs from a food vs. pure glucose. Low GI (<55) foods cause slower rises; high GI (70+) foods cause rapid spikes.' },
+      { title: 'Why GI Doesn\'t Tell the Whole Story', content: 'GI is measured for foods eaten alone. Adding fat, protein, or other foods changes the response. Individual variation is enormous. Food preparation matters.' },
+      { title: 'Using GI Practically', content: 'Choose lower-GI carb sources for smoother curves. High-GI foods are useful for treating lows. Don\'t let GI override carb counting - appropriate insulin coverage still matters.' }
+    ],
+    practicalTips: ['Use GI as a general guide for choosing between similar foods', 'Low-GI foods may allow less pre-bolusing time', 'Test your personal response to common foods - individual variation is huge'],
+    sources: [{ title: 'American Journal of Clinical Nutrition: Glycemic Index Research' }, { title: 'Harvard Health: Glycemic Index and Glycemic Load' }]
   }
 };
 
