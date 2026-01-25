@@ -21,7 +21,7 @@ serve(async (req) => {
       .from("public_glucose_data")
       .select("*", { count: "exact", head: true });
 
-    if (count && count > 8000) {
+    if (count && count > 30000) {
       return new Response(
         JSON.stringify({
           success: true,
@@ -41,7 +41,8 @@ serve(async (req) => {
     const genders = ['male', 'female', 'other', 'undisclosed'];
     const regions = [
       'Northeast US', 'Southeast US', 'Midwest US', 'Southwest US', 'West Coast US',
-      'Western Europe', 'Eastern Europe', 'Asia Pacific', 'Canada', 'Australia'
+      'Western Europe', 'Eastern Europe', 'Asia Pacific', 'Canada', 'Australia',
+      'Latin America', 'Middle East', 'South Africa', 'India', 'Southeast Asia'
     ];
     const pumps = [
       { name: 'Omnipod 5', controlLevel: 0.8 },
@@ -52,16 +53,19 @@ serve(async (req) => {
     ];
     const cgms = [
       { name: 'Dexcom G7', accuracy: 0.9 },
+      { name: 'Dexcom G7 Plus', accuracy: 0.92 },
       { name: 'Dexcom G6', accuracy: 0.85 },
+      { name: 'Libre 4', accuracy: 0.9 },
       { name: 'Libre 3', accuracy: 0.85 },
       { name: 'Libre 2', accuracy: 0.8 },
-      { name: 'Medtronic Guardian 4', accuracy: 0.75 }
+      { name: 'Medtronic Guardian 4', accuracy: 0.75 },
+      { name: 'Eversense E3', accuracy: 0.85 }
     ];
-    const datasets = ['OpenAPS', 'Nightscout', 'Tidepool', 'OpenHumans', 'T1D Exchange'];
+    const datasets = ['OpenAPS', 'Nightscout', 'Tidepool', 'OpenHumans', 'T1D Exchange', 'Glooko', 'Clarity', 'LibreView'];
     const controlLevels = ['excellent', 'good', 'average', 'needs_improvement'];
 
     const glucoseData = [];
-    const userCount = 250; // Generate 250 anonymous users
+    const userCount = 750; // Generate 750 anonymous users for ~31,500 data points
 
     // Generate data for each user
     for (let userIdx = 0; userIdx < userCount; userIdx++) {
