@@ -118,3 +118,9 @@ verify_jwt = false
 
 [functions.seed-device-images]
 verify_jwt = false
+
+[functions.seed-app-reviews]
+verify_jwt = false
+
+[functions.seed-app-community-buzz]
+verify_jwt = false
