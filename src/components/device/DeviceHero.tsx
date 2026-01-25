@@ -2,6 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { EntityLogo } from '@/components/ui/entity-logo';
 import { 
   Star, 
   AlertTriangle, 
@@ -99,8 +100,12 @@ export const DeviceHero: React.FC<DeviceHeroProps> = ({
 
           {/* Device Info */}
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              {getDeviceIcon(device.category)}
+            <div className="flex items-center gap-3 mb-3">
+              <EntityLogo 
+                type="company"
+                name={device.manufacturer || device.name}
+                size="md"
+              />
               <Badge variant="outline">{device.category}</Badge>
             </div>
 

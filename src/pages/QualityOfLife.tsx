@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQualityOfLifeResources } from "@/hooks/useQualityOfLifeResources";
 import { BackButton } from "@/components/ui/back-button";
 import RealExperiencesSection from "@/components/quality-of-life/RealExperiencesSection";
+import { QoLDetailModal } from "@/components/quality-of-life/QoLDetailModal";
 import { 
   Sparkles, 
   Pill, 
@@ -42,6 +43,8 @@ const evidenceLevelColors: Record<string, string> = {
 
 export default function QualityOfLife() {
   const [activeTab, setActiveTab] = useState("supplements");
+  const [selectedDeficiency, setSelectedDeficiency] = useState<any>(null);
+  const [selectedResource, setSelectedResource] = useState<any>(null);
   const { resources, deficiencies, isLoading } = useQualityOfLifeResources();
 
   const filteredResources = resources.filter(r => r.category === activeTab);
@@ -91,7 +94,11 @@ export default function QualityOfLife() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {deficiencies.map((def) => (
-                  <Card key={def.id} className="hover:shadow-md transition-shadow">
+                  <Card 
+                    key={def.id} 
+                    className="hover:shadow-md transition-shadow cursor-pointer hover:border-primary/50"
+                    onClick={() => setSelectedDeficiency(def)}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div>
@@ -126,6 +133,9 @@ export default function QualityOfLife() {
                           </p>
                         )}
                       </div>
+                      <Button variant="link" size="sm" className="mt-2 p-0 h-auto text-primary">
+                        Learn more →
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}
@@ -190,7 +200,11 @@ export default function QualityOfLife() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {filteredResources.map((resource) => (
-                      <Card key={resource.id} className="hover:shadow-lg transition-shadow">
+                      <Card 
+                        key={resource.id} 
+                        className="hover:shadow-lg transition-shadow cursor-pointer hover:border-primary/50"
+                        onClick={() => setSelectedResource(resource)}
+                      >
                         <CardHeader>
                           <div className="flex items-start justify-between">
                             <div className="flex items-center gap-2">
@@ -247,14 +261,9 @@ export default function QualityOfLife() {
                             </div>
                           )}
 
-                          {resource.source_url && (
-                            <Button variant="outline" size="sm" className="w-full gap-2" asChild>
-                              <a href={resource.source_url} target="_blank" rel="noopener noreferrer">
-                                Learn More
-                                <ExternalLink className="h-3 w-3" />
-                              </a>
-                            </Button>
-                          )}
+                          <Button variant="link" size="sm" className="p-0 h-auto text-primary">
+                            View full details →
+                          </Button>
                         </CardContent>
                       </Card>
                     ))}
@@ -311,6 +320,20 @@ export default function QualityOfLife() {
             </div>
           </div>
         </section>
+
+        {/* Detail Modals */}
+        <QoLDetailModal 
+          item={selectedDeficiency}
+          type="deficiency"
+          open={!!selectedDeficiency}
+          onOpenChange={(open) => !open && setSelectedDeficiency(null)}
+        />
+        <QoLDetailModal 
+          item={selectedResource}
+          type="resource"
+          open={!!selectedResource}
+          onOpenChange={(open) => !open && setSelectedResource(null)}
+        />
       </div>
     </Layout>
   );

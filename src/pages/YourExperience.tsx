@@ -8,6 +8,7 @@ import { DailyTasksJar } from '@/components/experience/DailyTasksJar';
 import { FearsCloud } from '@/components/experience/FearsCloud';
 import { EmbarrassingLowsJar } from '@/components/experience/EmbarrassingLowsJar';
 import { SubmissionForm } from '@/components/experience/SubmissionForm';
+import { InlineSubmissionForm } from '@/components/experience/InlineSubmissionForm';
 import { useExperienceCounts } from '@/hooks/useExperienceSubmissions';
 
 export default function YourExperience() {
@@ -96,6 +97,10 @@ export default function YourExperience() {
               transition={{ delay: 0.1 }}
             >
               <GoodBadJars />
+              <div className="grid md:grid-cols-2 gap-4 mt-4">
+                <InlineSubmissionForm category="good" />
+                <InlineSubmissionForm category="bad" />
+              </div>
             </motion.div>
 
             {/* Two Column Layout for Other Jars */}
@@ -107,6 +112,9 @@ export default function YourExperience() {
                 transition={{ delay: 0.2 }}
               >
                 <DailyTasksJar />
+                <div className="mt-4">
+                  <InlineSubmissionForm category="daily_tasks" />
+                </div>
               </motion.div>
 
               {/* Fears Cloud */}
@@ -116,6 +124,9 @@ export default function YourExperience() {
                 transition={{ delay: 0.3 }}
               >
                 <FearsCloud />
+                <div className="mt-4">
+                  <InlineSubmissionForm category="fears" />
+                </div>
               </motion.div>
             </div>
 
@@ -126,6 +137,9 @@ export default function YourExperience() {
               transition={{ delay: 0.4 }}
             >
               <EmbarrassingLowsJar />
+              <div className="mt-4">
+                <InlineSubmissionForm category="embarrassing_lows" />
+              </div>
             </motion.div>
           </div>
 
