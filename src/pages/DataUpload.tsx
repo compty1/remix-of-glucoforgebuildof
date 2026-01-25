@@ -68,6 +68,14 @@ interface UploadedFile {
     concerns?: string[];
     summary?: string;
   };
+  // Enhanced analysis fields
+  confidenceScore?: number;
+  confidenceBand?: 'high' | 'moderate' | 'low' | 'unreliable' | 'unknown';
+  validationFlags?: any[];
+  dataQuality?: any;
+  novelSignals?: any;
+  executiveSummary?: any;
+  dayNightAnalysis?: any;
 }
 
 const DataUpload = () => {
@@ -105,7 +113,15 @@ const DataUpload = () => {
           agpData: upload.agp_data as UploadedFile['agpData'],
           patterns: upload.patterns as UploadedFile['patterns'],
           recommendations: upload.recommendations || [],
-          aiInsights: upload.ai_insights as UploadedFile['aiInsights']
+          aiInsights: upload.ai_insights as UploadedFile['aiInsights'],
+          // Enhanced analysis fields
+          confidenceScore: upload.confidence_score ?? undefined,
+          confidenceBand: (upload.confidence_band || 'unknown') as UploadedFile['confidenceBand'],
+          validationFlags: upload.validation_flags as UploadedFile['validationFlags'],
+          dataQuality: upload.data_quality as UploadedFile['dataQuality'],
+          novelSignals: upload.novel_signals as UploadedFile['novelSignals'],
+          executiveSummary: (upload.ai_insights as any)?.executiveSummary as UploadedFile['executiveSummary'],
+          dayNightAnalysis: upload.day_night_analysis as UploadedFile['dayNightAnalysis']
         })));
       }
     };
@@ -215,7 +231,15 @@ const DataUpload = () => {
               agpData: analysisResult?.agpData,
               patterns: analysisResult?.patterns,
               recommendations: analysisResult?.recommendations,
-              aiInsights: analysisResult?.aiInsights
+              aiInsights: analysisResult?.aiInsights,
+              // Enhanced analysis fields
+              confidenceScore: analysisResult?.confidenceScore,
+              confidenceBand: analysisResult?.confidenceBand || 'unknown',
+              validationFlags: analysisResult?.validationFlags,
+              dataQuality: analysisResult?.dataQuality,
+              novelSignals: analysisResult?.novelSignals,
+              executiveSummary: analysisResult?.executiveSummary,
+              dayNightAnalysis: analysisResult?.dayNightAnalysis
             }
           : f
       ));
@@ -499,6 +523,14 @@ const DataUpload = () => {
           patterns={selectedFile.patterns}
           recommendations={selectedFile.recommendations}
           aiInsights={selectedFile.aiInsights}
+          // Enhanced analysis props
+          confidenceScore={selectedFile.confidenceScore}
+          confidenceBand={selectedFile.confidenceBand}
+          validationFlags={selectedFile.validationFlags}
+          dataQuality={selectedFile.dataQuality}
+          novelSignals={selectedFile.novelSignals}
+          executiveSummary={selectedFile.executiveSummary}
+          dayNightAnalysis={selectedFile.dayNightAnalysis}
         />
       )}
     </Layout>
