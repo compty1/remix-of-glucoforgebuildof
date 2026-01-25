@@ -115,3 +115,6 @@ verify_jwt = false
 
 [functions.seed-medication-logos]
 verify_jwt = false
+
+[functions.seed-device-images]
+verify_jwt = false

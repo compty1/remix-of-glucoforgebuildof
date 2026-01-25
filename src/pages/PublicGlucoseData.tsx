@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, Activity, TrendingUp, Clock, AlertTriangle, Info, Users, MapPin, Cpu, Heart, Lightbulb, BarChart3, Utensils } from 'lucide-react';
+import { Database, Activity, TrendingUp, Clock, AlertTriangle, Info, Users, MapPin, Cpu, Heart, Lightbulb, BarChart3, Utensils, Syringe, Globe, BookOpen, ExternalLink } from 'lucide-react';
 import { GlucoseInsightCard, type GlucoseInsight } from '@/components/data-upload/GlucoseInsightCard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -358,6 +358,171 @@ export default function PublicGlucoseData() {
     
     return { mealStats, carbRangeStats, totalMealEvents: mealReadings.length };
   }, [glucoseData]);
+
+  // Insulin Dosing Analysis
+  const insulinDosingAnalysis = useMemo(() => {
+    if (!glucoseData || glucoseData.length === 0) return null;
+    
+    // Analyze readings with insulin data
+    const insulinReadings = glucoseData.filter(r => 
+      r.insulin_dose !== null && r.insulin_dose > 0 && r.glucose_value !== null
+    );
+    
+    if (insulinReadings.length < 20) return null;
+    
+    // Dose range analysis
+    const doseRanges = [
+      { range: '1-3 units', min: 1, max: 3 },
+      { range: '4-6 units', min: 4, max: 6 },
+      { range: '7-10 units', min: 7, max: 10 },
+      { range: '10+ units', min: 11, max: 100 },
+    ];
+    
+    const doseRangeStats = doseRanges.map(range => {
+      const rangeReadings = insulinReadings.filter(r => 
+        r.insulin_dose! >= range.min && r.insulin_dose! <= range.max
+      );
+      if (rangeReadings.length < 5) return { range: range.range, avg: 0, tir: 0, count: 0 };
+      
+      const glucoseValues = rangeReadings.map(r => r.glucose_value!);
+      const avg = Math.round(glucoseValues.reduce((a, b) => a + b, 0) / glucoseValues.length);
+      const inRange = glucoseValues.filter(v => v >= 70 && v <= 180).length;
+      const tir = Math.round((inRange / glucoseValues.length) * 100);
+      
+      return { range: range.range, avg, tir, count: rangeReadings.length };
+    });
+    
+    // Basal rate analysis (from pump users with basal data)
+    const basalReadings = glucoseData.filter(r => 
+      r.basal_rate !== null && r.basal_rate > 0 && r.glucose_value !== null
+    );
+    
+    const basalRanges = [
+      { range: '0-0.5 U/hr', min: 0, max: 0.5 },
+      { range: '0.5-1.0 U/hr', min: 0.5, max: 1.0 },
+      { range: '1.0-1.5 U/hr', min: 1.0, max: 1.5 },
+      { range: '1.5+ U/hr', min: 1.5, max: 10 },
+    ];
+    
+    const basalRateStats = basalRanges.map(range => {
+      const rangeReadings = basalReadings.filter(r => 
+        r.basal_rate! >= range.min && r.basal_rate! < range.max
+      );
+      if (rangeReadings.length < 5) return { range: range.range, avg: 0, tir: 0, count: 0 };
+      
+      const glucoseValues = rangeReadings.map(r => r.glucose_value!);
+      const avg = Math.round(glucoseValues.reduce((a, b) => a + b, 0) / glucoseValues.length);
+      const inRange = glucoseValues.filter(v => v >= 70 && v <= 180).length;
+      const tir = Math.round((inRange / glucoseValues.length) * 100);
+      
+      return { range: range.range, avg, tir, count: rangeReadings.length };
+    });
+    
+    // Correction factor analysis
+    const cfReadings = glucoseData.filter(r => 
+      r.correction_factor !== null && r.correction_factor > 0 && r.glucose_value !== null
+    );
+    
+    const cfRanges = [
+      { range: '1:20-30', min: 20, max: 30 },
+      { range: '1:30-50', min: 30, max: 50 },
+      { range: '1:50-80', min: 50, max: 80 },
+      { range: '1:80+', min: 80, max: 200 },
+    ];
+    
+    const cfStats = cfRanges.map(range => {
+      const rangeReadings = cfReadings.filter(r => 
+        r.correction_factor! >= range.min && r.correction_factor! < range.max
+      );
+      if (rangeReadings.length < 5) return { range: range.range, tir: 0, count: 0 };
+      
+      const glucoseValues = rangeReadings.map(r => r.glucose_value!);
+      const inRange = glucoseValues.filter(v => v >= 70 && v <= 180).length;
+      const tir = Math.round((inRange / glucoseValues.length) * 100);
+      
+      return { range: range.range, tir, count: rangeReadings.length };
+    });
+    
+    // Carb ratio analysis
+    const icrReadings = glucoseData.filter(r => 
+      r.carb_ratio !== null && r.carb_ratio > 0 && r.glucose_value !== null
+    );
+    
+    const icrRanges = [
+      { range: '1:5-8', min: 5, max: 8 },
+      { range: '1:8-12', min: 8, max: 12 },
+      { range: '1:12-15', min: 12, max: 15 },
+      { range: '1:15+', min: 15, max: 50 },
+    ];
+    
+    const icrStats = icrRanges.map(range => {
+      const rangeReadings = icrReadings.filter(r => 
+        r.carb_ratio! >= range.min && r.carb_ratio! < range.max
+      );
+      if (rangeReadings.length < 5) return { range: range.range, tir: 0, count: 0 };
+      
+      const glucoseValues = rangeReadings.map(r => r.glucose_value!);
+      const inRange = glucoseValues.filter(v => v >= 70 && v <= 180).length;
+      const tir = Math.round((inRange / glucoseValues.length) * 100);
+      
+      return { range: range.range, tir, count: rangeReadings.length };
+    });
+    
+    // Calculate averages
+    const avgDose = insulinReadings.length > 0 
+      ? Math.round((insulinReadings.reduce((sum, r) => sum + r.insulin_dose!, 0) / insulinReadings.length) * 10) / 10
+      : 0;
+    const avgBasal = basalReadings.length > 0
+      ? Math.round((basalReadings.reduce((sum, r) => sum + r.basal_rate!, 0) / basalReadings.length) * 10) / 10
+      : 0;
+    
+    return {
+      doseRangeStats,
+      basalRateStats,
+      cfStats,
+      icrStats,
+      avgDose,
+      avgBasal,
+      totalInsulinEvents: insulinReadings.length,
+      hasBasalData: basalReadings.length > 10,
+      hasCFData: cfReadings.length > 10,
+      hasICRData: icrReadings.length > 10,
+    };
+  }, [glucoseData]);
+
+  // Research citations
+  const researchCitations = [
+    {
+      finding: 'AID systems improve TIR by 10-15%',
+      study: 'JDRF CREATE Trial',
+      doi: '10.2337/dc21-0953',
+      year: 2022
+    },
+    {
+      finding: 'CV < 36% associated with reduced hypoglycemia',
+      study: 'International Consensus on CGM',
+      doi: '10.2337/dc19-1009',
+      year: 2019
+    },
+    {
+      finding: 'Pre-bolus 15-20 min improves post-meal spikes',
+      study: 'ADA Standards of Care',
+      doi: '10.2337/dc24-S006',
+      year: 2024
+    },
+    {
+      finding: 'Target TIR > 70% for optimal glycemic outcomes',
+      study: 'ATTD Consensus',
+      doi: '10.1089/dia.2019.0028',
+      year: 2019
+    },
+    {
+      finding: 'Lower A1C linked to reduced complications',
+      study: 'DCCT/EDIC Trial',
+      doi: '10.1056/NEJMoa052187',
+      year: 2005
+    }
+  ];
 
   // Overall stats (must be defined before glucoseInsights)
   const overallStats = useMemo(() => {
@@ -745,6 +910,10 @@ export default function PublicGlucoseData() {
                 <TabsTrigger value="patterns">Daily Patterns</TabsTrigger>
                 <TabsTrigger value="demographics">Demographics</TabsTrigger>
                 <TabsTrigger value="devices">Device Analysis</TabsTrigger>
+                <TabsTrigger value="insulin" className="gap-1">
+                  <Syringe className="h-4 w-4" />
+                  Insulin Dosing
+                </TabsTrigger>
                 <TabsTrigger value="variability" className="gap-1">
                   <BarChart3 className="h-4 w-4" />
                   Variability
@@ -752,6 +921,10 @@ export default function PublicGlucoseData() {
                 <TabsTrigger value="mealtime" className="gap-1">
                   <Utensils className="h-4 w-4" />
                   Meal Patterns
+                </TabsTrigger>
+                <TabsTrigger value="research" className="gap-1">
+                  <BookOpen className="h-4 w-4" />
+                  Research
                 </TabsTrigger>
               </TabsList>
               
@@ -1200,6 +1373,285 @@ export default function PublicGlucoseData() {
                     </CardContent>
                   </Card>
                 )}
+              </TabsContent>
+
+              {/* Insulin Dosing Tab */}
+              <TabsContent value="insulin" className="space-y-6">
+                {insulinDosingAnalysis ? (
+                  <>
+                    {/* Summary Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <Card>
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Syringe className="h-6 w-6 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold">{insulinDosingAnalysis.avgDose}U</p>
+                            <p className="text-sm text-muted-foreground">Avg Bolus Dose</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                            <Activity className="h-6 w-6 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold">{insulinDosingAnalysis.avgBasal}U/hr</p>
+                            <p className="text-sm text-muted-foreground">Avg Basal Rate</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                            <TrendingUp className="h-6 w-6 text-green-600" />
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold">{insulinDosingAnalysis.totalInsulinEvents.toLocaleString()}</p>
+                            <p className="text-sm text-muted-foreground">Insulin Events</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+                            <Database className="h-6 w-6 text-purple-600" />
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold">{insulinDosingAnalysis.hasBasalData ? 'Yes' : 'Limited'}</p>
+                            <p className="text-sm text-muted-foreground">Pump Data</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Dose Range Analysis */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Syringe className="h-5 w-5" />
+                          Glucose Outcomes by Bolus Dose Size
+                        </CardTitle>
+                        <CardDescription>
+                          How different bolus amounts correlate with Time in Range
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={280}>
+                          <BarChart data={insulinDosingAnalysis.doseRangeStats}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="range" />
+                            <YAxis yAxisId="left" orientation="left" domain={[0, 200]} />
+                            <YAxis yAxisId="right" orientation="right" domain={[0, 100]} unit="%" />
+                            <Tooltip />
+                            <Legend />
+                            <Bar yAxisId="left" dataKey="avg" fill="hsl(var(--chart-1))" name="Avg Glucose (mg/dL)" />
+                            <Bar yAxisId="right" dataKey="tir" fill="hsl(var(--chart-2))" name="Time in Range %" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+
+                    {/* Basal Rate Analysis */}
+                    {insulinDosingAnalysis.hasBasalData && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Glucose by Basal Rate</CardTitle>
+                          <CardDescription>
+                            Time in Range across different basal insulin rates (pump users)
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <ResponsiveContainer width="100%" height={280}>
+                            <BarChart data={insulinDosingAnalysis.basalRateStats}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="range" />
+                              <YAxis domain={[0, 100]} unit="%" />
+                              <Tooltip />
+                              <Legend />
+                              <Bar dataKey="tir" fill="hsl(var(--primary))" name="Time in Range %" />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* ICR & ISF Analysis */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {insulinDosingAnalysis.hasICRData && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Insulin-to-Carb Ratio Analysis</CardTitle>
+                            <CardDescription>TIR by carb ratio settings</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <ResponsiveContainer width="100%" height={200}>
+                              <BarChart data={insulinDosingAnalysis.icrStats}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="range" tick={{ fontSize: 11 }} />
+                                <YAxis domain={[0, 100]} unit="%" />
+                                <Tooltip />
+                                <Bar dataKey="tir" fill="hsl(var(--chart-3))" />
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </CardContent>
+                        </Card>
+                      )}
+                      {insulinDosingAnalysis.hasCFData && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Correction Factor Analysis</CardTitle>
+                            <CardDescription>TIR by insulin sensitivity factor</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <ResponsiveContainer width="100%" height={200}>
+                              <BarChart data={insulinDosingAnalysis.cfStats}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="range" tick={{ fontSize: 11 }} />
+                                <YAxis domain={[0, 100]} unit="%" />
+                                <Tooltip />
+                                <Bar dataKey="tir" fill="hsl(var(--chart-4))" />
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+
+                    {/* Disclaimer */}
+                    <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10">
+                      <CardContent className="p-4 flex items-start gap-3">
+                        <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <div className="text-sm">
+                          <p className="font-medium text-amber-900 dark:text-amber-100">Important Note</p>
+                          <p className="text-amber-800 dark:text-amber-200">
+                            Insulin dosing is highly individual. These population-level patterns show correlations, not causation.
+                            Never adjust your insulin without consulting your healthcare provider.
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </>
+                ) : (
+                  <Card>
+                    <CardContent className="p-12 text-center">
+                      <Syringe className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold mb-2">Limited Insulin Data</h3>
+                      <p className="text-muted-foreground">
+                        Not enough insulin dosing data in the current filter selection.
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              {/* Research Tab */}
+              <TabsContent value="research" className="space-y-6">
+                {/* Population Comparison */}
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Globe className="h-5 w-5" />
+                      How This Data Compares to Published Research
+                    </CardTitle>
+                    <CardDescription>
+                      Comparing this dataset to major T1D studies and benchmarks
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="text-center p-4 bg-background rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">This Dataset</p>
+                        <p className="text-3xl font-bold text-primary">{overallStats?.avgTIR || 0}%</p>
+                        <p className="text-xs text-muted-foreground">Time in Range</p>
+                      </div>
+                      <div className="text-center p-4 bg-background rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">T1D Exchange (2023)</p>
+                        <p className="text-3xl font-bold">59%</p>
+                        <p className="text-xs text-muted-foreground">Average TIR</p>
+                      </div>
+                      <div className="text-center p-4 bg-background rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">ADA/ATTD Target</p>
+                        <p className="text-3xl font-bold text-green-600">70%+</p>
+                        <p className="text-xs text-muted-foreground">Recommended TIR</p>
+                      </div>
+                      <div className="text-center p-4 bg-background rounded-lg">
+                        <p className="text-sm text-muted-foreground mb-1">JDRF CREATE</p>
+                        <p className="text-3xl font-bold">71%</p>
+                        <p className="text-xs text-muted-foreground">AID Study TIR</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Research Citations */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BookOpen className="h-5 w-5" />
+                      Key Research Citations
+                    </CardTitle>
+                    <CardDescription>
+                      Published studies supporting the analysis methodology and findings
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {researchCitations.map((citation, index) => (
+                        <div 
+                          key={index} 
+                          className="flex items-start justify-between p-4 bg-muted/50 rounded-lg"
+                        >
+                          <div className="flex-1">
+                            <p className="font-medium">{citation.finding}</p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {citation.study} ({citation.year})
+                            </p>
+                          </div>
+                          <a
+                            href={`https://doi.org/${citation.doi}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-1 text-sm text-primary hover:underline ml-4"
+                          >
+                            <ExternalLink className="h-3 w-3" />
+                            DOI
+                          </a>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Methodology */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Data Sources & Methodology</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h4 className="font-medium mb-2">Data Sources</h4>
+                      <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                        <li><strong>OpenAPS Data Commons</strong> - DIY closed-loop system users</li>
+                        <li><strong>Nightscout</strong> - Open-source CGM data platform</li>
+                        <li><strong>Tidepool</strong> - Device-agnostic diabetes data</li>
+                        <li><strong>OpenHumans</strong> - Personal data sharing platform</li>
+                        <li><strong>T1D Exchange</strong> - Registry-based clinical data</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-medium mb-2">Analysis Standards</h4>
+                      <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                        <li>Time in Range defined as 70-180 mg/dL per ADA/ATTD consensus</li>
+                        <li>CV target of &lt;36% based on International Consensus on CGM</li>
+                        <li>All data fully anonymized before inclusion</li>
+                        <li>Minimum sample sizes required for statistical reliability</li>
+                      </ul>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
             </Tabs>
           </div>

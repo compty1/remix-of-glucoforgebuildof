@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Eye, FileText, Users, TrendingUp } from 'lucide-react';
+import { Eye, TrendingUp, ChevronRight } from 'lucide-react';
 import { Project } from '@/hooks/useProjects';
 
 interface ProjectCardProps {
@@ -76,6 +76,13 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
               <Eye className="h-3.5 w-3.5" />
               <span>{project.view_count}</span>
             </div>
+          </div>
+
+          {/* Learn More Indicator */}
+          <div className="pt-3 border-t border-border/50">
+            <span className="text-sm text-primary flex items-center gap-1 group-hover:gap-2 transition-all">
+              Learn More <ChevronRight className="h-4 w-4" />
+            </span>
           </div>
         </CardContent>
       </Card>
