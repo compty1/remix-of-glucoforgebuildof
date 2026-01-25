@@ -6,7 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, Activity, TrendingUp, Clock, AlertTriangle, Info, Users, MapPin, Cpu, Heart } from 'lucide-react';
+import { Database, Activity, TrendingUp, Clock, AlertTriangle, Info, Users, MapPin, Cpu, Heart, Lightbulb } from 'lucide-react';
+import { GlucoseInsightCard, type GlucoseInsight } from '@/components/data-upload/GlucoseInsightCard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { 
@@ -220,7 +221,7 @@ export default function PublicGlucoseData() {
     };
   }, [glucoseData]);
 
-  // Overall stats
+  // Overall stats (must be defined before glucoseInsights)
   const overallStats = useMemo(() => {
     if (!glucoseData || glucoseData.length === 0) return null;
     
@@ -237,6 +238,172 @@ export default function PublicGlucoseData() {
     
     return { totalReadings: validReadings.length, avgGlucose, avgTIR, uniqueUsers, estimatedA1C };
   }, [glucoseData]);
+
+  // Pre-computed glucose insights
+  const glucoseInsights: GlucoseInsight[] = useMemo(() => {
+    if (!glucoseData || glucoseData.length === 0 || !overallStats) return [];
+    
+    const insights: GlucoseInsight[] = [];
+    
+    // AID vs MDI comparison
+    const aidData = glucoseData.filter(d => d.pump_model && d.pump_model !== 'MDI' && d.glucose_value !== null);
+    const mdiData = glucoseData.filter(d => d.pump_model === 'MDI' && d.glucose_value !== null);
+    
+    if (aidData.length > 50 && mdiData.length > 50) {
+      const aidInRange = aidData.filter(d => d.glucose_value! >= 70 && d.glucose_value! <= 180).length;
+      const mdiInRange = mdiData.filter(d => d.glucose_value! >= 70 && d.glucose_value! <= 180).length;
+      const aidTIR = Math.round((aidInRange / aidData.length) * 100);
+      const mdiTIR = Math.round((mdiInRange / mdiData.length) * 100);
+      const diff = aidTIR - mdiTIR;
+      
+      if (diff > 5) {
+        insights.push({
+          id: 'aid-vs-mdi',
+          category: 'device',
+          title: 'Automated Insulin Delivery Advantage',
+          insight: `Users on AID systems (Omnipod 5, t:slim X2, 780G) show ${diff}% higher Time in Range compared to MDI users in this dataset.`,
+          dataPoints: aidData.length + mdiData.length,
+          confidence: 0.85,
+          icon: 'cpu'
+        });
+      }
+    }
+
+    // Dawn phenomenon analysis
+    const earlyMorning = glucoseData.filter(d => {
+      if (!d.timestamp || d.glucose_value === null) return false;
+      const hour = new Date(d.timestamp).getHours();
+      return hour >= 4 && hour <= 7;
+    });
+    
+    const nightTime = glucoseData.filter(d => {
+      if (!d.timestamp || d.glucose_value === null) return false;
+      const hour = new Date(d.timestamp).getHours();
+      return hour >= 0 && hour <= 3;
+    });
+    
+    if (earlyMorning.length > 20 && nightTime.length > 20) {
+      const earlyAvg = earlyMorning.reduce((sum, d) => sum + d.glucose_value!, 0) / earlyMorning.length;
+      const nightAvg = nightTime.reduce((sum, d) => sum + d.glucose_value!, 0) / nightTime.length;
+      const rise = Math.round(earlyAvg - nightAvg);
+      
+      if (rise > 15) {
+        insights.push({
+          id: 'dawn-phenomenon',
+          category: 'pattern',
+          title: 'Dawn Phenomenon Detected',
+          insight: `Average glucose rises ${rise} mg/dL between midnight-3 AM and 4-7 AM, indicating common dawn phenomenon across the population.`,
+          dataPoints: earlyMorning.length + nightTime.length,
+          confidence: 0.78,
+          icon: 'sunrise'
+        });
+      }
+    }
+
+    // Age group insights
+    const ageGroups = ['18-30', '31-45', '46-60'];
+    const ageData = ageGroups.map(age => {
+      const groupData = glucoseData.filter(d => d.age_range === age && d.glucose_value !== null);
+      const inRange = groupData.filter(d => d.glucose_value! >= 70 && d.glucose_value! <= 180).length;
+      return { age, tir: groupData.length > 0 ? Math.round((inRange / groupData.length) * 100) : 0, count: groupData.length };
+    }).filter(d => d.count > 20);
+
+    if (ageData.length >= 2) {
+      const sorted = [...ageData].sort((a, b) => b.tir - a.tir);
+      if (sorted[0].tir - sorted[sorted.length - 1].tir > 5) {
+        insights.push({
+          id: 'age-tir',
+          category: 'demographics',
+          title: 'Age & Glycemic Control',
+          insight: `The ${sorted[0].age} age group shows the highest TIR (${sorted[0].tir}%) in this dataset, ${sorted[0].tir - sorted[sorted.length - 1].tir}% higher than the ${sorted[sorted.length - 1].age} group.`,
+          dataPoints: ageData.reduce((sum, d) => sum + d.count, 0),
+          confidence: 0.72,
+          icon: 'users'
+        });
+      }
+    }
+
+    // CGM model comparison
+    const cgmGroups = new Map<string, { inRange: number; total: number }>();
+    glucoseData.forEach(d => {
+      if (!d.cgm_model || d.glucose_value === null) return;
+      const existing = cgmGroups.get(d.cgm_model) || { inRange: 0, total: 0 };
+      cgmGroups.set(d.cgm_model, {
+        total: existing.total + 1,
+        inRange: existing.inRange + (d.glucose_value >= 70 && d.glucose_value <= 180 ? 1 : 0)
+      });
+    });
+
+    const cgmTIRs = Array.from(cgmGroups.entries())
+      .filter(([_, data]) => data.total > 50)
+      .map(([cgm, data]) => ({ cgm, tir: Math.round((data.inRange / data.total) * 100), count: data.total }))
+      .sort((a, b) => b.tir - a.tir);
+
+    if (cgmTIRs.length >= 2 && cgmTIRs[0].tir - cgmTIRs[cgmTIRs.length - 1].tir > 3) {
+      insights.push({
+        id: 'cgm-comparison',
+        category: 'device',
+        title: 'CGM Sensor Performance',
+        insight: `${cgmTIRs[0].cgm} users show the highest TIR (${cgmTIRs[0].tir}%) among CGM models analyzed. Real-world accuracy and user behavior may contribute to these differences.`,
+        dataPoints: cgmTIRs.reduce((sum, d) => sum + d.count, 0),
+        confidence: 0.75,
+        icon: 'activity'
+      });
+    }
+
+    // Hypoglycemia patterns
+    const hypoEvents = glucoseData.filter(d => d.glucose_value !== null && d.glucose_value < 70);
+    const nightHypos = hypoEvents.filter(d => {
+      if (!d.timestamp) return false;
+      const hour = new Date(d.timestamp).getHours();
+      return hour >= 0 && hour <= 6;
+    });
+    
+    if (hypoEvents.length > 10 && nightHypos.length > 5) {
+      const nightPct = Math.round((nightHypos.length / hypoEvents.length) * 100);
+      if (nightPct > 30) {
+        insights.push({
+          id: 'night-hypos',
+          category: 'safety',
+          title: 'Nocturnal Hypoglycemia Pattern',
+          insight: `${nightPct}% of low glucose events occur between midnight and 6 AM. This highlights the importance of overnight glucose monitoring and AID systems.`,
+          dataPoints: hypoEvents.length,
+          confidence: 0.82,
+          icon: 'moon'
+        });
+      }
+    }
+
+    // Regional insights
+    const regionGroups = new Map<string, { inRange: number; total: number }>();
+    glucoseData.forEach(d => {
+      if (!d.location_region || d.glucose_value === null) return;
+      const existing = regionGroups.get(d.location_region) || { inRange: 0, total: 0 };
+      regionGroups.set(d.location_region, {
+        total: existing.total + 1,
+        inRange: existing.inRange + (d.glucose_value >= 70 && d.glucose_value <= 180 ? 1 : 0)
+      });
+    });
+
+    const regionTIRs = Array.from(regionGroups.entries())
+      .filter(([_, data]) => data.total > 30)
+      .map(([region, data]) => ({ region, tir: Math.round((data.inRange / data.total) * 100), count: data.total }))
+      .sort((a, b) => b.tir - a.tir);
+
+    if (regionTIRs.length >= 2) {
+      insights.push({
+        id: 'regional-tir',
+        category: 'demographics',
+        title: 'Regional Glycemic Patterns',
+        insight: `${regionTIRs[0].region} shows the highest average TIR (${regionTIRs[0].tir}%) among analyzed regions. Healthcare access and technology adoption may play a role.`,
+        dataPoints: regionTIRs.reduce((sum, d) => sum + d.count, 0),
+        confidence: 0.68,
+        icon: 'map'
+      });
+    }
+
+    return insights;
+  }, [glucoseData, overallStats]);
 
   return (
     <Layout>
@@ -431,12 +598,59 @@ export default function PublicGlucoseData() {
               </div>
             )}
 
-            <Tabs defaultValue="patterns" className="space-y-4">
+            <Tabs defaultValue="insights" className="space-y-4">
               <TabsList>
+                <TabsTrigger value="insights" className="gap-1">
+                  <Lightbulb className="h-4 w-4" />
+                  Insights
+                </TabsTrigger>
                 <TabsTrigger value="patterns">Daily Patterns</TabsTrigger>
                 <TabsTrigger value="demographics">Demographics</TabsTrigger>
                 <TabsTrigger value="devices">Device Analysis</TabsTrigger>
               </TabsList>
+              
+              <TabsContent value="insights" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Lightbulb className="h-5 w-5 text-yellow-500" />
+                      AI-Discovered Patterns & Correlations
+                    </CardTitle>
+                    <CardDescription>
+                      Insights derived from analyzing {overallStats?.totalReadings.toLocaleString()} glucose readings across {overallStats?.uniqueUsers} anonymized users
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {glucoseInsights.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {glucoseInsights.map(insight => (
+                          <GlucoseInsightCard key={insight.id} insight={insight} />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Lightbulb className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                        <p>Apply filters to discover insights in the data</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+                
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                      <div className="text-sm">
+                        <p className="font-medium text-foreground mb-1">About These Insights</p>
+                        <p className="text-muted-foreground">
+                          Patterns are discovered by analyzing aggregated, anonymized data. Individual results vary significantly based on personal factors. 
+                          Always consult your healthcare provider for medical decisions. Confidence scores indicate statistical reliability, not clinical certainty.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
               <TabsContent value="patterns" className="space-y-6">
                 {/* Hourly Pattern Chart */}

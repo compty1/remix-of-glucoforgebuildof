@@ -28,6 +28,10 @@ export interface MedicalResearchPaper {
   raw_data?: any;
   created_at: string;
   updated_at: string;
+  // T1D classification fields
+  is_type1_relevant?: boolean;
+  diabetes_type?: 'type1' | 'type2' | 'general' | 'gestational';
+  classification_confidence?: number;
 }
 
 interface UseMedicalResearchPapersResult {
@@ -39,9 +43,16 @@ interface UseMedicalResearchPapersResult {
   getByJournal: (journal: string) => MedicalResearchPaper[];
   getByDeviceMentions: (device: string) => MedicalResearchPaper[];
   getOpenAccess: () => MedicalResearchPaper[];
+  getType1Only: () => MedicalResearchPaper[];
 }
 
-export const useMedicalResearchPapers = (minRelevanceScore?: number): UseMedicalResearchPapersResult => {
+interface UseMedicalResearchPapersOptions {
+  minRelevanceScore?: number;
+  type1Only?: boolean;
+}
+
+export const useMedicalResearchPapers = (options?: UseMedicalResearchPapersOptions): UseMedicalResearchPapersResult => {
+  const { minRelevanceScore, type1Only = true } = options || {};
   const [data, setData] = useState<MedicalResearchPaper[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,6 +70,11 @@ export const useMedicalResearchPapers = (minRelevanceScore?: number): UseMedical
 
       if (minRelevanceScore) {
         query = query.gte('diabetes_relevance_score', minRelevanceScore);
+      }
+
+      // Filter for Type 1 diabetes relevant papers by default
+      if (type1Only) {
+        query = query.eq('is_type1_relevant', true);
       }
 
       const { data: existingData, error: dbError } = await query.limit(100);
@@ -81,7 +97,11 @@ export const useMedicalResearchPapers = (minRelevanceScore?: number): UseMedical
           throw new Error(`Failed to fetch research papers: ${functionError.message}`);
         }
       } else if (freshData?.data) {
-        setData(freshData.data);
+        // Filter fresh data for T1D if needed
+        const filteredData = type1Only 
+          ? freshData.data.filter((p: MedicalResearchPaper) => p.is_type1_relevant)
+          : freshData.data;
+        setData(filteredData);
       }
 
     } catch (err) {
@@ -90,7 +110,7 @@ export const useMedicalResearchPapers = (minRelevanceScore?: number): UseMedical
     } finally {
       setLoading(false);
     }
-  }, [minRelevanceScore]);
+  }, [minRelevanceScore, type1Only]);
 
   const refreshData = useCallback(async () => {
     setLoading(true);
@@ -119,6 +139,10 @@ export const useMedicalResearchPapers = (minRelevanceScore?: number): UseMedical
     return data.filter(paper => paper.open_access === true);
   }, [data]);
 
+  const getType1Only = useCallback(() => {
+    return data.filter(paper => paper.is_type1_relevant === true);
+  }, [data]);
+
   useEffect(() => {
     fetchResearchPapers();
   }, [fetchResearchPapers]);
@@ -132,5 +156,6 @@ export const useMedicalResearchPapers = (minRelevanceScore?: number): UseMedical
     getByJournal,
     getByDeviceMentions,
     getOpenAccess,
+    getType1Only,
   };
 };
