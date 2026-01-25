@@ -680,6 +680,47 @@ export type Database = {
         }
         Relationships: []
       }
+      community_comments: {
+        Row: {
+          author_anonymous: string | null
+          content: string
+          created_at: string | null
+          id: string
+          parent_comment_id: string | null
+          post_id: string
+          score: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          author_anonymous?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          parent_comment_id?: string | null
+          post_id: string
+          score?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          author_anonymous?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          parent_comment_id?: string | null
+          post_id?: string
+          score?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "community_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       community_posts: {
         Row: {
           author_anonymous: string | null
