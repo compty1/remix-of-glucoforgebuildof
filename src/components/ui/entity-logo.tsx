@@ -7,17 +7,19 @@ interface EntityLogoProps {
   name: string;
   logoUrl?: string | null;
   websiteUrl?: string | null;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   className?: string;
 }
 
 const sizeClasses = {
+  xs: 'h-5 w-5',
   sm: 'h-8 w-8',
   md: 'h-12 w-12',
   lg: 'h-16 w-16',
 };
 
 const iconSizes = {
+  xs: 'h-3 w-3',
   sm: 'h-4 w-4',
   md: 'h-6 w-6',
   lg: 'h-8 w-8',

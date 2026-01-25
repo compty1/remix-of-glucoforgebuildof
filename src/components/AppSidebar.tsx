@@ -68,6 +68,7 @@ import {
 } from "@/components/ui/collapsible";
 import { useAuthStore } from '@/store/authStore';
 import { supabase } from '@/integrations/supabase/client';
+import { EntityLogo } from '@/components/ui/entity-logo';
 import logoImage from '@/assets/glycoforge-logo.png';
 import iconImage from '@/assets/glycoforge-icon.png';
 
@@ -146,6 +147,7 @@ interface Device {
   id: string;
   name: string;
   category: string | null;
+  manufacturer: string | null;
 }
 
 const getDeviceIcon = (category: string | null): LucideIcon => {
@@ -198,11 +200,11 @@ export function AppSidebar() {
     const fetchDevices = async () => {
       const { data } = await supabase
         .from('devices')
-        .select('id, name, category')
+        .select('id, name, category, manufacturer')
         .order('name', { ascending: true });
       
       if (data) {
-        setDevices(data);
+        setDevices(data as Device[]);
       }
     };
 
@@ -437,7 +439,6 @@ export function AppSidebar() {
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
                       {devices.map((device) => {
-                        const DeviceIcon = getDeviceIcon(device.category);
                         return (
                           <SidebarMenuSubItem key={device.id}>
                             <SidebarMenuSubButton asChild>
@@ -445,7 +446,11 @@ export function AppSidebar() {
                                 to={`/devices/${device.id}`} 
                                 className={getDeviceNavClasses(device.id)}
                               >
-                                <DeviceIcon className="h-3 w-3" />
+                                <EntityLogo 
+                                  type="device" 
+                                  name={device.manufacturer || device.name} 
+                                  size="xs" 
+                                />
                                 {state !== "collapsed" && <span>{device.name}</span>}
                               </NavLink>
                             </SidebarMenuSubButton>
