@@ -44,8 +44,9 @@ function extractDomainFromName(name: string): string | null {
     // Device Manufacturers
     'dexcom': 'dexcom.com',
     'abbott': 'abbott.com',
-    'freestyle': 'abbott.com',
+    'freestyle': 'abbott.com', // FreeStyle Libre is Abbott product
     'libre': 'abbott.com',
+    'freestyle libre': 'abbott.com',
     'medtronic': 'medtronic.com',
     'tandem': 'tandemdiabetes.com',
     'insulet': 'omnipod.com',
@@ -83,12 +84,14 @@ function extractDomainFromName(name: string): string | null {
     'viatris': 'viatris.com',
     'biocon': 'biocon.com',
     'wockhardt': 'wockhardt.com',
-    'gan & lee': 'ganlee.com',
+    'gan & lee': 'ganlee.com', // Correct domain
+    'gan lee': 'ganlee.com',
     'tonghua': 'dongbaotech.com',
-    'provention': 'proventionbio.com',
+    'provention': 'sanofi.com', // Provention Bio was acquired by Sanofi in 2023
+    'tzield': 'sanofi.com', // Tzield (teplizumab) now marketed by Sanofi
     'diamyd': 'diamyd.com',
     'amgen': 'amgen.com',
-    'teva': 'teva.com',
+    'teva': 'tevapharm.com', // Correct domain is tevapharm.com
     
     // Advocacy & Research Organizations
     'jdrf': 'jdrf.org',
