@@ -67,15 +67,20 @@ export function EntryModal({ submission, open, onOpenChange }: EntryModalProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center gap-2 mb-2">
             <span className="text-2xl">{categoryInfo.emoji}</span>
             <Badge className={categoryInfo.color}>{categoryInfo.label}</Badge>
           </div>
-          <DialogTitle className="text-xl leading-relaxed">
+          <DialogTitle className="text-xl leading-relaxed break-words whitespace-pre-wrap">
             {submission.content}
           </DialogTitle>
+          {submission.content.length > 200 && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Full submission displayed above
+            </p>
+          )}
         </DialogHeader>
 
         <div className="space-y-4">
