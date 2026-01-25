@@ -16,12 +16,12 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Check if reviews already exist
+    // Check if reviews already exist - allow up to 100 reviews
     const { count } = await supabase
       .from("medication_reviews")
       .select("*", { count: "exact", head: true });
 
-    if (count && count > 30) {
+    if (count && count > 80) {
       return new Response(
         JSON.stringify({
           success: true,
