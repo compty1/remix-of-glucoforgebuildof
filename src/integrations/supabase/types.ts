@@ -4881,6 +4881,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_admin: { Args: { check_user_id: string }; Returns: boolean }
       update_trends: { Args: never; Returns: undefined }
     }
     Enums: {
