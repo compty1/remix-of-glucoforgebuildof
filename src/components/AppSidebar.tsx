@@ -265,12 +265,12 @@ export function AppSidebar() {
         {/* Logo */}
         <div className="flex items-center justify-center mb-6 px-4">
           {state === "collapsed" ? (
-            <div className="flex items-center justify-center">
-              <img src={iconImage} alt="GF" className="h-8 w-8 flex-shrink-0 logo-animated-drop" />
+            <div className="flex items-center justify-center bg-transparent">
+              <img src={iconImage} alt="GF" className="h-10 w-10 flex-shrink-0 logo-animated-drop object-contain" />
             </div>
           ) : (
-            <div className="flex items-center justify-start w-full">
-              <img src={logoImage} alt="GlycoForge" className="h-8 w-auto max-w-full flex-shrink-0 logo-animated-drop" />
+            <div className="flex items-center justify-start w-full bg-transparent">
+              <img src={logoImage} alt="GlycoForge" className="h-12 w-auto max-w-full flex-shrink-0 logo-animated-drop object-contain" />
             </div>
           )}
         </div>
