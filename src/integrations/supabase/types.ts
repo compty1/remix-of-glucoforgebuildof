@@ -3268,37 +3268,109 @@ export type Database = {
       }
       public_glucose_data: {
         Row: {
+          age_range: string | null
           anonymized_user_id: string | null
+          basal_rate: number | null
+          carb_ratio: number | null
           carbs: number | null
+          cgm_model: string | null
+          control_level: string | null
+          correction_factor: number | null
           created_at: string | null
+          diabetes_duration_years: number | null
+          gender: string | null
           glucose_value: number | null
           id: string
           insulin_dose: number | null
+          location_region: string | null
           notes: string | null
+          pump_model: string | null
           source_dataset: string
           timestamp: string | null
         }
         Insert: {
+          age_range?: string | null
           anonymized_user_id?: string | null
+          basal_rate?: number | null
+          carb_ratio?: number | null
           carbs?: number | null
+          cgm_model?: string | null
+          control_level?: string | null
+          correction_factor?: number | null
           created_at?: string | null
+          diabetes_duration_years?: number | null
+          gender?: string | null
           glucose_value?: number | null
           id?: string
           insulin_dose?: number | null
+          location_region?: string | null
           notes?: string | null
+          pump_model?: string | null
           source_dataset: string
           timestamp?: string | null
         }
         Update: {
+          age_range?: string | null
           anonymized_user_id?: string | null
+          basal_rate?: number | null
+          carb_ratio?: number | null
           carbs?: number | null
+          cgm_model?: string | null
+          control_level?: string | null
+          correction_factor?: number | null
           created_at?: string | null
+          diabetes_duration_years?: number | null
+          gender?: string | null
           glucose_value?: number | null
           id?: string
           insulin_dose?: number | null
+          location_region?: string | null
           notes?: string | null
+          pump_model?: string | null
           source_dataset?: string
           timestamp?: string | null
+        }
+        Relationships: []
+      }
+      quality_of_life_experiences: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string
+          id: string
+          impact: string | null
+          source: string | null
+          source_url: string | null
+          title: string
+          updated_at: string | null
+          upvotes: number | null
+          verified: boolean | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description: string
+          id?: string
+          impact?: string | null
+          source?: string | null
+          source_url?: string | null
+          title: string
+          updated_at?: string | null
+          upvotes?: number | null
+          verified?: boolean | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string
+          id?: string
+          impact?: string | null
+          source?: string | null
+          source_url?: string | null
+          title?: string
+          updated_at?: string | null
+          upvotes?: number | null
+          verified?: boolean | null
         }
         Relationships: []
       }
