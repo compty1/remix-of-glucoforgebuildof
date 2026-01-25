@@ -1,118 +1,180 @@
 
-# Fix Logo Display: Multi-Tier Fallback System
+# Plan: Add EntityLogo to Missing Pages
 
-## Problem Analysis
+## Problem Summary
 
-The logos are not displaying because:
+Logos are now working in Companies, Medications, and Device sections thanks to the multi-tier EntityLogo fallback system. However, several other pages still show generic icons instead of real logos:
 
-1. **Clearbit API limitations**: Many T1D companies (Beta Bionics, Diabeloop, Sigilon, Bigfoot, etc.) are not in Clearbit's database, so the API returns 404 errors
-2. **Single-point-of-failure logic**: The current `EntityLogo` component only tries one logo source before giving up
-3. **Incorrect error handling**: When an image fails, it immediately shows the fallback icon instead of trying alternative sources
+1. **App Center** - Apps have `logo_url` in database but not using EntityLogo fallback system
+2. **Diabetes Organizations** - Hardcoded data with empty logo URLs, not using EntityLogo
+3. **Live Cure Monitoring** - Therapy cards show sponsor names but no logos
+4. **Cure Progress / Clinical Trials** - Trial cards show sponsors but no logos
+5. **Research pages** - Show journals/institutions but no logos
 
-## Solution: Multi-Tier Logo Fallback System
+**Note:** The Public Glucose Data expansion is already complete - the database has 10,500+ records with all insulin dosing, basal rate, and carb ratio fields populated.
 
-Implement a cascading fallback system that tries multiple logo sources before showing the generic icon:
+---
 
-```text
-Database logo_url (Clearbit)
-         ↓ fails
-Google S2 Favicons API (high-resolution)
-         ↓ fails  
-Logo.dev API (if available)
-         ↓ fails
-Generic icon fallback
-```
+## Implementation Plan
 
-## Technical Changes
+### Phase 1: App Center Logo Integration
 
-### 1. Update EntityLogo Component (`src/components/ui/entity-logo.tsx`)
+**File:** `src/pages/AppCenter.tsx`
 
-**Replace the current single-attempt logic with a multi-tier fallback:**
-
-- Add `currentAttempt` state to track which source we're trying (0 = primary, 1 = Google S2, 2 = fallback)
-- Generate Google S2 Favicon URL from domain: `https://www.google.com/s2/favicons?domain=${domain}&sz=128`
-- Update `handleImageError` to cycle through sources before showing fallback
-- Add `useMemo` to pre-compute all fallback URLs
-
-**New logic flow:**
-```typescript
-const logoSources = useMemo(() => {
-  const sources: string[] = [];
-  
-  // 1. Database URL (if provided)
-  if (logoUrl) sources.push(logoUrl);
-  
-  // 2. Clearbit URL (derived from name)
-  if (clearbitUrl && clearbitUrl !== logoUrl) {
-    sources.push(clearbitUrl);
-  }
-  
-  // 3. Google S2 Favicon (high-res)
-  const domain = extractDomainFromName(name);
-  if (domain) {
-    sources.push(`https://www.google.com/s2/favicons?domain=${domain}&sz=128`);
-  }
-  
-  return sources;
-}, [logoUrl, clearbitUrl, name]);
-
-const [currentSourceIndex, setCurrentSourceIndex] = useState(0);
-
-const handleImageError = () => {
-  if (currentSourceIndex < logoSources.length - 1) {
-    setCurrentSourceIndex(prev => prev + 1);
-  } else {
-    setShowFallback(true);
-  }
-};
-```
-
-### 2. Add Website URL Extraction
-
-For companies where we have `website_url` in the database, extract the domain for Google S2:
+Update the `AppCard` component to use `EntityLogo` with fallback:
 
 ```typescript
-// In CompanyCard.tsx, pass website_url to EntityLogo
+import { EntityLogo } from '@/components/ui/entity-logo';
+
+// In AppCard component, replace the logo section:
 <EntityLogo 
   type="company"
-  name={company.name}
-  logoUrl={company.logo_url}
-  websiteUrl={company.website_url}  // NEW prop
-  size="md"
+  name={app.developer || app.name}
+  logoUrl={app.logo_url}
+  size="lg"
 />
 ```
 
-**EntityLogo will extract domain from website_url as additional fallback source**
+Also update the dialog modal to use EntityLogo.
 
-### 3. Expanded Domain Mappings
+### Phase 2: Organizations Page Logo Integration
 
-Add missing companies to the domain mappings for better Clearbit/Google matching:
+**File:** `src/pages/DiabetesOrganizations.tsx`
 
-| Company | Correct Domain |
-|---------|---------------|
-| Semma Therapeutics | vertex.com (acquired) |
-| Livongo | teladoc.com (acquired) |
-| EOFlow | eoflow.co.kr |
-| Pepex Biomedical | pepex.com |
-| Common Sensing | commonsensing.com |
-| Cecelia Health | ceceliahealth.com |
-| Lark Health | lark.com |
-| Podimetrics | podimetrics.com |
-| MC10 | medidata.com (acquired) |
+1. Import EntityLogo component
+2. Add domain mappings to EntityLogo for diabetes organizations:
+   - `breakthrought1d.org` (Breakthrough T1D / JDRF)
+   - `diabetes.org` (ADA)
+   - `beyondtype1.org` (Beyond Type 1)
+   - `diabetessisters.org`
+   - `diabetesresearch.org` (DRI Foundation)
+   - `childrenwithdiabetes.com`
+   - `t1dexchange.org`
+   - `idf.org` (International Diabetes Federation)
+
+3. Replace the generic Building2 icon with EntityLogo in organization cards:
+
+```typescript
+<EntityLogo 
+  type="organization"
+  name={org.name}
+  websiteUrl={org.website_url}
+  size="lg"
+/>
+```
+
+### Phase 3: Live Cure Monitoring Logo Integration
+
+**File:** `src/pages/LiveCureMonitoring.tsx`
+
+Add sponsor logos to therapy cards:
+
+```typescript
+import { EntityLogo } from '@/components/ui/entity-logo';
+
+// In therapy card, add logo next to sponsor name:
+<div className="flex items-center gap-2">
+  <EntityLogo 
+    type="company"
+    name={therapy.sponsor}
+    size="sm"
+  />
+  <p className="text-sm text-muted-foreground">{therapy.sponsor}</p>
+</div>
+```
+
+### Phase 4: Cure Progress & Trial Cards
+
+**File:** `src/pages/CureProgress.tsx` and `src/components/trials/TrialCard.tsx`
+
+Add sponsor logos to clinical trial displays:
+
+```typescript
+// In TrialCard sponsor section:
+<div className="flex items-center gap-2">
+  <EntityLogo 
+    type="company"
+    name={trial.sponsor || trial.sponsor_name}
+    size="sm"
+  />
+  <p className="text-sm font-medium line-clamp-1">{trial.sponsor}</p>
+</div>
+```
+
+### Phase 5: Expand EntityLogo Domain Mappings
+
+**File:** `src/components/ui/entity-logo.tsx`
+
+Add mappings for common T1D app developers and research institutions:
+
+```typescript
+// App developers
+'mysugr': 'mysugr.com',
+'sugarmate': 'sugarmate.io',
+'nightscout': 'nightscout.github.io',
+'xdrip': 'github.com',
+'dexcom': 'dexcom.com',
+'abbott': 'abbott.com',
+'calorie king': 'calorieking.com',
+'diabits': 'diabits.com',
+
+// Research institutions
+'nih': 'nih.gov',
+'niaid': 'niaid.nih.gov',
+'stanford': 'stanford.edu',
+'harvard': 'harvard.edu',
+'yale': 'yale.edu',
+'university of florida': 'ufl.edu',
+'university of miami': 'miami.edu',
+'barbara davis': 'barbaradaviscenter.com',
+'ucsd': 'ucsd.edu',
+'university of alberta': 'ualberta.ca',
+'karolinska': 'ki.se',
+```
+
+---
 
 ## Files to Modify
 
 | File | Changes |
 |------|---------|
-| `src/components/ui/entity-logo.tsx` | Add multi-tier fallback logic, add `websiteUrl` prop |
-| `src/components/companies/CompanyCard.tsx` | Pass `website_url` to EntityLogo |
-| `src/components/medicine/MedicationCard.tsx` | Pass website/manufacturer info to EntityLogo |
+| `src/components/ui/entity-logo.tsx` | Add ~30 new domain mappings for apps, organizations, and research institutions |
+| `src/pages/AppCenter.tsx` | Integrate EntityLogo into AppCard and dialog |
+| `src/pages/DiabetesOrganizations.tsx` | Replace Building2 icon with EntityLogo |
+| `src/pages/LiveCureMonitoring.tsx` | Add EntityLogo to therapy sponsor display |
+| `src/pages/CureProgress.tsx` | Add EntityLogo to trial sponsor display |
+| `src/components/trials/TrialCard.tsx` | Add EntityLogo to sponsor section |
+
+---
+
+## Technical Details
+
+### EntityLogo Props Being Used
+
+```typescript
+<EntityLogo 
+  type="company" | "organization" | "device" | "medication"
+  name={string}           // Used for domain lookup
+  logoUrl={string | null} // Primary source from database
+  websiteUrl={string}     // Secondary source for domain extraction
+  size="sm" | "md" | "lg"
+/>
+```
+
+### Fallback Chain (Already Implemented)
+1. Database `logo_url` (if provided)
+2. Clearbit API from mapped domain
+3. Clearbit from extracted website URL
+4. Google S2 Favicon API (128px)
+5. Generic type-specific icon
+
+---
 
 ## Expected Outcome
 
 After implementation:
-- **Major companies** (Dexcom, Tandem, Novo Nordisk): High-res Clearbit logos
-- **Smaller companies** (Beta Bionics, Diabeloop): Google S2 favicon (smaller but recognizable)
-- **Truly unknown companies**: Generic icon (last resort)
-
-This will dramatically increase logo display success rate from ~20% to ~90%+ of companies.
+- App Center will show app developer logos (mySugr, Dexcom, Abbott, etc.)
+- Organizations page will show real nonprofit logos (JDRF/BT1D, ADA, Beyond Type 1)
+- Cure Monitoring will show pharma/biotech sponsor logos (Vertex, Novo Nordisk, Sanofi)
+- Clinical trial cards will show research institution logos
+- All pages maintain consistent visual hierarchy with the multi-tier fallback system
