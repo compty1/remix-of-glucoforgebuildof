@@ -2123,14 +2123,20 @@ serve(async (req) => {
         .from('uploads')
         .update({ 
           status: 'error', 
-          insights: ['Could not extract glucose data from this PDF. Please export as CSV from your CGM app.'] 
+          insights: [
+            '❌ This PDF does not appear to be a CGM report.',
+            '📄 Supported PDF types: Dexcom Clarity, LibreView/AGP, iLet Bionic Pancreas, Tandem t:connect, Medtronic CareLink reports',
+            '💡 For best results, export your CGM data as CSV from your app'
+          ] 
         })
         .eq('id', uploadId);
         
       return new Response(
         JSON.stringify({ 
-          error: 'Could not extract glucose data from PDF. Please export as CSV from your CGM app.',
-          suggestion: 'Try exporting from Dexcom Clarity, LibreView, or your pump software as CSV format'
+          error: 'This PDF does not appear to contain CGM glucose data.',
+          details: 'We could not find glucose metrics (average glucose, time in range, GMI, etc.) in this document.',
+          suggestion: 'Please upload a CGM report PDF from Dexcom Clarity, LibreView, iLet, Tandem, or Medtronic - or export your data as CSV for the most detailed analysis.',
+          supportedFormats: ['Dexcom Clarity PDF', 'LibreView/AGP PDF', 'iLet Bionic Pancreas PDF', 'Tandem t:connect PDF', 'Any CGM data exported as CSV']
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
