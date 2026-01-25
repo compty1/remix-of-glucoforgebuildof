@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, Activity, TrendingUp, Clock, AlertTriangle, Info, Users, MapPin, Cpu, Heart, Lightbulb } from 'lucide-react';
+import { Database, Activity, TrendingUp, Clock, AlertTriangle, Info, Users, MapPin, Cpu, Heart, Lightbulb, BarChart3, Utensils } from 'lucide-react';
 import { GlucoseInsightCard, type GlucoseInsight } from '@/components/data-upload/GlucoseInsightCard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -219,6 +219,144 @@ export default function PublicGlucoseData() {
       regions: Array.from(regions.entries()).map(([name, value]) => ({ name, value })).slice(0, 5),
       pumps: Array.from(pumps.entries()).map(([name, value]) => ({ name, value }))
     };
+  }, [glucoseData]);
+
+  // Glucose Variability Analysis (CV, SD, MAGE-like)
+  const variabilityAnalysis = useMemo(() => {
+    if (!glucoseData || glucoseData.length === 0) return null;
+    
+    const validReadings = glucoseData.filter(d => d.glucose_value !== null);
+    const glucoseValues = validReadings.map(d => d.glucose_value!);
+    
+    const mean = glucoseValues.reduce((a, b) => a + b, 0) / glucoseValues.length;
+    const squareDiffs = glucoseValues.map(v => Math.pow(v - mean, 2));
+    const avgSquareDiff = squareDiffs.reduce((a, b) => a + b, 0) / squareDiffs.length;
+    const stdDev = Math.sqrt(avgSquareDiff);
+    const cv = (stdDev / mean) * 100;
+    
+    // Calculate variability by device
+    const deviceVariability = new Map<string, { values: number[] }>();
+    validReadings.forEach(r => {
+      if (!r.pump_model) return;
+      const existing = deviceVariability.get(r.pump_model) || { values: [] };
+      existing.values.push(r.glucose_value!);
+      deviceVariability.set(r.pump_model, existing);
+    });
+    
+    const deviceCVs = Array.from(deviceVariability.entries())
+      .filter(([_, data]) => data.values.length > 50)
+      .map(([device, data]) => {
+        const deviceMean = data.values.reduce((a, b) => a + b, 0) / data.values.length;
+        const deviceSquareDiffs = data.values.map(v => Math.pow(v - deviceMean, 2));
+        const deviceAvgSquareDiff = deviceSquareDiffs.reduce((a, b) => a + b, 0) / deviceSquareDiffs.length;
+        const deviceStdDev = Math.sqrt(deviceAvgSquareDiff);
+        const deviceCV = (deviceStdDev / deviceMean) * 100;
+        return { device, cv: Math.round(deviceCV * 10) / 10, count: data.values.length };
+      })
+      .sort((a, b) => a.cv - b.cv);
+    
+    // Calculate variability by time of day
+    const timeBlocks = [
+      { name: 'Night (12-6 AM)', startHour: 0, endHour: 6 },
+      { name: 'Morning (6-12 PM)', startHour: 6, endHour: 12 },
+      { name: 'Afternoon (12-6 PM)', startHour: 12, endHour: 18 },
+      { name: 'Evening (6-12 AM)', startHour: 18, endHour: 24 },
+    ];
+    
+    const timeBlockVariability = timeBlocks.map(block => {
+      const blockReadings = validReadings.filter(r => {
+        if (!r.timestamp) return false;
+        const hour = new Date(r.timestamp).getHours();
+        return hour >= block.startHour && hour < block.endHour;
+      });
+      
+      if (blockReadings.length < 10) return { name: block.name, cv: 0, avg: 0, count: 0 };
+      
+      const blockValues = blockReadings.map(r => r.glucose_value!);
+      const blockMean = blockValues.reduce((a, b) => a + b, 0) / blockValues.length;
+      const blockSquareDiffs = blockValues.map(v => Math.pow(v - blockMean, 2));
+      const blockAvgSquareDiff = blockSquareDiffs.reduce((a, b) => a + b, 0) / blockSquareDiffs.length;
+      const blockStdDev = Math.sqrt(blockAvgSquareDiff);
+      const blockCV = (blockStdDev / blockMean) * 100;
+      
+      return { name: block.name, cv: Math.round(blockCV * 10) / 10, avg: Math.round(blockMean), count: blockReadings.length };
+    });
+    
+    return {
+      overallCV: Math.round(cv * 10) / 10,
+      stdDev: Math.round(stdDev),
+      mean: Math.round(mean),
+      deviceCVs,
+      timeBlockVariability
+    };
+  }, [glucoseData]);
+
+  // Meal Pattern Analysis
+  const mealPatternAnalysis = useMemo(() => {
+    if (!glucoseData || glucoseData.length === 0) return null;
+    
+    // Analyze readings with carbs (meal events)
+    const mealReadings = glucoseData.filter(r => r.carbs && r.carbs > 0 && r.glucose_value !== null && r.timestamp);
+    
+    // Group by meal type based on time
+    const mealsByTime = {
+      breakfast: mealReadings.filter(r => {
+        const hour = new Date(r.timestamp!).getHours();
+        return hour >= 5 && hour < 11;
+      }),
+      lunch: mealReadings.filter(r => {
+        const hour = new Date(r.timestamp!).getHours();
+        return hour >= 11 && hour < 15;
+      }),
+      dinner: mealReadings.filter(r => {
+        const hour = new Date(r.timestamp!).getHours();
+        return hour >= 17 && hour < 21;
+      }),
+      snacks: mealReadings.filter(r => {
+        const hour = new Date(r.timestamp!).getHours();
+        return (hour >= 15 && hour < 17) || (hour >= 21 || hour < 5);
+      })
+    };
+    
+    const calculateMealStats = (readings: typeof mealReadings) => {
+      if (readings.length < 5) return null;
+      const glucoseValues = readings.map(r => r.glucose_value!);
+      const carbValues = readings.map(r => r.carbs!);
+      const avg = Math.round(glucoseValues.reduce((a, b) => a + b, 0) / glucoseValues.length);
+      const avgCarbs = Math.round(carbValues.reduce((a, b) => a + b, 0) / carbValues.length);
+      const inRange = glucoseValues.filter(v => v >= 70 && v <= 180).length;
+      const tir = Math.round((inRange / glucoseValues.length) * 100);
+      return { avg, avgCarbs, tir, count: readings.length };
+    };
+    
+    const mealStats = [
+      { meal: 'Breakfast', ...calculateMealStats(mealsByTime.breakfast) },
+      { meal: 'Lunch', ...calculateMealStats(mealsByTime.lunch) },
+      { meal: 'Dinner', ...calculateMealStats(mealsByTime.dinner) },
+      { meal: 'Snacks', ...calculateMealStats(mealsByTime.snacks) },
+    ].filter(m => m.avg !== undefined);
+    
+    // Carb range analysis
+    const carbRanges = [
+      { range: '0-20g', min: 0, max: 20 },
+      { range: '21-40g', min: 21, max: 40 },
+      { range: '41-60g', min: 41, max: 60 },
+      { range: '60g+', min: 61, max: 1000 },
+    ];
+    
+    const carbRangeStats = carbRanges.map(range => {
+      const rangeReadings = mealReadings.filter(r => r.carbs! >= range.min && r.carbs! <= range.max);
+      if (rangeReadings.length < 5) return { range: range.range, avg: 0, tir: 0, count: 0 };
+      
+      const glucoseValues = rangeReadings.map(r => r.glucose_value!);
+      const avg = Math.round(glucoseValues.reduce((a, b) => a + b, 0) / glucoseValues.length);
+      const inRange = glucoseValues.filter(v => v >= 70 && v <= 180).length;
+      const tir = Math.round((inRange / glucoseValues.length) * 100);
+      
+      return { range: range.range, avg, tir, count: rangeReadings.length };
+    });
+    
+    return { mealStats, carbRangeStats, totalMealEvents: mealReadings.length };
   }, [glucoseData]);
 
   // Overall stats (must be defined before glucoseInsights)
@@ -599,7 +737,7 @@ export default function PublicGlucoseData() {
             )}
 
             <Tabs defaultValue="insights" className="space-y-4">
-              <TabsList>
+              <TabsList className="flex-wrap h-auto gap-1">
                 <TabsTrigger value="insights" className="gap-1">
                   <Lightbulb className="h-4 w-4" />
                   Insights
@@ -607,6 +745,14 @@ export default function PublicGlucoseData() {
                 <TabsTrigger value="patterns">Daily Patterns</TabsTrigger>
                 <TabsTrigger value="demographics">Demographics</TabsTrigger>
                 <TabsTrigger value="devices">Device Analysis</TabsTrigger>
+                <TabsTrigger value="variability" className="gap-1">
+                  <BarChart3 className="h-4 w-4" />
+                  Variability
+                </TabsTrigger>
+                <TabsTrigger value="mealtime" className="gap-1">
+                  <Utensils className="h-4 w-4" />
+                  Meal Patterns
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="insights" className="space-y-6">
@@ -870,6 +1016,187 @@ export default function PublicGlucoseData() {
                           <Tooltip />
                         </PieChart>
                       </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              <TabsContent value="variability" className="space-y-6">
+                {variabilityAnalysis && (
+                  <>
+                    {/* Overall Variability Stats */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Card>
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                            <BarChart3 className="h-6 w-6 text-blue-600" />
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold">{variabilityAnalysis.overallCV}%</p>
+                            <p className="text-sm text-muted-foreground">Coefficient of Variation</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
+                            <TrendingUp className="h-6 w-6 text-purple-600" />
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold">±{variabilityAnalysis.stdDev} mg/dL</p>
+                            <p className="text-sm text-muted-foreground">Standard Deviation</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                            <Activity className="h-6 w-6 text-green-600" />
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold">{variabilityAnalysis.mean} mg/dL</p>
+                            <p className="text-sm text-muted-foreground">Mean Glucose</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Time Block Variability */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Clock className="h-5 w-5" />
+                          Glucose Variability by Time of Day
+                        </CardTitle>
+                        <CardDescription>
+                          Lower CV indicates more stable glucose. Target: CV &lt; 36%
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={280}>
+                          <BarChart data={variabilityAnalysis.timeBlockVariability}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                            <YAxis domain={[0, 50]} unit="%" />
+                            <Tooltip 
+                              formatter={(value: number, name: string) => [
+                                name === 'cv' ? `${value}%` : `${value} mg/dL`,
+                                name === 'cv' ? 'CV' : 'Average'
+                              ]}
+                            />
+                            <Legend />
+                            <Bar dataKey="cv" fill="hsl(var(--chart-1))" name="CV %" />
+                            <Bar dataKey="avg" fill="hsl(var(--chart-2))" name="Avg Glucose" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+
+                    {/* Device Variability Comparison */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Cpu className="h-5 w-5" />
+                          Variability by Insulin Delivery Method
+                        </CardTitle>
+                        <CardDescription>
+                          AID systems typically show lower variability due to automated adjustments
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={variabilityAnalysis.deviceCVs} layout="vertical">
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis type="number" domain={[0, 50]} unit="%" />
+                            <YAxis type="category" dataKey="device" width={130} tick={{ fontSize: 12 }} />
+                            <Tooltip formatter={(value: number) => [`${value}%`, 'CV']} />
+                            <Bar dataKey="cv" fill="hsl(var(--primary))" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+              </TabsContent>
+
+              <TabsContent value="mealtime" className="space-y-6">
+                {mealPatternAnalysis && mealPatternAnalysis.totalMealEvents > 0 ? (
+                  <>
+                    {/* Meal Stats Summary */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Utensils className="h-5 w-5" />
+                          Meal-Time Glucose Patterns
+                        </CardTitle>
+                        <CardDescription>
+                          Analysis of {mealPatternAnalysis.totalMealEvents} meal events with recorded carbohydrates
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={280}>
+                          <BarChart data={mealPatternAnalysis.mealStats}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="meal" />
+                            <YAxis yAxisId="left" orientation="left" domain={[0, 200]} />
+                            <YAxis yAxisId="right" orientation="right" domain={[0, 100]} unit="%" />
+                            <Tooltip />
+                            <Legend />
+                            <Bar yAxisId="left" dataKey="avg" fill="hsl(var(--chart-1))" name="Avg Glucose (mg/dL)" />
+                            <Bar yAxisId="right" dataKey="tir" fill="hsl(var(--chart-2))" name="Time in Range %" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+
+                    {/* Carb Range Analysis */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Glucose Response by Carb Intake</CardTitle>
+                        <CardDescription>
+                          How different carb amounts affect post-meal glucose
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={280}>
+                          <BarChart data={mealPatternAnalysis.carbRangeStats}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="range" />
+                            <YAxis yAxisId="left" orientation="left" domain={[0, 200]} />
+                            <YAxis yAxisId="right" orientation="right" domain={[0, 100]} unit="%" />
+                            <Tooltip />
+                            <Legend />
+                            <Bar yAxisId="left" dataKey="avg" fill="hsl(var(--chart-3))" name="Avg Glucose (mg/dL)" />
+                            <Bar yAxisId="right" dataKey="tir" fill="hsl(var(--chart-4))" name="Time in Range %" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+
+                    {/* Meal Stats Cards */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {mealPatternAnalysis.mealStats.map(meal => (
+                        <Card key={meal.meal}>
+                          <CardContent className="p-4 text-center">
+                            <p className="text-sm font-medium text-muted-foreground mb-1">{meal.meal}</p>
+                            <p className="text-2xl font-bold">{meal.avgCarbs}g</p>
+                            <p className="text-xs text-muted-foreground">avg carbs</p>
+                            <Badge variant={meal.tir && meal.tir >= 70 ? 'default' : 'secondary'} className="mt-2">
+                              {meal.tir}% TIR
+                            </Badge>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <Card>
+                    <CardContent className="p-12 text-center">
+                      <Utensils className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-xl font-semibold mb-2">Limited Meal Data</h3>
+                      <p className="text-muted-foreground">
+                        Not enough meal events with carbohydrate data in the current filter selection.
+                      </p>
                     </CardContent>
                   </Card>
                 )}
