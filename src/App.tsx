@@ -114,6 +114,9 @@ import FutureOfT1D from "./pages/FutureOfT1D";
 import Explore from "./pages/Explore";
 import YourExperience from "./pages/YourExperience";
 
+// New Pages - Donations Info
+import DonationsInfo from "./pages/DonationsInfo";
+
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -230,6 +233,7 @@ const App = () => {
             <Route path="/future" element={<FutureOfT1D />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/your-experience" element={<ProtectedRoute><YourExperience /></ProtectedRoute>} />
+            <Route path="/donations-info" element={<DonationsInfo />} />
             
             {/* Admin Content Management Routes */}
             <Route path="/admin/articles" element={<AdminRoute><AdminArticles /></AdminRoute>} />

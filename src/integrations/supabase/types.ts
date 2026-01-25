@@ -275,6 +275,59 @@ export type Database = {
         }
         Relationships: []
       }
+      app_community_buzz: {
+        Row: {
+          app_id: string | null
+          app_name: string
+          author_anonymous: string | null
+          category: string | null
+          content: string
+          created_at: string
+          id: string
+          published_at: string | null
+          sentiment: string | null
+          source_platform: string
+          source_url: string | null
+          upvotes: number | null
+        }
+        Insert: {
+          app_id?: string | null
+          app_name: string
+          author_anonymous?: string | null
+          category?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          sentiment?: string | null
+          source_platform?: string
+          source_url?: string | null
+          upvotes?: number | null
+        }
+        Update: {
+          app_id?: string | null
+          app_name?: string
+          author_anonymous?: string | null
+          category?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          sentiment?: string | null
+          source_platform?: string
+          source_url?: string | null
+          upvotes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "app_community_buzz_app_id_fkey"
+            columns: ["app_id"]
+            isOneToOne: false
+            referencedRelation: "diabetes_apps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       app_reviews: {
         Row: {
           app_id: string | null
@@ -1770,6 +1823,84 @@ export type Database = {
           stripe_payment_intent?: string | null
           stripe_session_id?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      donations_data: {
+        Row: {
+          advocacy_allocation_percent: number | null
+          created_at: string
+          education_allocation_percent: number | null
+          id: string
+          impact_patients_helped: number | null
+          impact_studies_funded: number | null
+          impact_trials_supported: number | null
+          logo_url: string | null
+          notable_donors: string[] | null
+          operations_allocation_percent: number | null
+          organization_name: string
+          organization_type: string
+          research_allocation_percent: number | null
+          sector_corporate: number | null
+          sector_foundation: number | null
+          sector_government: number | null
+          sector_individual: number | null
+          source_990_url: string | null
+          top_programs: string[] | null
+          total_donations: number | null
+          updated_at: string
+          website_url: string | null
+          year: number
+        }
+        Insert: {
+          advocacy_allocation_percent?: number | null
+          created_at?: string
+          education_allocation_percent?: number | null
+          id?: string
+          impact_patients_helped?: number | null
+          impact_studies_funded?: number | null
+          impact_trials_supported?: number | null
+          logo_url?: string | null
+          notable_donors?: string[] | null
+          operations_allocation_percent?: number | null
+          organization_name: string
+          organization_type?: string
+          research_allocation_percent?: number | null
+          sector_corporate?: number | null
+          sector_foundation?: number | null
+          sector_government?: number | null
+          sector_individual?: number | null
+          source_990_url?: string | null
+          top_programs?: string[] | null
+          total_donations?: number | null
+          updated_at?: string
+          website_url?: string | null
+          year: number
+        }
+        Update: {
+          advocacy_allocation_percent?: number | null
+          created_at?: string
+          education_allocation_percent?: number | null
+          id?: string
+          impact_patients_helped?: number | null
+          impact_studies_funded?: number | null
+          impact_trials_supported?: number | null
+          logo_url?: string | null
+          notable_donors?: string[] | null
+          operations_allocation_percent?: number | null
+          organization_name?: string
+          organization_type?: string
+          research_allocation_percent?: number | null
+          sector_corporate?: number | null
+          sector_foundation?: number | null
+          sector_government?: number | null
+          sector_individual?: number | null
+          source_990_url?: string | null
+          top_programs?: string[] | null
+          total_donations?: number | null
+          updated_at?: string
+          website_url?: string | null
+          year?: number
         }
         Relationships: []
       }

@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
   Sunrise, Moon, Utensils, Activity, Zap, TrendingUp, 
-  TrendingDown, AlertTriangle, Lightbulb, Brain, Clock
+  AlertTriangle, Lightbulb, Brain, Clock, ChevronRight
 } from 'lucide-react';
+import { PatternDetailModal } from './PatternDetailModal';
 
 interface Pattern {
   id: string;
@@ -35,6 +36,8 @@ const PatternInterpretationPanel: React.FC<PatternInterpretationPanelProps> = ({
   highVariabilityTimes = [],
   insulinStackingRisk = false
 }) => {
+  const [selectedPattern, setSelectedPattern] = useState<Pattern | null>(null);
+
   const patterns: Pattern[] = [
     {
       id: 'dawn-phenomenon',
@@ -66,7 +69,7 @@ const PatternInterpretationPanel: React.FC<PatternInterpretationPanelProps> = ({
       detected: nightHypoPercentage > 30,
       confidence: nightHypoPercentage > 40 ? 0.85 : 0.7,
       description: `${nightHypoPercentage}% of low glucose events occur between midnight and 6 AM.`,
-      clinicalSignificance: 'Nocturnal lows are dangerous as symptom awareness is reduced during sleep. Associated with hypoglycemia unawareness over time.',
+      clinicalSignificance: 'Nocturnal lows are dangerous as symptom awareness is reduced during sleep.',
       possibleCauses: [
         'Excessive basal insulin overnight',
         'Late evening exercise without carb adjustment',
@@ -89,7 +92,7 @@ const PatternInterpretationPanel: React.FC<PatternInterpretationPanelProps> = ({
       detected: postMealSpikes,
       confidence: 0.75,
       description: 'Glucose frequently exceeds 180 mg/dL within 2 hours after meals.',
-      clinicalSignificance: 'Post-prandial hyperglycemia contributes significantly to overall glucose exposure and A1C. Strongly linked to cardiovascular risk.',
+      clinicalSignificance: 'Post-prandial hyperglycemia contributes significantly to A1C.',
       possibleCauses: [
         'Insufficient pre-bolus timing',
         'Carbohydrate underestimation',
@@ -112,7 +115,7 @@ const PatternInterpretationPanel: React.FC<PatternInterpretationPanelProps> = ({
       detected: highVariabilityTimes.length > 0,
       confidence: 0.7,
       description: `Glucose variability is notably higher during: ${highVariabilityTimes.join(', ') || 'N/A'}.`,
-      clinicalSignificance: 'Time periods with high CV indicate unpredictable glucose patterns that increase both hyper and hypoglycemia risk.',
+      clinicalSignificance: 'High CV indicates unpredictable glucose patterns.',
       possibleCauses: [
         'Inconsistent meal timing or composition',
         'Variable exercise patterns',
@@ -134,7 +137,7 @@ const PatternInterpretationPanel: React.FC<PatternInterpretationPanelProps> = ({
       detected: insulinStackingRisk,
       confidence: 0.65,
       description: 'Patterns suggest possible overlapping correction doses leading to unexpected lows.',
-      clinicalSignificance: 'Stacking insulin corrections before previous doses have completed their action causes dangerous hypoglycemia.',
+      clinicalSignificance: 'Stacking insulin corrections causes dangerous hypoglycemia.',
       possibleCauses: [
         'Correcting too soon after meal bolus',
         'Ignoring active insulin on board',
@@ -179,7 +182,7 @@ const PatternInterpretationPanel: React.FC<PatternInterpretationPanelProps> = ({
           Pattern Detection & Clinical Interpretation
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          AI-detected patterns from the glucose data with clinical context and actionable recommendations.
+          AI-detected patterns from the glucose data. Click any pattern for detailed analysis.
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -192,14 +195,18 @@ const PatternInterpretationPanel: React.FC<PatternInterpretationPanelProps> = ({
               <div>
                 <p className="font-medium text-success">No Concerning Patterns Detected</p>
                 <p className="text-sm text-muted-foreground">
-                  The analyzed data shows stable glucose patterns without significant concerning trends.
+                  The analyzed data shows stable glucose patterns.
                 </p>
               </div>
             </CardContent>
           </Card>
         ) : (
           detectedPatterns.map((pattern) => (
-            <Card key={pattern.id} className={`border ${getSeverityColor(pattern.severity)}`}>
+            <Card 
+              key={pattern.id} 
+              className={`border ${getSeverityColor(pattern.severity)} cursor-pointer hover:shadow-md transition-shadow`}
+              onClick={() => setSelectedPattern(pattern)}
+            >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-3">
@@ -211,7 +218,10 @@ const PatternInterpretationPanel: React.FC<PatternInterpretationPanelProps> = ({
                       {pattern.icon}
                     </div>
                     <div>
-                      <h4 className="font-semibold">{pattern.name}</h4>
+                      <h4 className="font-semibold flex items-center gap-2">
+                        {pattern.name}
+                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      </h4>
                       {pattern.affectedTimeframe && (
                         <div className="flex items-center gap-1 text-xs text-muted-foreground">
                           <Clock className="h-3 w-3" />
@@ -227,47 +237,8 @@ const PatternInterpretationPanel: React.FC<PatternInterpretationPanelProps> = ({
                     </Badge>
                   </div>
                 </div>
-
-                <p className="text-sm mb-3">{pattern.description}</p>
-
-                <div className="bg-background/50 rounded-lg p-3 space-y-3">
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase mb-1 flex items-center gap-1">
-                      <AlertTriangle className="h-3 w-3" />
-                      Clinical Significance
-                    </p>
-                    <p className="text-sm">{pattern.clinicalSignificance}</p>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase mb-1">
-                      Possible Causes
-                    </p>
-                    <ul className="text-sm space-y-1">
-                      {pattern.possibleCauses.slice(0, 3).map((cause, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="text-muted-foreground">•</span>
-                          {cause}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <div>
-                    <p className="text-xs font-medium text-primary uppercase mb-1 flex items-center gap-1">
-                      <Lightbulb className="h-3 w-3" />
-                      Recommended Actions
-                    </p>
-                    <ul className="text-sm space-y-1">
-                      {pattern.recommendedActions.map((action, i) => (
-                        <li key={i} className="flex items-start gap-2 text-primary">
-                          <span>→</span>
-                          {action}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
+                <p className="text-sm mb-2">{pattern.description}</p>
+                <p className="text-xs text-primary font-medium">Click for detailed analysis →</p>
               </CardContent>
             </Card>
           ))
@@ -280,14 +251,20 @@ const PatternInterpretationPanel: React.FC<PatternInterpretationPanelProps> = ({
             <div className="text-sm text-muted-foreground">
               <p className="font-medium mb-1">About Pattern Detection</p>
               <p>
-                These patterns are detected algorithmically from glucose data. Confidence scores indicate 
-                how certain the analysis is. Always consult with your healthcare provider before making 
-                significant therapy changes. Individual responses vary based on many factors.
+                These patterns are detected algorithmically from glucose data. Always consult 
+                with your healthcare provider before making significant therapy changes.
               </p>
             </div>
           </CardContent>
         </Card>
       </CardContent>
+
+      {/* Pattern Detail Modal */}
+      <PatternDetailModal
+        open={!!selectedPattern}
+        onOpenChange={(open) => !open && setSelectedPattern(null)}
+        pattern={selectedPattern}
+      />
     </Card>
   );
 };
