@@ -88,3 +88,12 @@ verify_jwt = false
 
 [functions.seed-medication-buzz]
 verify_jwt = false
+
+[functions.seed-adult-content-posts]
+verify_jwt = false
+
+[functions.seed-articles]
+verify_jwt = false
+
+[functions.seed-bounties]
+verify_jwt = false
