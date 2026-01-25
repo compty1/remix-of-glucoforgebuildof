@@ -15,6 +15,7 @@ import {
 import { InteractiveTimeline } from '@/components/explore/InteractiveTimeline';
 import { EventDetailModal } from '@/components/explore/EventDetailModal';
 import { DecadeTreatmentCard } from '@/components/explore/DecadeTreatmentCard';
+import { HistoryEventCard } from '@/components/explore/HistoryEventCard';
 import { useT1DHistory, useT1DHistoryDecades, T1DHistoryEvent } from '@/hooks/useT1DHistory';
 
 const eras = [
@@ -179,6 +180,31 @@ export default function Explore() {
               <p className="text-muted-foreground">
                 Try adjusting your filters or search query.
               </p>
+            </div>
+          )}
+
+          {/* Event Cards Grid - Shows all filtered events as cards */}
+          {filteredEvents && filteredEvents.length > 0 && (
+            <div className="mt-8">
+              <h2 className="heading-subsection mb-6 flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-brand-teal" />
+                {selectedCategory !== 'all' 
+                  ? `${categories.find(c => c.value === selectedCategory)?.label || 'Filtered'} Events`
+                  : 'All Historical Events'
+                }
+                <span className="text-sm font-normal text-muted-foreground ml-2">
+                  ({filteredEvents.length} events)
+                </span>
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredEvents.map(event => (
+                  <HistoryEventCard 
+                    key={event.id} 
+                    event={event} 
+                    onClick={() => handleEventClick(event)} 
+                  />
+                ))}
+              </div>
             </div>
           )}
 

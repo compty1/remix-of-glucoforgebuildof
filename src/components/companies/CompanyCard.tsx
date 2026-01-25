@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -20,6 +20,20 @@ export function CompanyCard({
   onToggleCompare, 
   showCompareCheckbox = false 
 }: CompanyCardProps) {
+  const navigate = useNavigate();
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on checkbox, link, or button elements
+    const target = e.target as HTMLElement;
+    if (
+      target.closest('[role="checkbox"]') ||
+      target.closest('a') ||
+      target.closest('button')
+    ) {
+      return;
+    }
+    navigate(`/companies/${company.id}`);
+  };
   const formatFunding = (amount: number | null) => {
     if (!amount) return 'N/A';
     if (amount >= 1000000000) return `$${(amount / 1000000000).toFixed(1)}B`;
@@ -39,7 +53,10 @@ export function CompanyCard({
   };
 
   return (
-    <Card className={`group hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30 ${isSelected ? 'ring-2 ring-primary' : ''}`}>
+    <Card 
+      className={`group hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30 cursor-pointer active:scale-[0.99] ${isSelected ? 'ring-2 ring-primary' : ''}`}
+      onClick={handleCardClick}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3">
           {showCompareCheckbox && onToggleCompare && (

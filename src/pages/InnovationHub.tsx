@@ -9,11 +9,34 @@ import { InfoRail } from "@/components/InfoRail";
 import { Lightbulb, ExternalLink, Search, RefreshCw, TrendingUp, Users, Building2, DollarSign, ArrowRight } from "lucide-react";
 import { usePatentData } from "@/hooks/usePatentData";
 import { supabase } from "@/integrations/supabase/client";
+import { PatentDetailModal } from "@/components/innovation/PatentDetailModal";
+
+interface PatentData {
+  id: string;
+  patent_id: string;
+  title: string;
+  abstract?: string;
+  patent_date?: string;
+  assignee?: string;
+  inventors?: string[];
+  patent_url?: string;
+  diabetes_relevance_score?: number;
+  classification_codes?: string[];
+  claims_count?: number;
+  citations_count?: number;
+}
 
 const InnovationHub = () => {
   const { data: patents, loading, error, refetch } = usePatentData();
   const [searchQuery, setSearchQuery] = useState('');
   const [topCompanies, setTopCompanies] = useState<any[]>([]);
+  const [selectedPatent, setSelectedPatent] = useState<PatentData | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handlePatentClick = (patent: PatentData) => {
+    setSelectedPatent(patent);
+    setIsModalOpen(true);
+  };
 
   useEffect(() => {
     const fetchTopCompanies = async () => {
@@ -103,7 +126,11 @@ const InnovationHub = () => {
                 ) : (
                   <div className="space-y-6">
                     {filteredPatents.map((patent) => (
-                      <div key={patent.id} className="p-6 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <div 
+                        key={patent.id} 
+                        className="p-6 border rounded-lg hover:bg-muted/50 hover:border-primary/40 transition-all cursor-pointer active:scale-[0.995]"
+                        onClick={() => handlePatentClick(patent as PatentData)}
+                      >
                         {/* Header */}
                         <div className="flex justify-between items-start mb-3">
                           <div className="flex-1">
@@ -148,16 +175,24 @@ const InnovationHub = () => {
                         </div>
 
                         {/* Actions */}
-                        {patent.patent_url && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => window.open(patent.patent_url!, '_blank')}
-                          >
-                            <ExternalLink className="h-4 w-4 mr-1" />
-                            View on Google Patents
-                          </Button>
-                        )}
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                            Click for full details
+                          </span>
+                          {patent.patent_url && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                window.open(patent.patent_url!, '_blank');
+                              }}
+                            >
+                              <ExternalLink className="h-4 w-4 mr-1" />
+                              Google Patents
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -277,6 +312,13 @@ const InnovationHub = () => {
             </Card>
           </div>
         </div>
+
+        {/* Patent Detail Modal */}
+        <PatentDetailModal
+          patent={selectedPatent}
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+        />
       </div>
     </Layout>
   );

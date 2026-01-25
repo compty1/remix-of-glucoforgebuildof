@@ -51,7 +51,25 @@ export const useT1DNews = (): UseT1DNewsResult => {
 
       if (dbError) throw dbError;
 
-      setAllArticles((data as NewsArticle[]) || []);
+      // Defensive coding: filter and map with null checks
+      const validArticles = (data || [])
+        .filter((article): article is NewsArticle => 
+          article !== null && 
+          typeof article.id === 'string' && 
+          typeof article.title === 'string'
+        )
+        .map(article => ({
+          ...article,
+          description: article.description || 'No description available',
+          image_url: article.image_url || null,
+          category: article.category || 'general',
+          source_name: article.source_name || 'Unknown Source',
+          relevance_score: article.relevance_score ?? 0,
+          is_featured: article.is_featured ?? false
+        }));
+
+      setAllArticles(validArticles);
+      setError(null);
     } catch (err) {
       console.error('Error fetching news from DB:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch news');

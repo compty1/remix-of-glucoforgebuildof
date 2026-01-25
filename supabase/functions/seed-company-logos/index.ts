@@ -31,6 +31,7 @@ serve(async (req) => {
       "Ypsomed": "https://logo.clearbit.com/ypsomed.com",
       "Roche": "https://logo.clearbit.com/roche.com",
       "Senseonics": "https://logo.clearbit.com/senseonics.com",
+      "Ascensia": "https://logo.clearbit.com/ascensia.com",
       
       // Pharmaceutical Companies
       "Novo Nordisk": "https://logo.clearbit.com/novonordisk.com",
@@ -42,6 +43,10 @@ serve(async (req) => {
       "Diamyd Medical": "https://logo.clearbit.com/diamyd.com",
       "Xeris": "https://logo.clearbit.com/xerispharma.com",
       "Xeris Biopharma": "https://logo.clearbit.com/xerispharma.com",
+      "Biocon": "https://logo.clearbit.com/biocon.com",
+      "Wockhardt": "https://logo.clearbit.com/wockhardt.com",
+      "Gan & Lee": "https://logo.clearbit.com/ganlee.com",
+      "Tonghua Dongbao": "https://logo.clearbit.com/dongbaotech.com",
       
       // Research & Biotech
       "CRISPR Therapeutics": "https://logo.clearbit.com/crisprtx.com",
@@ -50,6 +55,9 @@ serve(async (req) => {
       "Sernova": "https://logo.clearbit.com/sernova.com",
       "Imcyse": "https://logo.clearbit.com/imcyse.com",
       "Precigen": "https://logo.clearbit.com/precigen.com",
+      "Oramed": "https://logo.clearbit.com/oramed.com",
+      "Encellin": "https://logo.clearbit.com/encellin.com",
+      "Anelixis": "https://logo.clearbit.com/anelixis.com",
       
       // Technology & Digital Health
       "Tidepool": "https://logo.clearbit.com/tidepool.org",
@@ -61,6 +69,13 @@ serve(async (req) => {
       "Diabeloop": "https://logo.clearbit.com/diabeloop.com",
       "TypeZero": "https://logo.clearbit.com/typezero.com",
       "Know Labs": "https://logo.clearbit.com/knowlabs.co",
+      "Glucowise": "https://logo.clearbit.com/glucowise.com",
+      "Noom": "https://logo.clearbit.com/noom.com",
+      "Virta Health": "https://logo.clearbit.com/virtahealth.com",
+      "Omada Health": "https://logo.clearbit.com/omadahealth.com",
+      "Teladoc": "https://logo.clearbit.com/teladoc.com",
+      "DarioHealth": "https://logo.clearbit.com/dariohealth.com",
+      "Companion Medical": "https://logo.clearbit.com/companionmedical.com",
       
       // Advocacy & Research Organizations
       "JDRF": "https://logo.clearbit.com/jdrf.org",
@@ -68,6 +83,19 @@ serve(async (req) => {
       "American Diabetes Association": "https://logo.clearbit.com/diabetes.org",
       "Diabetes UK": "https://logo.clearbit.com/diabetes.org.uk",
       "Beyond Type 1": "https://logo.clearbit.com/beyondtype1.org",
+      "DiabetesMine": "https://logo.clearbit.com/diabetesmine.com",
+      "diaTribe": "https://logo.clearbit.com/diatribe.org",
+      "College Diabetes Network": "https://logo.clearbit.com/collegediabetesnetwork.org",
+      "Children with Diabetes": "https://logo.clearbit.com/childrenwithdiabetes.com",
+      "Diabetes Research Institute": "https://logo.clearbit.com/diabetesresearch.org",
+      
+      // Additional Companies
+      "Insitro": "https://logo.clearbit.com/insitro.com",
+      "Verily": "https://logo.clearbit.com/verily.com",
+      "Onduo": "https://logo.clearbit.com/onduo.com",
+      "CeQur": "https://logo.clearbit.com/cequr.com",
+      "PharmaCyte": "https://logo.clearbit.com/pharmacyte.com",
+      "Islet Sciences": "https://logo.clearbit.com/isletsciences.com",
     };
 
     let updatedCount = 0;
