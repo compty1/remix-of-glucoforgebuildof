@@ -1917,6 +1917,39 @@ export type Database = {
         }
         Relationships: []
       }
+      experience_submissions: {
+        Row: {
+          category: string
+          content: string
+          created_at: string | null
+          id: string
+          is_anonymous: boolean | null
+          is_approved: boolean | null
+          upvotes: number | null
+          user_id: string | null
+        }
+        Insert: {
+          category: string
+          content: string
+          created_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          is_approved?: boolean | null
+          upvotes?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          category?: string
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_anonymous?: boolean | null
+          is_approved?: boolean | null
+          upvotes?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       external_device_reviews: {
         Row: {
           author_anonymous: string | null
@@ -4041,6 +4074,69 @@ export type Database = {
           title?: string
           website_url?: string | null
           zip_code?: string | null
+        }
+        Relationships: []
+      }
+      t1d_history_events: {
+        Row: {
+          category: string
+          created_at: string | null
+          decade: string | null
+          decade_summary: string | null
+          detailed_description: string
+          era: string | null
+          id: string
+          image_caption: string | null
+          image_url: string | null
+          impact_score: number | null
+          interesting_facts: string[] | null
+          short_description: string
+          sources: string[] | null
+          subcategory: string | null
+          title: string
+          updated_at: string | null
+          year: number
+          year_end: number | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          decade?: string | null
+          decade_summary?: string | null
+          detailed_description: string
+          era?: string | null
+          id?: string
+          image_caption?: string | null
+          image_url?: string | null
+          impact_score?: number | null
+          interesting_facts?: string[] | null
+          short_description: string
+          sources?: string[] | null
+          subcategory?: string | null
+          title: string
+          updated_at?: string | null
+          year: number
+          year_end?: number | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          decade?: string | null
+          decade_summary?: string | null
+          detailed_description?: string
+          era?: string | null
+          id?: string
+          image_caption?: string | null
+          image_url?: string | null
+          impact_score?: number | null
+          interesting_facts?: string[] | null
+          short_description?: string
+          sources?: string[] | null
+          subcategory?: string | null
+          title?: string
+          updated_at?: string | null
+          year?: number
+          year_end?: number | null
         }
         Relationships: []
       }
