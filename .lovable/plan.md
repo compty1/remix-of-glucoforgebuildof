@@ -1,795 +1,645 @@
 
-# Comprehensive Implementation Plan: Platform Feature Fixes and Enhancements
+# Comprehensive CGM Analysis Pipeline Enhancement Plan
 
 ## Executive Summary
 
-This plan addresses 7 critical issues discovered during codebase analysis:
-
-1. **Company & Medicine Logos Not Visible** - Database has null values, components need proper logo integration
-2. **Research Content Not T1D-Specific** - Filtering needed to show only Type 1 Diabetes research
-3. **App Download Links** - Already working correctly, just needs verification
-4. **Deep Dive Full Analysis Missing** - Tab exists but TabsContent is not implemented
-5. **Site Search Functionality Missing** - No global search across platform content
-6. **Public Glucose Data Analysis** - Enhance insights and add correlation discoveries
+This plan transforms the existing glucose analysis system into a clinical-grade, multi-device CGM analysis pipeline with advanced pattern detection, novel signals not found in standard AGP reports, and explainable recommendations. The implementation follows the detailed specifications from the analysis conversation, prioritizing accuracy, device-specific behaviors, and actionable insights.
 
 ---
 
-## Issue 1: Company & Medication Logos Not Visible
+## Current State Assessment
 
-### Root Cause Analysis
+### Existing Implementation
+The current `analyze-glucose` edge function (1707 lines) provides:
 
-**Company Logos:**
-- Database: 39/60 companies have `logo_url: null`
-- Remaining 21 use Clearbit API: `https://logo.clearbit.com/company.com`
-- CompanyCard.tsx shows Unsplash product images instead of company logos
-- No actual logo display logic in the component
+| Feature | Status | Gap |
+|---------|--------|-----|
+| CSV/JSON parsing | Implemented | Limited device-specific parsers |
+| PDF extraction | AI Vision + Pattern matching | Works but inconsistent |
+| Basic metrics (TIR, GMI, CV) | Implemented | Missing confidence scoring |
+| Pattern detection | 6 patterns | Missing missed-bolus, meal-insulin timing |
+| AGP visualization | Implemented | No insulin/meal overlays |
+| Recommendations | Basic rule-based | Not prioritized by clinical risk |
+| Data validation | Minimal | No wear-time or gap analysis |
+| Device metadata | None | No firmware/sensor tracking |
 
-**Medication Logos:**
-- Database: ALL 49 medications have `logo_url: null`
-- MedicationCard.tsx has ZERO logo display code
-- No logo URLs were ever populated
+### Database Schema (uploads table)
+Currently stores: `detailed_analysis`, `hourly_data`, `daily_data`, `agp_data`, `patterns`, `recommendations`, `ai_insights`
 
-### Solution
-
-**Step 1: Update seed-company-logos edge function**
-- Enhance with comprehensive logo sources:
-  - Clearbit Logo API (primary)
-  - Direct brand asset URLs for major companies
-  - Brandfetch API as fallback
-  - Generated SVG placeholders for smaller companies
-
-**Step 2: Create seed-medication-logos edge function**
-- Populate medication logos for all 49 medications
-- Use pharmaceutical company brand assets
-- Sources:
-  - Lilly (Humalog, Basaglar)
-  - Novo Nordisk (Novolog, Fiasp, Tresiba, Ozempic)
-  - Sanofi (Lantus, Toujeo, Apidra)
-  - Boehringer Ingelheim (Jardiance)
-  - AstraZeneca (Farxiga)
-  - Clearbit for manufacturer logos
-
-**Step 3: Update CompanyCard.tsx**
-- Replace Unsplash product images with actual `logo_url`
-- Display company logo in card header (60x60px)
-- Keep fallback icon if logo_url is null
-
-**Step 4: Update MedicationCard.tsx**
-- Add logo display in card header
-- Show manufacturer logo (48x48px)
-- Fallback to pill icon if logo_url is null
-
-### Files Modified
-- `supabase/functions/seed-company-logos/index.ts` (enhance)
-- `supabase/functions/seed-medication-logos/index.ts` (create)
-- `supabase/config.toml` (add new function)
-- `src/components/companies/CompanyCard.tsx`
-- `src/components/medicine/MedicationCard.tsx`
-- `src/pages/CompanyDetail.tsx` (add logo to detail view)
-- `src/pages/MedicineHub.tsx` (ensure logos display in detail modal)
+**Missing fields for enhanced analysis:**
+- `confidence_score` - Data quality confidence
+- `validation_flags` - Triggered validation rules
+- `device_metadata` - Device type, firmware, sensor info
+- `novel_signals` - Missed-bolus, meal timing, sensor drift
+- `insulin_events` - Parsed insulin delivery data
+- `meal_events` - Parsed carb/meal entries
 
 ---
 
-## Issue 2: Research Content Not Type 1 Diabetes Specific
+## Implementation Architecture
 
-### Root Cause Analysis
+### Phase 1: Canonical Schema and Validation Rules
 
-**medical_research_papers table contains:**
-- General diabetes research (Type 2 dominant)
-- Diabetic neuropathy (not T1D-specific)
-- Non-invasive glucose monitoring (general diabetes)
-- Papers with `diabetes_relevance_score` but no T1D filtering
+**1.1 Create Validation Rules Configuration**
 
-**Current State:**
-- 500+ papers in database
-- NO `diabetes_type` column or T1D filter
-- Frontend displays all diabetes research without distinction
+File: `src/config/glucose-validation-rules.ts`
 
-### Solution
-
-**Step 1: Add T1D filtering to database**
-```sql
-ALTER TABLE medical_research_papers
-ADD COLUMN is_type1_relevant boolean DEFAULT false,
-ADD COLUMN diabetes_type text CHECK (diabetes_type IN ('type1', 'type2', 'general', 'gestational'));
-
-CREATE INDEX idx_medical_research_t1d ON medical_research_papers(is_type1_relevant)
-  WHERE is_type1_relevant = true;
-```
-
-**Step 2: Create AI classification edge function**
-- `classify-research-t1d/index.ts`
-- Use Lovable AI (gemini-2.5-flash) to classify existing papers
-- Analyze title + abstract for T1D relevance:
-  - Keywords: "type 1", "T1D", "autoimmune diabetes", "insulin dependent"
-  - Exclusions: "type 2 only", "gestational", "prediabetes"
-  - Context analysis for ambiguous cases
-
-**Step 3: Update research aggregator edge functions**
-- Modify `medical-research-aggregator/index.ts`
-- Add T1D filtering to search queries:
-  - PubMed: `("type 1 diabetes" OR "T1D" OR "insulin-dependent diabetes")`
-  - OpenAlex: Filter by Type 1 diabetes concept ID
-  - Semantic Scholar: Include T1D keywords
-
-**Step 4: Update frontend queries**
-- `src/hooks/useMedicalResearchPapers.ts`
-- Add filter: `.eq('is_type1_relevant', true)`
-- `src/pages/ResearchHub.tsx`
-- Add toggle: "Show Type 1 Only" (default: ON)
-
-### Files Modified
-- Migration: `add_t1d_filtering_to_research.sql`
-- `supabase/functions/classify-research-t1d/index.ts` (new)
-- `supabase/functions/medical-research-aggregator/index.ts`
-- `supabase/functions/openalex-research-feed/index.ts`
-- `supabase/functions/semantic-scholar-feed/index.ts`
-- `src/hooks/useMedicalResearchPapers.ts`
-- `src/pages/ResearchHub.tsx`
-- `supabase/config.toml`
-
----
-
-## Issue 3: App Download Links Verification
-
-### Current State Analysis
-
-**Database Review:**
-- mySugr: ✅ Real App/Play Store links
-- Dexcom G7: ✅ Real links
-- LibreLink: ✅ Real links
-- Sugarmate: ✅ App Store + web portal
-- Nightscout: ✅ App Store + GitHub
-- xDrip+: ✅ **GitHub releases** (correct for open-source)
-- Glooko: ✅ Real links
-- Tidepool: ✅ App Store + web
-- Diabits: ✅ Real links
-- Calorie King: ✅ Real links
-
-**Assessment: Download links are ALREADY CORRECT**
-
-### Solution
-
-**Only need to enhance display in AppCenter.tsx:**
-
-**Step 1: Add download link validation indicator**
-- Show green checkmark for verified links
-- Display "Open Source" badge for GitHub downloads
-- Add "Web App" badge for browser-based apps
-
-**Step 2: Improve download button UX**
-- Primary button for native app download (iOS/Android based on detection)
-- Secondary buttons for alternative platforms
-- Special styling for open-source downloads with GitHub icon
-- Add tooltip: "Download from GitHub Releases" for xDrip+
-
-### Files Modified
-- `src/pages/AppCenter.tsx` (enhance download UI)
-
----
-
-## Issue 4: Deep Dive Full Analysis Not Showing
-
-### Root Cause Analysis
-
-**ProjectDetail.tsx (lines 184-187):**
-```tsx
-<TabsTrigger value="full-report" className="gap-2">
-  <BookOpen className="h-4 w-4" />
-  <span className="hidden sm:inline">Full Analysis</span>
-</TabsTrigger>
-```
-
-**BUT NO CORRESPONDING TabsContent:**
-- TabsContent exists for: overview, research, solutions, discussion
-- **MISSING:** `<TabsContent value="full-report">`
-- ProjectFullReport component exists and works
-- projectReportsContent.ts has comprehensive 4000+ word reports
-
-**Result:** Users click "Full Analysis" tab and see nothing
-
-### Solution
-
-**Step 1: Add TabsContent to ProjectDetail.tsx**
-
-Insert after line 408 (after overview TabsContent):
-
-```tsx
-<TabsContent value="full-report">
-  <ProjectFullReport 
-    projectSlug={project.slug}
-    projectTitle={project.title}
-  />
-</TabsContent>
-```
-
-**Step 2: Verify report slugs match**
-
-Check that project slugs in database match keys in projectReportsContent.ts:
-- "morning-nausea" ✅
-- "gastroparesis" ✅
-- "dawn-phenomenon" ✅
-- etc.
-
-**Step 3: Add "Coming Soon" fallback for projects without reports**
-
-ProjectFullReport.tsx already handles this (lines 115-126) with AlertCircle message.
-
-### Files Modified
-- `src/pages/ProjectDetail.tsx` (add TabsContent)
-
----
-
-## Issue 5: Site Search Functionality Missing
-
-### Current State
-
-- CommunitySearchBar exists but ONLY searches community posts
-- No global search across:
-  - Projects/Deep Dives
-  - Research papers
-  - Clinical trials
-  - Medications
-  - Companies
-  - Devices
-  - Articles
-  - Quality of Life experiences
-
-### Solution
-
-**Step 1: Create global search UI component**
-
-**File: `src/components/search/GlobalSearchDialog.tsx`**
-- Triggered by Cmd+K (Mac) or Ctrl+K (Windows)
-- Search input with real-time results
-- Categorized results (Projects, Research, Medications, etc.)
-- Keyboard navigation support
-
-**Step 2: Create search hook**
-
-**File: `src/hooks/useGlobalSearch.ts`**
 ```typescript
-interface SearchResult {
+interface ValidationRule {
   id: string;
-  title: string;
   description: string;
-  category: 'project' | 'research' | 'medication' | 'device' | 'company' | 'article';
-  url: string;
-  relevance: number;
+  condition: string;
+  window: 'row' | 'day' | 'rolling_14d' | 'dataset';
+  severity: 'critical' | 'high' | 'medium' | 'low';
+  penalty: number;
+  action: string;
+  enabled: boolean;
 }
 ```
 
-**Search Implementation:**
-- Debounced search (300ms)
-- Parallel queries to multiple tables
-- Text search using Postgres `to_tsvector` and `to_tsquery`
-- Rank results by relevance
+**Rules to implement:**
+1. `timestamp_future` - Reject future timestamps (penalty: 40)
+2. `timestamp_drift` - Flag >12hr timezone mismatch (penalty: 20)
+3. `low_wear_time` - <70% CGM active over 14 days (penalty: 30)
+4. `large_gaps` - >3 gaps of 2+ hours (penalty: 10)
+5. `duplicate_rows` - Exact duplicates (penalty: 2)
+6. `out_of_range_glucose` - <20 or >1000 mg/dL (penalty: 35)
+7. `implausible_insulin` - >50U bolus or >500g carbs (penalty: 15)
+8. `missing_required_fields` - No timestamp/device_id (penalty: 50)
+9. `firmware_unknown` - Unrecognized format (penalty: 5)
+10. `sampling_interval_high` - Median interval >10 min (penalty: 12)
+11. `suspicious_sensor_age` - >336 hours sensor use (penalty: 8)
+12. `inconsistent_upload_source` - Overlapping sources (penalty: 3)
 
-**Step 3: Add database search indexes**
+**Confidence Scoring:**
+- Base score: 100
+- Subtract penalties for triggered rules
+- Bands: ≥85 (high), 60-84 (moderate), 30-59 (low), <30 (unreliable)
+
+**1.2 Database Migration**
+
+Add new columns to `uploads` table:
 
 ```sql
--- Full-text search indexes
-CREATE INDEX idx_projects_search ON health_projects USING GIN(to_tsvector('english', title || ' ' || description || ' ' || COALESCE(symptoms::text, '')));
-
-CREATE INDEX idx_research_search ON medical_research_papers USING GIN(to_tsvector('english', title || ' ' || COALESCE(abstract, '')));
-
-CREATE INDEX idx_medications_search ON medications USING GIN(to_tsvector('english', name || ' ' || COALESCE(generic_name, '') || ' ' || COALESCE(description, '')));
-
-CREATE INDEX idx_devices_search ON devices USING GIN(to_tsvector('english', name || ' ' || COALESCE(description, '')));
-
-CREATE INDEX idx_companies_search ON t1d_companies USING GIN(to_tsvector('english', name || ' ' || COALESCE(description, '')));
+ALTER TABLE public.uploads
+ADD COLUMN IF NOT EXISTS confidence_score integer DEFAULT 100,
+ADD COLUMN IF NOT EXISTS confidence_band text DEFAULT 'unknown',
+ADD COLUMN IF NOT EXISTS validation_flags jsonb DEFAULT '[]'::jsonb,
+ADD COLUMN IF NOT EXISTS device_metadata jsonb DEFAULT '{}'::jsonb,
+ADD COLUMN IF NOT EXISTS wear_time_percent numeric,
+ADD COLUMN IF NOT EXISTS gap_analysis jsonb DEFAULT '[]'::jsonb,
+ADD COLUMN IF NOT EXISTS novel_signals jsonb DEFAULT '{}'::jsonb,
+ADD COLUMN IF NOT EXISTS insulin_events jsonb DEFAULT '[]'::jsonb,
+ADD COLUMN IF NOT EXISTS meal_events jsonb DEFAULT '[]'::jsonb,
+ADD COLUMN IF NOT EXISTS data_quality jsonb DEFAULT '{}'::jsonb;
 ```
-
-**Step 4: Add search trigger to Layout**
-
-**File: `src/components/Layout.tsx`**
-- Add search icon in header
-- Keyboard shortcut listener (Cmd/Ctrl + K)
-- Show GlobalSearchDialog on trigger
-
-**Step 5: Create search edge function (optional, for advanced ranking)**
-
-**File: `supabase/functions/global-search/index.ts`**
-- Server-side search aggregation
-- Advanced relevance scoring
-- Caching for common queries
-
-### Files Created/Modified
-- `src/components/search/GlobalSearchDialog.tsx` (new)
-- `src/components/search/SearchResultCard.tsx` (new)
-- `src/hooks/useGlobalSearch.ts` (new)
-- `src/components/Layout.tsx` (add search trigger)
-- Migration: `add_search_indexes.sql` (new)
-- `supabase/functions/global-search/index.ts` (new, optional)
-- `supabase/config.toml` (add function if created)
 
 ---
 
-## Issue 6: Enhanced Public Glucose Data Analysis
+### Phase 2: Device-Specific Parsers
 
-### Current State
+**2.1 Canonical Record Schema**
 
-**PublicGlucoseData.tsx already has:**
-- 10,500 data points ✅
-- 250 unique users ✅
-- Demographics (age, gender, region) ✅
-- Device data (pump, CGM) ✅
-- Filters implemented ✅
-- Basic visualizations:
-  - 24-hour average patterns
-  - Time in Range (TIR) distribution
-  - Age-based TIR comparison
-  - Device-based TIR comparison
-
-**What's Missing:**
-- Correlation discoveries
-- Insulin dosing insights
-- A1C estimation
-- Pattern recognition
-- Comparative analytics
-- Export capabilities
-
-### Solution
-
-**Step 1: Add Advanced Correlation Analysis**
-
-**New visualizations to add:**
-
-1. **Insulin Sensitivity by Age**
-   - Scatter plot: basal_rate vs. TIR by age group
-   - Shows optimal dosing patterns
-
-2. **Correction Factor Effectiveness**
-   - Bar chart: Average correction_factor by control_level
-   - Identifies optimal ratios
-
-3. **Carb Ratio Impact**
-   - Line chart: carb_ratio vs. post-meal glucose spikes
-   - Regional comparison
-
-4. **Device Combination Analysis**
-   - Heatmap: TIR by pump + CGM combination
-   - "Best device pairing" insights
-
-5. **Regional Control Patterns**
-   - Map visualization: Average TIR by location_region
-   - Potential healthcare access insights
-
-6. **Duration of Diabetes Impact**
-   - Scatter: diabetes_duration_years vs. glucose variability
-   - Shows progression patterns
-
-**Step 2: Add AI-Powered Pattern Discovery**
-
-**File: `supabase/functions/analyze-glucose-patterns/index.ts`**
-- Use Lovable AI (gemini-2.5-flash)
-- Analyze aggregated data for insights:
-  - "Users with Omnipod 5 + Dexcom G7 show 12% higher TIR than MDI users"
-  - "Age 18-30 group has highest overnight variability"
-  - "Western Europe region has lowest hypoglycemia events"
-
-**Step 3: Add Statistical Insights Cards**
-
-**Component: `src/components/data-upload/GlucoseInsightCard.tsx`**
-- Display discovered correlations
-- "Did you know?" format
-- Share button for insights
-
-**Step 4: Add Data Export**
-
-- Export filtered dataset as CSV
-- Export visualizations as PNG
-- Generate PDF report with insights
-
-**Step 5: Add Demographic Breakdown Panel**
-
-**Component: `src/components/data-upload/DemographicsPanel.tsx`**
-- Pie charts for:
-  - Age distribution
-  - Gender distribution
-  - Device usage
-  - Regional representation
-- Total participant count
-- Data freshness indicator
-
-### Files Modified/Created
-- `src/pages/PublicGlucoseData.tsx` (add new visualizations)
-- `src/components/data-upload/GlucoseInsightCard.tsx` (new)
-- `src/components/data-upload/DemographicsPanel.tsx` (new)
-- `src/components/data-upload/CorrelationMatrix.tsx` (new)
-- `supabase/functions/analyze-glucose-patterns/index.ts` (new)
-- `supabase/config.toml` (add function)
-
----
-
-## Implementation Timeline
-
-### Phase 1: Critical Fixes (Day 1)
-**Priority: HIGH - User-facing broken features**
-
-1. ✅ Fix Deep Dive Full Analysis (1 line of code)
-   - Add TabsContent to ProjectDetail.tsx
-   - Test with morning-nausea project
-
-2. ✅ Company Logo Display
-   - Update CompanyCard.tsx
-   - Run seed-company-logos function
-   - Verify logos appear
-
-3. ✅ Medication Logo Implementation
-   - Create seed-medication-logos function
-   - Update MedicationCard.tsx
-   - Populate and verify
-
-### Phase 2: Research Filtering (Day 2)
-**Priority: HIGH - Content quality**
-
-4. ✅ Add T1D Research Filtering
-   - Database migration
-   - Create classify-research-t1d function
-   - Update aggregator functions
-   - Frontend filter toggle
-
-### Phase 3: Site Search (Days 3-4)
-**Priority: MEDIUM - New functionality**
-
-5. ✅ Implement Global Search
-   - Create search components
-   - Add database indexes
-   - Add to Layout
-   - Test all categories
-
-### Phase 4: Enhanced Analytics (Days 5-6)
-**Priority: MEDIUM - Enhancement**
-
-6. ✅ Public Glucose Advanced Analysis
-   - Add correlation visualizations
-   - Create pattern discovery function
-   - Add insights cards
-   - Add export features
-
-### Phase 5: Polish (Day 7)
-**Priority: LOW - UX improvements**
-
-7. ✅ App Download Link Enhancements
-   - Improve download button UX
-   - Add validation indicators
-   - Open-source badges
-
----
-
-## Technical Implementation Details
-
-### Database Migrations Required
-
-**Migration 1: T1D Research Filtering**
-```sql
--- Add Type 1 Diabetes classification
-ALTER TABLE medical_research_papers
-ADD COLUMN is_type1_relevant boolean DEFAULT false,
-ADD COLUMN diabetes_type text CHECK (diabetes_type IN ('type1', 'type2', 'general', 'gestational')),
-ADD COLUMN classification_confidence numeric CHECK (classification_confidence >= 0 AND classification_confidence <= 1);
-
-CREATE INDEX idx_medical_research_t1d 
-ON medical_research_papers(is_type1_relevant)
-WHERE is_type1_relevant = true;
-
-COMMENT ON COLUMN medical_research_papers.is_type1_relevant IS 'AI-classified Type 1 Diabetes relevance';
-```
-
-**Migration 2: Search Indexes**
-```sql
--- Full-text search support
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
-CREATE INDEX idx_projects_search 
-ON health_projects USING GIN(
-  to_tsvector('english', 
-    title || ' ' || 
-    description || ' ' || 
-    COALESCE(array_to_string(symptoms, ' '), '')
-  )
-);
-
-CREATE INDEX idx_projects_title_trgm 
-ON health_projects USING GIN(title gin_trgm_ops);
-
-CREATE INDEX idx_research_search 
-ON medical_research_papers USING GIN(
-  to_tsvector('english', title || ' ' || COALESCE(abstract, ''))
-);
-
-CREATE INDEX idx_medications_search 
-ON medications USING GIN(
-  to_tsvector('english', 
-    name || ' ' || 
-    COALESCE(generic_name, '') || ' ' || 
-    COALESCE(description, '')
-  )
-);
-
-CREATE INDEX idx_devices_search 
-ON devices USING GIN(
-  to_tsvector('english', name || ' ' || COALESCE(description, ''))
-);
-
-CREATE INDEX idx_companies_search 
-ON t1d_companies USING GIN(
-  to_tsvector('english', name || ' ' || COALESCE(description, ''))
-);
-```
-
-### Edge Functions to Create/Modify
-
-**New Functions:**
-1. `seed-medication-logos` - Populate medication brand logos
-2. `classify-research-t1d` - AI classification for existing papers
-3. `global-search` - Unified search endpoint (optional)
-4. `analyze-glucose-patterns` - AI pattern discovery
-
-**Modified Functions:**
-1. `seed-company-logos` - Enhanced with more logo sources
-2. `medical-research-aggregator` - Add T1D filtering
-3. `openalex-research-feed` - Add T1D filtering
-4. `semantic-scholar-feed` - Add T1D filtering
-
-### Logo Sources Reference
-
-**Company Logos:**
 ```typescript
-const logoSources = [
-  { name: 'Dexcom', url: 'https://logo.clearbit.com/dexcom.com' },
-  { name: 'Abbott', url: 'https://logo.clearbit.com/abbott.com' },
-  { name: 'Medtronic', url: 'https://logo.clearbit.com/medtronic.com' },
-  { name: 'Tandem', url: 'https://logo.clearbit.com/tandemdiabetes.com' },
-  { name: 'Insulet', url: 'https://logo.clearbit.com/insulet.com' },
-  { name: 'Vertex Pharmaceuticals', url: 'https://logo.clearbit.com/vrtx.com' },
-  // ... continue for all 60 companies
-];
+interface CanonicalRecord {
+  record_id: string;
+  device_id: string;
+  firmware_version: string | null;
+  timestamp_utc: string;
+  local_timestamp: string | null;
+  glucose_mg_dl: number | null;
+  glucose_status: 'OK' | 'SENSOR_ERROR' | 'NO_READING' | 'CALIBRATION_REQUIRED';
+  insulin_event: 'BOLUS' | 'BASAL_START' | 'BASAL_STOP' | 'TEMP_BASAL' | 'SUSPEND' | 'RESUME' | 'AUTO_BASAL' | null;
+  insulin_units: number | null;
+  basal_rate_u_per_hr: number | null;
+  carb_event: number | null;
+  meal_marker: 'USER_MEAL' | 'AUTO_MEAL_ESTIMATE' | 'NONE';
+  device_mode: 'MANUAL' | 'AUTO_MODE' | 'SUSPENDED' | 'UNKNOWN';
+  sensor_age_hours: number | null;
+  sensor_signal_quality: number | null;
+  battery_level: number | null;
+  upload_source: 'PHONE_APP' | 'RECEIVER' | 'CLOUD_EXPORT' | 'HCP_PORTAL';
+  notes: string | null;
+}
 ```
 
-**Medication Logos (Manufacturer):**
+**2.2 Device Parsers**
+
+Enhance `analyze-glucose/index.ts` with device-specific parsing:
+
+**Dexcom G6/G7 Parser:**
+- Detect via headers: `Timestamp (YYYY-MM-DDThh:mm:ss)`, `Glucose Value (mg/dL)`, `Event Type`
+- Extract: EGV values, sensor errors, calibration events
+- Map `Event Type` to insulin/meal events when present
+
+**Beta Bionics iLet Parser:**
+- Detect via headers: `Time`, `Sensor Glucose`, `Delivered Insulin`, `Meal Announcement`
+- Extract: Auto-mode behavior, insulin delivery, meal announcements
+- Calculate: Auto-mode override frequency
+
+**LibreView Parser:**
+- Detect via headers: `Device Timestamp`, `Historic Glucose`, `Scan Glucose`
+- Handle: Separate scan vs. historic readings
+- Extract: Reader vs. sensor data
+
+**Generic CSV Fallback:**
+- Improved column detection with fuzzy matching
+- Support for international date formats
+- Timezone inference from filename/content
+
+---
+
+### Phase 3: Enhanced Core Metrics
+
+**3.1 Standard Clinical Metrics (already implemented, to be enhanced)**
+
+| Metric | Current | Enhancement |
+|--------|---------|-------------|
+| TIR (70-180) | Yes | Add day/night breakdown |
+| TBR (<70, <54) | Yes | Add event counting with duration |
+| TAR (>180, >250) | Yes | Add severity weighting |
+| Mean/Median | Yes | Add eAG equivalents |
+| CV | Yes | Validate against standard deviation |
+| GMI | Yes | Add confidence interval |
+| MAGE | Yes | Improve algorithm accuracy |
+| GVI | Yes | Add interpretation |
+
+**3.2 Day/Night Breakdown**
+
+Add to `detailedAnalysis`:
+
 ```typescript
-const medicationLogos = {
-  // Eli Lilly products
-  'Humalog': 'https://logo.clearbit.com/lilly.com',
-  'Basaglar': 'https://logo.clearbit.com/lilly.com',
-  
-  // Novo Nordisk products
-  'Novolog': 'https://logo.clearbit.com/novonordisk.com',
-  'Fiasp': 'https://logo.clearbit.com/novonordisk.com',
-  'Tresiba': 'https://logo.clearbit.com/novonordisk.com',
-  'Ozempic': 'https://logo.clearbit.com/novonordisk.com',
-  
-  // Sanofi products
-  'Lantus': 'https://logo.clearbit.com/sanofi.com',
-  'Toujeo': 'https://logo.clearbit.com/sanofi.com',
-  'Apidra': 'https://logo.clearbit.com/sanofi.com',
-  
-  // ... continue for all medications
-};
+interface DayNightMetrics {
+  dayStart: string; // User-configurable, default "06:00"
+  nightStart: string; // User-configurable, default "22:00"
+  day: {
+    timeInRange: number;
+    avgGlucose: number;
+    cv: number;
+    lowEvents: number;
+    highEvents: number;
+  };
+  night: {
+    timeInRange: number;
+    avgGlucose: number;
+    cv: number;
+    lowEvents: number;
+    highEvents: number;
+  };
+}
+```
+
+**3.3 Wear-Time and Data Sufficiency**
+
+```typescript
+interface DataQuality {
+  percentCGMActive: number; // Target: ≥70%
+  totalExpectedReadings: number;
+  actualReadings: number;
+  gapCount: number;
+  largestGapMinutes: number;
+  medianIntervalMinutes: number;
+  dataStartDate: string;
+  dataEndDate: string;
+  daysOfData: number;
+  isSufficientForAnalysis: boolean; // ≥70% over 14+ days
+}
 ```
 
 ---
 
-## Testing Checklist
+### Phase 4: Novel Signal Detection (High Value)
 
-### Logos
-- [ ] All company cards display logos or fallback icons
-- [ ] All medication cards display manufacturer logos
-- [ ] CompanyDetail page shows large logo
-- [ ] MedicineHub detail modal shows logo
-- [ ] Logos load correctly in light and dark mode
-- [ ] Broken image URLs show fallback icons
+**4.1 Missed-Bolus Detection**
 
-### Research Filtering
-- [ ] Only T1D-relevant papers appear by default
-- [ ] Toggle shows all diabetes research when disabled
-- [ ] New papers are auto-classified on ingestion
-- [ ] Classification confidence shown in UI
-- [ ] Admin can manually override classifications
+Algorithm:
 
-### Deep Dive Analysis
-- [ ] "Full Analysis" tab appears on project detail pages
-- [ ] Clicking tab loads ProjectFullReport component
-- [ ] Table of contents navigation works
-- [ ] Print button generates proper PDF
-- [ ] Progress bar tracks scroll position
-- [ ] References section displays correctly
-- [ ] Projects without reports show "Coming Soon" message
+```
+for each day:
+  find candidate_meal_windows = glucose rises where:
+    - slope > 2 mg/dL/min over 15 min
+    - pre-rise glucose < 200 mg/dL
+  
+  for each window:
+    if no bolus within [-30min, +60min] of rise_start:
+      if rise_magnitude > 40 mg/dL OR postprandial_AUC > threshold:
+        record missed_bolus_event with:
+          - severity = map(rise_magnitude, AUC)
+          - time_of_day
+          - peak_glucose
+          - duration_above_target
+```
 
-### Site Search
-- [ ] Cmd+K (Mac) / Ctrl+K (Win) opens search dialog
-- [ ] Search icon in header opens dialog
-- [ ] Real-time results appear as user types
-- [ ] Results categorized correctly
-- [ ] Clicking result navigates to correct page
-- [ ] Keyboard navigation (arrows, enter, escape) works
-- [ ] Search works across all content types
-- [ ] Empty state shows helpful message
+Output structure:
 
-### Public Glucose Analysis
-- [ ] All 10,500 data points load
-- [ ] Demographic filters work correctly
-- [ ] New correlation charts display
-- [ ] AI insights load and refresh
-- [ ] Export CSV downloads correct data
-- [ ] Export PNG saves visualizations
-- [ ] Demographics panel shows accurate stats
-- [ ] Patterns are mathematically sound
+```typescript
+interface MissedBolusEvent {
+  timestamp: string;
+  peakGlucose: number;
+  riseMagnitude: number;
+  durationAboveTarget: number;
+  severity: 'low' | 'medium' | 'high';
+  confidence: number;
+}
+```
 
-### App Download Links
-- [ ] All app store links open correctly
-- [ ] xDrip+ GitHub link works
-- [ ] Open-source badge appears for GitHub downloads
-- [ ] Web app badge appears for browser-based apps
-- [ ] Download buttons adapt to user's platform
-- [ ] External link icons appear consistently
+**4.2 Meal-Insulin Timing Mismatch Score**
+
+Algorithm:
+
+```
+for each meal_event with carbs:
+  find nearest bolus within [-60min, +120min]
+  delta = bolus_time - meal_time
+  postprandial_AUC = integrate(glucose from meal_time to meal_time+4h)
+  expected_AUC = model_expected_AUC(carbs, user_sensitivity)
+  
+  mismatch_score = 
+    w1 * abs(delta_minutes)/30 + 
+    w2 * max(0, (postprandial_AUC - expected_AUC)) / expected_AUC
+```
+
+**4.3 Sensor Drift Index**
+
+```
+if SMBG_pairs >= 5:
+  offsets = [sensor - SMBG for each pair]
+  drift_slope = linear_regression_slope(offsets over time)
+  drift_index = drift_slope * 24 (mg/dL per day)
+  flag if abs(drift_index) > 10
+```
+
+**4.4 Auto-Mode Behavior Metrics (for closed-loop devices)**
+
+```typescript
+interface AutoModeMetrics {
+  autoModeActivePercent: number;
+  overrideFrequencyPerDay: number;
+  autoBasalVolatility: number; // SD of auto basal rate overnight
+  rescueEventCount: number;
+  exitReasons: Record<string, number>;
+}
+```
+
+**4.5 Recurring Pattern Detector**
+
+Weekly aggregation to find repeating excursions:
+
+```typescript
+interface RecurringPattern {
+  dayOfWeek: string | 'weekday' | 'weekend';
+  timeWindow: string; // "14:00-16:00"
+  patternType: 'high' | 'low' | 'variable';
+  frequency: number; // occurrences per week
+  avgMagnitude: number;
+  confidence: number;
+}
+```
+
+**4.6 Insulin Stacking Risk**
+
+```typescript
+interface InsulinStackingEvent {
+  timestamp: string;
+  bolusSequence: Array<{ time: string; units: number }>;
+  estimatedIOB: number;
+  stackingRiskScore: number; // 0-100
+  subsequentLowEvent: boolean;
+}
+```
 
 ---
 
-## Files Summary
+### Phase 5: Enhanced Report Structure
 
-### New Files (13)
-1. `supabase/functions/seed-medication-logos/index.ts`
-2. `supabase/functions/classify-research-t1d/index.ts`
-3. `supabase/functions/global-search/index.ts` (optional)
-4. `supabase/functions/analyze-glucose-patterns/index.ts`
-5. `src/components/search/GlobalSearchDialog.tsx`
-6. `src/components/search/SearchResultCard.tsx`
-7. `src/hooks/useGlobalSearch.ts`
-8. `src/components/data-upload/GlucoseInsightCard.tsx`
-9. `src/components/data-upload/DemographicsPanel.tsx`
-10. `src/components/data-upload/CorrelationMatrix.tsx`
-11. `supabase/migrations/add_t1d_filtering_to_research.sql`
-12. `supabase/migrations/add_search_indexes.sql`
-13. `src/types/search.ts`
+**5.1 Report Sections (Priority Order)**
 
-### Modified Files (15)
-1. `src/pages/ProjectDetail.tsx` (add TabsContent)
-2. `src/components/companies/CompanyCard.tsx` (add logo display)
-3. `src/components/medicine/MedicationCard.tsx` (add logo display)
-4. `src/pages/CompanyDetail.tsx` (add logo to header)
-5. `src/pages/MedicineHub.tsx` (show logos in detail)
-6. `supabase/functions/seed-company-logos/index.ts` (enhance)
-7. `supabase/functions/medical-research-aggregator/index.ts` (add T1D filter)
-8. `supabase/functions/openalex-research-feed/index.ts` (add T1D filter)
-9. `supabase/functions/semantic-scholar-feed/index.ts` (add T1D filter)
-10. `src/hooks/useMedicalResearchPapers.ts` (add T1D filter)
-11. `src/pages/ResearchHub.tsx` (add T1D toggle)
-12. `src/components/Layout.tsx` (add search trigger)
-13. `src/pages/PublicGlucoseData.tsx` (add visualizations)
-14. `src/pages/AppCenter.tsx` (enhance download UX)
-15. `supabase/config.toml` (register new functions)
+1. **Executive Summary** (3 bullets)
+   - Overall TIR with target comparison
+   - Top 2 clinical risks (prioritize hypo > hyper)
+   - Confidence score with data quality note
+
+2. **Key Metrics Dashboard**
+   - TIR/TBR/TAR with clinical targets
+   - GMI with A1C equivalence
+   - CV with stability rating
+   - Wear-time and data coverage
+
+3. **Top 5 Prioritized Issues**
+   - Ranked by clinical risk (hypo first)
+   - Each with: why it matters, evidence, actionable suggestion
+   - Example: "1. Reduce overnight basal by 0.05 U/hr (observed 6/7 nights with median rise 45 mg/dL 2-4 AM; confidence 92%)"
+
+4. **Recurring Patterns**
+   - Visual + textual summary
+   - Weekday vs. weekend comparison
+   - Top 3 worst recurring patterns
+
+5. **Novel Signals Section**
+   - Missed-bolus events summary
+   - Meal-insulin timing score
+   - Auto-mode behavior (if applicable)
+   - Sensor drift warning (if detected)
+
+6. **Device & Data Provenance**
+   - Device type and firmware
+   - Upload source
+   - Parser version
+   - Confidence score breakdown
+
+7. **Appendix**
+   - Raw event list (exportable)
+   - Gap map visualization
+   - Algorithm outputs with evidence
+
+**5.2 Recommendation Prioritization**
+
+Risk scoring algorithm:
+
+```typescript
+function calculateRiskScore(issue: Issue): number {
+  let score = 0;
+  
+  // Hypoglycemia highest priority
+  if (issue.type === 'hypoglycemia') score += 100;
+  if (issue.type === 'severe_hypoglycemia') score += 150;
+  
+  // Frequency matters
+  score += issue.frequency * 10;
+  
+  // Severity
+  if (issue.severity === 'critical') score *= 1.5;
+  if (issue.severity === 'warning') score *= 1.2;
+  
+  // Recency (recent patterns more important)
+  if (issue.lastOccurrence < 7) score *= 1.3;
+  
+  return score;
+}
+```
+
+---
+
+### Phase 6: Frontend Enhancements
+
+**6.1 New UI Components**
+
+**Confidence Score Badge:**
+```typescript
+// src/components/data-upload/ConfidenceScoreBadge.tsx
+interface Props {
+  score: number;
+  band: 'high' | 'moderate' | 'low' | 'unreliable';
+  validationFlags: ValidationFlag[];
+}
+```
+
+**Novel Signals Card:**
+```typescript
+// src/components/data-upload/NovelSignalsCard.tsx
+interface Props {
+  missedBoluses: MissedBolusEvent[];
+  mealTimingScore: number;
+  sensorDrift: number | null;
+  autoModeMetrics: AutoModeMetrics | null;
+}
+```
+
+**Data Quality Panel:**
+```typescript
+// src/components/data-upload/DataQualityPanel.tsx
+interface Props {
+  wearTimePercent: number;
+  gapAnalysis: GapInfo[];
+  dataRange: { start: string; end: string };
+  isSufficient: boolean;
+}
+```
+
+**AGP with Overlays:**
+- Enhance `GlucoseAGPChart.tsx` to show:
+  - Bolus markers (if insulin data available)
+  - Meal markers (if carb data available)
+  - Auto-basal shading (for closed-loop devices)
+
+**6.2 Update AnalysisResultsModal.tsx**
+
+Add new tabs:
+- **Data Quality** - Wear-time, gaps, confidence score
+- **Novel Signals** - Missed-bolus, timing, drift
+- **Clinician View** - Formatted for healthcare provider review
+
+**6.3 Executive Summary Card**
+
+New component for top of analysis results:
+
+```typescript
+// src/components/data-upload/ExecutiveSummary.tsx
+interface Props {
+  tir: number;
+  topRisks: Array<{ title: string; severity: string }>;
+  confidence: number;
+  encouragement: string;
+}
+```
+
+---
+
+### Phase 7: Edge Function Refactoring
+
+**7.1 Modular Structure**
+
+Refactor `analyze-glucose/index.ts` into logical sections:
+
+```
+supabase/functions/analyze-glucose/
+├── index.ts              # Main server, orchestration
+├── parsers/
+│   ├── dexcom.ts         # Dexcom G6/G7 parser
+│   ├── libre.ts          # LibreView parser
+│   ├── ilet.ts           # Beta Bionics parser
+│   └── generic.ts        # Generic CSV/JSON
+├── validators/
+│   ├── rules.ts          # Validation rule definitions
+│   └── evaluator.ts      # Rule evaluation engine
+├── analyzers/
+│   ├── core-metrics.ts   # TIR, GMI, CV, etc.
+│   ├── patterns.ts       # Pattern detection
+│   ├── novel-signals.ts  # Missed-bolus, timing, drift
+│   └── recommendations.ts # AI-enhanced recommendations
+└── utils/
+    ├── statistics.ts     # Percentile, MAGE, etc.
+    └── time-utils.ts     # Timezone, parsing
+```
+
+**Note:** Due to edge function constraints, all code must remain in `index.ts` but will be organized with clear section comments.
+
+**7.2 Algorithm Improvements**
+
+**MAGE Calculation (fix):**
+- Current implementation has edge cases
+- Add proper excursion filtering
+- Handle datasets with minimal variability
+
+**Gap Detection:**
+```typescript
+interface GapInfo {
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  type: 'sensor_warmup' | 'calibration' | 'wear_off' | 'unknown';
+}
+```
+
+**7.3 AI Recommendations Enhancement**
+
+Update AI prompt to include:
+- Novel signals context
+- Prioritized risk ranking
+- Evidence-based suggestions
+- Safety disclaimers
+
+---
+
+## Files to Create/Modify
+
+### New Files
+| File | Purpose |
+|------|---------|
+| `src/config/glucose-validation-rules.ts` | Validation rule definitions |
+| `src/components/data-upload/ConfidenceScoreBadge.tsx` | Visual confidence indicator |
+| `src/components/data-upload/NovelSignalsCard.tsx` | Missed-bolus, timing, drift display |
+| `src/components/data-upload/DataQualityPanel.tsx` | Wear-time, gaps visualization |
+| `src/components/data-upload/ExecutiveSummary.tsx` | Top-level analysis summary |
+| `src/types/glucose-analysis.ts` | TypeScript interfaces for all new types |
+
+### Modified Files
+| File | Changes |
+|------|---------|
+| `supabase/functions/analyze-glucose/index.ts` | Major refactor with all new algorithms |
+| `src/components/data-upload/AnalysisResultsModal.tsx` | Add new tabs, executive summary |
+| `src/components/data-upload/GlucoseAGPChart.tsx` | Add insulin/meal overlays |
+| `src/components/data-upload/PatternCard.tsx` | Add missed-bolus, stacking patterns |
+| `src/components/data-upload/GlucoseMetricsGrid.tsx` | Add day/night breakdown |
+| `src/pages/DataUpload.tsx` | Display confidence score, data quality |
+| `src/integrations/supabase/types.ts` | Will auto-update with new columns |
+
+### Database Migrations
+| Migration | Description |
+|-----------|-------------|
+| `add_enhanced_analysis_columns.sql` | New columns for confidence, validation, novel signals |
+
+---
+
+## Technical Specifications
+
+### Validation Rule Weights
+
+| Rule ID | Penalty | Rationale |
+|---------|---------|-----------|
+| timestamp_future | 40 | Critical data integrity issue |
+| missing_required_fields | 50 | Cannot analyze without core data |
+| out_of_range_glucose | 35 | Likely sensor error |
+| low_wear_time | 30 | Insufficient data for reliable analysis |
+| timestamp_drift | 20 | Timezone issues affect patterns |
+| implausible_insulin | 15 | Data entry error likely |
+| sampling_interval_high | 12 | Affects time-series analysis |
+| large_gaps | 10 | Missing data periods |
+| suspicious_sensor_age | 8 | Accuracy may be degraded |
+| firmware_unknown | 5 | Minor compatibility concern |
+| inconsistent_upload_source | 3 | Deduplication needed |
+| duplicate_rows | 2 | Easy to handle |
+
+### Clinical Risk Prioritization
+
+1. **Severe hypoglycemia** (<54 mg/dL) - Highest priority
+2. **Hypoglycemia** (<70 mg/dL) - High priority
+3. **Nocturnal lows** - High priority (safety during sleep)
+4. **High variability** (CV >36%) - Medium-high priority
+5. **Very high glucose** (>250 mg/dL) - Medium priority
+6. **Time above range** - Medium priority
+7. **Pattern consistency** - Lower priority
+
+### Device Support Matrix
+
+| Device | CSV Support | PDF Support | Insulin Data | Meal Data |
+|--------|-------------|-------------|--------------|-----------|
+| Dexcom G6 | Full | Summary only | Event types | Event types |
+| Dexcom G7 | Full | Summary only | Event types | Event types |
+| LibreView | Full | Summary only | No | Scan notes |
+| Beta Bionics iLet | Full | Summary only | Full | Announcements |
+| Tandem t:slim | Planned | No | Full | Carbs |
+| Omnipod 5 | Planned | No | Full | Carbs |
+| Medtronic | Planned | No | Full | Carbs |
+
+---
+
+## Safety Considerations
+
+1. **Never output explicit dosing commands**
+   - Always phrase as suggestions
+   - Include "discuss with your healthcare provider" disclaimer
+
+2. **Clinical validation requirement**
+   - Log algorithm versions for reproducibility
+   - Include data provenance in reports
+
+3. **Confidence-gated recommendations**
+   - Low confidence = limit automated claims
+   - Show confidence score prominently
+
+4. **Prioritize safety-critical findings**
+   - Hypoglycemia patterns always surfaced first
+   - Critical severity patterns require attention
 
 ---
 
 ## Success Metrics
 
-### User-Facing Improvements
-- ✅ Company/medication logos visible: 100% of entities
-- ✅ Research relevance: 90%+ papers T1D-specific
-- ✅ Deep dive analysis accessible: All 15+ projects
-- ✅ Search functionality: <500ms response time
-- ✅ Data insights: 10+ correlation discoveries
-
-### Technical Quality
-- ✅ No broken images (fallbacks work)
-- ✅ Search indexes improve query speed 10x
-- ✅ AI classification accuracy >85%
-- ✅ All edge functions deploy successfully
-- ✅ Zero regression in existing features
-
-### User Experience
-- ✅ Logos load in <2 seconds
-- ✅ Search accessible via keyboard shortcut
-- ✅ Analysis reports readable and comprehensive
-- ✅ Download links clearly labeled
-- ✅ Glucose insights actionable and accurate
+| Metric | Target |
+|--------|--------|
+| Missed-bolus detection accuracy | >85% (vs. clinician review) |
+| Pattern detection sensitivity | >90% for recurring patterns |
+| Data quality assessment accuracy | >95% agreement with manual review |
+| Report generation time | <5 seconds for 14-day dataset |
+| User comprehension score | >4.0/5.0 on actionability |
+| Clinician satisfaction | >4.5/5.0 on accuracy and usefulness |
 
 ---
 
-## Risk Mitigation
+## Implementation Phases
 
-### Potential Issues
+### Phase 1 (Week 1): Foundation
+- Database migration for new columns
+- Validation rules implementation
+- Confidence scoring system
+- Data quality analysis
 
-**Logo Loading Failures:**
-- **Risk:** Clearbit or external URLs may fail
-- **Mitigation:** Always use fallback icons, cache successful URLs
+### Phase 2 (Week 2): Enhanced Metrics
+- Day/night breakdown
+- Improved pattern detection
+- Gap analysis and wear-time
 
-**T1D Classification Accuracy:**
-- **Risk:** AI may misclassify some papers
-- **Mitigation:** Add manual review queue, confidence scores, admin override
+### Phase 3 (Week 3): Novel Signals
+- Missed-bolus detection
+- Meal-insulin timing score
+- Recurring pattern detector
+- Insulin stacking risk
 
-**Search Performance:**
-- **Risk:** Large dataset may slow searches
-- **Mitigation:** GIN indexes, debouncing, result limits, caching
+### Phase 4 (Week 4): UI and Reporting
+- Executive summary component
+- Novel signals card
+- Data quality panel
+- Enhanced AGP with overlays
+- Clinician-ready PDF export
 
-**TabsContent Rendering:**
-- **Risk:** Reports may be large and slow
-- **Mitigation:** Lazy loading, virtualization, progress indicators
+### Phase 5 (Week 5): Device Parsers
+- Enhanced Dexcom parser
+- Beta Bionics iLet parser
+- LibreView improvements
+- Generic fallback improvements
 
-**Data Export:**
-- **Risk:** Large datasets crash browser
-- **Mitigation:** Paginated export, streaming, server-side generation
-
----
-
-## Post-Implementation Validation
-
-### Manual Testing Script
-
-**Test 1: Logos**
-1. Navigate to /companies
-2. Verify logos appear on cards
-3. Click on Dexcom company
-4. Verify logo in detail header
-5. Navigate to /medicines
-6. Verify manufacturer logos
-7. Check both light/dark modes
-
-**Test 2: Research**
-1. Navigate to /research-hub
-2. Verify papers are T1D-related
-3. Toggle "Show all diabetes research"
-4. Verify more papers appear
-5. Check paper titles for relevance
-
-**Test 3: Deep Dive**
-1. Navigate to /projects
-2. Click "Morning Nausea" project
-3. Click "Full Analysis" tab
-4. Verify comprehensive report loads
-5. Test table of contents navigation
-6. Try print function
-
-**Test 4: Search**
-1. Press Cmd+K (or Ctrl+K)
-2. Type "insulin"
-3. Verify results from multiple categories
-4. Use arrow keys to navigate
-5. Press Enter to navigate
-6. Press Escape to close
-
-**Test 5: Glucose Data**
-1. Navigate to /public-glucose-data
-2. Apply age filter
-3. Verify charts update
-4. Check "Insights" section
-5. Test CSV export
-6. Verify demographics panel
-
----
-
-## Maintenance Notes
-
-### Ongoing Tasks
-
-**Logo Management:**
-- Monthly: Check for broken Clearbit URLs
-- Quarterly: Update logos for rebranded companies
-- As needed: Add logos for new entries
-
-**Research Classification:**
-- Weekly: Review AI classification queue
-- Monthly: Retrain if accuracy drops
-- Ongoing: Manual corrections for edge cases
-
-**Search Index Maintenance:**
-- Weekly: REINDEX if queries slow
-- Monthly: VACUUM ANALYZE search tables
-- Quarterly: Review and optimize slow queries
-
-**Data Analysis:**
-- Weekly: Refresh glucose pattern insights
-- Monthly: Add new correlation analyses
-- Quarterly: Validate statistical accuracy
-
-### Documentation Updates
-
-After implementation, update:
-- API documentation for new search endpoints
-- User guide for search functionality
-- Admin panel guide for research classification
-- Data dictionary for new columns
-
+### Phase 6 (Ongoing): Validation
+- Testing with real device exports
+- Clinician review of outputs
+- Iteration based on feedback
