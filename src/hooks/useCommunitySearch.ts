@@ -321,25 +321,60 @@ export const useSinglePost = (postId: string | null) => {
 };
 
 // Hook for fetching comments/replies for a specific post
+// Supports both the community_posts table (parent_post_id approach) and community_comments table
 export const usePostComments = (postId: string | null) => {
   return useQuery({
     queryKey: ['post-comments', postId],
     queryFn: async () => {
       if (!postId) return [];
       
-      const { data, error } = await supabase
+      // First try community_posts with parent_post_id
+      const { data: postsData, error: postsError } = await supabase
         .from('community_posts')
         .select('*')
         .eq('parent_post_id', postId)
         .order('score', { ascending: false, nullsFirst: false });
 
-      if (error) throw error;
+      if (postsError) throw postsError;
       
-      return (data || []).map(post => ({
+      // Also try the dedicated community_comments table if it exists
+      const { data: commentsData } = await supabase
+        .from('community_comments')
+        .select('*')
+        .eq('post_id', postId)
+        .order('score', { ascending: false, nullsFirst: false });
+
+      // Combine both sources, mapping community_comments to CommunityPost format
+      const mappedComments = (commentsData || []).map(comment => ({
+        id: comment.id,
+        source: 'community',
+        post_id: comment.id,
+        title: 'Comment',
+        content: comment.content,
+        author_anonymous: comment.author_anonymous,
+        score: comment.score,
+        num_comments: 0,
+        device_mentioned: null,
+        sentiment: null as 'positive' | 'neutral' | 'negative' | null,
+        published_at: comment.created_at,
+        fetched_at: comment.created_at,
+        topic_tags: [] as string[],
+        is_solution: false,
+        post_type: 'comment',
+        parent_post_id: postId,
+        url: null,
+      }));
+
+      const mappedPosts = (postsData || []).map(post => ({
         ...post,
         sentiment: post.sentiment as 'positive' | 'neutral' | 'negative' | null,
         topic_tags: post.topic_tags || [],
       })) as CommunityPost[];
+      
+      // Combine and sort by score
+      const allComments = [...mappedPosts, ...mappedComments].sort((a, b) => (b.score || 0) - (a.score || 0));
+      
+      return allComments;
     },
     enabled: !!postId,
     staleTime: 5 * 60 * 1000,

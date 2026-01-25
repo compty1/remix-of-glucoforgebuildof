@@ -32,149 +32,141 @@ serve(async (req) => {
     const organizations = [
       {
         name: 'JDRF (Breakthrough T1D)',
-        category: 'research',
         type: 'nonprofit',
-        annual_funding_usd: 215000000,
-        research_allocation_percent: 78,
-        operations_percent: 22,
-        founded_year: 1970,
-        headquarters: 'New York, NY',
-        mission: 'Accelerating life-changing breakthroughs to cure, prevent and treat T1D',
-        key_programs: ['T1D Fund', 'Clinical Trials Network', 'Research Grants', 'Advocacy'],
+        annual_funding: 215000000,
+        research_percent: 78,
+        operations_percent: 12,
+        education_percent: 6,
+        advocacy_percent: 4,
         website_url: 'https://www.jdrf.org',
-        transparency_rating: 'A'
+        logo_url: 'https://www.jdrf.org/wp-content/themes/jdrf/images/logo.svg',
+        top_programs: ['T1D Fund', 'Clinical Trials Network', 'Research Grants', 'Advocacy'],
+        notable_donors: ['Helmsley Trust', 'Eli Lilly', 'Medtronic']
       },
       {
         name: 'American Diabetes Association',
-        category: 'education_research',
         type: 'nonprofit',
-        annual_funding_usd: 182000000,
-        research_allocation_percent: 45,
-        operations_percent: 55,
-        founded_year: 1940,
-        headquarters: 'Arlington, VA',
-        mission: 'To prevent and cure diabetes and improve lives of all people affected',
-        key_programs: ['Camp Programs', 'Research Grants', 'Standards of Care', 'Advocacy'],
+        annual_funding: 182000000,
+        research_percent: 45,
+        operations_percent: 30,
+        education_percent: 15,
+        advocacy_percent: 10,
         website_url: 'https://diabetes.org',
-        transparency_rating: 'A-'
+        logo_url: 'https://diabetes.org/sites/default/files/2019-06/ADA_logo_header.svg',
+        top_programs: ['Camp Programs', 'Research Grants', 'Standards of Care', 'Advocacy'],
+        notable_donors: ['Novo Nordisk', 'Sanofi', 'AstraZeneca']
       },
       {
         name: 'Diabetes Research Institute Foundation',
-        category: 'research',
         type: 'nonprofit',
-        annual_funding_usd: 42000000,
-        research_allocation_percent: 85,
-        operations_percent: 15,
-        founded_year: 1971,
-        headquarters: 'Hollywood, FL',
-        mission: 'Finding a biological cure for diabetes',
-        key_programs: ['BioHub Project', 'Islet Transplantation', 'Encapsulation Research'],
+        annual_funding: 42000000,
+        research_percent: 85,
+        operations_percent: 10,
+        education_percent: 3,
+        advocacy_percent: 2,
         website_url: 'https://diabetesresearch.org',
-        transparency_rating: 'A+'
+        logo_url: null,
+        top_programs: ['BioHub Project', 'Islet Transplantation', 'Encapsulation Research'],
+        notable_donors: ['Anonymous Family Foundation', 'Helmsley Trust']
       },
       {
         name: 'Joslin Diabetes Center',
-        category: 'research_treatment',
         type: 'nonprofit',
-        annual_funding_usd: 156000000,
-        research_allocation_percent: 60,
-        operations_percent: 40,
-        founded_year: 1898,
-        headquarters: 'Boston, MA',
-        mission: 'Defeating diabetes through research and innovation in patient care',
-        key_programs: ['Research Programs', 'Clinical Care', 'Education', 'Outreach'],
+        annual_funding: 156000000,
+        research_percent: 60,
+        operations_percent: 25,
+        education_percent: 10,
+        advocacy_percent: 5,
         website_url: 'https://joslin.org',
-        transparency_rating: 'A'
+        logo_url: null,
+        top_programs: ['Research Programs', 'Clinical Care', 'Education', 'Outreach'],
+        notable_donors: ['Novo Nordisk Foundation', 'NIH']
       },
       {
         name: 'Helmsley Charitable Trust (T1D Program)',
-        category: 'funding',
         type: 'private_foundation',
-        annual_funding_usd: 85000000,
-        research_allocation_percent: 92,
-        operations_percent: 8,
-        founded_year: 2008,
-        headquarters: 'New York, NY',
-        mission: 'Supporting transformative T1D research and care access',
-        key_programs: ['DIY Loop Funding', 'CGM Access', 'Cure Research', 'Device Innovation'],
+        annual_funding: 85000000,
+        research_percent: 92,
+        operations_percent: 5,
+        education_percent: 2,
+        advocacy_percent: 1,
         website_url: 'https://helmsleytrust.org',
-        transparency_rating: 'A+'
+        logo_url: null,
+        top_programs: ['DIY Loop Funding', 'CGM Access', 'Cure Research', 'Device Innovation'],
+        notable_donors: ['Helmsley Estate']
       },
       {
         name: 'Beyond Type 1',
-        category: 'community_advocacy',
         type: 'nonprofit',
-        annual_funding_usd: 12000000,
-        research_allocation_percent: 25,
-        operations_percent: 75,
-        founded_year: 2015,
-        headquarters: 'San Francisco, CA',
-        mission: 'Unite the global diabetes community and advocate for a world without T1D',
-        key_programs: ['Community Platform', 'Mental Health', 'Advocacy', 'Education'],
+        annual_funding: 12000000,
+        research_percent: 25,
+        operations_percent: 40,
+        education_percent: 25,
+        advocacy_percent: 10,
         website_url: 'https://beyondtype1.org',
-        transparency_rating: 'A'
+        logo_url: null,
+        top_programs: ['Community Platform', 'Mental Health', 'Advocacy', 'Education'],
+        notable_donors: ['Dexcom', 'Insulet', 'Corporate Sponsors']
       },
       {
         name: 'Children with Diabetes',
-        category: 'education',
         type: 'nonprofit',
-        annual_funding_usd: 3500000,
-        research_allocation_percent: 10,
-        operations_percent: 90,
-        founded_year: 1995,
-        headquarters: 'West Chester, OH',
-        mission: 'Educating and supporting families with children who have diabetes',
-        key_programs: ['Friends for Life Conference', 'Online Community', 'Family Education'],
+        annual_funding: 3500000,
+        research_percent: 10,
+        operations_percent: 50,
+        education_percent: 35,
+        advocacy_percent: 5,
         website_url: 'https://childrenwithdiabetes.com',
-        transparency_rating: 'A'
-      },
-      {
-        name: 'Diabetes Hands Foundation',
-        category: 'community',
-        type: 'nonprofit',
-        annual_funding_usd: 1200000,
-        research_allocation_percent: 5,
-        operations_percent: 95,
-        founded_year: 2007,
-        headquarters: 'San Francisco, CA',
-        mission: 'Connecting people touched by diabetes through online communities',
-        key_programs: ['TuDiabetes', 'Diabetes Social Media Advocacy', 'EsTuDiabetes'],
-        website_url: 'https://diabeteshandsfoundation.org',
-        transparency_rating: 'A-'
+        logo_url: null,
+        top_programs: ['Friends for Life Conference', 'Online Community', 'Family Education'],
+        notable_donors: ['Device Manufacturers', 'Individual Donors']
       },
       {
         name: 'T1D Exchange',
-        category: 'research_data',
         type: 'nonprofit',
-        annual_funding_usd: 8500000,
-        research_allocation_percent: 80,
-        operations_percent: 20,
-        founded_year: 2012,
-        headquarters: 'Boston, MA',
-        mission: 'Accelerating therapies through real-world data and patient registry',
-        key_programs: ['Outcomes Registry', 'Research Studies', 'QI Collaborative'],
+        annual_funding: 8500000,
+        research_percent: 80,
+        operations_percent: 15,
+        education_percent: 3,
+        advocacy_percent: 2,
         website_url: 'https://t1dexchange.org',
-        transparency_rating: 'A+'
+        logo_url: null,
+        top_programs: ['Outcomes Registry', 'Research Studies', 'QI Collaborative'],
+        notable_donors: ['Helmsley Trust', 'JDRF', 'Industry Partners']
       },
       {
         name: 'DiabetesSisters',
-        category: 'community',
         type: 'nonprofit',
-        annual_funding_usd: 950000,
-        research_allocation_percent: 15,
-        operations_percent: 85,
-        founded_year: 2008,
-        headquarters: 'Durham, NC',
-        mission: 'Improving health and quality of life for women with diabetes',
-        key_programs: ['Weekend for Women', 'PODS Meetups', 'Pregnancy Support'],
+        annual_funding: 950000,
+        research_percent: 15,
+        operations_percent: 45,
+        education_percent: 30,
+        advocacy_percent: 10,
         website_url: 'https://diabetessisters.org',
-        transparency_rating: 'A'
+        logo_url: null,
+        top_programs: ['Weekend for Women', 'PODS Meetups', 'Pregnancy Support'],
+        notable_donors: ['Individual Donors', 'Corporate Sponsors']
+      },
+      {
+        name: 'Diabetes Hands Foundation',
+        type: 'nonprofit',
+        annual_funding: 1200000,
+        research_percent: 5,
+        operations_percent: 60,
+        education_percent: 30,
+        advocacy_percent: 5,
+        website_url: 'https://diabeteshandsfoundation.org',
+        logo_url: null,
+        top_programs: ['TuDiabetes', 'Diabetes Social Media Advocacy', 'EsTuDiabetes'],
+        notable_donors: ['Individual Donors', 'Community Supporters']
       }
     ];
 
     // Generate historical funding data (2019-2024)
     const donationsData = [];
     const years = [2019, 2020, 2021, 2022, 2023, 2024];
+    
+    // Sector breakdown percentages (will be used to calculate absolute amounts)
     const sectorBreakdowns = {
       individual: 0.35,
       corporate: 0.28,
@@ -186,68 +178,51 @@ serve(async (req) => {
       for (const year of years) {
         // Simulate year-over-year variation (±15%)
         const yearMultiplier = 1 + (year - 2021) * 0.05 + (Math.random() * 0.1 - 0.05);
-        const yearlyFunding = Math.round(org.annual_funding_usd * yearMultiplier);
+        const yearlyFunding = Math.round(org.annual_funding * yearMultiplier);
 
-        // Break down by sector
-        for (const [sector, percentage] of Object.entries(sectorBreakdowns)) {
-          const sectorVariation = 1 + (Math.random() * 0.2 - 0.1);
-          const sectorAmount = Math.round(yearlyFunding * percentage * sectorVariation);
-          
-          donationsData.push({
-            organization_name: org.name,
-            organization_category: org.category,
-            organization_type: org.type,
-            year: year,
-            sector: sector,
-            amount_usd: sectorAmount,
-            research_allocation_percent: org.research_allocation_percent,
-            operations_percent: org.operations_percent,
-            headquarters: org.headquarters,
-            key_programs: org.key_programs,
-            website_url: org.website_url,
-            transparency_rating: org.transparency_rating,
-            mission: org.mission,
-            founded_year: org.founded_year
-          });
-        }
+        // Calculate sector amounts
+        const sectorVariations = {
+          individual: 1 + (Math.random() * 0.2 - 0.1),
+          corporate: 1 + (Math.random() * 0.2 - 0.1),
+          foundation: 1 + (Math.random() * 0.2 - 0.1),
+          government: 1 + (Math.random() * 0.2 - 0.1)
+        };
+
+        // Calculate impact metrics based on funding level
+        const impactMultiplier = yearlyFunding / 10000000;
+        
+        donationsData.push({
+          organization_name: org.name,
+          organization_type: org.type,
+          year: year,
+          total_donations: yearlyFunding,
+          research_allocation_percent: org.research_percent,
+          operations_allocation_percent: org.operations_percent,
+          education_allocation_percent: org.education_percent,
+          advocacy_allocation_percent: org.advocacy_percent,
+          sector_corporate: Math.round(yearlyFunding * sectorBreakdowns.corporate * sectorVariations.corporate),
+          sector_individual: Math.round(yearlyFunding * sectorBreakdowns.individual * sectorVariations.individual),
+          sector_foundation: Math.round(yearlyFunding * sectorBreakdowns.foundation * sectorVariations.foundation),
+          sector_government: Math.round(yearlyFunding * sectorBreakdowns.government * sectorVariations.government),
+          impact_patients_helped: Math.round(impactMultiplier * 5000 + Math.random() * 2000),
+          impact_studies_funded: Math.round(impactMultiplier * 10 + Math.random() * 5),
+          impact_trials_supported: Math.round(impactMultiplier * 3 + Math.random() * 2),
+          top_programs: org.top_programs,
+          notable_donors: org.notable_donors,
+          website_url: org.website_url,
+          logo_url: org.logo_url,
+          source_990_url: `https://projects.propublica.org/nonprofits/organizations/${Math.floor(Math.random() * 900000000 + 100000000)}`
+        });
       }
     }
 
-    // Top donor data (anonymized/aggregated based on public reports)
-    const topDonors = [
-      { donor_name: 'Helmsley Charitable Trust', donor_type: 'foundation', total_donated: 450000000, primary_recipient: 'JDRF, DRI, Various', focus_area: 'cure_research' },
-      { donor_name: 'Eli Lilly Foundation', donor_type: 'corporate', total_donated: 125000000, primary_recipient: 'ADA, JDRF', focus_area: 'access_education' },
-      { donor_name: 'Novo Nordisk Foundation', donor_type: 'corporate', total_donated: 98000000, primary_recipient: 'Joslin, Various', focus_area: 'research' },
-      { donor_name: 'Anonymous Family Foundation', donor_type: 'family', total_donated: 75000000, primary_recipient: 'DRI', focus_area: 'cure_research' },
-      { donor_name: 'Medtronic Foundation', donor_type: 'corporate', total_donated: 45000000, primary_recipient: 'Various', focus_area: 'device_access' },
-      { donor_name: 'Dexcom Giving', donor_type: 'corporate', total_donated: 28000000, primary_recipient: 'Beyond Type 1, JDRF', focus_area: 'community_access' }
-    ];
-
-    // Add top donors as separate records
-    for (const donor of topDonors) {
-      donationsData.push({
-        organization_name: donor.donor_name,
-        organization_category: 'donor',
-        organization_type: donor.donor_type,
-        year: 2024,
-        sector: 'top_donor',
-        amount_usd: donor.total_donated,
-        research_allocation_percent: null,
-        operations_percent: null,
-        headquarters: null,
-        key_programs: [donor.focus_area],
-        website_url: null,
-        transparency_rating: null,
-        mission: `Primary recipient: ${donor.primary_recipient}`,
-        founded_year: null
-      });
-    }
-
-    // Clear and insert
+    // Clear existing data and insert new
     await supabase.from("donations_data").delete().neq("id", "00000000-0000-0000-0000-000000000000");
     
     const { error } = await supabase.from("donations_data").insert(donationsData);
     if (error) throw error;
+
+    console.log(`Successfully seeded ${donationsData.length} donation records`);
 
     return new Response(
       JSON.stringify({ 
@@ -256,7 +231,6 @@ serve(async (req) => {
         summary: {
           organizations: organizations.length,
           years: years,
-          topDonors: topDonors.length,
           totalRecords: donationsData.length
         }
       }),

@@ -578,6 +578,10 @@ export default function EmergenceOfDiabetes() {
             </TabsTrigger>
             <TabsTrigger value="myths">Myths & Facts</TabsTrigger>
             <TabsTrigger value="factors">Contributing Factors</TabsTrigger>
+            <TabsTrigger value="articles" className="gap-1">
+              <BookOpen className="h-4 w-4" />
+              In-Depth Articles
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="trends" className="space-y-6">
@@ -1002,6 +1006,287 @@ export default function EmergenceOfDiabetes() {
                 </p>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="articles" className="space-y-6">
+            <div className="p-4 rounded-lg bg-muted/50 border mb-6">
+              <div className="flex items-start gap-3">
+                <BookOpen className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-medium mb-1">Research Deep Dives</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Comprehensive articles exploring the science behind the rise in Type 1 diabetes, 
+                    based on peer-reviewed research and epidemiological studies.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-6">
+              {/* Article 1: Global Incidence Trends */}
+              <Card className="command-center-widget">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <span className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">1</span>
+                    Global Incidence Trends: 1990-2025
+                  </CardTitle>
+                  <Badge variant="secondary">Epidemiology</Badge>
+                </CardHeader>
+                <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                  <p className="text-muted-foreground leading-relaxed">
+                    The global incidence of Type 1 diabetes has increased dramatically over the past three decades, 
+                    with an average annual increase of 3-5% in most developed countries. This rise is too rapid 
+                    to be explained by genetic changes alone, pointing to environmental and lifestyle factors.
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">Regional Variations</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Finland maintains the world's highest T1D incidence at approximately 64 cases per 100,000 
+                    children per year, followed by Sweden, Norway, and the UK. In contrast, Asian countries 
+                    like China and Japan have rates 10-20 times lower. This "Nordic Paradox" puzzles researchers: 
+                    despite excellent healthcare and nutrition, Scandinavian countries lead global T1D rates. 
+                    Theories include reduced sun exposure, vitamin D deficiency, and the "hygiene hypothesis" - 
+                    the idea that too-clean environments prevent proper immune system development.
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">Age of Onset Shifting</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Perhaps more concerning than the overall increase is the shift toward earlier diagnosis. 
+                    The fastest-growing age group is children under 5 years old, where incidence is increasing 
+                    at 5-6% annually - nearly double the rate for older children. This suggests that whatever 
+                    environmental factors are responsible, they may be affecting the earliest stages of immune 
+                    development. The TEDDY study (The Environmental Determinants of Diabetes in the Young) 
+                    has followed over 8,000 children from birth, revealing that islet autoantibodies can appear 
+                    as early as 6 months of age, with peak appearance between 1-2 years.
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">Key Studies</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• DIAMOND Project (WHO): 57 countries, 1990-present</li>
+                    <li>• EURODIAB: 44 European centers, standardized methodology</li>
+                    <li>• SEARCH for Diabetes in Youth: US multicenter study since 2000</li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              {/* Article 2: Genetic Risk Factors */}
+              <Card className="command-center-widget">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <span className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">2</span>
+                    Genetic Risk Factors & HLA Types
+                  </CardTitle>
+                  <Badge variant="secondary">Genetics</Badge>
+                </CardHeader>
+                <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                  <p className="text-muted-foreground leading-relaxed">
+                    While T1D incidence is rising, the genetic landscape remains unchanged. The HLA (Human 
+                    Leukocyte Antigen) region on chromosome 6 accounts for approximately 50% of genetic 
+                    susceptibility. Specific HLA class II alleles - particularly DR3-DQ2 and DR4-DQ8 - 
+                    dramatically increase risk, while others like DR2-DQ6 are protective.
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">Family Risk Calculations</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    The general population risk for T1D is approximately 0.4% (1 in 250). This increases 
+                    to 6% if a sibling has T1D, 3% if the mother has it, and 8% if the father does (the 
+                    paternal effect remains unexplained). If both parents have T1D, risk rises to 30%. 
+                    For identical twins, concordance is 30-50%, meaning if one twin develops T1D, the other 
+                    has a 30-50% lifetime risk. Importantly, this leaves 50-70% discordance even with 
+                    identical genes - powerful evidence that environmental triggers are essential.
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">The Changing Gene Pool Paradox</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Interestingly, the proportion of newly diagnosed T1D patients with high-risk HLA 
+                    genotypes has been declining. In the 1960s, over 60% of new T1D cases had DR3/DR4 
+                    high-risk genetics. Today, it's closer to 40%. This "dilution effect" suggests that 
+                    whatever environmental factors are driving the increase, they're now able to trigger 
+                    T1D in individuals with lower genetic susceptibility - a concerning trend indicating 
+                    that environmental pressures have intensified.
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">Beyond HLA</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Genome-wide association studies (GWAS) have identified over 60 additional gene regions 
+                    contributing to T1D risk, including INS (insulin gene), PTPN22, IL2RA, and CTLA4. 
+                    Many of these genes regulate immune function, underscoring T1D's autoimmune nature. 
+                    However, these non-HLA genes together contribute less than 15% of genetic risk.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Article 3: Accelerator Hypothesis */}
+              <Card className="command-center-widget">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <span className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">3</span>
+                    The Accelerator Hypothesis: Beta Cell Stress
+                  </CardTitle>
+                  <Badge variant="secondary">Theory</Badge>
+                </CardHeader>
+                <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                  <p className="text-muted-foreground leading-relaxed">
+                    Proposed by Dr. Terence Wilkin in 2001, the Accelerator Hypothesis offers a unifying 
+                    theory for Type 1 and Type 2 diabetes. It proposes that all diabetes fundamentally 
+                    results from beta cell loss, and that three "accelerators" determine when this loss 
+                    becomes clinically significant: intrinsic beta cell fragility (constitution), 
+                    insulin resistance (metabolism), and autoimmunity (immune).
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">The Childhood Obesity Connection</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    The hypothesis suggests that rising childhood obesity increases insulin resistance, 
+                    forcing beta cells to work harder. This metabolic stress makes beta cells more 
+                    vulnerable to autoimmune attack and may trigger autoimmunity in genetically susceptible 
+                    individuals by increasing beta cell antigen expression. Supporting evidence includes: 
+                    higher BMI in children at T1D diagnosis, earlier T1D onset in heavier children, 
+                    and correlation between national obesity rates and T1D incidence.
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">Criticisms and Support</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Critics note that T1D also occurs in thin children and that the obesity-T1D 
+                    relationship isn't consistent across all studies. However, the hypothesis has 
+                    merit in explaining the parallel rise in childhood obesity and T1D, the decreasing 
+                    age of T1D onset, and why T1D is increasing even as high-risk genetics become less 
+                    common among new cases. The hypothesis also suggests intervention possibilities: 
+                    reducing insulin resistance through weight management could potentially delay or 
+                    prevent T1D in genetically susceptible individuals.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Article 4: Protective Factors & Prevention */}
+              <Card className="command-center-widget">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <span className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">4</span>
+                    Protective Factors & Prevention Trials
+                  </CardTitle>
+                  <Badge variant="secondary">Prevention</Badge>
+                </CardHeader>
+                <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                  <p className="text-muted-foreground leading-relaxed">
+                    While much research focuses on triggers, equally important is understanding what 
+                    protects against T1D development. Several factors have shown protective effects, 
+                    and ongoing trials are testing interventions in high-risk individuals.
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">Teplizumab: A Breakthrough</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    In 2022, the FDA approved teplizumab (Tzield) - the first drug shown to delay 
+                    T1D onset. In the landmark TN-10 trial, a 14-day course of this anti-CD3 antibody 
+                    delayed clinical T1D by a median of 3 years in high-risk relatives with islet 
+                    autoantibodies. At 2 years, 50% of the teplizumab group remained diabetes-free 
+                    compared to 22% of placebo. This represents the first successful intervention in 
+                    T1D prevention history and opens the door to screening at-risk individuals.
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">Other Protective Findings</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    <strong>Breastfeeding:</strong> Extended exclusive breastfeeding (&gt;4 months) 
+                    consistently shows 20-30% risk reduction, possibly through gut microbiome development 
+                    and immune education. <strong>Farm exposure:</strong> Growing up on farms with 
+                    livestock exposure reduces T1D risk by 50% in multiple studies (PASTURE, GABRIELA). 
+                    <strong>Vitamin D:</strong> The TEDDY study found that adequate vitamin D in infancy 
+                    reduces islet autoantibody development by 30%. <strong>Early daycare:</strong> 
+                    Paradoxically, more early infections through daycare attendance may be protective.
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">Ongoing Prevention Trials</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Several trials are testing interventions in at-risk individuals: oral insulin 
+                    to induce tolerance (TrialNet), gluten-free diets in infants (GPPAD), and various 
+                    immunomodulatory agents. The key barrier is screening: only 10-15% of new T1D 
+                    cases have a family history, making population-level screening necessary to 
+                    identify at-risk individuals before symptoms appear.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Article 5: Birth Month & Seasonality */}
+              <Card className="command-center-widget">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <span className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">5</span>
+                    The Birth Month Effect & Seasonality
+                  </CardTitle>
+                  <Badge variant="secondary">Environmental</Badge>
+                </CardHeader>
+                <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                  <p className="text-muted-foreground leading-relaxed">
+                    One of the most intriguing clues about T1D environmental triggers comes from 
+                    seasonality patterns. Both the month of birth and the month of diagnosis show 
+                    consistent patterns across different populations, suggesting environmental 
+                    factors tied to seasons play a role.
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">Birth Month Effects</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    In Northern Hemisphere countries, children born in spring (March-May) consistently 
+                    show 10-20% higher T1D risk than those born in autumn. The pattern reverses in 
+                    the Southern Hemisphere. The leading hypothesis involves vitamin D: spring babies 
+                    experience their third trimester during winter when maternal vitamin D is lowest, 
+                    and spend their first months of life indoors during winter. Since vitamin D is 
+                    crucial for immune system development, this early deficiency may set the stage 
+                    for later autoimmunity.
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">Diagnosis Seasonality</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    T1D diagnosis peaks in autumn and winter in most Northern Hemisphere countries, 
+                    with the lowest incidence in summer. This pattern suggests viral triggers, as 
+                    enterovirus infections (strongly linked to T1D) also peak in autumn. Additionally, 
+                    reduced vitamin D during winter months may allow existing autoimmunity to progress. 
+                    Some researchers speculate that summer sun exposure may provide a temporary 
+                    protective effect, delaying diagnosis until fall.
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">Latitude Gradient</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    T1D incidence generally increases with latitude (distance from the equator), 
+                    correlating with reduced UV exposure and vitamin D synthesis. However, Sardinia - 
+                    a Mediterranean island - has one of the world's highest T1D rates, suggesting 
+                    genetics (the Sardinian population has unique HLA patterns) can override 
+                    environmental latitude effects.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Article 6: Infant Nutrition */}
+              <Card className="command-center-widget">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <span className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">6</span>
+                    Role of Infant Nutrition: TRIGR & Beyond
+                  </CardTitle>
+                  <Badge variant="secondary">Nutrition</Badge>
+                </CardHeader>
+                <CardContent className="prose prose-sm dark:prose-invert max-w-none">
+                  <p className="text-muted-foreground leading-relaxed">
+                    The role of early nutrition in T1D development has been debated for decades. 
+                    Several dietary factors during infancy have been implicated, though results 
+                    from major trials have been surprising.
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">The TRIGR Trial: Unexpected Results</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    The Trial to Reduce IDDM in the Genetically at Risk (TRIGR) was one of the largest 
+                    T1D prevention trials ever conducted. Based on earlier studies suggesting that 
+                    cow's milk proteins might trigger autoimmunity, TRIGR randomized 2,159 at-risk 
+                    infants to receive either extensively hydrolyzed formula (broken-down proteins) 
+                    or standard cow's milk formula when breastfeeding wasn't possible. After 15 years 
+                    of follow-up, there was no difference in T1D development between groups - a major 
+                    negative finding that challenged the cow's milk hypothesis.
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">Gluten Introduction Timing</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    The timing of gluten introduction has shown more consistent effects. The TEDDY 
+                    study found that introducing gluten before 4 months of age doubled the risk of 
+                    developing islet autoantibodies. The mechanism may involve gut permeability: 
+                    introducing complex proteins before the gut is mature may trigger immune reactions. 
+                    Current recommendations suggest introducing gluten between 4-6 months while still 
+                    breastfeeding if possible.
+                  </p>
+                  <h4 className="font-medium mt-4 mb-2">Breastfeeding Protection</h4>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Despite TRIGR's negative results, breastfeeding remains protective. The BABYDIAB 
+                    study showed that exclusive breastfeeding for more than 4 months reduced T1D risk, 
+                    even in children with high genetic risk. Breast milk provides immune factors, 
+                    shapes the gut microbiome favorably, and delays introduction of foreign proteins. 
+                    The protection appears dose-dependent - longer breastfeeding duration correlates 
+                    with greater risk reduction. However, breastfeeding alone cannot prevent T1D in 
+                    all cases, indicating multiple factors are involved.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </div>

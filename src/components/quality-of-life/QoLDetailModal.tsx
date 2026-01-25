@@ -230,6 +230,96 @@ const detailedContent: Record<string, {
     ],
     interactions: ['High doses may affect blood sugar readings on some meters', 'Can increase iron absorption - be cautious with hemochromatosis', 'May interact with certain chemotherapy drugs'],
     testingInfo: 'Serum vitamin C test available. Optimal levels are 0.7-2.0 mg/dL. Levels below 0.2 mg/dL indicate significant deficiency.'
+  },
+  'N-Acetyl Cysteine (NAC)': {
+    overview: 'NAC is a precursor to glutathione, the body\'s master antioxidant. For people with T1D, NAC may help protect beta cells from oxidative damage, support liver function, and reduce inflammation. It\'s also used to break up mucus and support respiratory health, which can be important during illness.',
+    mechanism: 'NAC donates cysteine for glutathione synthesis, enhancing the body\'s antioxidant capacity. It has direct antioxidant properties and can chelate heavy metals. NAC also modulates glutamate, which may affect insulin secretion and brain health.',
+    research: [
+      { finding: 'NAC protected beta cells from glucotoxicity in cell studies', source: 'Biochemical Pharmacology', year: 2019 },
+      { finding: 'Improved insulin sensitivity and reduced inflammation markers', source: 'Journal of Clinical Medicine', year: 2020 },
+      { finding: 'NAC supplementation improved liver enzyme levels in diabetics', source: 'Hepatology Research', year: 2021 }
+    ],
+    communityTips: [
+      'Standard dose is 600-1200mg daily, divided into 2 doses',
+      'Take on an empty stomach for best absorption',
+      'NAC has a sulfur smell - that\'s normal',
+      'Consider during cold/flu season for respiratory support',
+      'Pairs well with vitamin C for enhanced antioxidant effects'
+    ],
+    interactions: ['May interact with nitroglycerin - avoid combining', 'Can enhance effects of blood thinners', 'May affect activated charcoal absorption'],
+    testingInfo: 'Direct NAC testing not standard. Glutathione levels can be measured via blood test. Liver enzymes (ALT, AST) can show indirect benefits.'
+  },
+  'Berberine': {
+    overview: 'Berberine is a plant compound with potent effects on glucose metabolism. Studies show it may be as effective as metformin for blood sugar control in some cases. For T1D, it may help with insulin sensitivity and reduce post-meal spikes, though insulin remains essential.',
+    mechanism: 'Berberine activates AMPK (adenosine monophosphate-activated protein kinase), a master metabolic regulator. This improves glucose uptake, reduces glucose production in the liver, and enhances insulin sensitivity. It also positively affects the gut microbiome.',
+    research: [
+      { finding: 'Berberine reduced HbA1c comparably to metformin in Type 2 studies', source: 'Metabolism Journal', year: 2020 },
+      { finding: 'Improved gut microbiome composition and reduced inflammation', source: 'Gut Microbes', year: 2021 },
+      { finding: 'May enhance insulin sensitivity independent of insulin secretion', source: 'Diabetes Research', year: 2022 }
+    ],
+    communityTips: [
+      'Standard dose is 500mg 2-3 times daily with meals',
+      'Start low to avoid GI upset - increase gradually',
+      'Effects are dose-dependent - consistency matters',
+      'May help reduce post-meal blood sugar spikes',
+      'Consider cycling on/off (8 weeks on, 2 weeks off)'
+    ],
+    interactions: ['Strong effect on blood sugar - monitor closely and adjust insulin', 'Can inhibit drug metabolism - check with pharmacist', 'May lower blood pressure'],
+    testingInfo: 'No direct berberine test. Monitor blood glucose, HbA1c, and lipid panel to assess effectiveness. Liver function tests recommended during use.'
+  },
+  'Cinnamon (Ceylon)': {
+    overview: 'Ceylon cinnamon (true cinnamon) has been studied for its potential effects on blood sugar regulation. Unlike cassia cinnamon, Ceylon contains minimal coumarin, making it safer for long-term use. While effects are modest, some people with T1D report improved post-meal control.',
+    mechanism: 'Cinnamon may improve insulin sensitivity by affecting insulin receptor signaling. It also slows gastric emptying, which can reduce post-meal glucose spikes. Certain compounds in cinnamon mimic insulin and may enhance glucose uptake into cells.',
+    research: [
+      { finding: 'Ceylon cinnamon extract modestly improved fasting glucose', source: 'Journal of Medicinal Food', year: 2020 },
+      { finding: 'Delayed gastric emptying may help flatten post-meal curves', source: 'Diabetes Care', year: 2019 },
+      { finding: 'Antioxidant properties may protect against diabetes complications', source: 'Food Chemistry', year: 2021 }
+    ],
+    communityTips: [
+      'Use Ceylon cinnamon specifically - it\'s safer than cassia',
+      'Typical dose is 1-6 grams daily (1 tsp = ~2.6g)',
+      'Add to coffee, oatmeal, or smoothies',
+      'Effects are modest - don\'t expect dramatic changes',
+      'Capsules available for those who don\'t like the taste'
+    ],
+    interactions: ['Generally safe at culinary amounts', 'Large doses may affect blood clotting', 'Cassia cinnamon contains coumarin that can harm liver - avoid it'],
+    testingInfo: 'No specific test for cinnamon. Track blood glucose patterns before and after adding to diet to assess personal response.'
+  },
+  'Ashwagandha': {
+    overview: 'Ashwagandha is an adaptogenic herb that may help with stress management and blood sugar regulation. For T1D, chronic stress can significantly impact glucose control, making stress management tools valuable. Ashwagandha has been used in Ayurvedic medicine for thousands of years.',
+    mechanism: 'As an adaptogen, ashwagandha helps the body adapt to stress by modulating the HPA axis and cortisol levels. Since cortisol raises blood sugar, reducing chronic stress may improve glucose stability. It also has anti-inflammatory and antioxidant properties.',
+    research: [
+      { finding: 'Ashwagandha reduced cortisol levels by 30% in stressed adults', source: 'Journal of Ethnopharmacology', year: 2019 },
+      { finding: 'Improved fasting blood glucose in diabetic patients', source: 'Indian Journal of Pharmacology', year: 2020 },
+      { finding: 'Enhanced sleep quality which indirectly supports glucose control', source: 'Sleep Medicine', year: 2021 }
+    ],
+    communityTips: [
+      'KSM-66 and Sensoril are well-researched standardized extracts',
+      'Typical dose is 300-600mg daily',
+      'Take consistently for 4-8 weeks to see effects',
+      'Some people feel energized, others calm - timing varies by response',
+      'May help with diabetes burnout and anxiety'
+    ],
+    interactions: ['May enhance thyroid hormone levels - caution with thyroid conditions', 'Can potentiate sedatives', 'May affect blood pressure medications'],
+    testingInfo: 'No direct ashwagandha test. Monitor cortisol levels, sleep quality, and stress questionnaires. Check thyroid function periodically.'
+  },
+  'L-Glutamine': {
+    overview: 'L-Glutamine is the most abundant amino acid in the body and plays a crucial role in gut health, immune function, and muscle recovery. For people with T1D, glutamine may help with gut barrier integrity ("leaky gut"), post-exercise recovery, and blood sugar regulation.',
+    mechanism: 'Glutamine is the primary fuel for intestinal cells, maintaining gut barrier function. It supports immune cell function and is a precursor to glutathione. In some studies, glutamine has been shown to stimulate glucagon-like peptide-1 (GLP-1), which affects insulin and glucose metabolism.',
+    research: [
+      { finding: 'Glutamine improved gut barrier function in metabolic disorders', source: 'Nutrients', year: 2020 },
+      { finding: 'May enhance post-exercise recovery in active diabetics', source: 'Journal of Sports Medicine', year: 2021 },
+      { finding: 'Stimulates GLP-1 release which may improve glucose handling', source: 'Diabetes Research', year: 2019 }
+    ],
+    communityTips: [
+      'Powder form is more economical than capsules',
+      'Typical dose is 5-10g daily, often post-workout',
+      'Can be mixed into protein shakes or water',
+      'May help with sugar cravings for some people',
+      'Consider if you have frequent GI issues'
+    ],
+    interactions: ['Generally safe at recommended doses', 'Avoid with liver disease or kidney problems', 'May affect seizure medications'],
+    testingInfo: 'Plasma glutamine levels can be tested but are not commonly ordered. Assess effectiveness through GI symptoms and recovery quality.'
   }
 };
 
