@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Device } from '@/hooks/useDeviceDetails';
@@ -8,8 +8,10 @@ import {
   Droplets, 
   Syringe, 
   Smartphone,
-  ArrowRight
+  ArrowRight,
+  ChevronRight
 } from 'lucide-react';
+import { EntityLogo } from '@/components/ui/entity-logo';
 
 interface RelatedDevicesSectionProps {
   devices: Device[];
@@ -49,27 +51,42 @@ export const RelatedDevicesSection: React.FC<RelatedDevicesSectionProps> = ({
         {devices.map((device) => (
           <Card 
             key={device.id} 
-            className="command-center-widget cursor-pointer hover:shadow-lg transition-all"
+            className="group command-center-widget cursor-pointer hover:shadow-lg transition-all"
             onClick={() => navigate(`/devices/${device.id}`)}
           >
             <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                {getDeviceIcon(device.category)}
-                <Badge variant="outline" className="text-xs">
-                  {device.category}
-                </Badge>
+              <div className="flex items-start gap-3 mb-3">
+                <EntityLogo 
+                  type="device"
+                  name={device.manufacturer || device.name}
+                  logoUrl={device.image_url}
+                  size="sm"
+                />
+                <div className="flex-1 min-w-0">
+                  <Badge variant="outline" className="text-xs mb-1">
+                    {device.category}
+                  </Badge>
+                  <h3 className="font-semibold line-clamp-1">{device.name}</h3>
+                </div>
               </div>
               
-              <h3 className="font-semibold mb-1 line-clamp-1">{device.name}</h3>
-              <p className="text-sm text-muted-foreground line-clamp-1">
+              <p className="text-sm text-muted-foreground line-clamp-1 mb-2">
                 {device.manufacturer}
               </p>
               
               {device.retail_price_usd && (
-                <p className="text-sm font-medium mt-2">
+                <p className="text-sm font-medium">
                   ${device.retail_price_usd.toLocaleString()}
                 </p>
               )}
+              
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-full mt-3 opacity-70 group-hover:opacity-100 group-hover:bg-primary/10 transition-all"
+              >
+                Learn More <ChevronRight className="h-3 w-3 ml-1" />
+              </Button>
             </CardContent>
           </Card>
         ))}

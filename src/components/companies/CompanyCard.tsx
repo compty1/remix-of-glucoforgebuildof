@@ -2,10 +2,12 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Building2, MapPin, DollarSign, Calendar, Users } from 'lucide-react';
+import { MapPin, DollarSign, Calendar, Users, ChevronRight } from 'lucide-react';
 import { T1DCompany } from '@/hooks/useT1DCompanies';
 import { VerifiedLink } from '@/components/ui/verified-link';
+import { EntityLogo } from '@/components/ui/entity-logo';
 
 interface CompanyCardProps {
   company: T1DCompany;
@@ -73,22 +75,12 @@ export function CompanyCard({
           )}
           
           {/* Company Logo */}
-          <div className="flex-shrink-0">
-            {company.logo_url ? (
-              <img 
-                src={company.logo_url} 
-                alt={`${company.name} logo`}
-                className="h-12 w-12 object-contain rounded-lg bg-white border p-1"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-            ) : null}
-            <div className={`h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center ${company.logo_url ? 'hidden' : ''}`}>
-              <Building2 className="h-6 w-6 text-primary" />
-            </div>
-          </div>
+          <EntityLogo 
+            type="company"
+            name={company.name}
+            logoUrl={company.logo_url}
+            size="md"
+          />
           
           <div className="flex-1 min-w-0">
             <Link 
@@ -191,6 +183,21 @@ export function CompanyCard({
             {company.acquisition_date && ` (${new Date(company.acquisition_date).getFullYear()})`}
           </div>
         )}
+
+        {/* Learn More Button */}
+        <div className="pt-3 border-t border-border/50">
+          <Button 
+            variant="ghost" 
+            className="w-full group-hover:bg-primary/10"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/companies/${company.id}`);
+            }}
+          >
+            Learn More
+            <ChevronRight className="h-4 w-4 ml-2" />
+          </Button>
+        </div>
 
       </CardContent>
     </Card>

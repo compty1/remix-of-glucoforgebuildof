@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { 
   Beaker, 
   Pill, 
@@ -67,17 +68,20 @@ export function HistoryEventCard({ event, onClick }: HistoryEventCardProps) {
           {event.short_description}
         </p>
 
-        {/* Category and Action */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            {categoryIcons[event.category] || <Beaker className="h-4 w-4" />}
-            <span className="capitalize">{event.category}</span>
-          </div>
-          <span className="text-xs text-primary flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            View Details
-            <ChevronRight className="h-3 w-3" />
-          </span>
+        {/* Category */}
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-3">
+          {categoryIcons[event.category] || <Beaker className="h-4 w-4" />}
+          <span className="capitalize">{event.category}</span>
         </div>
+
+        {/* Learn More Button */}
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="w-full group-hover:bg-primary/10"
+        >
+          Learn More <ChevronRight className="h-4 w-4 ml-1" />
+        </Button>
       </CardContent>
     </Card>
   );

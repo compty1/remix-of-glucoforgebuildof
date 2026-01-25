@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Star, Clock, DollarSign, Info, Pill } from 'lucide-react';
+import { Star, Clock, DollarSign, Info, ChevronRight } from 'lucide-react';
+import { EntityLogo } from '@/components/ui/entity-logo';
 
 interface Medication {
   id: string;
@@ -55,54 +56,16 @@ export function MedicationCard({
   const hasTimingData = medication.onset_time || medication.peak_time || medication.duration;
 
   // Get manufacturer logo based on manufacturer name
-  const getManufacturerLogo = (manufacturer: string | null): string | null => {
-    if (!manufacturer) return null;
-    const manufacturerLogos: Record<string, string> = {
-      'Eli Lilly': 'https://logo.clearbit.com/lilly.com',
-      'Lilly': 'https://logo.clearbit.com/lilly.com',
-      'Novo Nordisk': 'https://logo.clearbit.com/novonordisk.com',
-      'Sanofi': 'https://logo.clearbit.com/sanofi.com',
-      'AstraZeneca': 'https://logo.clearbit.com/astrazeneca.com',
-      'Boehringer Ingelheim': 'https://logo.clearbit.com/boehringer-ingelheim.com',
-      'Merck': 'https://logo.clearbit.com/merck.com',
-      'Johnson & Johnson': 'https://logo.clearbit.com/jnj.com',
-      'Janssen': 'https://logo.clearbit.com/janssen.com',
-      'Takeda': 'https://logo.clearbit.com/takeda.com',
-      'Xeris': 'https://logo.clearbit.com/xerispharma.com',
-      'Zealand Pharma': 'https://logo.clearbit.com/zealandpharma.com',
-    };
-    
-    for (const [key, url] of Object.entries(manufacturerLogos)) {
-      if (manufacturer.toLowerCase().includes(key.toLowerCase())) {
-        return url;
-      }
-    }
-    return null;
-  };
-
-  const manufacturerLogo = getManufacturerLogo(medication.manufacturer);
-
   return (
-    <Card className="h-full flex flex-col hover:shadow-md transition-shadow">
+    <Card className="h-full flex flex-col hover:shadow-md transition-shadow group">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           {/* Manufacturer Logo */}
-          <div className="flex-shrink-0">
-            {manufacturerLogo ? (
-              <img 
-                src={manufacturerLogo} 
-                alt={`${medication.manufacturer} logo`}
-                className="h-10 w-10 object-contain rounded-lg bg-white border p-1"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-            ) : null}
-            <div className={`h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center ${manufacturerLogo ? 'hidden' : ''}`}>
-              <Pill className="h-5 w-5 text-primary" />
-            </div>
-          </div>
+          <EntityLogo 
+            type="medication"
+            name={medication.manufacturer || medication.name}
+            size="sm"
+          />
           
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-lg truncate">{medication.name}</h3>
@@ -205,11 +168,11 @@ export function MedicationCard({
         <div className="mt-auto pt-2">
           <Button 
             variant="outline" 
-            className="w-full"
+            className="w-full group-hover:bg-primary/10 group-hover:border-primary/30"
             onClick={() => onViewDetails(medication)}
           >
-            <Info className="h-4 w-4 mr-2" />
-            View Details
+            Learn More
+            <ChevronRight className="h-4 w-4 ml-2" />
           </Button>
         </div>
       </CardContent>
