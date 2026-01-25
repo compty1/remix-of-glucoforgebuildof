@@ -79,6 +79,7 @@ export function CompanyCard({
             type="company"
             name={company.name}
             logoUrl={company.logo_url}
+            websiteUrl={company.website_url}
             size="md"
           />
           
