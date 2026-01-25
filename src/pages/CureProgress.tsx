@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { useClinicalTrialsDetailed } from '@/hooks/useClinicalTrialsDetailed';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { EntityLogo } from '@/components/ui/entity-logo';
 import CureProgressStats from '@/components/cure/CureProgressStats';
 
 export default function CureProgress() {
@@ -222,9 +223,16 @@ export default function CureProgress() {
                                 <p className="text-muted-foreground">Enrollment</p>
                                 <p className="font-medium">{trial.enrollment_count?.toLocaleString() || 'N/A'}</p>
                               </div>
-                              <div>
-                                <p className="text-muted-foreground">Sponsor</p>
-                                <p className="font-medium line-clamp-1">{trial.sponsor_name || 'Unknown'}</p>
+                              <div className="flex items-start gap-2">
+                                <EntityLogo
+                                  type="company"
+                                  name={trial.sponsor_name || 'Unknown'}
+                                  size="sm"
+                                />
+                                <div>
+                                  <p className="text-muted-foreground">Sponsor</p>
+                                  <p className="font-medium line-clamp-1">{trial.sponsor_name || 'Unknown'}</p>
+                                </div>
                               </div>
                             </div>
                             

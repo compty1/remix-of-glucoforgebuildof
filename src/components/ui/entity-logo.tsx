@@ -109,6 +109,10 @@ const domainMappings: Record<string, string> = {
   'helmsley': 'helmsleytrust.org',
   'joslin': 'joslin.org',
   't1d exchange': 't1dexchange.org',
+  'diabetessisters': 'diabetessisters.org',
+  'diabetes sisters': 'diabetessisters.org',
+  'international diabetes federation': 'idf.org',
+  'idf': 'idf.org',
   
   // Technology & Digital Health
   'tidepool': 'tidepool.org',
@@ -130,6 +134,16 @@ const domainMappings: Record<string, string> = {
   'cecelia health': 'ceceliahealth.com',
   'lark': 'lark.com',
   'podimetrics': 'podimetrics.com',
+  'sugarmate': 'sugarmate.io',
+  'nightscout': 'nightscout.info',
+  'xdrip': 'github.com/NightscoutFoundation',
+  'loop': 'loopkit.github.io',
+  'androidaps': 'androidaps.readthedocs.io',
+  'aaps': 'androidaps.readthedocs.io',
+  'calorie king': 'calorieking.com',
+  'diabits': 'diabits.com',
+  'glucose buddy': 'glucosebuddy.com',
+  'diabetes:m': 'diabetes-m.com',
   
   // Biotech & Research
   'crispr': 'crisprtx.com',
@@ -141,6 +155,29 @@ const domainMappings: Record<string, string> = {
   'oramed': 'oramed.com',
   'encellin': 'encellin.com',
   'insitro': 'insitro.com',
+  
+  // Research Institutions & Universities
+  'nih': 'nih.gov',
+  'niaid': 'niaid.nih.gov',
+  'national institutes': 'nih.gov',
+  'stanford': 'stanford.edu',
+  'harvard': 'harvard.edu',
+  'yale': 'yale.edu',
+  'university of florida': 'ufl.edu',
+  'university of miami': 'miami.edu',
+  'barbara davis': 'barbaradaviscenter.org',
+  'ucsd': 'ucsd.edu',
+  'university of alberta': 'ualberta.ca',
+  'karolinska': 'ki.se',
+  'university of chicago': 'uchicago.edu',
+  'emory': 'emory.edu',
+  'mayo clinic': 'mayoclinic.org',
+  'cleveland clinic': 'clevelandclinic.org',
+  'johns hopkins': 'jhu.edu',
+  'columbia': 'columbia.edu',
+  'massachusetts general': 'massgeneral.org',
+  'children\'s hospital': 'childrenshospital.org',
+  'boston children': 'childrenshospital.org',
 };
 
 // Extract domain from company name for logo lookup

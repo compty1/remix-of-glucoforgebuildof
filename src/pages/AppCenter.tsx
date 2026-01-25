@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { EntityLogo } from '@/components/ui/entity-logo';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Smartphone, 
@@ -73,17 +74,13 @@ const AppCard: React.FC<{ app: DiabetesApp; onClick: () => void }> = ({ app, onC
     >
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
-          {app.logo_url ? (
-            <img 
-              src={app.logo_url} 
-              alt={app.name}
-              className="w-16 h-16 rounded-xl object-cover"
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center">
-              <Smartphone className="h-8 w-8 text-primary" />
-            </div>
-          )}
+          <EntityLogo
+            type="company"
+            name={app.developer || app.name}
+            logoUrl={app.logo_url}
+            size="lg"
+            className="rounded-xl"
+          />
           
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
@@ -310,17 +307,13 @@ export default function AppCenter() {
               <>
                 <DialogHeader>
                   <div className="flex items-start gap-4">
-                    {selectedApp.logo_url ? (
-                      <img 
-                        src={selectedApp.logo_url} 
-                        alt={selectedApp.name}
-                        className="w-20 h-20 rounded-xl object-cover"
-                      />
-                    ) : (
-                      <div className="w-20 h-20 rounded-xl bg-primary/10 flex items-center justify-center">
-                        <Smartphone className="h-10 w-10 text-primary" />
-                      </div>
-                    )}
+                    <EntityLogo
+                      type="company"
+                      name={selectedApp.developer || selectedApp.name}
+                      logoUrl={selectedApp.logo_url}
+                      size="lg"
+                      className="w-20 h-20 rounded-xl"
+                    />
                     <div>
                       <DialogTitle className="text-2xl">{selectedApp.name}</DialogTitle>
                       <p className="text-muted-foreground">{selectedApp.developer}</p>
