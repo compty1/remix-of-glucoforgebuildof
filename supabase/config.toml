@@ -112,3 +112,6 @@ verify_jwt = false
 
 [functions.seed-qol-experiences]
 verify_jwt = false
+
+[functions.seed-medication-logos]
+verify_jwt = false

@@ -3,19 +3,9 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Building2, MapPin, DollarSign, Calendar, Users, GitCompare, ImageIcon } from 'lucide-react';
+import { Building2, MapPin, DollarSign, Calendar, Users } from 'lucide-react';
 import { T1DCompany } from '@/hooks/useT1DCompanies';
 import { VerifiedLink } from '@/components/ui/verified-link';
-
-// Product images for major T1D companies
-const companyProductImages: Record<string, string> = {
-  'Dexcom': 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=200&fit=crop',
-  'Abbott': 'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=400&h=200&fit=crop',
-  'Medtronic': 'https://images.unsplash.com/photo-1581595219315-a187dd40c322?w=400&h=200&fit=crop',
-  'Insulet': 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=400&h=200&fit=crop',
-  'Tandem': 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=400&h=200&fit=crop',
-  'Beta Bionics': 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=200&fit=crop',
-};
 
 interface CompanyCardProps {
   company: T1DCompany;
@@ -64,6 +54,25 @@ export function CompanyCard({
               />
             </div>
           )}
+          
+          {/* Company Logo */}
+          <div className="flex-shrink-0">
+            {company.logo_url ? (
+              <img 
+                src={company.logo_url} 
+                alt={`${company.name} logo`}
+                className="h-12 w-12 object-contain rounded-lg bg-white border p-1"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <div className={`h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center ${company.logo_url ? 'hidden' : ''}`}>
+              <Building2 className="h-6 w-6 text-primary" />
+            </div>
+          </div>
+          
           <div className="flex-1 min-w-0">
             <Link 
               to={`/companies/${company.id}`}
@@ -166,22 +175,6 @@ export function CompanyCard({
           </div>
         )}
 
-        {/* Product Image */}
-        {companyProductImages[company.name] ? (
-          <div className="mt-3 pt-3 border-t border-border/50">
-            <img 
-              src={companyProductImages[company.name]} 
-              alt={`${company.name} product`}
-              className="w-full h-24 object-cover rounded-md"
-            />
-          </div>
-        ) : (
-          <div className="mt-3 pt-3 border-t border-border/50">
-            <div className="w-full h-24 bg-muted/30 rounded-md flex items-center justify-center">
-              <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

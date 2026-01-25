@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from '@/components/AppSidebar';
-import { Menu, LogOut, User, Heart } from 'lucide-react';
+import { Menu, LogOut, User, Heart, Search } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { DonationModal } from '@/components/DonationModal';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { GlobalSearchDialog } from '@/components/search/GlobalSearchDialog';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,7 +19,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { signOut } = useAuthStore();
   const navigate = useNavigate();
   const [donationModalOpen, setDonationModalOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { showModal, completeOnboarding, dismissModal } = useOnboarding();
+
+  // Keyboard shortcut for search (Cmd+K or Ctrl+K)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();
@@ -44,6 +59,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
             
             <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setSearchOpen(true)} 
+                className="text-white hover:bg-white/10 gap-2"
+              >
+                <Search className="h-4 w-4" />
+                <span className="hidden md:inline text-sm">Search</span>
+                <kbd className="hidden md:inline-flex h-5 items-center gap-1 rounded border bg-white/10 px-1.5 text-[10px] font-medium">
+                  ⌘K
+                </kbd>
+              </Button>
               <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="text-white hover:bg-white/10">
                 <User className="h-4 w-4" />
               </Button>
@@ -133,6 +160,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         open={showModal}
         onComplete={completeOnboarding}
         onDismiss={dismissModal}
+      />
+      
+      <GlobalSearchDialog 
+        open={searchOpen} 
+        onOpenChange={setSearchOpen} 
       />
     </SidebarProvider>
   );

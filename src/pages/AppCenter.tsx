@@ -21,7 +21,10 @@ import {
   PlayCircle,
   Sparkles,
   Check,
-  X
+  X,
+  Github,
+  Globe,
+  CheckCircle2
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -52,7 +55,17 @@ interface AppReview {
   created_at: string;
 }
 
+// Open source apps that use GitHub
+const openSourceApps = ['xDrip+', 'Nightscout', 'Loop', 'AndroidAPS', 'AAPS'];
+
+// Web-based apps
+const webApps = ['Nightscout', 'Tidepool', 'Sugarmate'];
+
 const AppCard: React.FC<{ app: DiabetesApp; onClick: () => void }> = ({ app, onClick }) => {
+  const isOpenSource = openSourceApps.some(name => app.name.toLowerCase().includes(name.toLowerCase()));
+  const isWebApp = webApps.some(name => app.name.toLowerCase().includes(name.toLowerCase()));
+  const hasGithub = app.download_urls?.github;
+  
   return (
     <Card 
       className="command-center-widget cursor-pointer hover:shadow-lg transition-all"
@@ -75,7 +88,15 @@ const AppCard: React.FC<{ app: DiabetesApp; onClick: () => void }> = ({ app, onC
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="font-semibold">{app.name}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold">{app.name}</h3>
+                  {isOpenSource && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
+                      <Github className="h-2.5 w-2.5 mr-0.5" />
+                      Open Source
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground">{app.developer}</p>
               </div>
               {app.is_featured && (
@@ -97,7 +118,7 @@ const AppCard: React.FC<{ app: DiabetesApp; onClick: () => void }> = ({ app, onC
               {app.description}
             </p>
 
-            <div className="flex items-center gap-2 mt-3">
+            <div className="flex items-center gap-2 mt-3 flex-wrap">
               {app.platforms?.includes('ios') && (
                 <Badge variant="outline" className="text-xs">
                   <Apple className="h-3 w-3 mr-1" /> iOS
@@ -106,6 +127,16 @@ const AppCard: React.FC<{ app: DiabetesApp; onClick: () => void }> = ({ app, onC
               {app.platforms?.includes('android') && (
                 <Badge variant="outline" className="text-xs">
                   <PlayCircle className="h-3 w-3 mr-1" /> Android
+                </Badge>
+              )}
+              {isWebApp && (
+                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800">
+                  <Globe className="h-3 w-3 mr-1" /> Web App
+                </Badge>
+              )}
+              {hasGithub && (
+                <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-300 dark:border-gray-800">
+                  <Github className="h-3 w-3 mr-1" /> GitHub
                 </Badge>
               )}
               {app.category && (
@@ -316,20 +347,55 @@ export default function AppCenter() {
                     <p className="text-muted-foreground">{selectedApp.description}</p>
 
                     {/* Download Buttons */}
-                    <div className="flex gap-3">
-                      {selectedApp.download_urls?.ios && (
-                        <Button asChild>
-                          <a href={selectedApp.download_urls.ios} target="_blank" rel="noopener noreferrer">
-                            <Apple className="h-4 w-4 mr-2" />
-                            App Store
-                          </a>
-                        </Button>
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap gap-3">
+                        {selectedApp.download_urls?.ios && (
+                          <Button asChild className="gap-2">
+                            <a href={selectedApp.download_urls.ios} target="_blank" rel="noopener noreferrer">
+                              <Apple className="h-4 w-4" />
+                              App Store
+                              <CheckCircle2 className="h-3 w-3 text-green-300 ml-1" />
+                            </a>
+                          </Button>
+                        )}
+                        {selectedApp.download_urls?.android && (
+                          <Button asChild variant="outline" className="gap-2">
+                            <a href={selectedApp.download_urls.android} target="_blank" rel="noopener noreferrer">
+                              <PlayCircle className="h-4 w-4" />
+                              Google Play
+                              <CheckCircle2 className="h-3 w-3 text-green-600 ml-1" />
+                            </a>
+                          </Button>
+                        )}
+                      </div>
+                      
+                      {/* GitHub / Alternative Downloads */}
+                      {selectedApp.download_urls?.github && (
+                        <div className="p-3 bg-muted/50 rounded-lg">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+                            <Github className="h-4 w-4" />
+                            <span className="font-medium">Open Source Download</span>
+                          </div>
+                          <Button asChild variant="secondary" size="sm" className="gap-2">
+                            <a href={selectedApp.download_urls.github} target="_blank" rel="noopener noreferrer">
+                              <Github className="h-4 w-4" />
+                              Download from GitHub
+                              <ExternalLink className="h-3 w-3 ml-1" />
+                            </a>
+                          </Button>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            This is an open-source app distributed via GitHub releases.
+                          </p>
+                        </div>
                       )}
-                      {selectedApp.download_urls?.android && (
-                        <Button asChild variant="outline">
-                          <a href={selectedApp.download_urls.android} target="_blank" rel="noopener noreferrer">
-                            <PlayCircle className="h-4 w-4 mr-2" />
-                            Google Play
+                      
+                      {/* Web App Link */}
+                      {selectedApp.download_urls?.web && (
+                        <Button asChild variant="outline" className="gap-2">
+                          <a href={selectedApp.download_urls.web} target="_blank" rel="noopener noreferrer">
+                            <Globe className="h-4 w-4" />
+                            Open Web App
+                            <ExternalLink className="h-3 w-3 ml-1" />
                           </a>
                         </Button>
                       )}
