@@ -127,3 +127,6 @@ verify_jwt = false
 
 [functions.seed-donations-data]
 verify_jwt = false
+
+[functions.seed-intimacy-community-posts]
+verify_jwt = false
