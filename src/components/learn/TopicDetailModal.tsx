@@ -517,6 +517,114 @@ const topicContent: Record<string, {
     ],
     practicalTips: ['Use GI as a general guide for choosing between similar foods', 'Low-GI foods may allow less pre-bolusing time', 'Test your personal response to common foods - individual variation is huge'],
     sources: [{ title: 'American Journal of Clinical Nutrition: Glycemic Index Research' }, { title: 'Harvard Health: Glycemic Index and Glycemic Load' }]
+  },
+  'CGM Placement During Intimacy': {
+    introduction: 'Managing diabetes technology during intimate moments is a topic rarely addressed in clinical settings, yet it\'s a practical concern for millions of T1Ds. CGM sensors, with their adhesive patches and transmitters, can feel awkward or get in the way during physical closeness. Understanding placement strategies and protective measures can help you maintain both your glucose monitoring and your intimacy without compromise. This is about reclaiming normalcy in an area of life that diabetes doesn\'t need to control.',
+    sections: [
+      {
+        title: 'Strategic Sensor Placement',
+        content: 'The most common FDA-approved CGM sites—abdomen and upper arm—are also areas frequently involved in physical contact during intimacy. Consider alternative placements that maintain accuracy while staying out of the way: upper buttock (approved for some sensors), outer thigh, or the back of the arm rather than the side. Many T1Ds report that the upper outer thigh provides good accuracy while being naturally protected during most intimate positions. The back of the upper arm is another option that tends to stay clear during close contact. Some sensors like Libre 3 and Dexcom G7 are smaller and less obtrusive, making placement less critical. Always verify accuracy at new sites with fingerstick comparisons for the first few days.'
+      },
+      {
+        title: 'Protective Measures and Adhesive Support',
+        content: 'Sweating during physical activity—including intimacy—can loosen adhesive. Pre-emptive reinforcement helps prevent mid-moment sensor losses. Options include: overpatch covers (many brands offer thin, breathable versions), medical tape like Tegaderm or RockTape applied around edges, and skin prep solutions like SkinTac applied before sensor insertion to improve adhesion. For water-based activities beforehand (showers together, hot tubs), waterproof overpatches are essential. Some couples keep a small "intimacy kit" with extra adhesive patches nearby. If a sensor does get knocked off, don\'t panic—you can survive a few hours without CGM data, and many sensors can be reattached with additional adhesive if caught quickly.'
+      },
+      {
+        title: 'Alarm Management',
+        content: 'Nothing interrupts the mood quite like a loud CGM alarm. Before intimate moments, consider adjusting your alert settings: temporarily raise your low alert threshold (e.g., from 70 to 55 mg/dL if you\'re starting in a safe range), use vibrate-only mode if your device supports it, or place your receiver/phone somewhere you\'ll feel it vibrate without it being intrusive. Many T1Ds pre-check their glucose and set their phone to vibrate-only or "do not disturb" mode with urgent low alerts allowed through. Having a glucose tablet or juice box within reach means you can quickly address a low without completely stopping. Post-intimacy, remember to restore your normal alarm settings.'
+      },
+      {
+        title: 'Body Image and Self-Consciousness',
+        content: 'It\'s normal to feel self-conscious about visible medical devices. Many T1Ds report that their partners rarely notice or care about sensors once the initial conversation happens. Colorful sensor covers and patches can transform a medical device into a personal style statement—some T1Ds view their tech as part of their identity rather than something to hide. For new relationships, consider addressing it casually before intimacy: "I wear a glucose monitor—it\'s like a fitness tracker but for blood sugar." Most partners are curious and supportive when given basic information. Remember that confidence is more attractive than any device is distracting. Your CGM keeps you healthy and present—that\'s an asset, not a liability.'
+      }
+    ],
+    practicalTips: [
+      'Try upper outer thigh or back of arm for sensors—naturally protected during most positions',
+      'Apply overpatches before intimate occasions if adhesive is already loosening',
+      'Keep your phone on vibrate and within reach rather than loudly alarming',
+      'Pre-check glucose and have fast-acting carbs nearby for peace of mind',
+      'Smaller sensors (Libre 3, Dexcom G7) are less intrusive overall',
+      'Normalize your tech with partners early—most find it interesting, not off-putting',
+      'Use SkinTac or similar adhesive enhancers if sweat loosens sensors frequently'
+    ],
+    sources: [
+      { title: 'Diabetes Technology & Therapeutics: Alternative CGM Placement Sites' },
+      { title: 'JDRF: Living Well with T1D Technology' },
+      { title: 'T1D Community Forums: Real-World Sensor Strategies' },
+      { title: 'Journal of Diabetes Science: Adhesive Performance Under Physical Stress' }
+    ]
+  },
+  'Pump Management During Intimacy': {
+    introduction: 'Insulin pumps present unique considerations during intimate moments. Unlike CGMs which are passive monitors, pumps deliver active therapy—disconnecting means temporarily stopping your insulin delivery. Understanding the physiology of short-term pump removal, developing disconnect strategies, and managing tubing (for tethered pumps) are essential skills for maintaining both spontaneity and glucose control. This topic covers the practical mechanics that clinics rarely discuss but every pump user eventually faces.',
+    sections: [
+      {
+        title: 'Safe Disconnection Windows',
+        content: 'For most T1Ds, pumps can be safely disconnected for 30-60 minutes without significant glucose impact—especially during physical activity, which naturally lowers blood sugar. The exercise-like effects of intimacy often offset the missed basal insulin during short disconnections. However, this varies by individual, time of day, and starting glucose level. Key considerations: disconnect when glucose is stable or slightly elevated (120-180 mg/dL is a comfortable range), avoid disconnecting if you\'ve just eaten and have active bolus insulin on board (increases low risk), and be aware of your personal basal requirements—those on higher basal rates may see faster rises during disconnection. Always reconnect promptly afterward and consider a small correction if you were disconnected for more than 45 minutes.'
+      },
+      {
+        title: 'Pump Placement and Tubing Management',
+        content: 'For tethered pumps (Medtronic, t:slim), tubing management is a practical concern. Options: clip the pump to a nearby pillow or headboard with enough tubing slack to allow movement, use a leg strap or arm band to secure the pump to your body, or tuck the pump under a pillow. Extra-long tubing (42" or 110cm) provides more flexibility. Some T1Ds prefer specific infusion sites during intimate periods—hip or upper buttock sites keep tubing routed behind you and out of the way. For tubeless pumps (Omnipod), placement matters more—avoid sites likely to be compressed or receive direct impact. The outer arm or upper back are often preferred for these occasions.'
+      },
+      {
+        title: 'Quick-Disconnect Techniques',
+        content: 'Most modern infusion sets have quick-disconnect mechanisms at the insertion site—learn to disconnect and reconnect smoothly. Practice the motion so you can do it without looking or fumbling. For spontaneous moments, quick-disconnect is faster than removing the entire set. Keep the disconnected end clean (caps are available for some sets) and avoid laying it on dirty surfaces. Some T1Ds keep their pump in a drawer or clipped to the bed frame during disconnection. For tubeless pumps that don\'t disconnect, you simply work around the pod. If your pod is in an inconvenient spot, you can always change it before anticipated intimate occasions—plan site rotation accordingly.'
+      },
+      {
+        title: 'Post-Intimacy Reconnection and Monitoring',
+        content: 'After reconnecting, check that insulin is flowing properly—air bubbles or occlusions can develop if the tubing was kinked. Prime a small amount if you\'re concerned. Physical activity naturally increases insulin sensitivity, so you may not need to immediately correct for time disconnected if your glucose is only slightly elevated. Monitor for the next 2-3 hours to catch any delayed rises. Some T1Ds notice different glucose responses depending on the intensity and duration of activity—this is normal variation. Keep notes on your patterns to refine your approach over time. If intimacy is part of your regular routine, consider whether pump settings during that time of day need adjustment.'
+      }
+    ],
+    practicalTips: [
+      'Disconnect when glucose is 120-180 mg/dL for a comfortable buffer',
+      '30-60 minutes disconnected is generally safe—activity offsets missed basal',
+      'Use longer tubing (42") for tethered pumps to allow more movement freedom',
+      'Practice quick-disconnect until you can do it smoothly without looking',
+      'Choose infusion sites that route tubing behind you for intimate occasions',
+      'Reconnect promptly and verify insulin flow after reconnection',
+      'Consider a small correction bolus if disconnected more than 45-60 minutes'
+    ],
+    sources: [
+      { title: 'Diabetes Technology & Therapeutics: Pump Therapy Best Practices' },
+      { title: 'JDRF: Living with an Insulin Pump' },
+      { title: 'Medtronic & Tandem User Communities' },
+      { title: 'Journal of Clinical Endocrinology: Short-Term Pump Interruptions' }
+    ]
+  },
+  'Communication with Partners': {
+    introduction: 'Diabetes affects relationships in ways that extend far beyond blood sugar numbers. Partners become witnesses to—and often participants in—the daily management of a chronic condition. Effective communication about T1D needs, boundaries, and support preferences can strengthen relationships rather than strain them. Whether you\'re in a new relationship or have been with someone for decades, developing shared language and understanding around diabetes is an ongoing process that benefits from intentional conversation.',
+    sections: [
+      {
+        title: 'The Initial Disclosure',
+        content: 'When and how to tell a new partner about T1D is a personal decision. Some prefer early disclosure (first or second date), viewing it as filtering for acceptance. Others wait until the relationship has some foundation. There\'s no wrong approach. What matters is presenting information matter-of-factly without apologizing or over-explaining. Simple language works: "I have Type 1 diabetes—my pancreas doesn\'t make insulin, so I use a pump/injections to stay healthy. I wear a glucose monitor to track my blood sugar." Most people\'s reactions are neutral or curious. Negative reactions, while hurtful, provide valuable information about compatibility. Avoid trauma-dumping about complications or worst-case scenarios early on—save detailed conversations for when trust is established.'
+      },
+      {
+        title: 'Teaching What Partners Need to Know',
+        content: 'Partners don\'t need to become diabetes experts, but some baseline knowledge helps. Essential topics: recognizing low blood sugar symptoms (sweating, confusion, irritability, shakiness), knowing where you keep glucose tabs or juice, understanding that you\'re not being rude if you need to stop and treat, and knowing when to call 911 (unconscious, seizure, unable to swallow). For overnight lows, show partners how to use glucagon—even if you have CGM alerts, having a backup plan matters. Beyond emergencies, explain your routine: meal timing, device alarms, and why you might need to check your phone frequently. Frame this as "here\'s how you can help me stay healthy" rather than "here\'s my burden for you to carry."'
+      },
+      {
+        title: 'Setting Boundaries Around Help',
+        content: 'Well-meaning partners can cross into "diabetes police" territory—commenting on food choices, reminding you to bolus, or expressing anxiety about your numbers. This often comes from love but can feel controlling and exhausting. Have explicit conversations about what help looks like for you. Some T1Ds want partners to wake them for overnight lows; others find this infantilizing. Some appreciate meal-prep help; others want full autonomy over food decisions. Be specific: "I love that you care. The most helpful thing you can do is [specific action]. What I don\'t need is [specific boundary]." Revisit these conversations periodically—needs change with life circumstances, technology changes, and relationship evolution.'
+      },
+      {
+        title: 'Managing the Emotional Load Together',
+        content: 'Diabetes burnout affects partners too. They may feel helpless watching you struggle, anxious about complications, or frustrated by the constant attention diabetes demands. Acknowledge this: "I know my diabetes affects you too." Discuss how you each cope with diabetes-related stress. Some couples find it helpful to have "diabetes-free zones"—times or activities where neither person mentions it. Others prefer full transparency. There\'s no universal right approach, only what works for your relationship. Consider whether couples counseling with a diabetes-aware therapist might help if diabetes is causing significant relationship strain. Many T1D-focused organizations offer relationship resources and support groups for partners.'
+      }
+    ],
+    practicalTips: [
+      'Disclose on your timeline—there\'s no "right" moment for new relationships',
+      'Keep explanations simple initially: "My pancreas doesn\'t work, so I use technology to manage insulin"',
+      'Teach glucagon use early—hope you never need it, but preparation matters',
+      'Be explicit about what "help" you want vs. what feels like policing',
+      'Acknowledge that your partner carries emotional weight from your diabetes too',
+      'Create "diabetes-free" times if constant monitoring feels overwhelming for either of you',
+      'Revisit communication agreements periodically—needs evolve over time'
+    ],
+    sources: [
+      { title: 'Diabetes Care: Psychosocial Aspects of Diabetes in Couples' },
+      { title: 'JDRF: Relationships and Type 1 Diabetes' },
+      { title: 'Behavioral Diabetes Institute: Partner Communication Resources' },
+      { title: 'Journal of Family Psychology: Chronic Illness and Relationship Dynamics' }
+    ]
   }
 };
 
