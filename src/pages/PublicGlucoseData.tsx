@@ -17,6 +17,7 @@ import {
 import ClinicalExplanationsPanel from '@/components/glucose/ClinicalExplanationsPanel';
 import PatternInterpretationPanel from '@/components/glucose/PatternInterpretationPanel';
 import ResearchComparisonPanel from '@/components/glucose/ResearchComparisonPanel';
+import { ClinicalSuggestionsPanel } from '@/components/glucose/ClinicalSuggestionsPanel';
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
@@ -1152,6 +1153,8 @@ export default function PublicGlucoseData() {
                       timeBelow70={rangeDistribution.find(r => r.name.includes('<70'))?.value || 0}
                       timeAbove180={rangeDistribution.find(r => r.name.includes('>180'))?.value || 0}
                     />
+                    
+                    <ClinicalSuggestionsPanel summary={summary} />
                   </>
                 )}
               </TabsContent>

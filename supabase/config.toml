@@ -130,3 +130,6 @@ verify_jwt = false
 
 [functions.seed-intimacy-community-posts]
 verify_jwt = false
+
+[functions.seed-real-warrior-stories]
+verify_jwt = false
