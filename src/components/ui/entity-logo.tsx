@@ -230,7 +230,6 @@ export function EntityLogo({
   const [currentSourceIndex, setCurrentSourceIndex] = useState(0);
   const [showFallback, setShowFallback] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [checkedCache, setCheckedCache] = useState(false);
 
   // Build list of logo sources to try in order
   const logoSources = useMemo(() => {
@@ -274,29 +273,12 @@ export function EntityLogo({
 
   const currentSource = logoSources[currentSourceIndex];
 
-  // Check cache for current source and skip failed URLs
+  // Reset state when props change
   useEffect(() => {
-    const checkCacheAndAdvance = async () => {
-      if (!currentSource || checkedCache) return;
-      
-      const status = await getCachedImageStatus(currentSource);
-      
-      if (status === 'failed') {
-        // Skip this source, try next
-        if (currentSourceIndex < logoSources.length - 1) {
-          setCurrentSourceIndex(prev => prev + 1);
-        } else {
-          setShowFallback(true);
-          setIsLoading(false);
-        }
-      } else {
-        setCheckedCache(true);
-        setIsLoading(true);
-      }
-    };
-
-    checkCacheAndAdvance();
-  }, [currentSource, currentSourceIndex, logoSources.length, checkedCache]);
+    setCurrentSourceIndex(0);
+    setShowFallback(false);
+    setIsLoading(true);
+  }, [logoUrl, websiteUrl, name]);
 
   const handleImageLoad = async () => {
     setIsLoading(false);
@@ -306,14 +288,23 @@ export function EntityLogo({
   };
 
   const handleImageError = async () => {
+    // Cache this URL as failed
     if (currentSource) {
       await setCachedImageStatus(currentSource, 'failed');
     }
     
-    if (currentSourceIndex < logoSources.length - 1) {
-      // Try next source
-      setCurrentSourceIndex(prev => prev + 1);
-      setCheckedCache(false);
+    // Find next source that isn't cached as failed
+    let nextIndex = currentSourceIndex + 1;
+    while (nextIndex < logoSources.length) {
+      const status = await getCachedImageStatus(logoSources[nextIndex]);
+      if (status !== 'failed') {
+        break;
+      }
+      nextIndex++;
+    }
+    
+    if (nextIndex < logoSources.length) {
+      setCurrentSourceIndex(nextIndex);
       setIsLoading(true);
     } else {
       // All sources exhausted, show fallback
@@ -321,14 +312,6 @@ export function EntityLogo({
       setIsLoading(false);
     }
   };
-
-  // Reset state when props change
-  useEffect(() => {
-    setCurrentSourceIndex(0);
-    setShowFallback(false);
-    setIsLoading(true);
-    setCheckedCache(false);
-  }, [logoUrl, websiteUrl, name]);
 
   const shouldShowFallback = showFallback || logoSources.length === 0;
 

@@ -4,7 +4,8 @@
 const DB_NAME = 'ImageCacheDB';
 const STORE_NAME = 'imageStatus';
 const DB_VERSION = 1;
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const VALID_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days for valid URLs
+const FAILED_CACHE_TTL_MS = 1 * 60 * 60 * 1000; // 1 hour for failed URLs (reduced from 24h)
 
 interface CacheEntry {
   url: string;
@@ -56,8 +57,10 @@ export async function getCachedImageStatus(url: string): Promise<'valid' | 'fail
           return;
         }
 
-        // Check if cache entry is expired
-        const isExpired = Date.now() - entry.cachedAt > CACHE_TTL_MS;
+        // Use different TTLs for valid vs failed entries
+        const ttl = entry.status === 'valid' ? VALID_CACHE_TTL_MS : FAILED_CACHE_TTL_MS;
+        const isExpired = Date.now() - entry.cachedAt > ttl;
+        
         if (isExpired) {
           // Delete expired entry
           deleteFromCache(url);
@@ -117,34 +120,49 @@ async function deleteFromCache(url: string): Promise<void> {
 export async function clearExpiredCache(): Promise<number> {
   try {
     const db = await openDB();
-    const expiredBefore = Date.now() - CACHE_TTL_MS;
     
     return new Promise((resolve) => {
       const transaction = db.transaction(STORE_NAME, 'readwrite');
       const store = transaction.objectStore(STORE_NAME);
-      const index = store.index('cachedAt');
-      const range = IDBKeyRange.upperBound(expiredBefore);
+      const getAllRequest = store.getAll();
       
-      let deletedCount = 0;
-      const request = index.openCursor(range);
-
-      request.onsuccess = (event) => {
-        const cursor = (event.target as IDBRequest).result;
-        if (cursor) {
-          cursor.delete();
-          deletedCount++;
-          cursor.continue();
-        } else {
-          resolve(deletedCount);
-        }
+      getAllRequest.onsuccess = () => {
+        const entries = getAllRequest.result as CacheEntry[];
+        let deletedCount = 0;
+        const now = Date.now();
+        
+        entries.forEach((entry) => {
+          const ttl = entry.status === 'valid' ? VALID_CACHE_TTL_MS : FAILED_CACHE_TTL_MS;
+          if (now - entry.cachedAt > ttl) {
+            store.delete(entry.url);
+            deletedCount++;
+          }
+        });
+        
+        resolve(deletedCount);
       };
 
-      request.onerror = () => {
-        resolve(deletedCount);
+      getAllRequest.onerror = () => {
+        resolve(0);
       };
     });
   } catch {
     return 0;
+  }
+}
+
+export async function clearAllCache(): Promise<void> {
+  try {
+    const db = await openDB();
+    return new Promise((resolve) => {
+      const transaction = db.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const request = store.clear();
+      request.onsuccess = () => resolve();
+      request.onerror = () => resolve();
+    });
+  } catch {
+    // Silently fail
   }
 }
 
