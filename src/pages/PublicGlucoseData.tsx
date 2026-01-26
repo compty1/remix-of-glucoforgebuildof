@@ -1154,7 +1154,7 @@ export default function PublicGlucoseData() {
                       timeAbove180={rangeDistribution.find(r => r.name.includes('>180'))?.value || 0}
                     />
                     
-                    <ClinicalSuggestionsPanel summary={summary} />
+                    <ClinicalSuggestionsPanel summary={summaryData || null} />
                   </>
                 )}
               </TabsContent>
