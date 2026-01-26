@@ -94,6 +94,7 @@ const platformItemsAfterProjects = [
   { title: "FDA Safety Dashboard", url: "/fda-safety", icon: AlertTriangle },
   { title: "Innovation Hub", url: "/innovation", icon: Lightbulb },
   { title: "Research Funding", url: "/research-funding", icon: DollarSign },
+  { title: "T1D Donations Data", url: "/donations-info", icon: Heart },
   { title: "Research Insights", url: "/research-insights", icon: Sparkles },
   { title: "Research Hub", url: "/research", icon: FileText },
   { title: "Contribute Data", url: "/surveys", icon: HeartHandshake },
