@@ -266,6 +266,36 @@ To anyone wanting to travel with T1D: do it. Plan carefully but don't let fear s
   }
 ];
 
+// URL verification helper function
+async function verifyUrl(url: string): Promise<{ accessible: boolean; statusCode?: number; error?: string }> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    
+    const response = await fetch(url, { 
+      method: 'HEAD',
+      redirect: 'follow',
+      signal: controller.signal,
+      headers: { 
+        'User-Agent': 'Mozilla/5.0 (compatible; GlycoForge/1.0; +https://glycoforge.app)' 
+      }
+    });
+    
+    clearTimeout(timeoutId);
+    
+    return { 
+      accessible: response.ok || response.status === 403,
+      statusCode: response.status 
+    };
+  } catch (err: unknown) {
+    const error = err as Error;
+    if (error.name === 'AbortError') {
+      return { accessible: false, error: 'Request timeout' };
+    }
+    return { accessible: false, error: error.message || 'Unknown error' };
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -277,13 +307,44 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    console.log('Starting to seed real warrior stories with verified source URLs...');
+    console.log('Starting to seed real warrior stories with URL verification...');
+
+    // Verify URLs before inserting
+    const verifiedStories = [];
+    const urlVerificationResults: { url: string; accessible: boolean; error?: string }[] = [];
+
+    for (const story of realWarriorStories) {
+      if (story.source_url) {
+        const result = await verifyUrl(story.source_url);
+        urlVerificationResults.push({
+          url: story.source_url,
+          accessible: result.accessible,
+          error: result.error
+        });
+        
+        if (!result.accessible) {
+          console.warn(`URL verification failed for "${story.title}": ${story.source_url} - ${result.error || 'Status: ' + result.statusCode}`);
+        }
+        
+        verifiedStories.push({
+          ...story,
+          source_link_verified: result.accessible,
+          source_link_verified_at: new Date().toISOString()
+        });
+      } else {
+        verifiedStories.push({
+          ...story,
+          source_link_verified: null,
+          source_link_verified_at: null
+        });
+      }
+    }
 
     // First, delete existing stories
     const { error: deleteError } = await supabase
       .from('warrior_stories')
       .delete()
-      .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+      .neq('id', '00000000-0000-0000-0000-000000000000');
 
     if (deleteError) {
       console.error('Error deleting old stories:', deleteError);
@@ -291,10 +352,10 @@ Deno.serve(async (req) => {
       console.log('Old stories deleted');
     }
 
-    // Insert real stories with verified URLs
+    // Insert verified stories
     const { data, error } = await supabase
       .from('warrior_stories')
-      .insert(realWarriorStories)
+      .insert(verifiedStories)
       .select();
 
     if (error) {
@@ -302,18 +363,28 @@ Deno.serve(async (req) => {
       throw error;
     }
 
-    console.log(`Successfully seeded ${data.length} warrior stories with verified source URLs`);
+    const accessibleUrls = urlVerificationResults.filter(r => r.accessible).length;
+    const failedUrls = urlVerificationResults.filter(r => !r.accessible);
+
+    console.log(`Successfully seeded ${data.length} warrior stories`);
+    console.log(`URL Verification: ${accessibleUrls}/${urlVerificationResults.length} URLs accessible`);
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Seeded ${data.length} warrior stories with verified source URLs`,
+        message: `Seeded ${data.length} warrior stories with URL verification`,
         stories: data.map(s => ({ 
           id: s.id, 
           title: s.title, 
           source_url: s.source_url,
           platform: s.platform 
-        }))
+        })),
+        urlVerification: {
+          total: urlVerificationResults.length,
+          accessible: accessibleUrls,
+          failed: failedUrls.length,
+          failedUrls: failedUrls
+        }
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
