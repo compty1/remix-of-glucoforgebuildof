@@ -237,19 +237,18 @@ serve(async (req) => {
         console.error('Error clearing old reviews:', deleteError);
       }
 
-      // Insert new reviews
-      const { error: insertError } = await supabase
-        .from('external_device_reviews')
-        .upsert(uniqueReviews, { 
-          onConflict: 'external_id',
-          ignoreDuplicates: false 
-        });
+      // Insert new reviews (simple insert, ignore duplicates)
+      for (const review of uniqueReviews) {
+        const { error: insertError } = await supabase
+          .from('external_device_reviews')
+          .insert(review);
 
-      if (insertError) {
-        console.error('Insert error:', insertError);
-      } else {
-        console.log(`Successfully inserted ${uniqueReviews.length} reviews`);
+        if (insertError && !insertError.message.includes('duplicate')) {
+          console.error('Insert error for review:', insertError.message);
+        }
       }
+      
+      console.log(`Successfully processed ${uniqueReviews.length} reviews`);
 
       return new Response(
         JSON.stringify({
