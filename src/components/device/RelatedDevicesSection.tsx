@@ -60,6 +60,7 @@ export const RelatedDevicesSection: React.FC<RelatedDevicesSectionProps> = ({
                   type="device"
                   name={device.manufacturer || device.name}
                   logoUrl={device.image_url}
+                  websiteUrl={device.website_url}
                   size="sm"
                 />
                 <div className="flex-1 min-w-0">

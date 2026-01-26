@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Building2, Pill, Cpu, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -7,7 +7,7 @@ interface EntityLogoProps {
   name: string;
   logoUrl?: string | null;
   websiteUrl?: string | null;
-  size?: 'xs' | 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }
 
@@ -16,6 +16,7 @@ const sizeClasses = {
   sm: 'h-8 w-8',
   md: 'h-12 w-12',
   lg: 'h-16 w-16',
+  xl: 'h-48 w-48',
 };
 
 const iconSizes = {
@@ -23,6 +24,7 @@ const iconSizes = {
   sm: 'h-4 w-4',
   md: 'h-6 w-6',
   lg: 'h-8 w-8',
+  xl: 'h-16 w-16',
 };
 
 const FallbackIcon = ({ type, size }: { type: EntityLogoProps['type']; size: EntityLogoProps['size'] }) => {
@@ -279,7 +281,7 @@ export function EntityLogo({
   };
 
   // Reset state when props change
-  useMemo(() => {
+  useEffect(() => {
     setCurrentSourceIndex(0);
     setShowFallback(false);
   }, [logoUrl, websiteUrl, name]);
