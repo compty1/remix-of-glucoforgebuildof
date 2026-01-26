@@ -84,18 +84,15 @@ export const DeviceHero: React.FC<DeviceHeroProps> = ({
       <div className="bg-card border border-border rounded-xl p-6 md:p-8 shadow-card">
         <div className="flex flex-col md:flex-row gap-6 md:gap-8">
           {/* Device Image */}
-          <div className="w-full md:w-48 h-48 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-            {device.image_url ? (
-              <img 
-                src={device.image_url} 
-                alt={device.name}
-                className="w-full h-full object-contain rounded-lg"
-              />
-            ) : (
-              <div className="text-muted-foreground">
-                {getDeviceIcon(device.category)}
-              </div>
-            )}
+          <div className="w-full md:w-48 h-48 bg-muted rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <EntityLogo 
+              type="device"
+              name={device.manufacturer || device.name}
+              logoUrl={device.image_url}
+              websiteUrl={device.website_url}
+              size="xl"
+              className="w-full h-full"
+            />
           </div>
 
           {/* Device Info */}
@@ -104,6 +101,8 @@ export const DeviceHero: React.FC<DeviceHeroProps> = ({
               <EntityLogo 
                 type="company"
                 name={device.manufacturer || device.name}
+                logoUrl={device.image_url}
+                websiteUrl={device.website_url}
                 size="md"
               />
               <Badge variant="outline">{device.category}</Badge>
