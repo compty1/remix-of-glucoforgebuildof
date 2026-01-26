@@ -81,6 +81,30 @@ export default function ArticleDetail() {
     
     // Handle JSON rich text content
     if (content && typeof content === 'object') {
+      // Handle sections array format (from seed-articles)
+      if (content.sections && Array.isArray(content.sections)) {
+        return (
+          <>
+            {content.medical_disclaimer && (
+              <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 p-4 mb-6 rounded-r-lg">
+                <p className="text-sm text-amber-800 dark:text-amber-200 italic">{content.medical_disclaimer}</p>
+              </div>
+            )}
+            {content.sections.map((section: { heading?: string; text?: string }, index: number) => (
+              <div key={index} className="mb-8">
+                {section.heading && (
+                  <h2 className="text-2xl font-semibold mb-4">{section.heading}</h2>
+                )}
+                {section.text && (
+                  <p className="mb-4 leading-relaxed text-muted-foreground">{section.text}</p>
+                )}
+              </div>
+            ))}
+          </>
+        );
+      }
+      
+      // Handle Editor.js blocks format
       if (content.blocks) {
         return content.blocks.map((block: any, index: number) => {
           switch (block.type) {

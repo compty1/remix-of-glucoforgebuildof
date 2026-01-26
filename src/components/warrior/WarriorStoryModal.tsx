@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Trophy, Heart, Target, User, Star, ExternalLink, Calendar, Link2 } from 'lucide-react';
+import { getPlatformIcon } from '@/components/icons/PlatformIcons';
 
 interface WarriorStory {
   id: string;
@@ -110,7 +111,8 @@ export const WarriorStoryModal: React.FC<WarriorStoryModalProps> = ({ story, ope
                   </p>
                 )}
                 {story.source_type && (
-                  <Badge variant="secondary" className={getSourceBadgeColor(story.source_type)}>
+                  <Badge variant="secondary" className={`${getSourceBadgeColor(story.source_type)} flex items-center gap-1.5`}>
+                    {getPlatformIcon(story.source_type)}
                     {formatSourceType(story.source_type)}
                   </Badge>
                 )}

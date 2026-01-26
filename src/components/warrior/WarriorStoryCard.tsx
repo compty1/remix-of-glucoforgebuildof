@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Trophy, Heart, Star, ChevronRight, User, ExternalLink } from 'lucide-react';
+import { getPlatformIcon } from '@/components/icons/PlatformIcons';
 
 interface WarriorStory {
   id: string;
@@ -92,7 +93,8 @@ export const WarriorStoryCard: React.FC<WarriorStoryCardProps> = ({ story, onRea
               </Badge>
             )}
             {story.source_type && (
-              <Badge variant="secondary" className={getSourceBadgeColor(story.source_type)}>
+              <Badge variant="secondary" className={`${getSourceBadgeColor(story.source_type)} flex items-center gap-1.5`}>
+                {getPlatformIcon(story.source_type)}
                 {formatSourceType(story.source_type)}
               </Badge>
             )}

@@ -164,26 +164,37 @@ export function PatentDetailModal({ patent, open, onOpenChange }: PatentDetailMo
           {/* Actions */}
           <div className="flex flex-wrap gap-3">
             {patent.patent_url && (
-              <Button
-                variant="default"
-                onClick={() => window.open(patent.patent_url!, '_blank')}
-                className="gap-2"
+              <a
+                href={patent.patent_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 transition-colors"
               >
                 <ExternalLink className="h-4 w-4" />
                 View on Google Patents
-              </Button>
+              </a>
             )}
-            <Button
-              variant="outline"
-              onClick={() => window.open(
-                `https://patents.google.com/?q=${encodeURIComponent(patent.title)}&oq=${encodeURIComponent(patent.title)}`,
-                '_blank'
-              )}
-              className="gap-2"
+            {/* USPTO Alternative Link */}
+            {patent.patent_id && (
+              <a
+                href={`https://patft.uspto.gov/netacgi/nph-Parser?patentnumber=${patent.patent_id.replace(/[^\d]/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+              >
+                <ExternalLink className="h-4 w-4" />
+                View on USPTO
+              </a>
+            )}
+            <a
+              href={`https://worldwide.espacenet.com/patent/search?q=${encodeURIComponent(patent.patent_id)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
             >
               <Search className="h-4 w-4" />
-              Find Related Patents
-            </Button>
+              Espacenet
+            </a>
           </div>
         </div>
       </DialogContent>
