@@ -465,6 +465,47 @@ export type Database = {
         }
         Relationships: []
       }
+      challenge_participants: {
+        Row: {
+          challenge_id: string | null
+          completed: boolean | null
+          completed_at: string | null
+          id: string
+          joined_at: string | null
+          progress: number | null
+          target: number | null
+          user_id: string
+        }
+        Insert: {
+          challenge_id?: string | null
+          completed?: boolean | null
+          completed_at?: string | null
+          id?: string
+          joined_at?: string | null
+          progress?: number | null
+          target?: number | null
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string | null
+          completed?: boolean | null
+          completed_at?: string | null
+          id?: string
+          joined_at?: string | null
+          progress?: number | null
+          target?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_participants_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "community_challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chat_sessions: {
         Row: {
           context_id: string | null
@@ -677,6 +718,48 @@ export type Database = {
           study_url?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      community_challenges: {
+        Row: {
+          challenge_type: string | null
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          is_active: boolean | null
+          participant_count: number | null
+          reward_badge_id: string | null
+          reward_points: number | null
+          start_date: string | null
+          title: string
+        }
+        Insert: {
+          challenge_type?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          participant_count?: number | null
+          reward_badge_id?: string | null
+          reward_points?: number | null
+          start_date?: string | null
+          title: string
+        }
+        Update: {
+          challenge_type?: string | null
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          participant_count?: number | null
+          reward_badge_id?: string | null
+          reward_points?: number | null
+          start_date?: string | null
+          title?: string
         }
         Relationships: []
       }
@@ -1243,6 +1326,7 @@ export type Database = {
           app_compatibility: Json | null
           autonomy_level: string | null
           availability: string | null
+          avg_rating: number | null
           battery_life: string | null
           category: string | null
           change_frequency: string | null
@@ -1275,6 +1359,7 @@ export type Database = {
           pros: string[] | null
           regulatory_class: string | null
           retail_price_usd: number | null
+          review_count: number | null
           sensor_wear_days: number | null
           specifications: Json | null
           support_email: string | null
@@ -1292,6 +1377,7 @@ export type Database = {
           app_compatibility?: Json | null
           autonomy_level?: string | null
           availability?: string | null
+          avg_rating?: number | null
           battery_life?: string | null
           category?: string | null
           change_frequency?: string | null
@@ -1324,6 +1410,7 @@ export type Database = {
           pros?: string[] | null
           regulatory_class?: string | null
           retail_price_usd?: number | null
+          review_count?: number | null
           sensor_wear_days?: number | null
           specifications?: Json | null
           support_email?: string | null
@@ -1341,6 +1428,7 @@ export type Database = {
           app_compatibility?: Json | null
           autonomy_level?: string | null
           availability?: string | null
+          avg_rating?: number | null
           battery_life?: string | null
           category?: string | null
           change_frequency?: string | null
@@ -1373,6 +1461,7 @@ export type Database = {
           pros?: string[] | null
           regulatory_class?: string | null
           retail_price_usd?: number | null
+          review_count?: number | null
           sensor_wear_days?: number | null
           specifications?: Json | null
           support_email?: string | null
@@ -3078,6 +3167,78 @@ export type Database = {
         }
         Relationships: []
       }
+      notification_preferences: {
+        Row: {
+          categories: Json | null
+          created_at: string | null
+          email_frequency: string | null
+          id: string
+          in_app_enabled: boolean | null
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          categories?: Json | null
+          created_at?: string | null
+          email_frequency?: string | null
+          id?: string
+          in_app_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          categories?: Json | null
+          created_at?: string | null
+          email_frequency?: string | null
+          id?: string
+          in_app_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          icon: string | null
+          id: string
+          is_read: boolean | null
+          link: string | null
+          message: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          message?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          is_read?: boolean | null
+          link?: string | null
+          message?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       paper_citations: {
         Row: {
           cited_paper_id: string | null
@@ -4776,6 +4937,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          badge_icon: string | null
+          badge_name: string
+          category: string | null
+          created_at: string | null
+          description: string | null
+          earned_at: string | null
+          id: string
+          is_completed: boolean | null
+          progress: number | null
+          target: number | null
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          badge_icon?: string | null
+          badge_name: string
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          earned_at?: string | null
+          id?: string
+          is_completed?: boolean | null
+          progress?: number | null
+          target?: number | null
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          badge_icon?: string | null
+          badge_name?: string
+          category?: string | null
+          created_at?: string | null
+          description?: string | null
+          earned_at?: string | null
+          id?: string
+          is_completed?: boolean | null
+          progress?: number | null
+          target?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_activity_log: {
         Row: {
           activity_type: string
@@ -4862,6 +5068,111 @@ export type Database = {
           id?: string
           layout?: Json
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_follows: {
+        Row: {
+          created_at: string | null
+          follow_type: string
+          followed_id: string
+          follower_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          follow_type: string
+          followed_id: string
+          follower_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          follow_type?: string
+          followed_id?: string
+          follower_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      user_milestones: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          milestone_date: string | null
+          milestone_type: string
+          remind_me: boolean | null
+          title: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          milestone_date?: string | null
+          milestone_type: string
+          remind_me?: boolean | null
+          title?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          milestone_date?: string | null
+          milestone_type?: string
+          remind_me?: boolean | null
+          title?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          cgm_device_id: string | null
+          content_interests: string[] | null
+          created_at: string | null
+          device_brands: string[] | null
+          diagnosis_year: number | null
+          id: string
+          onboarding_completed: boolean | null
+          primary_challenges: string[] | null
+          primary_medication_id: string | null
+          pump_device_id: string | null
+          therapy_type: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cgm_device_id?: string | null
+          content_interests?: string[] | null
+          created_at?: string | null
+          device_brands?: string[] | null
+          diagnosis_year?: number | null
+          id?: string
+          onboarding_completed?: boolean | null
+          primary_challenges?: string[] | null
+          primary_medication_id?: string | null
+          pump_device_id?: string | null
+          therapy_type?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cgm_device_id?: string | null
+          content_interests?: string[] | null
+          created_at?: string | null
+          device_brands?: string[] | null
+          diagnosis_year?: number | null
+          id?: string
+          onboarding_completed?: boolean | null
+          primary_challenges?: string[] | null
+          primary_medication_id?: string | null
+          pump_device_id?: string | null
+          therapy_type?: string | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -4960,6 +5271,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_streaks: {
+        Row: {
+          created_at: string | null
+          current_streak: number | null
+          id: string
+          last_activity_date: string | null
+          longest_streak: number | null
+          streak_type: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          streak_type: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          streak_type?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_view_history: {
+        Row: {
+          id: string
+          item_id: string
+          item_title: string | null
+          item_type: string
+          item_url: string | null
+          user_id: string
+          viewed_at: string | null
+        }
+        Insert: {
+          id?: string
+          item_id: string
+          item_title?: string | null
+          item_type: string
+          item_url?: string | null
+          user_id: string
+          viewed_at?: string | null
+        }
+        Update: {
+          id?: string
+          item_id?: string
+          item_title?: string | null
+          item_type?: string
+          item_url?: string | null
+          user_id?: string
+          viewed_at?: string | null
+        }
+        Relationships: []
       }
       volunteer_interests: {
         Row: {
