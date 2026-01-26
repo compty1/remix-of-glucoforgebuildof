@@ -153,6 +153,7 @@ const companiesItems = [
 const getInvolvedItems = [
   { title: "Build With Us", url: "/build-with-us", icon: Hammer },
   { title: "Get Involved", url: "/get-involved", icon: HandHeart },
+  { title: "Support Us", url: "/support", icon: Heart },
   { title: "Bounties", url: "/bounties", icon: DollarSign },
   { title: "Contribute Data", url: "/surveys", icon: HeartHandshake },
   { title: "Become Advocate", url: "/advocate", icon: Megaphone },
