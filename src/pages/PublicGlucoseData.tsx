@@ -272,6 +272,92 @@ export default function PublicGlucoseData() {
     { finding: 'Lower A1C linked to reduced complications', study: 'DCCT/EDIC Trial', doi: '10.1056/NEJMoa052187', year: 2005 }
   ];
 
+  // Memoized correlations data - moved to top level to comply with Rules of Hooks
+  const correlationsData = useMemo(() => {
+    const correlations = [];
+    
+    // AID vs TIR correlation
+    if (summaryData?.demographics?.byPump && summaryData.demographics.byPump.length >= 2) {
+      const aidData = summaryData.demographics.byPump.filter(p => p.pump !== 'MDI');
+      const mdiData = summaryData.demographics.byPump.find(p => p.pump === 'MDI');
+      if (aidData.length > 0 && mdiData) {
+        const avgAidTir = aidData.reduce((sum, d) => sum + d.tir * d.count, 0) / aidData.reduce((sum, d) => sum + d.count, 0);
+        const diff = avgAidTir - mdiData.tir;
+        correlations.push({
+          variable1: 'Automated Insulin Delivery',
+          variable2: 'Time in Range',
+          correlation: Math.min(0.85, diff / 20),
+          pValue: 0.001,
+          sampleSize: aidData.reduce((sum, d) => sum + d.count, 0) + mdiData.count
+        });
+      }
+    }
+
+    // Age and control correlation
+    if (summaryData?.demographics?.byAge && summaryData.demographics.byAge.length >= 2) {
+      correlations.push({
+        variable1: 'Age Group',
+        variable2: 'Time in Range',
+        correlation: 0.32,
+        pValue: 0.012,
+        sampleSize: summaryData.demographics.byAge.reduce((sum, d) => sum + d.count, 0)
+      });
+    }
+
+    // CV and TIR correlation
+    if (variabilityAnalysis) {
+      correlations.push({
+        variable1: 'Glucose Variability (CV)',
+        variable2: 'Time in Range',
+        correlation: -0.78,
+        pValue: 0.001,
+        sampleSize: summaryData?.totalRecords || 0
+      });
+    }
+
+    // Add more correlations
+    correlations.push({
+      variable1: 'CGM Usage',
+      variable2: 'Time in Range',
+      correlation: 0.65,
+      pValue: 0.002,
+      sampleSize: summaryData?.totalRecords || 0
+    });
+
+    correlations.push({
+      variable1: 'Morning Glucose',
+      variable2: 'Daily Average',
+      correlation: 0.72,
+      pValue: 0.001,
+      sampleSize: summaryData?.totalRecords || 0
+    });
+
+    correlations.push({
+      variable1: 'Bolus Frequency',
+      variable2: 'Post-Meal Control',
+      correlation: 0.48,
+      pValue: 0.008,
+      sampleSize: insulinDosingAnalysis?.totalInsulinEvents || 0
+    });
+
+    return correlations;
+  }, [summaryData, variabilityAnalysis, insulinDosingAnalysis]);
+
+  // Memoized weekday analysis data - moved to top level to comply with Rules of Hooks
+  const weekdayData = useMemo(() => {
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const fullDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    
+    return days.map((day, i) => ({
+      day,
+      fullDay: fullDays[i],
+      avgGlucose: (overallStats?.avgGlucose || 140) + (Math.random() - 0.5) * 20,
+      tir: (overallStats?.avgTIR || 65) + (i === 0 || i === 6 ? -3 : 2) + (Math.random() - 0.5) * 5,
+      cv: (variabilityAnalysis?.overallCV || 35) + (i === 0 || i === 6 ? 4 : -1),
+      count: Math.floor((summaryData?.totalRecords || 30000) / 7)
+    }));
+  }, [overallStats, variabilityAnalysis, summaryData]);
+
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">
@@ -536,93 +622,12 @@ export default function PublicGlucoseData() {
                 <CorrelationHeatmap
                   title="Key Variable Correlations"
                   description="Statistical relationships between glucose metrics and lifestyle factors"
-                  correlations={useMemo(() => {
-                    const correlations = [];
-                    
-                    // AID vs TIR correlation
-                    if (summaryData?.demographics?.byPump && summaryData.demographics.byPump.length >= 2) {
-                      const aidData = summaryData.demographics.byPump.filter(p => p.pump !== 'MDI');
-                      const mdiData = summaryData.demographics.byPump.find(p => p.pump === 'MDI');
-                      if (aidData.length > 0 && mdiData) {
-                        const avgAidTir = aidData.reduce((sum, d) => sum + d.tir * d.count, 0) / aidData.reduce((sum, d) => sum + d.count, 0);
-                        const diff = avgAidTir - mdiData.tir;
-                        correlations.push({
-                          variable1: 'Automated Insulin Delivery',
-                          variable2: 'Time in Range',
-                          correlation: Math.min(0.85, diff / 20),
-                          pValue: 0.001,
-                          sampleSize: aidData.reduce((sum, d) => sum + d.count, 0) + mdiData.count
-                        });
-                      }
-                    }
-
-                    // Age and control correlation
-                    if (summaryData?.demographics?.byAge && summaryData.demographics.byAge.length >= 2) {
-                      correlations.push({
-                        variable1: 'Age Group',
-                        variable2: 'Time in Range',
-                        correlation: 0.32,
-                        pValue: 0.012,
-                        sampleSize: summaryData.demographics.byAge.reduce((sum, d) => sum + d.count, 0)
-                      });
-                    }
-
-                    // CV and TIR correlation
-                    if (variabilityAnalysis) {
-                      correlations.push({
-                        variable1: 'Glucose Variability (CV)',
-                        variable2: 'Time in Range',
-                        correlation: -0.78,
-                        pValue: 0.001,
-                        sampleSize: summaryData?.totalRecords || 0
-                      });
-                    }
-
-                    // Add more correlations
-                    correlations.push({
-                      variable1: 'CGM Usage',
-                      variable2: 'Time in Range',
-                      correlation: 0.65,
-                      pValue: 0.002,
-                      sampleSize: summaryData?.totalRecords || 0
-                    });
-
-                    correlations.push({
-                      variable1: 'Morning Glucose',
-                      variable2: 'Daily Average',
-                      correlation: 0.72,
-                      pValue: 0.001,
-                      sampleSize: summaryData?.totalRecords || 0
-                    });
-
-                    correlations.push({
-                      variable1: 'Bolus Frequency',
-                      variable2: 'Post-Meal Control',
-                      correlation: 0.48,
-                      pValue: 0.008,
-                      sampleSize: insulinDosingAnalysis?.totalInsulinEvents || 0
-                    });
-
-                    return correlations;
-                  }, [summaryData, variabilityAnalysis, insulinDosingAnalysis])}
+                  correlations={correlationsData}
                 />
 
                 {/* Weekday Analysis */}
                 <WeekdayAnalysisChart
-                  data={useMemo(() => {
-                    // Generate weekday data from hourly patterns
-                    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-                    const fullDays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                    
-                    return days.map((day, i) => ({
-                      day,
-                      fullDay: fullDays[i],
-                      avgGlucose: (overallStats?.avgGlucose || 140) + (Math.random() - 0.5) * 20,
-                      tir: (overallStats?.avgTIR || 65) + (i === 0 || i === 6 ? -3 : 2) + (Math.random() - 0.5) * 5,
-                      cv: (variabilityAnalysis?.overallCV || 35) + (i === 0 || i === 6 ? 4 : -1),
-                      count: Math.floor((summaryData?.totalRecords || 30000) / 7)
-                    }));
-                  }, [overallStats, variabilityAnalysis, summaryData])}
+                  data={weekdayData}
                 />
 
                 {/* Comparison Widget */}
