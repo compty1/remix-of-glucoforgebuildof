@@ -223,7 +223,7 @@ const DeviceDetail = () => {
             </TabsContent>
 
             <TabsContent value="issues">
-              <DeviceIssuesTab issues={issues} onReportIssue={scrollToSupport} />
+              <DeviceIssuesTab issues={issues} onReportIssue={scrollToSupport} deviceName={device.name} />
             </TabsContent>
 
             <TabsContent value="fixes">
