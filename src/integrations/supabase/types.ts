@@ -5006,9 +5006,13 @@ export type Database = {
           is_featured: boolean | null
           is_published: boolean | null
           obstacles: string[] | null
+          original_post_date: string | null
+          permission_status: string | null
           person_name: string | null
           platform: string | null
           social_handle: string | null
+          source_type: string | null
+          source_url: string | null
           story_content: string
           title: string
           triumphs: string[] | null
@@ -5022,9 +5026,13 @@ export type Database = {
           is_featured?: boolean | null
           is_published?: boolean | null
           obstacles?: string[] | null
+          original_post_date?: string | null
+          permission_status?: string | null
           person_name?: string | null
           platform?: string | null
           social_handle?: string | null
+          source_type?: string | null
+          source_url?: string | null
           story_content: string
           title: string
           triumphs?: string[] | null
@@ -5038,9 +5046,13 @@ export type Database = {
           is_featured?: boolean | null
           is_published?: boolean | null
           obstacles?: string[] | null
+          original_post_date?: string | null
+          permission_status?: string | null
           person_name?: string | null
           platform?: string | null
           social_handle?: string | null
+          source_type?: string | null
+          source_url?: string | null
           story_content?: string
           title?: string
           triumphs?: string[] | null
