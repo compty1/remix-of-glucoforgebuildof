@@ -10,13 +10,36 @@ import {
   Smile, 
   Meh, 
   Frown,
-  MessageCircle
+  MessageCircle,
+  CheckCircle2
 } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface ExternalReviewCardProps {
   review: ExternalReview;
 }
+
+// Validate that URL is a real source, not a placeholder
+const isValidSourceUrl = (url: string | null): boolean => {
+  if (!url) return false;
+  if (url.includes('/example')) return false;
+  if (url.includes('placeholder')) return false;
+  
+  // Valid source patterns
+  const validPatterns = [
+    'reddit.com',
+    'drugs.com',
+    'webmd.com',
+    'trustpilot.com',
+    'google.com/maps',
+    'amazon.com',
+    'diabetes.co.uk',
+    'diabetesdaily.com',
+    'beyondtype1.org',
+  ];
+  
+  return validPatterns.some(pattern => url.toLowerCase().includes(pattern));
+};
 
 export const ExternalReviewCard: React.FC<ExternalReviewCardProps> = ({ review }) => {
   const getSentimentIcon = () => {
@@ -42,14 +65,30 @@ export const ExternalReviewCard: React.FC<ExternalReviewCardProps> = ({ review }
   };
 
   const getSourceBadge = () => {
+    const source = review.source.toLowerCase();
     const sourceColors: Record<string, string> = {
       'reddit': 'bg-orange-500/10 text-orange-600 border-orange-500/20',
       'google': 'bg-blue-500/10 text-blue-600 border-blue-500/20',
       'amazon': 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-      'trustpilot': 'bg-green-500/10 text-green-600 border-green-500/20'
+      'trustpilot': 'bg-green-500/10 text-green-600 border-green-500/20',
+      'drugs.com': 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+      'webmd': 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20',
     };
-    return sourceColors[review.source.toLowerCase()] || 'bg-muted text-muted-foreground';
+    return sourceColors[source] || 'bg-muted text-muted-foreground';
   };
+
+  const getSourceLabel = () => {
+    if (review.source === 'reddit' && review.subreddit) {
+      return review.subreddit;
+    }
+    return review.source.charAt(0).toUpperCase() + review.source.slice(1);
+  };
+
+  const hasValidUrl = isValidSourceUrl(review.source_url);
+  const isVerifiedSource = hasValidUrl && (
+    review.source_url?.includes('reddit.com') || 
+    review.source_url?.includes('drugs.com')
+  );
 
   return (
     <Card className="command-center-widget hover:shadow-md transition-shadow">
@@ -58,9 +97,15 @@ export const ExternalReviewCard: React.FC<ExternalReviewCardProps> = ({ review }
         <div className="flex items-start justify-between gap-4 mb-3">
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="outline" className={getSourceBadge()}>
-              {review.source === 'reddit' && review.subreddit ? review.subreddit : review.source}
+              {getSourceLabel()}
             </Badge>
             {getSentimentBadge()}
+            {isVerifiedSource && (
+              <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                <CheckCircle2 className="h-3 w-3 mr-1" />
+                Verified
+              </Badge>
+            )}
           </div>
           <div className="flex items-center gap-1 text-xs text-muted-foreground flex-shrink-0">
             <Clock className="h-3 w-3" />
@@ -97,7 +142,7 @@ export const ExternalReviewCard: React.FC<ExternalReviewCardProps> = ({ review }
             </span>
           </div>
 
-          {review.source_url && (
+          {hasValidUrl && review.source_url && (
             <Button 
               variant="ghost" 
               size="sm" 
