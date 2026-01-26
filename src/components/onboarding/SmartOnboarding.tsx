@@ -10,9 +10,9 @@ import { useUserPreferences, UpdatePreferencesInput } from '@/hooks/useUserPrefe
 import { ChevronLeft, ChevronRight, Sparkles, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface SmartOnboardingProps {
+export interface SmartOnboardingProps {
   open: boolean;
-  onComplete: () => void;
+  onOpenChange: (open: boolean) => void;
 }
 
 const STEPS = [
@@ -83,7 +83,7 @@ const INTEREST_OPTIONS = [
   { id: 'nutrition', label: 'Nutrition & exercise', icon: '🥗' },
 ];
 
-export function SmartOnboarding({ open, onComplete }: SmartOnboardingProps) {
+export function SmartOnboarding({ open, onOpenChange }: SmartOnboardingProps) {
   const { completeOnboarding, isUpdating } = useUserPreferences();
   const [currentStep, setCurrentStep] = useState(0);
   const [preferences, setPreferences] = useState<UpdatePreferencesInput>({
@@ -110,7 +110,11 @@ export function SmartOnboarding({ open, onComplete }: SmartOnboardingProps) {
 
   const handleComplete = async () => {
     await completeOnboarding(preferences);
-    onComplete();
+    onOpenChange(false);
+  };
+
+  const handleSkip = () => {
+    onOpenChange(false);
   };
 
   const toggleArrayItem = (key: keyof UpdatePreferencesInput, item: string) => {
@@ -262,7 +266,7 @@ export function SmartOnboarding({ open, onComplete }: SmartOnboardingProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <div className="flex items-center gap-2 mb-2">
@@ -279,14 +283,19 @@ export function SmartOnboarding({ open, onComplete }: SmartOnboardingProps) {
         {renderStep()}
 
         <div className="flex justify-between pt-4">
-          <Button
-            variant="ghost"
-            onClick={handleBack}
-            disabled={currentStep === 0}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              onClick={handleBack}
+              disabled={currentStep === 0}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Back
+            </Button>
+            <Button variant="ghost" onClick={handleSkip} className="text-muted-foreground">
+              Skip for now
+            </Button>
+          </div>
 
           {currentStep < STEPS.length - 1 ? (
             <Button onClick={handleNext}>

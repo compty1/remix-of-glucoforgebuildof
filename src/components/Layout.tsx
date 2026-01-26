@@ -10,17 +10,47 @@ import { DonationModal } from '@/components/DonationModal';
 import { OnboardingModal } from '@/components/OnboardingModal';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { GlobalSearchDialog } from '@/components/search/GlobalSearchDialog';
+import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { SmartOnboarding } from '@/components/onboarding/SmartOnboarding';
+import { AchievementUnlockModal } from '@/components/achievements/AchievementUnlockModal';
+import { useAchievements } from '@/hooks/useAchievements';
+import { useStreaks } from '@/hooks/useStreaks';
+import { useUserPreferences } from '@/hooks/useUserPreferences';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const { signOut } = useAuthStore();
+  const { signOut, user } = useAuthStore();
   const navigate = useNavigate();
   const [donationModalOpen, setDonationModalOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { showModal, completeOnboarding, dismissModal } = useOnboarding();
+  
+  // Achievements and streaks
+  const { recentlyUnlocked, dismissUnlocked } = useAchievements();
+  const { recordVisit } = useStreaks();
+  
+  // User preferences for smart onboarding
+  const { preferences, isLoading: prefsLoading } = useUserPreferences();
+  const [showSmartOnboarding, setShowSmartOnboarding] = useState(false);
+
+  // Record daily visit for streak tracking
+  useEffect(() => {
+    if (user) {
+      recordVisit();
+    }
+  }, [user, recordVisit]);
+
+  // Show smart onboarding if user hasn't completed it
+  useEffect(() => {
+    if (user && !prefsLoading && preferences && !preferences.onboarding_completed) {
+      // Delay slightly to not overwhelm the user
+      const timer = setTimeout(() => setShowSmartOnboarding(true), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [user, prefsLoading, preferences]);
 
   // Keyboard shortcut for search (Cmd+K or Ctrl+K)
   useEffect(() => {
@@ -71,6 +101,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   ⌘K
                 </kbd>
               </Button>
+              
+              {/* Notification Center */}
+              <NotificationCenter />
+              
               <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="text-white hover:bg-white/10">
                 <User className="h-4 w-4" />
               </Button>
@@ -168,6 +202,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <GlobalSearchDialog 
         open={searchOpen} 
         onOpenChange={setSearchOpen} 
+      />
+      
+      {/* Smart Onboarding Modal */}
+      <SmartOnboarding 
+        open={showSmartOnboarding} 
+        onOpenChange={setShowSmartOnboarding} 
+      />
+      
+      {/* Achievement Unlock Celebration */}
+      <AchievementUnlockModal 
+        achievement={recentlyUnlocked}
+        onClose={dismissUnlocked}
       />
     </SidebarProvider>
   );

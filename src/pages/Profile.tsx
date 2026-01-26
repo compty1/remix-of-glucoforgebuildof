@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { 
   User, Mail, Calendar, Shield, Award, Wand2, RefreshCw, 
   Lock, Eye, EyeOff, Activity, FileText, MessageSquare, 
-  Upload as UploadIcon, CheckCircle2, Clock, TrendingUp
+  Upload as UploadIcon, CheckCircle2, Clock, TrendingUp, Trophy, Flame, Star
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/store/authStore';
@@ -24,6 +24,10 @@ import {
   avatarStyles, 
   getAvatarUrl 
 } from '@/utils/nicknameGenerator';
+import { AchievementGrid } from '@/components/achievements/AchievementGrid';
+import { useAchievements } from '@/hooks/useAchievements';
+import { useStreaks } from '@/hooks/useStreaks';
+import { useSearchParams } from 'react-router-dom';
 
 interface Profile {
   id?: string;
@@ -46,6 +50,9 @@ interface ActivityItem {
 
 export default function Profile() {
   const { user } = useAuthStore();
+  const [searchParams] = useSearchParams();
+  const defaultTab = searchParams.get('tab') || 'profile';
+  
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -80,6 +87,10 @@ export default function Profile() {
   });
   
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
+  
+  // Achievements and streaks
+  const { completedAchievements, totalPoints, isLoading: achievementsLoading } = useAchievements();
+  const { streaks, getTotalStreakDays } = useStreaks();
 
   useEffect(() => {
     if (user) {
@@ -288,9 +299,13 @@ export default function Profile() {
             Your Profile
           </h1>
           
-          <Tabs defaultValue="profile" className="space-y-6">
+          <Tabs defaultValue={defaultTab} className="space-y-6">
             <TabsList>
               <TabsTrigger value="profile">Profile</TabsTrigger>
+              <TabsTrigger value="achievements">
+                <Trophy className="h-4 w-4 mr-1" />
+                Achievements
+              </TabsTrigger>
               <TabsTrigger value="activity">Activity</TabsTrigger>
               <TabsTrigger value="security">Security</TabsTrigger>
             </TabsList>
@@ -521,6 +536,79 @@ export default function Profile() {
                   </Card>
                 </div>
               </div>
+            </TabsContent>
+
+            {/* Achievements Tab */}
+            <TabsContent value="achievements" className="space-y-6">
+              {/* Stats Overview */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card className="p-4 text-center bg-primary/5 border-primary/20">
+                  <Trophy className="h-6 w-6 text-primary mx-auto mb-2" />
+                  <div className="text-3xl font-bold text-primary">
+                    {completedAchievements.length}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Badges Earned</p>
+                </Card>
+                <Card className="p-4 text-center bg-amber-500/5 border-amber-500/20">
+                  <Star className="h-6 w-6 text-amber-500 mx-auto mb-2" />
+                  <div className="text-3xl font-bold text-amber-600">
+                    {totalPoints}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Total Points</p>
+                </Card>
+                <Card className="p-4 text-center bg-orange-500/5 border-orange-500/20">
+                  <Flame className="h-6 w-6 text-orange-500 mx-auto mb-2" />
+                  <div className="text-3xl font-bold text-orange-600">
+                    {getTotalStreakDays()}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Streak Days</p>
+                </Card>
+                <Card className="p-4 text-center">
+                  <TrendingUp className="h-6 w-6 text-muted-foreground mx-auto mb-2" />
+                  <div className="text-3xl font-bold">
+                    {streaks.find(s => s.streak_type === 'platform_visit')?.longest_streak || 0}
+                  </div>
+                  <p className="text-sm text-muted-foreground">Best Visit Streak</p>
+                </Card>
+              </div>
+
+              {/* Active Streaks */}
+              {streaks.filter(s => s.current_streak > 0).length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Flame className="h-5 w-5 text-orange-500" />
+                      Active Streaks
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {streaks.filter(s => s.current_streak > 0).map(streak => (
+                        <div 
+                          key={streak.id}
+                          className="flex items-center justify-between p-3 bg-orange-500/10 rounded-lg"
+                        >
+                          <div>
+                            <p className="text-sm font-medium capitalize">
+                              {streak.streak_type.replace(/_/g, ' ')}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              Best: {streak.longest_streak}
+                            </p>
+                          </div>
+                          <div className="text-2xl font-bold text-orange-600 flex items-center gap-1">
+                            <Flame className="h-4 w-4" />
+                            {streak.current_streak}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* All Achievements Grid */}
+              <AchievementGrid showAll />
             </TabsContent>
 
             <TabsContent value="activity" className="space-y-6">

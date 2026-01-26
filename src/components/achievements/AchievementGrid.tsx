@@ -11,9 +11,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 interface AchievementGridProps {
   compact?: boolean;
+  showAll?: boolean;
 }
 
-export function AchievementGrid({ compact = false }: AchievementGridProps) {
+export function AchievementGrid({ compact = false, showAll = false }: AchievementGridProps) {
   const { achievements, completedAchievements, totalPoints, getProgress, isLoading } = useAchievements();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 

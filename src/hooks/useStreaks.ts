@@ -143,11 +143,22 @@ export function useStreaks() {
     return streaks.reduce((sum, s) => sum + s.current_streak, 0);
   };
 
+  // Record a platform visit (convenience method)
+  const recordVisit = async () => {
+    try {
+      await updateStreak.mutateAsync('platform_visit');
+    } catch (error) {
+      // Silently fail for visit tracking
+      console.log('Visit tracking:', error);
+    }
+  };
+
   return {
     streaks,
     isLoading,
     refetch,
     updateStreak: updateStreak.mutateAsync,
+    recordVisit,
     getStreakInfo,
     getAllStreaks,
     getTotalStreakDays,
