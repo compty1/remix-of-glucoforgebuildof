@@ -36,9 +36,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { preferences, isLoading: prefsLoading } = useUserPreferences();
   const [showSmartOnboarding, setShowSmartOnboarding] = useState(false);
 
-  // Record daily visit for streak tracking
+  // Record daily visit for streak tracking - only once per session
+  const hasRecordedVisit = React.useRef(false);
   useEffect(() => {
-    if (user) {
+    if (user && !hasRecordedVisit.current) {
+      hasRecordedVisit.current = true;
       recordVisit();
     }
   }, [user, recordVisit]);
