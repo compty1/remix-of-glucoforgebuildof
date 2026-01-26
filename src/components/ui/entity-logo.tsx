@@ -231,26 +231,37 @@ export function EntityLogo({
   const [showFallback, setShowFallback] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Build list of logo sources to try in order
+  // Build list of logo sources to try in order - with MORE RELIABLE providers
   const logoSources = useMemo(() => {
     const sources: string[] = [];
     const domain = extractDomainFromName(name);
     const websiteDomain = websiteUrl ? extractDomainFromUrl(websiteUrl) : null;
+    const isLargeSize = size === 'xl' || size === 'lg';
     
-    // 1. Database URL (if provided)
+    // 1. Database URL (if provided and not a Clearbit URL for large sizes)
     if (logoUrl) {
-      sources.push(logoUrl);
+      // Skip Clearbit URLs for large sizes as they're unreliable
+      const isClearbit = logoUrl.includes('clearbit.com');
+      if (!isClearbit || !isLargeSize) {
+        sources.push(logoUrl);
+      }
     }
     
-    // 2. Clearbit URL (derived from name mapping)
+    // 2. DuckDuckGo Icons - Very reliable, good quality
+    if (domain) {
+      sources.push(`https://icons.duckduckgo.com/ip3/${domain}.ico`);
+    }
+    if (websiteDomain && websiteDomain !== domain) {
+      sources.push(`https://icons.duckduckgo.com/ip3/${websiteDomain}.ico`);
+    }
+    
+    // 3. Clearbit (still include but lower priority)
     if (domain) {
       const clearbitUrl = `https://logo.clearbit.com/${domain}`;
       if (!sources.includes(clearbitUrl)) {
         sources.push(clearbitUrl);
       }
     }
-    
-    // 3. Clearbit from website URL domain
     if (websiteDomain) {
       const clearbitFromWebsite = `https://logo.clearbit.com/${websiteDomain}`;
       if (!sources.includes(clearbitFromWebsite)) {
@@ -258,18 +269,24 @@ export function EntityLogo({
       }
     }
     
-    // 4. Google S2 Favicon (high-res) - from mapped domain
-    if (domain) {
-      sources.push(`https://www.google.com/s2/favicons?domain=${domain}&sz=128`);
+    // 4. Google S2 Favicon (reliable fallback) - skip for xl size
+    if (!isLargeSize) {
+      if (domain) {
+        sources.push(`https://www.google.com/s2/favicons?domain=${domain}&sz=128`);
+      }
+      if (websiteDomain && websiteDomain !== domain) {
+        sources.push(`https://www.google.com/s2/favicons?domain=${websiteDomain}&sz=128`);
+      }
     }
     
-    // 5. Google S2 Favicon from website URL
-    if (websiteDomain && websiteDomain !== domain) {
-      sources.push(`https://www.google.com/s2/favicons?domain=${websiteDomain}&sz=128`);
+    // 5. UI Avatars as ultimate fallback for large sizes
+    if (isLargeSize) {
+      const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+      sources.push(`https://ui-avatars.com/api/?name=${encodeURIComponent(initials)}&size=256&background=6366f1&color=fff&bold=true`);
     }
     
     return sources;
-  }, [logoUrl, websiteUrl, name]);
+  }, [logoUrl, websiteUrl, name, size]);
 
   const currentSource = logoSources[currentSourceIndex];
 
