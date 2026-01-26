@@ -15,7 +15,8 @@ import {
   Wrench, 
   Rocket,
   Shield,
-  CheckCircle
+  CheckCircle,
+  DollarSign
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -116,6 +117,33 @@ export default function GetInvolved() {
             <DonationSlider />
             <SocialShareButtons />
           </div>
+          
+          {/* See Where Donations Go CTA */}
+          <Card className="mt-6 border-border/50 bg-gradient-to-r from-primary/5 to-accent/5">
+            <CardContent className="p-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 rounded-xl bg-primary/10">
+                    <DollarSign className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg text-foreground">
+                      See Where T1D Donations Go
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      Explore funding trends, organizational breakdowns, and research allocations across major T1D organizations.
+                    </p>
+                  </div>
+                </div>
+                <Button asChild>
+                  <Link to="/donations-info">
+                    View Donations Data
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </section>
 
         {/* For Donors & Partners Section */}

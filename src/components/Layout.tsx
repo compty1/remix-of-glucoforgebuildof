@@ -128,11 +128,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </Link>
                   </div>
                 </div>
-                <div className="space-y-3">
+              <div className="space-y-3">
                   <h4 className="font-semibold text-white">Organization</h4>
                   <div className="space-y-2 text-sm">
                     <Link to="/about" className="block text-white/70 hover:text-brand-teal transition-colors">
                       About Us
+                    </Link>
+                    <Link to="/donations-info" className="block text-white/70 hover:text-brand-teal transition-colors">
+                      Donations Data
                     </Link>
                     <a href="#" className="block text-white/70 hover:text-brand-teal transition-colors">
                       501(c)(3) Status
