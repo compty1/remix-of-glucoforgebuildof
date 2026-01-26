@@ -264,14 +264,17 @@ export function AppSidebar() {
     <Sidebar className={`${state === "collapsed" ? "w-14" : "w-64"} border-r border-border bg-background`} variant="sidebar" collapsible="icon">
       <SidebarContent className="py-4 bg-background">
         {/* Logo */}
-        <div className="flex items-center justify-center mb-6 px-4">
+        <div className="flex items-center justify-center mb-6 px-2">
           {state === "collapsed" ? (
-            <div className="flex items-center justify-center bg-transparent">
+            <div className="flex items-center justify-center">
               <img src={iconImage} alt="GF" className="h-10 w-10 flex-shrink-0 logo-animated-drop object-contain" />
             </div>
           ) : (
-            <div className="flex items-center justify-start w-full bg-transparent">
-              <img src={logoImage} alt="GlycoForge" className="h-12 w-auto max-w-full flex-shrink-0 logo-animated-drop object-contain" />
+            <div className="flex items-center gap-3 w-full px-2">
+              <img src={iconImage} alt="GlycoForge" className="h-10 w-10 flex-shrink-0 logo-animated-drop object-contain" />
+              <span className="text-xl font-bold bg-gradient-to-r from-brand-purple-dark to-brand-purple-light bg-clip-text text-transparent">
+                GlycoForge
+              </span>
             </div>
           )}
         </div>
