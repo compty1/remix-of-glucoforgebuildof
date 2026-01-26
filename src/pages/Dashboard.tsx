@@ -48,6 +48,9 @@ interface DashboardWidget {
 
 import { BookmarkedItemsWidget } from '@/components/dashboard/BookmarkedItemsWidget';
 import { ClaimedProjectsWidget } from '@/components/dashboard/ClaimedProjectsWidget';
+import { AchievementsWidget } from '@/components/dashboard/AchievementsWidget';
+import { StreaksWidget } from '@/components/dashboard/StreaksWidget';
+import { Trophy, Flame } from 'lucide-react';
 
 const availableWidgets: DashboardWidget[] = [
   {
@@ -130,6 +133,24 @@ const availableWidgets: DashboardWidget[] = [
     description: 'Track your claimed development projects and contributions',
     icon: FileText,
     defaultSize: { w: 4, h: 4 }
+  },
+  {
+    id: 'achievements',
+    title: 'Your Achievements',
+    component: () => <AchievementsWidget />,
+    category: 'Personal',
+    description: 'Track your badges, points, and progress',
+    icon: Trophy,
+    defaultSize: { w: 4, h: 4 }
+  },
+  {
+    id: 'streaks',
+    title: 'Your Streaks',
+    component: () => <StreaksWidget />,
+    category: 'Personal',
+    description: 'Track your daily visit and activity streaks',
+    icon: Flame,
+    defaultSize: { w: 4, h: 3 }
   }
 ];
 

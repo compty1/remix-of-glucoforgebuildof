@@ -28,6 +28,7 @@ import {
   Database,
   FileCode
 } from 'lucide-react';
+import { DataExport } from '@/components/data-upload/DataExport';
 
 interface UploadedFile {
   id: string;
@@ -436,9 +437,22 @@ const DataUpload = () => {
                             <TrendingUp className="h-4 w-4 mr-1" />
                             View Analysis
                           </Button>
-                          <Button size="sm" variant="ghost">
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                          >
                             <Download className="h-4 w-4" />
                           </Button>
+                          <DataExport 
+                            analysisData={{
+                              detailedAnalysis: file.detailedAnalysis,
+                              patterns: file.patterns,
+                              recommendations: file.recommendations,
+                              dailyData: file.dailyData,
+                              hourlyData: file.hourlyData
+                            }}
+                            fileName={file.name}
+                          />
                         </div>
                       )}
                     </div>
