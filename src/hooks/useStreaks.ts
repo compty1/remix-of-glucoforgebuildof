@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
 
@@ -143,15 +144,15 @@ export function useStreaks() {
     return streaks.reduce((sum, s) => sum + s.current_streak, 0);
   };
 
-  // Record a platform visit (convenience method)
-  const recordVisit = async () => {
+  // Record a platform visit (convenience method) - memoized to prevent infinite loops
+  const recordVisit = useCallback(async () => {
     try {
       await updateStreak.mutateAsync('platform_visit');
     } catch (error) {
       // Silently fail for visit tracking
       console.log('Visit tracking:', error);
     }
-  };
+  }, [updateStreak]);
 
   return {
     streaks,
