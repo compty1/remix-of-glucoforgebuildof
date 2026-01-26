@@ -145,3 +145,9 @@ verify_jwt = false
 
 [functions.seed-reliable-device-images]
 verify_jwt = false
+
+[functions.send-push-notification]
+verify_jwt = false
+
+[functions.notification-triggers]
+verify_jwt = false
