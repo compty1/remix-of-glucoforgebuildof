@@ -5053,6 +5053,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_glucose_filter_options: { Args: never; Returns: Json }
+      get_public_glucose_summary: {
+        Args: {
+          p_age_range?: string
+          p_cgm?: string
+          p_dataset?: string
+          p_pump?: string
+          p_region?: string
+        }
+        Returns: Json
+      }
       is_admin: { Args: { check_user_id: string }; Returns: boolean }
       update_trends: { Args: never; Returns: undefined }
     }
