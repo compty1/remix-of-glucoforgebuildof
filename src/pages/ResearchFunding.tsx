@@ -5,12 +5,34 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { InfoRail } from "@/components/InfoRail";
-import { DollarSign, Search, RefreshCw, TrendingUp, Calendar, Building } from "lucide-react";
+import { DollarSign, Search, RefreshCw, TrendingUp, Calendar, Building, Info } from "lucide-react";
 import { useResearchFunding } from "@/hooks/useResearchFunding";
+import { FundingDetailModal } from "@/components/funding/FundingDetailModal";
+
+interface FundingProject {
+  id: string;
+  project_number: string | null;
+  project_title: string;
+  principal_investigator: string | null;
+  organization: string | null;
+  fiscal_year: number | null;
+  funding_amount: number | null;
+  project_start_date: string | null;
+  project_end_date: string | null;
+  abstract: string | null;
+  nih_spending_category?: string | null;
+}
 
 const ResearchFunding = () => {
   const { data: funding, loading, error, refetch } = useResearchFunding();
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedProject, setSelectedProject] = useState<FundingProject | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleProjectClick = (project: FundingProject) => {
+    setSelectedProject(project);
+    setIsModalOpen(true);
+  };
 
   const filteredFunding = funding.filter(project =>
     project.project_title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -87,7 +109,11 @@ const ResearchFunding = () => {
                 ) : (
                   <div className="space-y-6">
                     {filteredFunding.map((project) => (
-                      <div key={project.id} className="p-6 border rounded-lg hover:bg-muted/50 transition-colors">
+                      <div 
+                        key={project.id} 
+                        className="p-6 border rounded-lg hover:bg-muted/50 hover:border-primary/40 transition-all cursor-pointer"
+                        onClick={() => handleProjectClick(project as FundingProject)}
+                      >
                         {/* Header */}
                         <div className="flex justify-between items-start mb-3">
                           <div className="flex-1">
@@ -146,12 +172,24 @@ const ResearchFunding = () => {
                           </div>
                         )}
 
-                        {/* Abstract */}
+                        {/* Abstract Preview + Learn More */}
                         {project.abstract && (
                           <div className="p-4 bg-muted rounded-lg">
-                            <p className="text-sm text-muted-foreground line-clamp-4">
+                            <p className="text-sm text-muted-foreground line-clamp-3">
                               {project.abstract}
                             </p>
+                            <Button 
+                              variant="link" 
+                              size="sm" 
+                              className="mt-2 p-0 h-auto text-primary"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleProjectClick(project as FundingProject);
+                              }}
+                            >
+                              <Info className="h-3 w-3 mr-1" />
+                              Learn More
+                            </Button>
                           </div>
                         )}
                       </div>
@@ -232,6 +270,13 @@ const ResearchFunding = () => {
             </Card>
           </div>
         </div>
+
+        {/* Funding Detail Modal */}
+        <FundingDetailModal
+          project={selectedProject}
+          open={isModalOpen}
+          onOpenChange={setIsModalOpen}
+        />
       </div>
     </Layout>
   );

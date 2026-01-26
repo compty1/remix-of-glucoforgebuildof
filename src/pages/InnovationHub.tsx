@@ -180,17 +180,16 @@ const InnovationHub = () => {
                             Click for full details
                           </span>
                           {patent.patent_url && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                window.open(patent.patent_url!, '_blank');
-                              }}
+                            <a
+                              href={patent.patent_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center justify-center rounded-md border border-input bg-background px-3 py-1.5 text-sm font-medium shadow-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                             >
                               <ExternalLink className="h-4 w-4 mr-1" />
-                              Google Patents
-                            </Button>
+                              View Patent
+                            </a>
                           )}
                         </div>
                       </div>
