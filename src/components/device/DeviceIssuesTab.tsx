@@ -1,26 +1,190 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DeviceIssue } from '@/hooks/useDeviceDetails';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   AlertTriangle, 
   Users,
   Lightbulb,
   Wrench,
   ExternalLink,
-  TrendingUp
+  TrendingUp,
+  MessageSquare,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { format } from 'date-fns';
 
 interface DeviceIssuesTabProps {
   issues: DeviceIssue[];
   onReportIssue: () => void;
+  deviceName?: string;
+}
+
+interface RelatedPost {
+  id: string;
+  post_id: string;
+  title: string;
+  content: string | null;
+  source: string;
+  score: number | null;
+  num_comments: number | null;
+  published_at: string | null;
+  url: string | null;
+}
+
+function IssueRelatedPosts({ issueTitle, deviceName }: { issueTitle: string; deviceName?: string }) {
+  const navigate = useNavigate();
+  const [showAll, setShowAll] = useState(false);
+
+  // Search for related community posts based on issue keywords
+  const { data: relatedPosts = [], isLoading } = useQuery({
+    queryKey: ['issue-related-posts', issueTitle, deviceName],
+    queryFn: async () => {
+      // Extract keywords from issue title
+      const keywords = issueTitle.toLowerCase()
+        .split(/\s+/)
+        .filter(word => word.length > 3)
+        .slice(0, 3);
+
+      if (keywords.length === 0) return [];
+
+      // Build search query
+      const searchPattern = keywords.map(k => `%${k}%`);
+      
+      let query = supabase
+        .from('community_posts')
+        .select('id, post_id, title, content, source, score, num_comments, published_at, url')
+        .order('score', { ascending: false })
+        .limit(10);
+
+      // Search for posts containing keywords in title or content
+      const orConditions = searchPattern.map(pattern => 
+        `title.ilike.${pattern},content.ilike.${pattern}`
+      ).join(',');
+      
+      query = query.or(orConditions);
+
+      // Optionally filter by device
+      if (deviceName) {
+        query = query.or(`device_mentioned.ilike.%${deviceName}%,title.ilike.%${deviceName}%`);
+      }
+
+      const { data, error } = await query;
+      
+      if (error) {
+        console.error('Error fetching related posts:', error);
+        return [];
+      }
+      
+      return data as RelatedPost[];
+    },
+    enabled: !!issueTitle,
+  });
+
+  const displayedPosts = showAll ? relatedPosts : relatedPosts.slice(0, 3);
+
+  if (isLoading) {
+    return (
+      <div className="text-sm text-muted-foreground py-2">
+        Loading related discussions...
+      </div>
+    );
+  }
+
+  if (relatedPosts.length === 0) {
+    return (
+      <div className="text-sm text-muted-foreground py-2 bg-muted/30 rounded-lg p-3">
+        <MessageSquare className="h-4 w-4 inline mr-2" />
+        No community discussions found for this issue yet.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <h5 className="text-sm font-medium flex items-center gap-2">
+        <MessageSquare className="h-4 w-4 text-primary" />
+        Related Community Discussions ({relatedPosts.length})
+      </h5>
+      <div className="space-y-2">
+        {displayedPosts.map((post) => (
+          <Card 
+            key={post.id} 
+            className="cursor-pointer hover:bg-muted/50 transition-colors border-l-2 border-primary/30"
+            onClick={() => navigate(`/community/${post.post_id}`)}
+          >
+            <CardContent className="p-3">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <h6 className="text-sm font-medium line-clamp-2 hover:text-primary transition-colors">
+                    {post.title}
+                  </h6>
+                  {post.content && (
+                    <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
+                      {post.content}
+                    </p>
+                  )}
+                </div>
+                <Badge variant="outline" className="text-[10px] shrink-0">
+                  {post.source}
+                </Badge>
+              </div>
+              <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                {post.score !== null && (
+                  <span className="flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3" /> {post.score}
+                  </span>
+                )}
+                {post.num_comments !== null && (
+                  <span className="flex items-center gap-1">
+                    <MessageSquare className="h-3 w-3" /> {post.num_comments}
+                  </span>
+                )}
+                {post.published_at && (
+                  <span>{format(new Date(post.published_at), 'MMM d, yyyy')}</span>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      {relatedPosts.length > 3 && (
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="w-full text-xs"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowAll(!showAll);
+          }}
+        >
+          {showAll ? (
+            <>
+              <ChevronUp className="h-3 w-3 mr-1" />
+              Show Less
+            </>
+          ) : (
+            <>
+              <ChevronDown className="h-3 w-3 mr-1" />
+              Show {relatedPosts.length - 3} More
+            </>
+          )}
+        </Button>
+      )}
+    </div>
+  );
 }
 
 export const DeviceIssuesTab: React.FC<DeviceIssuesTabProps> = ({ 
   issues,
-  onReportIssue
+  onReportIssue,
+  deviceName
 }) => {
   const getSeverityBadge = (severity: string | null) => {
     switch (severity?.toLowerCase()) {
@@ -144,6 +308,9 @@ export const DeviceIssuesTab: React.FC<DeviceIssuesTabProps> = ({
                       <p className="text-sm text-muted-foreground">{issue.workaround}</p>
                     </div>
                   )}
+
+                  {/* Related Community Posts */}
+                  <IssueRelatedPosts issueTitle={issue.issue_title} deviceName={deviceName} />
 
                   {/* No solution available */}
                   {!issue.solution && !issue.workaround && (

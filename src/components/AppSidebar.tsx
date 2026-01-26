@@ -44,7 +44,14 @@ import {
   Brain,
   Megaphone,
   Calendar,
-  Rocket
+  Rocket,
+  Database,
+  FlaskConical,
+  Microscope,
+  GraduationCap,
+  HeartPulse,
+  Smile,
+  Gift
 } from 'lucide-react';
 import {
   Sidebar,
@@ -71,64 +78,95 @@ import { supabase } from '@/integrations/supabase/client';
 import { EntityLogo } from '@/components/ui/entity-logo';
 import dropIcon from '@/assets/glycoforge-drop-icon.png';
 
-const navigationItems = [
+// ============================================
+// REORGANIZED NAVIGATION STRUCTURE
+// ============================================
+
+// Main Navigation (always visible at top)
+const mainNavItems = [
   { title: "Home", url: "/", icon: Home },
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Discover", url: "/discover", icon: Search },
 ];
 
-const platformItemsBeforeProjects = [
-  { title: "T1D News", url: "/news", icon: Newspaper },
+// Community & Support
+const communityItems = [
   { title: "T1D Companion", url: "/t1d-companion", icon: MessageCircle },
   { title: "Community Solutions", url: "/community-solutions", icon: Users },
+  { title: "Warrior Spotlight", url: "/warrior-spotlight", icon: Award },
+  { title: "Your Experience", url: "/your-experience", icon: Heart },
+];
+
+// Devices & Medications (with Devices submenu handled separately)
+const deviceMedItems = [
   { title: "Medicine Hub", url: "/medicines", icon: Pill },
   { title: "App Center", url: "/app-center", icon: Smartphone },
-  { title: "Find Clinical Trials", url: "/trials", icon: Stethoscope },
-  { title: "Quality of Life", url: "/quality-of-life", icon: SparklesIcon },
 ];
 
-const platformItemsAfterProjects = [
-  { title: "T1D Companies", url: "/companies", icon: Building2 },
-  { title: "Live Cure Monitoring", url: "/cure", icon: Beaker },
-  { title: "FDA Safety Dashboard", url: "/fda-safety", icon: AlertTriangle },
-  { title: "Innovation Hub", url: "/innovation", icon: Lightbulb },
-  { title: "Research Funding", url: "/research-funding", icon: DollarSign },
-  { title: "T1D Donations Data", url: "/donations-info", icon: Heart },
-  { title: "Research Insights", url: "/research-insights", icon: Sparkles },
+// Research & Science
+const researchItems = [
   { title: "Research Hub", url: "/research", icon: FileText },
-  { title: "Contribute Data", url: "/surveys", icon: HeartHandshake },
-  { title: "Mental Health Hub", url: "/mental-health", icon: Heart },
+  { title: "Research Insights", url: "/research-insights", icon: Sparkles },
+  { title: "Find Clinical Trials", url: "/trials", icon: Stethoscope },
+  { title: "Live Cure Monitoring", url: "/cure", icon: Beaker },
+  { title: "Research Funding", url: "/research-funding", icon: DollarSign },
+  { title: "Innovation Hub", url: "/innovation", icon: Lightbulb },
+];
+
+// Data & Analytics
+const dataItems = [
   { title: "Data Upload", url: "/data-upload", icon: Upload },
+  { title: "Public Glucose Data", url: "/public-glucose-data", icon: Activity },
   { title: "Glycemic Journal", url: "/journal", icon: BookOpen },
   { title: "Scenario Lab", url: "/scenario-lab", icon: TestTube },
-  { title: "Public Glucose Data", url: "/public-glucose-data", icon: Activity },
   { title: "AI Center", url: "/ai-center", icon: Brain },
-  { title: "Organizations", url: "/organizations", icon: Building2 },
-  { title: "Become Advocate", url: "/advocate", icon: Megaphone },
-  { title: "Events Near Me", url: "/events", icon: Calendar },
-  { title: "Future of T1D", url: "/future", icon: Rocket },
 ];
 
-const contentItems = [
+// News & Learning
+const newsItems = [
+  { title: "T1D News", url: "/news", icon: Newspaper },
+  { title: "Articles", url: "/articles", icon: FileText },
+  { title: "Learn & Explore", url: "/learn", icon: GraduationCap },
   { title: "Explore T1D History", url: "/explore", icon: BookOpen },
-  { title: "Your Experience", url: "/your-experience", icon: Heart },
+  { title: "Future of T1D", url: "/future", icon: Rocket },
+  { title: "Emergence of Diabetes", url: "/emergence", icon: TrendingUp },
+];
+
+// Quality of Life
+const qualityOfLifeItems = [
+  { title: "Quality of Life", url: "/quality-of-life", icon: SparklesIcon },
+  { title: "Mental Health Hub", url: "/mental-health", icon: HeartPulse },
+  { title: "Healthcare Experience", url: "/healthcare-experience", icon: Stethoscope },
   { title: "Low Blood Sugar World", url: "/low-blood-sugar-world", icon: Droplet },
   { title: "Diabeto 18+", url: "/diabeto-18plus", icon: AlertTriangle },
-  { title: "Articles", url: "/articles", icon: FileText },
-  { title: "Learn & Explore", url: "/learn", icon: BookOpen },
-  { title: "Healthcare Experience", url: "/healthcare-experience", icon: Stethoscope },
-  { title: "Warrior Spotlight", url: "/warrior-spotlight", icon: Award },
-  { title: "Emergence of Diabetes", url: "/emergence", icon: TrendingUp },
-  { title: "Shop", url: "/shop", icon: ShoppingBag },
 ];
 
-const supportItems = [
-  { title: "About", url: "/about", icon: Info },
-  { title: "AI Center", url: "/ai-center", icon: Brain },
+// Companies & Organizations
+const companiesItems = [
+  { title: "T1D Companies", url: "/companies", icon: Building2 },
   { title: "Organizations", url: "/organizations", icon: Building2 },
-  { title: "Become Advocate", url: "/advocate", icon: Megaphone },
+  { title: "T1D Donations Data", url: "/donations-info", icon: Gift },
+  { title: "FDA Safety Dashboard", url: "/fda-safety", icon: AlertTriangle },
+];
+
+// Get Involved
+const getInvolvedItems = [
   { title: "Build With Us", url: "/build-with-us", icon: Hammer },
   { title: "Get Involved", url: "/get-involved", icon: HandHeart },
+  { title: "Bounties", url: "/bounties", icon: DollarSign },
+  { title: "Contribute Data", url: "/surveys", icon: HeartHandshake },
+  { title: "Become Advocate", url: "/advocate", icon: Megaphone },
+];
+
+// Other
+const otherItems = [
+  { title: "Shop", url: "/shop", icon: ShoppingBag },
+  { title: "Events Near Me", url: "/events", icon: Calendar },
+];
+
+// Support & Settings
+const supportItems = [
+  { title: "About", url: "/about", icon: Info },
   { title: "Healthcare Providers", url: "/healthcare-providers", icon: Building2 },
   { title: "Resources", url: "/resources", icon: Library },
   { title: "Settings", url: "/settings", icon: Settings },
@@ -259,6 +297,30 @@ export function AppSidebar() {
       : "hover:bg-muted text-foreground transition-colors";
   };
 
+  // Render a navigation group
+  const renderNavGroup = (label: string, items: typeof mainNavItems, emoji?: string) => (
+    <SidebarGroup>
+      <SidebarGroupLabel className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider flex items-center gap-1`}>
+        {emoji && <span>{emoji}</span>}
+        {label}
+      </SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {items.map((item) => (
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton asChild>
+                <NavLink to={item.url} className={getNavClasses(item.url)}>
+                  <item.icon className={`h-4 w-4 ${isActive(item.url) ? '' : 'text-brand-teal'}`} />
+                  {state !== "collapsed" && <span>{item.title}</span>}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+
   return (
     <Sidebar className={`${state === "collapsed" ? "w-14" : "w-64"} border-r border-border bg-background`} variant="sidebar" collapsible="icon">
       <SidebarContent className="py-4 bg-background">
@@ -279,135 +341,20 @@ export function AppSidebar() {
         </div>
 
         {/* Main Navigation */}
+        {renderNavGroup("Main", mainNavItems, "📍")}
+
+        {/* Community & Support */}
+        {renderNavGroup("Community", communityItems, "💬")}
+
+        {/* Devices & Medications */}
         <SidebarGroup>
-          <SidebarGroupLabel className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider`}>
-            Main
+          <SidebarGroupLabel className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider flex items-center gap-1`}>
+            <span>🏥</span>
+            Devices & Meds
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navigationItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavClasses(item.url)}>
-                      <item.icon className={`h-4 w-4 ${isActive(item.url) ? '' : 'text-brand-teal'}`} />
-                      {state !== "collapsed" && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* T1D Intelligence Hub */}
-        <SidebarGroup>
-          <SidebarGroupLabel className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider`}>
-            T1D Intelligence Hub
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {/* Items before Projects */}
-              {platformItemsBeforeProjects.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavClasses(item.url)}>
-                      <item.icon className={`h-4 w-4 ${isActive(item.url) ? '' : 'text-brand-teal'}`} />
-                      {state !== "collapsed" && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-
-              {/* Projects with Submenu */}
-              <Collapsible
-                open={projectsOpen}
-                onOpenChange={setProjectsOpen}
-                className="group/projects"
-              >
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton 
-                      className={`w-full justify-between ${
-                        currentPath.startsWith('/projects')
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "hover:bg-muted/50"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <FolderOpen className="h-4 w-4" />
-                        {state !== "collapsed" && <span>Deep Dive Projects</span>}
-                      </div>
-                      {state !== "collapsed" && (
-                        <ChevronRight className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/projects:rotate-90" />
-                      )}
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {/* Featured Projects (first 4) */}
-                      {featuredProjects.map((project) => (
-                        <SidebarMenuSubItem key={project.id}>
-                          <SidebarMenuSubButton asChild>
-                            <NavLink 
-                              to={`/projects/${project.slug}`} 
-                              className={currentPath === `/projects/${project.slug}` 
-                                ? "bg-primary text-primary-foreground font-medium" 
-                                : "hover:bg-muted/50 transition-colors"}
-                            >
-                              <FolderOpen className="h-3 w-3" />
-                              {state !== "collapsed" && (
-                                <span className="truncate">{project.title}</span>
-                              )}
-                            </NavLink>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                      
-                      {/* View All Projects */}
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild>
-                          <NavLink 
-                            to="/projects" 
-                            className={currentPath === '/projects'
-                              ? "bg-primary text-primary-foreground font-medium"
-                              : "hover:bg-muted/50 transition-colors"}
-                          >
-                            <LayoutGrid className="h-3 w-3" />
-                            {state !== "collapsed" && <span>View All Projects</span>}
-                          </NavLink>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                      
-                      {/* Submit a Project */}
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild>
-                          <NavLink 
-                            to="/projects?submit=true" 
-                            className="hover:bg-muted/50 transition-colors"
-                          >
-                            <Plus className="h-3 w-3" />
-                            {state !== "collapsed" && <span>Submit a Project</span>}
-                          </NavLink>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </SidebarMenuItem>
-              </Collapsible>
-
-              {/* Items after Projects */}
-              {platformItemsAfterProjects.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavClasses(item.url)}>
-                      <item.icon className={`h-4 w-4 ${isActive(item.url) ? '' : 'text-brand-teal'}`} />
-                      {state !== "collapsed" && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-
-              {/* Device Analytics with Submenu */}
+              {/* Devices Submenu */}
               <Collapsible
                 open={devicesOpen}
                 onOpenChange={setDevicesOpen}
@@ -441,41 +388,30 @@ export function AppSidebar() {
                           </NavLink>
                         </SidebarMenuSubButton>
                       </SidebarMenuSubItem>
-                      {devices.map((device) => {
-                        return (
-                          <SidebarMenuSubItem key={device.id}>
-                            <SidebarMenuSubButton asChild>
-                              <NavLink 
-                                to={`/devices/${device.id}`} 
-                                className={getDeviceNavClasses(device.id)}
-                              >
-                                <EntityLogo 
-                                  type="device" 
-                                  name={device.manufacturer || device.name} 
-                                  size="xs" 
-                                />
-                                {state !== "collapsed" && <span>{device.name}</span>}
-                              </NavLink>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        );
-                      })}
+                      {devices.map((device) => (
+                        <SidebarMenuSubItem key={device.id}>
+                          <SidebarMenuSubButton asChild>
+                            <NavLink 
+                              to={`/devices/${device.id}`} 
+                              className={getDeviceNavClasses(device.id)}
+                            >
+                              <EntityLogo 
+                                type="device" 
+                                name={device.manufacturer || device.name} 
+                                size="xs" 
+                              />
+                              {state !== "collapsed" && <span>{device.name}</span>}
+                            </NavLink>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
                     </SidebarMenuSub>
                   </CollapsibleContent>
                 </SidebarMenuItem>
               </Collapsible>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
 
-        {/* Content Hub */}
-        <SidebarGroup>
-          <SidebarGroupLabel className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider`}>
-            Content Hub
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {contentItems.map((item) => (
+              {/* Other device/med items */}
+              {deviceMedItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavClasses(item.url)}>
@@ -489,14 +425,89 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Support */}
+        {/* Research & Science */}
         <SidebarGroup>
-          <SidebarGroupLabel className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider`}>
-            Support
+          <SidebarGroupLabel className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider flex items-center gap-1`}>
+            <span>🔬</span>
+            Research
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {supportItems.map((item) => (
+              {/* Deep Dive Projects Submenu */}
+              <Collapsible
+                open={projectsOpen}
+                onOpenChange={setProjectsOpen}
+                className="group/projects"
+              >
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton 
+                      className={`w-full justify-between ${
+                        currentPath.startsWith('/projects')
+                          ? "bg-primary/10 text-primary font-medium"
+                          : "hover:bg-muted/50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <FolderOpen className="h-4 w-4" />
+                        {state !== "collapsed" && <span>Deep Dive Projects</span>}
+                      </div>
+                      {state !== "collapsed" && (
+                        <ChevronRight className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/projects:rotate-90" />
+                      )}
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {featuredProjects.map((project) => (
+                        <SidebarMenuSubItem key={project.id}>
+                          <SidebarMenuSubButton asChild>
+                            <NavLink 
+                              to={`/projects/${project.slug}`} 
+                              className={currentPath === `/projects/${project.slug}` 
+                                ? "bg-primary text-primary-foreground font-medium" 
+                                : "hover:bg-muted/50 transition-colors"}
+                            >
+                              <FolderOpen className="h-3 w-3" />
+                              {state !== "collapsed" && (
+                                <span className="truncate">{project.title}</span>
+                              )}
+                            </NavLink>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                      
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild>
+                          <NavLink 
+                            to="/projects" 
+                            className={currentPath === '/projects'
+                              ? "bg-primary text-primary-foreground font-medium"
+                              : "hover:bg-muted/50 transition-colors"}
+                          >
+                            <LayoutGrid className="h-3 w-3" />
+                            {state !== "collapsed" && <span>View All Projects</span>}
+                          </NavLink>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                      
+                      <SidebarMenuSubItem>
+                        <SidebarMenuSubButton asChild>
+                          <NavLink 
+                            to="/projects?submit=true" 
+                            className="hover:bg-muted/50 transition-colors"
+                          >
+                            <Plus className="h-3 w-3" />
+                            {state !== "collapsed" && <span>Submit a Project</span>}
+                          </NavLink>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
+
+              {researchItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink to={item.url} className={getNavClasses(item.url)}>
@@ -509,6 +520,27 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {/* Data & Analytics */}
+        {renderNavGroup("Data & Analytics", dataItems, "📊")}
+
+        {/* News & Learning */}
+        {renderNavGroup("News & Learning", newsItems, "📰")}
+
+        {/* Quality of Life */}
+        {renderNavGroup("Quality of Life", qualityOfLifeItems, "💚")}
+
+        {/* Companies & Organizations */}
+        {renderNavGroup("Companies", companiesItems, "🏢")}
+
+        {/* Get Involved */}
+        {renderNavGroup("Get Involved", getInvolvedItems, "🤝")}
+
+        {/* Other */}
+        {renderNavGroup("Other", otherItems, "🛒")}
+
+        {/* Support & Settings */}
+        {renderNavGroup("Support", supportItems, "⚙️")}
 
         {/* Admin */}
         {isAdmin && (

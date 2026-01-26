@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,8 @@ import {
   Users,
   Star,
   ExternalLink,
-  Loader2
+  Loader2,
+  ArrowUpRight
 } from 'lucide-react';
 import { format } from 'date-fns';
 
@@ -39,6 +41,7 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
   reviewStats,
   deviceId
 }) => {
+  const navigate = useNavigate();
   const [sentimentFilter, setSentimentFilter] = useState<'all' | 'positive' | 'neutral' | 'negative'>('all');
   const [visibleCount, setVisibleCount] = useState(10);
   const [activeSection, setActiveSection] = useState<'user' | 'community'>('user');
@@ -133,6 +136,11 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
     neutral: reviewStats.neutral + externalStats.neutral,
     negative: reviewStats.negative + externalStats.negative,
     total: reviewStats.total + externalStats.total
+  };
+
+  // Handle clicking on a community post - navigate to detail page
+  const handlePostClick = (post: CommunityPost) => {
+    navigate(`/community/${post.post_id}`);
   };
 
   return (
@@ -264,7 +272,7 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
             </div>
           )}
 
-          {/* Community Posts List */}
+          {/* Community Posts List - Now Clickable */}
           {visiblePosts.length > 0 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -272,7 +280,11 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
                 Community Posts ({filteredPosts.length})
               </h3>
               {visiblePosts.map((post) => (
-                <Card key={post.id} className="command-center-widget">
+                <Card 
+                  key={post.id} 
+                  className="command-center-widget cursor-pointer hover:border-primary/50 hover:shadow-md transition-all group"
+                  onClick={() => handlePostClick(post)}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -281,12 +293,17 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
                         </Badge>
                         {getSentimentBadge(post.sentiment)}
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        {post.published_at ? format(new Date(post.published_at), 'MMM d, yyyy') : 'Unknown'}
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          {post.published_at ? format(new Date(post.published_at), 'MMM d, yyyy') : 'Unknown'}
+                        </div>
+                        <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
                     </div>
-                    <h3 className="font-semibold mb-2 line-clamp-2">{post.title}</h3>
+                    <h3 className="font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                      {post.title}
+                    </h3>
                     {post.content && (
                       <p className="text-sm text-muted-foreground mb-3 line-clamp-3">{post.content}</p>
                     )}
@@ -298,7 +315,7 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
                       )}
                       {post.num_comments !== null && (
                         <span className="flex items-center gap-1">
-                          <MessageSquare className="h-3 w-3" /> {post.num_comments}
+                          <MessageSquare className="h-3 w-3" /> {post.num_comments} comments
                         </span>
                       )}
                     </div>
