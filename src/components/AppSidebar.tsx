@@ -69,8 +69,7 @@ import {
 import { useAuthStore } from '@/store/authStore';
 import { supabase } from '@/integrations/supabase/client';
 import { EntityLogo } from '@/components/ui/entity-logo';
-import logoImage from '@/assets/glycoforge-logo.png';
-import iconImage from '@/assets/glycoforge-icon.png';
+import dropIcon from '@/assets/glycoforge-drop-icon.png';
 
 const navigationItems = [
   { title: "Home", url: "/", icon: Home },
@@ -267,11 +266,11 @@ export function AppSidebar() {
         <div className="flex items-center justify-center mb-6 px-2">
           {state === "collapsed" ? (
             <div className="flex items-center justify-center">
-              <Droplet className="h-10 w-10 text-brand-red fill-brand-red/80 logo-animated-drop" />
+              <img src={dropIcon} alt="GF" className="h-10 w-10 flex-shrink-0 logo-animated-drop object-contain" />
             </div>
           ) : (
             <div className="flex items-center gap-3 w-full px-2">
-              <Droplet className="h-10 w-10 text-brand-red fill-brand-red/80 flex-shrink-0 logo-animated-drop" />
+              <img src={dropIcon} alt="GlycoForge" className="h-10 w-10 flex-shrink-0 logo-animated-drop object-contain" />
               <span className="text-xl font-bold bg-gradient-to-r from-brand-purple-dark to-brand-purple-light bg-clip-text text-transparent">
                 GlycoForge
               </span>
