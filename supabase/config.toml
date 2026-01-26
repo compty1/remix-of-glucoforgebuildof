@@ -133,3 +133,6 @@ verify_jwt = false
 
 [functions.seed-real-warrior-stories]
 verify_jwt = false
+
+[functions.seed-device-product-images]
+verify_jwt = false

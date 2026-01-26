@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Building2, Pill, Cpu, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
+import { getCachedImageStatus, setCachedImageStatus } from '@/lib/imageCache';
 
 interface EntityLogoProps {
   type: 'company' | 'medication' | 'device' | 'organization';
@@ -227,6 +229,8 @@ export function EntityLogo({
 }: EntityLogoProps) {
   const [currentSourceIndex, setCurrentSourceIndex] = useState(0);
   const [showFallback, setShowFallback] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [checkedCache, setCheckedCache] = useState(false);
 
   // Build list of logo sources to try in order
   const logoSources = useMemo(() => {
@@ -270,13 +274,51 @@ export function EntityLogo({
 
   const currentSource = logoSources[currentSourceIndex];
 
-  const handleImageError = () => {
+  // Check cache for current source and skip failed URLs
+  useEffect(() => {
+    const checkCacheAndAdvance = async () => {
+      if (!currentSource || checkedCache) return;
+      
+      const status = await getCachedImageStatus(currentSource);
+      
+      if (status === 'failed') {
+        // Skip this source, try next
+        if (currentSourceIndex < logoSources.length - 1) {
+          setCurrentSourceIndex(prev => prev + 1);
+        } else {
+          setShowFallback(true);
+          setIsLoading(false);
+        }
+      } else {
+        setCheckedCache(true);
+        setIsLoading(true);
+      }
+    };
+
+    checkCacheAndAdvance();
+  }, [currentSource, currentSourceIndex, logoSources.length, checkedCache]);
+
+  const handleImageLoad = async () => {
+    setIsLoading(false);
+    if (currentSource) {
+      await setCachedImageStatus(currentSource, 'valid');
+    }
+  };
+
+  const handleImageError = async () => {
+    if (currentSource) {
+      await setCachedImageStatus(currentSource, 'failed');
+    }
+    
     if (currentSourceIndex < logoSources.length - 1) {
       // Try next source
       setCurrentSourceIndex(prev => prev + 1);
+      setCheckedCache(false);
+      setIsLoading(true);
     } else {
       // All sources exhausted, show fallback
       setShowFallback(true);
+      setIsLoading(false);
     }
   };
 
@@ -284,6 +326,8 @@ export function EntityLogo({
   useEffect(() => {
     setCurrentSourceIndex(0);
     setShowFallback(false);
+    setIsLoading(true);
+    setCheckedCache(false);
   }, [logoUrl, websiteUrl, name]);
 
   const shouldShowFallback = showFallback || logoSources.length === 0;
@@ -291,7 +335,7 @@ export function EntityLogo({
   return (
     <div 
       className={cn(
-        'rounded-lg bg-white dark:bg-muted border flex items-center justify-center overflow-hidden flex-shrink-0',
+        'rounded-lg bg-white dark:bg-muted border flex items-center justify-center overflow-hidden flex-shrink-0 relative',
         sizeClasses[size],
         className
       )}
@@ -301,14 +345,23 @@ export function EntityLogo({
           <FallbackIcon type={type} size={size} />
         </div>
       ) : (
-        <img
-          key={currentSource} // Force re-mount on source change
-          src={currentSource}
-          alt={`${name} logo`}
-          className="w-full h-full object-contain p-1"
-          onError={handleImageError}
-          loading="lazy"
-        />
+        <>
+          {isLoading && (
+            <Skeleton className="absolute inset-0 rounded-lg" />
+          )}
+          <img
+            key={currentSource} // Force re-mount on source change
+            src={currentSource}
+            alt={`${name} logo`}
+            className={cn(
+              "w-full h-full object-contain p-1 transition-opacity duration-300",
+              isLoading ? "opacity-0" : "opacity-100"
+            )}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
+            loading="lazy"
+          />
+        </>
       )}
     </div>
   );
