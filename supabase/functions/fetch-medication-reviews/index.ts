@@ -242,7 +242,6 @@ serve(async (req) => {
             title: review.title,
             content: review.content,
             sentiment: review.sentiment,
-            rating: review.rating,
             helpful_count: 0,
             published_at: new Date().toISOString(),
             source_url: review.source_url,
@@ -300,21 +299,24 @@ serve(async (req) => {
           console.error('Error inserting into medication_community_buzz:', insertError);
         }
       } else {
-        // Insert into external_medication_reviews
+        // Insert into external_medication_reviews one by one to avoid upsert issues
         const uniqueReviews = Array.from(
           new Map(allReviews.map(r => [r.external_id, r])).values()
         );
         
-        const { error: insertError } = await supabase
-          .from('external_medication_reviews')
-          .upsert(uniqueReviews.slice(0, 50), { 
-            onConflict: 'external_id',
-            ignoreDuplicates: false 
-          });
-        
-        if (insertError) {
-          console.error('Error inserting reviews:', insertError);
+        let insertedCount = 0;
+        for (const review of uniqueReviews.slice(0, 50)) {
+          const { error: insertError } = await supabase
+            .from('external_medication_reviews')
+            .insert(review);
+          
+          if (!insertError) {
+            insertedCount++;
+          } else if (!insertError.message.includes('duplicate')) {
+            console.error('Error inserting review:', insertError.message);
+          }
         }
+        console.log(`Inserted ${insertedCount} medication reviews`);
       }
 
       return new Response(
