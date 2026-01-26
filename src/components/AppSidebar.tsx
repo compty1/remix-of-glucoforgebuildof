@@ -267,11 +267,11 @@ export function AppSidebar() {
         <div className="flex items-center justify-center mb-6 px-2">
           {state === "collapsed" ? (
             <div className="flex items-center justify-center">
-              <img src={iconImage} alt="GF" className="h-10 w-10 flex-shrink-0 logo-animated-drop object-contain" />
+              <Droplet className="h-10 w-10 text-brand-red fill-brand-red/80 logo-animated-drop" />
             </div>
           ) : (
             <div className="flex items-center gap-3 w-full px-2">
-              <img src={iconImage} alt="GlycoForge" className="h-10 w-10 flex-shrink-0 logo-animated-drop object-contain" />
+              <Droplet className="h-10 w-10 text-brand-red fill-brand-red/80 flex-shrink-0 logo-animated-drop" />
               <span className="text-xl font-bold bg-gradient-to-r from-brand-purple-dark to-brand-purple-light bg-clip-text text-transparent">
                 GlycoForge
               </span>

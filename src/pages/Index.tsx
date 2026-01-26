@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Activity, Search, TrendingUp, Users, Database, Heart, ArrowRight, Zap, Shield, Globe, Beaker, Brain, Hammer, Code, Palette, PieChart, Server, FileText, Clock, Smartphone, Quote } from 'lucide-react';
+import { Activity, Search, TrendingUp, Users, Database, Heart, ArrowRight, Zap, Shield, Globe, Beaker, Brain, Hammer, Code, Palette, PieChart, Server, FileText, Clock, Smartphone, Quote, Droplet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +10,7 @@ import { WeeklyDigestSignup } from '@/components/WeeklyDigestSignup';
 import { StatementJar } from '@/components/home/StatementJar';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
-import iconImage from '@/assets/glycoforge-icon.png';
+
 
 interface DiscoveryCardData {
   id: string;
@@ -73,7 +73,7 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-brand-purple-dark/20 via-transparent to-brand-purple-light/20"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center gap-4 mb-8">
-            <img src={iconImage} alt="GlycoForge" className="h-24 md:h-32 w-auto logo-animated-drop object-contain" />
+            <Droplet className="h-20 md:h-28 w-20 md:w-28 text-brand-red fill-brand-red/80 logo-animated-drop" />
             <span className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-white via-brand-purple-light to-white bg-clip-text text-transparent">
               GlycoForge
             </span>
