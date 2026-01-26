@@ -151,13 +151,24 @@ export const useDeviceDetails = (deviceId: string | undefined) => {
           .order('community_reports', { ascending: false });
 
         // Fetch community posts mentioning this device
-        const deviceName = deviceData.name.toLowerCase();
+        // Search for both the full device name AND just the brand to catch more results
+        const deviceNameLower = deviceData.name.toLowerCase();
+        const deviceParts = deviceNameLower.split(' ');
+        const brand = deviceParts[0]; // e.g., "dexcom"
+        const model = deviceParts.slice(1).join(' '); // e.g., "g7"
+        
+        // Build search query that matches brand OR model OR full name
+        let searchFilter = `device_mentioned.ilike.%${brand}%,title.ilike.%${deviceNameLower}%`;
+        if (model && model.length > 1) {
+          searchFilter += `,title.ilike.%${model}%,content.ilike.%${model}%`;
+        }
+        
         const { data: postsData } = await supabase
           .from('community_posts')
           .select('*')
-          .or(`device_mentioned.ilike.%${deviceName}%,title.ilike.%${deviceName}%`)
+          .or(searchFilter)
           .order('published_at', { ascending: false })
-          .limit(50);
+          .limit(100);
 
         // Fetch FDA events for this device/manufacturer
         const { data: fdaData } = await supabase

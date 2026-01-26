@@ -24,21 +24,60 @@ const isValidSourceUrl = (url: string | null): boolean => {
   if (!url) return false;
   if (url.includes('/example')) return false;
   if (url.includes('placeholder')) return false;
+  // Any real URL is valid
+  return url.startsWith('http://') || url.startsWith('https://');
+};
+
+// Clean content of markdown artifacts
+const sanitizeContent = (content: string): string => {
+  return content
+    // Remove markdown images
+    .replace(/!\[.*?\]\(.*?\)/g, '')
+    // Convert links to just text
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    // Remove heading markers
+    .replace(/#{1,6}\s/g, '')
+    // Clean up extra whitespace
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+};
+
+// Get display-friendly source name
+const getSourceDisplayName = (source: string, url: string | null): string => {
+  // If it's a known source, capitalize it nicely
+  const knownSources: Record<string, string> = {
+    'reddit': 'Reddit',
+    'drugs.com': 'Drugs.com',
+    'webmd': 'WebMD',
+    'diabetesdaily': 'Diabetes Daily',
+    'beyond type 1': 'Beyond Type 1',
+    'diatribe': 'DiaTribe',
+    'healthline': 'Healthline',
+    'integrated diabetes': 'Integrated Diabetes',
+    'the diabetes link': 'The Diabetes Link',
+    'diabetech': 'Diabetech',
+    'cnbc': 'CNBC',
+    'a sweet life': 'A Sweet Life',
+    'mysugr': 'mySugr',
+  };
   
-  // Valid source patterns
-  const validPatterns = [
-    'reddit.com',
-    'drugs.com',
-    'webmd.com',
-    'trustpilot.com',
-    'google.com/maps',
-    'amazon.com',
-    'diabetes.co.uk',
-    'diabetesdaily.com',
-    'beyondtype1.org',
-  ];
+  if (knownSources[source.toLowerCase()]) {
+    return knownSources[source.toLowerCase()];
+  }
   
-  return validPatterns.some(pattern => url.toLowerCase().includes(pattern));
+  // If source is 'web' or unknown, try to extract from URL
+  if ((source === 'web' || !source) && url) {
+    try {
+      const domain = new URL(url).hostname.replace('www.', '').split('.')[0];
+      if (domain && domain.length > 2) {
+        return domain.charAt(0).toUpperCase() + domain.slice(1);
+      }
+    } catch {
+      // Fallback
+    }
+  }
+  
+  return source.charAt(0).toUpperCase() + source.slice(1);
 };
 
 export const ExternalReviewCard: React.FC<ExternalReviewCardProps> = ({ review }) => {
@@ -81,8 +120,11 @@ export const ExternalReviewCard: React.FC<ExternalReviewCardProps> = ({ review }
     if (review.source === 'reddit' && review.subreddit) {
       return review.subreddit;
     }
-    return review.source.charAt(0).toUpperCase() + review.source.slice(1);
+    return getSourceDisplayName(review.source, review.source_url);
   };
+  
+  // Sanitize content for display
+  const displayContent = sanitizeContent(review.content);
 
   const hasValidUrl = isValidSourceUrl(review.source_url);
   const isVerifiedSource = hasValidUrl && (
@@ -126,7 +168,7 @@ export const ExternalReviewCard: React.FC<ExternalReviewCardProps> = ({ review }
 
         {/* Content */}
         <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-          {review.content}
+          {displayContent}
         </p>
 
         {/* Footer */}
