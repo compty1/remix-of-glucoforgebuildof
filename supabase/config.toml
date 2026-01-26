@@ -142,3 +142,6 @@ verify_jwt = false
 
 [functions.fetch-medication-reviews]
 verify_jwt = false
+
+[functions.seed-reliable-device-images]
+verify_jwt = false

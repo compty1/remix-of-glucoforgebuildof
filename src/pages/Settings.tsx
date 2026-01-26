@@ -28,8 +28,11 @@ import {
   AlertTriangle,
   CheckCircle,
   Moon,
-  Sun
+  Sun,
+  RefreshCw,
+  ImageOff
 } from 'lucide-react';
+import { clearAllCache, clearFailedCache } from '@/lib/imageCache';
 
 const Settings = () => {
   const { toast } = useToast();
@@ -604,7 +607,48 @@ const Settings = () => {
                 <Separator />
 
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Storage Usage</h3>
+                  <h3 className="text-lg font-semibold">Cache Management</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Clear cached images if logos aren't displaying correctly
+                  </p>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Button 
+                      variant="outline" 
+                      className="justify-start"
+                      onClick={async () => {
+                        const cleared = await clearFailedCache();
+                        toast({
+                          title: "Cache Cleared",
+                          description: `Cleared ${cleared} failed image entries. Logos will reload.`,
+                        });
+                        window.location.reload();
+                      }}
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Retry Failed Logos
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="justify-start"
+                      onClick={async () => {
+                        await clearAllCache();
+                        toast({
+                          title: "All Cache Cleared",
+                          description: "All image cache cleared. Page will reload.",
+                        });
+                        window.location.reload();
+                      }}
+                    >
+                      <ImageOff className="h-4 w-4 mr-2" />
+                      Clear All Image Cache
+                    </Button>
+                  </div>
+                </div>
+
+                <Separator />
+
+                <div className="space-y-4">
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
                       <span>Glucose Data</span>

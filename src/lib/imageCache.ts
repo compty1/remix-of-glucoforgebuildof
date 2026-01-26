@@ -3,9 +3,9 @@
 
 const DB_NAME = 'ImageCacheDB';
 const STORE_NAME = 'imageStatus';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Bumped version to clear old cache
 const VALID_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days for valid URLs
-const FAILED_CACHE_TTL_MS = 1 * 60 * 60 * 1000; // 1 hour for failed URLs (reduced from 24h)
+const FAILED_CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes for failed URLs (reduced from 1 hour)
 
 interface CacheEntry {
   url: string;
@@ -32,10 +32,12 @@ function openDB(): Promise<IDBDatabase> {
 
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        const store = db.createObjectStore(STORE_NAME, { keyPath: 'url' });
-        store.createIndex('cachedAt', 'cachedAt', { unique: false });
+      // Delete old store if exists (to clear stale cache)
+      if (db.objectStoreNames.contains(STORE_NAME)) {
+        db.deleteObjectStore(STORE_NAME);
       }
+      const store = db.createObjectStore(STORE_NAME, { keyPath: 'url' });
+      store.createIndex('cachedAt', 'cachedAt', { unique: false });
     };
   });
 
@@ -163,6 +165,38 @@ export async function clearAllCache(): Promise<void> {
     });
   } catch {
     // Silently fail
+  }
+}
+
+export async function clearFailedCache(): Promise<number> {
+  try {
+    const db = await openDB();
+    
+    return new Promise((resolve) => {
+      const transaction = db.transaction(STORE_NAME, 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      const getAllRequest = store.getAll();
+      
+      getAllRequest.onsuccess = () => {
+        const entries = getAllRequest.result as CacheEntry[];
+        let deletedCount = 0;
+        
+        entries.forEach((entry) => {
+          if (entry.status === 'failed') {
+            store.delete(entry.url);
+            deletedCount++;
+          }
+        });
+        
+        resolve(deletedCount);
+      };
+
+      getAllRequest.onerror = () => {
+        resolve(0);
+      };
+    });
+  } catch {
+    return 0;
   }
 }
 
