@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import Layout from '@/components/Layout';
 import { useToast } from '@/hooks/use-toast';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 import { 
   User, 
   Bell, 
@@ -30,9 +31,99 @@ import {
   Moon,
   Sun,
   RefreshCw,
-  ImageOff
+  ImageOff,
+  BellRing,
+  BellOff
 } from 'lucide-react';
 import { clearAllCache, clearFailedCache } from '@/lib/imageCache';
+
+// Push Notifications Section Component
+const PushNotificationsSection = () => {
+  const { isSupported, isSubscribed, isLoading, permission, toggle } = usePushNotifications();
+  const { toast } = useToast();
+
+  const handleTestNotification = () => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('GlycoForge Test', {
+        body: 'Push notifications are working correctly!',
+        icon: '/glycoforge-icon.png',
+      });
+      toast({
+        title: "Test Sent",
+        description: "Check for your notification!",
+      });
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Not Enabled",
+        description: "Please enable push notifications first.",
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold flex items-center gap-2">
+        <BellRing className="h-5 w-5" />
+        Push Notifications
+      </h3>
+      
+      {!isSupported ? (
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            Push notifications are not supported in this browser.
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-muted/30">
+            <div className="space-y-0.5">
+              <Label className="text-base flex items-center gap-2">
+                {isSubscribed ? (
+                  <BellRing className="h-4 w-4 text-emerald-500" />
+                ) : (
+                  <BellOff className="h-4 w-4 text-muted-foreground" />
+                )}
+                Browser Push Notifications
+              </Label>
+              <p className="text-sm text-muted-foreground">
+                Receive real-time alerts for research updates, device news, and community posts
+              </p>
+              {permission === 'denied' && (
+                <p className="text-xs text-destructive mt-1">
+                  Notifications are blocked. Please enable them in your browser settings.
+                </p>
+              )}
+            </div>
+            <Switch 
+              checked={isSubscribed}
+              onCheckedChange={toggle}
+              disabled={isLoading || permission === 'denied'}
+            />
+          </div>
+
+          {isSubscribed && (
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleTestNotification}
+              >
+                <Bell className="h-4 w-4 mr-2" />
+                Test Notification
+              </Button>
+              <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600">
+                <CheckCircle className="h-3 w-3 mr-1" />
+                Enabled
+              </Badge>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Settings = () => {
   const { toast } = useToast();
@@ -386,6 +477,10 @@ const Settings = () => {
                     />
                   </div>
                 </div>
+
+                <Separator />
+
+                <PushNotificationsSection />
 
                 <Separator />
 

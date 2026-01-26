@@ -3174,6 +3174,7 @@ export type Database = {
           email_frequency: string | null
           id: string
           in_app_enabled: boolean | null
+          push_enabled: boolean | null
           quiet_hours_end: string | null
           quiet_hours_start: string | null
           updated_at: string | null
@@ -3185,6 +3186,7 @@ export type Database = {
           email_frequency?: string | null
           id?: string
           in_app_enabled?: boolean | null
+          push_enabled?: boolean | null
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
           updated_at?: string | null
@@ -3196,6 +3198,7 @@ export type Database = {
           email_frequency?: string | null
           id?: string
           in_app_enabled?: boolean | null
+          push_enabled?: boolean | null
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
           updated_at?: string | null
@@ -3671,6 +3674,33 @@ export type Database = {
           pump_model?: string | null
           source_dataset?: string
           timestamp?: string | null
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+          auth_key: string
+          created_at: string | null
+          endpoint: string
+          id: string
+          p256dh_key: string
+          user_id: string
+        }
+        Insert: {
+          auth_key: string
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          p256dh_key: string
+          user_id: string
+        }
+        Update: {
+          auth_key?: string
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          p256dh_key?: string
+          user_id?: string
         }
         Relationships: []
       }
