@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuthStore } from '@/store/authStore';
 import { 
   TrendingUp, 
   Activity, 
@@ -27,7 +28,8 @@ import {
   Droplets,
   Smartphone,
   Plus,
-  ArrowUpRight
+  ArrowUpRight,
+  TrendingDown
 } from 'lucide-react';
 
 interface DashboardWidgetsProps {
@@ -43,6 +45,7 @@ interface WidgetProps {
 
 // Main component for the responsive dashboard
 export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, isEditing }) => {
+  const { user } = useAuthStore();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -54,48 +57,156 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
         // Fetch data based on widget type
         switch (widgetId) {
           case 'glucose-trends':
-            setData({
-              currentBG: 127,
-              trend: 'stable',
-              timeInRange: 78,
-              estA1C: 6.8,
-              cv: 24
-            });
+            // Try to get latest user glucose analysis
+            if (user?.id) {
+              const { data: uploads } = await supabase
+                .from('uploads')
+                .select('detailed_analysis, uploaded_at')
+                .eq('user_id', user.id)
+                .order('uploaded_at', { ascending: false })
+                .limit(1);
+              
+              if (uploads && uploads.length > 0 && uploads[0].detailed_analysis) {
+                const analysis = uploads[0].detailed_analysis as any;
+                const metrics = analysis?.metrics || analysis?.rawMetrics || {};
+                setData({
+                  currentBG: metrics.currentBG || metrics.mean || Math.round(analysis?.avgGlucose || 127),
+                  trend: metrics.trend || (metrics.recentSlope > 0 ? 'rising' : metrics.recentSlope < 0 ? 'falling' : 'stable'),
+                  timeInRange: Math.round(metrics.timeInRange || analysis?.timeInRange || 78),
+                  estA1C: (metrics.gmi || metrics.estimatedA1c || analysis?.estimatedA1C || 6.8).toFixed(1),
+                  cv: Math.round(metrics.cv || metrics.coefficientOfVariation || analysis?.cv || 24),
+                  hasData: true
+                });
+              } else {
+                // No user data - show prompt to upload
+                setData({
+                  currentBG: null,
+                  hasData: false
+                });
+              }
+            } else {
+              // Not logged in - show sample data
+              setData({
+                currentBG: 127,
+                trend: 'stable',
+                timeInRange: 78,
+                estA1C: 6.8,
+                cv: 24,
+                hasData: false,
+                isDemo: true
+              });
+            }
             break;
           
           case 'device-status':
-            setData({
-              cgmConnected: true,
-              sensorDaysLeft: 3,
-              batteryLevel: 85,
-              lastReading: '2 min ago'
-            });
+            // Get user's device preferences if available
+            if (user?.id) {
+              const { data: prefs } = await supabase
+                .from('user_preferences')
+                .select('device_brands, cgm_device_id')
+                .eq('user_id', user.id)
+                .single();
+              
+              setData({
+                cgmConnected: !!prefs?.cgm_device_id,
+                cgmModel: prefs?.device_brands?.[0] || 'CGM',
+                sensorDaysLeft: 3,
+                batteryLevel: 85,
+                lastReading: '2 min ago'
+              });
+            } else {
+              setData({
+                cgmConnected: true,
+                sensorDaysLeft: 3,
+                batteryLevel: 85,
+                lastReading: '2 min ago'
+              });
+            }
             break;
           
           case 'community-insights':
-            const { data: posts } = await supabase
+            const { data: posts, count } = await supabase
               .from('community_posts')
-              .select('*')
-              .order('published_at', { ascending: false })
+              .select('*', { count: 'exact' })
+              .gte('published_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
               .limit(50);
             
+            // Get user's contribution count if logged in
+            let userContributions = 0;
+            if (user?.id) {
+              const { count: contribCount } = await supabase
+                .from('community_comments')
+                .select('*', { count: 'exact', head: true })
+                .eq('author_anonymous', user.email?.split('@')[0] || 'user');
+              userContributions = contribCount || 0;
+            }
+            
             setData({
-              activeMembers: 2847,
-              postsToday: posts?.length || 0,
-              userContributions: 23
+              activeMembers: 2847 + (count || 0),
+              postsToday: count || 0,
+              userContributions
             });
             break;
             
           case 'recent-activity':
-            const { data: activityData } = await supabase
-              .from('uploads')
-              .select('*')
-              .order('uploaded_at', { ascending: false })
-              .limit(5);
-            setData(activityData);
+            if (user?.id) {
+              const { data: activityData } = await supabase
+                .from('uploads')
+                .select('id, file_name, uploaded_at')
+                .eq('user_id', user.id)
+                .order('uploaded_at', { ascending: false })
+                .limit(5);
+              
+              const { data: surveys } = await supabase
+                .from('survey_responses')
+                .select('id, survey_id, submitted_at')
+                .eq('user_id', user.id)
+                .order('submitted_at', { ascending: false })
+                .limit(3);
+              
+              setData({
+                uploads: activityData || [],
+                surveys: surveys || [],
+                hasActivity: (activityData?.length || 0) + (surveys?.length || 0) > 0
+              });
+            } else {
+              setData({ uploads: [], surveys: [], hasActivity: false });
+            }
             break;
             
           case 'health-metrics':
+            // Similar to glucose trends but with more detail
+            if (user?.id) {
+              const { data: uploads } = await supabase
+                .from('uploads')
+                .select('detailed_analysis')
+                .eq('user_id', user.id)
+                .order('uploaded_at', { ascending: false })
+                .limit(1);
+              
+              if (uploads && uploads.length > 0 && uploads[0].detailed_analysis) {
+                const analysis = uploads[0].detailed_analysis as any;
+                const metrics = analysis?.metrics || {};
+                setData({
+                  timeInRange: Math.round(metrics.timeInRange || 78),
+                  estA1C: (metrics.gmi || 6.8).toFixed(1),
+                  cv: Math.round(metrics.cv || 24),
+                  hasData: true
+                });
+              } else {
+                setData({ hasData: false });
+              }
+            } else {
+              setData({
+                timeInRange: 78,
+                estA1C: 6.8,
+                cv: 24,
+                hasData: false,
+                isDemo: true
+              });
+            }
+            break;
+            
           case 'quick-actions':
             setData({ loaded: true });
             break;
@@ -112,7 +223,7 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
     };
 
     fetchWidgetData();
-  }, [widgetId]);
+  }, [widgetId, user?.id]);
 
   if (loading) {
     return (
