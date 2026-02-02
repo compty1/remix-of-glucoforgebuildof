@@ -151,3 +151,12 @@ verify_jwt = false
 
 [functions.notification-triggers]
 verify_jwt = false
+
+[functions.seed-research-items]
+verify_jwt = false
+
+[functions.seed-t1d-events]
+verify_jwt = false
+
+[functions.seed-diabetes-organizations]
+verify_jwt = false

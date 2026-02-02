@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { InfoRail } from '@/components/InfoRail';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useT1DEvents, T1DEvent } from '@/hooks/useT1DEvents';
 import { 
   Calendar, 
   MapPin, 
@@ -22,184 +24,17 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 
-interface T1DEvent {
-  id: string;
-  title: string;
-  description: string;
-  event_type: string;
-  organizer: string;
-  location_name: string;
-  city: string;
-  state: string;
-  start_date: string;
-  end_date?: string;
-  cost_info: string;
-  is_free: boolean;
-  registration_url: string;
-  website_url: string;
-  is_virtual: boolean;
-  tags: string[];
-}
-
-// Real T1D events data
-const sampleEvents: T1DEvent[] = [
-  {
-    id: '1',
-    title: 'JDRF One Walk - New York',
-    description: 'Join thousands of walkers to raise funds for T1D research. Family-friendly event with food, activities, and community celebration.',
-    event_type: 'walk',
-    organizer: 'Breakthrough T1D (JDRF)',
-    location_name: 'Central Park',
-    city: 'New York',
-    state: 'NY',
-    start_date: '2026-04-15T09:00:00Z',
-    end_date: '2026-04-15T14:00:00Z',
-    cost_info: 'Free to participate, fundraising encouraged',
-    is_free: true,
-    registration_url: 'https://www.breakthrought1d.org/walk',
-    website_url: 'https://www.breakthrought1d.org',
-    is_virtual: false,
-    tags: ['family-friendly', 'fundraising', 'outdoor']
-  },
-  {
-    id: '2',
-    title: 'Friends for Life Conference 2026',
-    description: 'The premier diabetes conference for families. Educational sessions, tech demos, youth programs, and unforgettable connections.',
-    event_type: 'conference',
-    organizer: 'Children with Diabetes',
-    location_name: 'Rosen Shingle Creek',
-    city: 'Orlando',
-    state: 'FL',
-    start_date: '2026-07-08T08:00:00Z',
-    end_date: '2026-07-12T17:00:00Z',
-    cost_info: '$700-1200 (varies by package)',
-    is_free: false,
-    registration_url: 'https://childrenwithdiabetes.com/friends-for-life/',
-    website_url: 'https://childrenwithdiabetes.com',
-    is_virtual: false,
-    tags: ['conference', 'family', 'education', 'networking']
-  },
-  {
-    id: '3',
-    title: 'DiabetesSisters Weekend for Women',
-    description: 'A transformative weekend conference designed specifically for women living with all types of diabetes.',
-    event_type: 'conference',
-    organizer: 'DiabetesSisters',
-    location_name: 'The Westin',
-    city: 'Charlotte',
-    state: 'NC',
-    start_date: '2026-05-15T13:00:00Z',
-    end_date: '2026-05-17T12:00:00Z',
-    cost_info: '$275-375',
-    is_free: false,
-    registration_url: 'https://diabetessisters.org/weekend-women',
-    website_url: 'https://diabetessisters.org',
-    is_virtual: false,
-    tags: ['women', 'support', 'education']
-  },
-  {
-    id: '4',
-    title: 'T1D Exchange Virtual Research Update',
-    description: 'Monthly virtual webinar featuring the latest T1D research findings and clinical trial updates.',
-    event_type: 'virtual',
-    organizer: 'T1D Exchange',
-    location_name: 'Online',
-    city: 'Virtual',
-    state: '',
-    start_date: '2026-02-20T19:00:00Z',
-    end_date: '2026-02-20T20:30:00Z',
-    cost_info: 'Free',
-    is_free: true,
-    registration_url: 'https://t1dexchange.org/events',
-    website_url: 'https://t1dexchange.org',
-    is_virtual: true,
-    tags: ['research', 'virtual', 'educational']
-  },
-  {
-    id: '5',
-    title: 'Camp Joslin - Summer Session',
-    description: 'The oldest and largest camp for children with T1D. Week-long summer camp with full medical staff.',
-    event_type: 'camp',
-    organizer: 'Joslin Diabetes Center',
-    location_name: 'Camp Joslin',
-    city: 'Charlton',
-    state: 'MA',
-    start_date: '2026-07-20T09:00:00Z',
-    end_date: '2026-07-27T15:00:00Z',
-    cost_info: '$1,200 (scholarships available)',
-    is_free: false,
-    registration_url: 'https://www.joslin.org/patient-care/camp-joslin',
-    website_url: 'https://www.joslin.org',
-    is_virtual: false,
-    tags: ['kids', 'camp', 'summer', 'outdoor']
-  },
-  {
-    id: '6',
-    title: 'ADA Scientific Sessions 2026',
-    description: 'The world\'s largest scientific meeting focused on diabetes research, prevention, and care.',
-    event_type: 'conference',
-    organizer: 'American Diabetes Association',
-    location_name: 'San Diego Convention Center',
-    city: 'San Diego',
-    state: 'CA',
-    start_date: '2026-06-12T08:00:00Z',
-    end_date: '2026-06-16T17:00:00Z',
-    cost_info: '$500-900 (early bird discounts)',
-    is_free: false,
-    registration_url: 'https://professional.diabetes.org/scientific-sessions',
-    website_url: 'https://www.diabetes.org',
-    is_virtual: false,
-    tags: ['professional', 'research', 'medical']
-  },
-  {
-    id: '7',
-    title: 'Local T1D Parent Support Group',
-    description: 'Monthly meetup for parents of children with T1D. Share experiences, tips, and support each other.',
-    event_type: 'support_group',
-    organizer: 'Local T1D Community',
-    location_name: 'Community Center',
-    city: 'Chicago',
-    state: 'IL',
-    start_date: '2026-02-10T18:30:00Z',
-    end_date: '2026-02-10T20:00:00Z',
-    cost_info: 'Free',
-    is_free: true,
-    registration_url: '#',
-    website_url: '#',
-    is_virtual: false,
-    tags: ['parents', 'support', 'monthly']
-  },
-  {
-    id: '8',
-    title: 'Beyond Type 1 Virtual Meetup',
-    description: 'Connect with the global T1D community in this monthly virtual hangout. All ages welcome.',
-    event_type: 'virtual',
-    organizer: 'Beyond Type 1',
-    location_name: 'Online',
-    city: 'Virtual',
-    state: '',
-    start_date: '2026-02-25T20:00:00Z',
-    end_date: '2026-02-25T21:30:00Z',
-    cost_info: 'Free',
-    is_free: true,
-    registration_url: 'https://beyondtype1.org/events',
-    website_url: 'https://beyondtype1.org',
-    is_virtual: true,
-    tags: ['virtual', 'community', 'all-ages']
-  }
-];
-
 export default function EventsNearMe() {
+  const { events, loading, error } = useT1DEvents();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');
   const [selectedState, setSelectedState] = useState<string>('all');
   const [showFreeOnly, setShowFreeOnly] = useState(false);
-  const [events, setEvents] = useState<T1DEvent[]>(sampleEvents);
 
   const filteredEvents = events.filter(event => {
-    const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         event.city.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = event.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         event.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         event.city?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = selectedType === 'all' || event.event_type === selectedType;
     const matchesState = selectedState === 'all' || event.state === selectedState || (event.is_virtual && selectedState === 'virtual');
     const matchesFree = !showFreeOnly || event.is_free;
@@ -228,11 +63,35 @@ export default function EventsNearMe() {
       case 'educational': return 'Educational';
       case 'fundraiser': return 'Fundraiser';
       case 'meetup': return 'Meetup';
+      case 'advocacy': return 'Advocacy';
       default: return type;
     }
   };
 
-  const states = [...new Set(sampleEvents.map(e => e.state).filter(s => s))];
+  const states = [...new Set(events.map(e => e.state).filter(s => s))];
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-8">
+          <BackButton fallbackPath="/dashboard" />
+          <div className="space-y-6 mt-6">
+            <Skeleton className="h-32 w-full" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-24" />
+              ))}
+            </div>
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-48" />
+              ))}
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
