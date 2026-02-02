@@ -118,7 +118,7 @@ import YourExperience from "./pages/YourExperience";
 import DonationsInfo from "./pages/DonationsInfo";
 
 // Support Page
-import SupportGlycoForge from "./pages/SupportGlycoForge";
+import SupportGlucoForge from "./pages/SupportGlucoForge";
 
 const queryClient = new QueryClient();
 
@@ -237,7 +237,7 @@ const App = () => {
             <Route path="/explore" element={<Explore />} />
             <Route path="/your-experience" element={<ProtectedRoute><YourExperience /></ProtectedRoute>} />
             <Route path="/donations-info" element={<DonationsInfo />} />
-            <Route path="/support" element={<SupportGlycoForge />} />
+            <Route path="/support" element={<SupportGlucoForge />} />
             
             {/* Admin Content Management Routes */}
             <Route path="/admin/articles" element={<AdminRoute><AdminArticles /></AdminRoute>} />

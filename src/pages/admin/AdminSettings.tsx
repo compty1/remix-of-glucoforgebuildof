@@ -79,7 +79,7 @@ export default function AdminSettings() {
     {
       id: 'logo_url',
       name: 'Logo URL',
-      value: '/src/assets/glycoforge-logo.png',
+      value: '/src/assets/glucoforge-logo-new.png',
       type: 'image'
     },
     {

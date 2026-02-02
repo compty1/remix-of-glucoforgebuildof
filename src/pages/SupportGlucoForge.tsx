@@ -238,8 +238,8 @@ const faqs = [
     answer: "Recurring donations are charged monthly, quarterly, or annually based on your preference. You can cancel or modify your recurring donation at any time through your dashboard."
   },
   {
-    question: "Can my company sponsor GlycoForge?",
-    answer: "Absolutely! Corporate sponsorships receive additional recognition and can be customized. Contact us at support@glycoforge.org for partnership opportunities."
+    question: "Can my company sponsor GlucoForge?",
+    answer: "Absolutely! Corporate sponsorships receive additional recognition and can be customized. Contact us at support@glucoforge.org for partnership opportunities."
   }
 ];
 
@@ -248,11 +248,11 @@ const alternativeWays = [
   { icon: Database, title: 'Share Your Data', description: 'Contribute your glucose data anonymously for research', link: '/data-upload' },
   { icon: Code, title: 'Contribute Code', description: 'Help build new features on our development projects', link: '/build-with-us' },
   { icon: Users, title: 'Become a Moderator', description: 'Help maintain our community standards', link: '/get-involved' },
-  { icon: Share2, title: 'Spread the Word', description: 'Share GlycoForge on social media', link: null },
+  { icon: Share2, title: 'Spread the Word', description: 'Share GlucoForge on social media', link: null },
   { icon: Building2, title: 'Refer Providers', description: 'Tell your healthcare team about us', link: '/healthcare-providers' },
 ];
 
-export default function SupportGlycoForge() {
+export default function SupportGlucoForge() {
   const [donationAmount, setDonationAmount] = useState(100);
   const [donationType, setDonationType] = useState<'one-time' | 'monthly'>('one-time');
 
@@ -348,7 +348,7 @@ export default function SupportGlycoForge() {
                 <Sparkles className="h-3 w-3 mr-1" /> Our Solution
               </Badge>
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                GlycoForge Platform Overview
+                GlucoForge Platform Overview
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
                 A comprehensive ecosystem built by the T1D community, for the T1D community
@@ -483,7 +483,7 @@ export default function SupportGlycoForge() {
           <div className="container mx-auto px-4">
             <div className="text-center mb-12">
               <Badge variant="secondary" className="mb-4">
-                <Lightbulb className="h-3 w-3 mr-1" /> Why GlycoForge
+                <Lightbulb className="h-3 w-3 mr-1" /> Why GlucoForge
               </Badge>
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
                 What Makes Us Different
@@ -580,7 +580,7 @@ export default function SupportGlycoForge() {
                   <Heart className="h-3 w-3 mr-1" /> Make Your Impact
                 </Badge>
                 <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                  Support GlycoForge Today
+                  Support GlucoForge Today
                 </h2>
               </div>
 
@@ -735,8 +735,8 @@ export default function SupportGlycoForge() {
             </div>
             <p className="mt-6 text-white/60 text-sm">
               For donations over $5,000 or corporate sponsorships, contact us directly at{' '}
-              <a href="mailto:support@glycoforge.org" className="underline hover:text-white">
-                support@glycoforge.org
+              <a href="mailto:support@glucoforge.org" className="underline hover:text-white">
+                support@glucoforge.org
               </a>
             </p>
           </div>

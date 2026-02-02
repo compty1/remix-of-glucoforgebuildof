@@ -10,7 +10,7 @@ import { useAuthStore } from '@/store/authStore';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Mail, Lock, User, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import logoImage from '@/assets/glycoforge-logo.png';
+import logoImage from '@/assets/glucoforge-logo-new.png';
 import { signInSchema, signUpSchema } from '@/lib/validation';
 import { z } from 'zod';
 

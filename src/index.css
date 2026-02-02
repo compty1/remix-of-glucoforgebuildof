@@ -4,11 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* GlycoForge Brand Design System */
+/* GlucoForge Brand Design System */
 
 @layer base {
   :root {
-    /* GlycoForge Brand Colors - from brand guide */
+    /* GlucoForge Brand Colors - from brand guide */
     --brand-red: 4 100% 63%; /* #FF4541 - Primary CTAs, stats */
     --brand-red-dark: 2 70% 53%; /* #D93A36 - Hover states */
     --brand-purple-dark: 269 60% 25%; /* #3D1A66 - Navigation, hero, footer */
@@ -64,14 +64,14 @@
     --chart-4: 220 70% 50%; /* Blue */
     --chart-5: 40 84% 55%; /* Orange */
     
-    /* GlycoForge Gradients */
+    /* GlucoForge Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(269 60% 25%), hsl(270 35% 61%));
     --gradient-hero: linear-gradient(135deg, hsl(269 60% 25%), hsl(270 35% 61%));
     --gradient-accent: linear-gradient(135deg, hsl(4 100% 63%), hsl(4 85% 55%));
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 14% 98%));
     --gradient-teal: linear-gradient(135deg, hsl(168 65% 55%), hsl(168 60% 65%));
     
-    /* GlycoForge Shadows */
+    /* GlucoForge Shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -144,7 +144,7 @@
   }
 }
 
-/* GlycoForge Typography Utilities */
+/* GlucoForge Typography Utilities */
 @layer components {
   .heading-hero {
     @apply text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight;
@@ -167,7 +167,7 @@
     color: hsl(var(--brand-red));
   }
   
-  /* GlycoForge Gradients */
+  /* GlucoForge Gradients */
   .forge-gradient {
     background: var(--gradient-primary);
   }
@@ -188,7 +188,7 @@
     background: var(--gradient-teal);
   }
   
-  /* GlycoForge Shadows */
+  /* GlucoForge Shadows */
   .shadow-elegant {
     box-shadow: var(--shadow-elegant);
   }

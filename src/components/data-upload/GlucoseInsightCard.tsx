@@ -42,7 +42,7 @@ export function GlucoseInsightCard({ insight }: GlucoseInsightCardProps) {
   const handleShare = async () => {
     if (navigator.share) {
       await navigator.share({
-        title: 'GlycoForge Insight',
+        title: 'GlucoForge Insight',
         text: `${insight.title}: ${insight.insight}`,
         url: window.location.href,
       });

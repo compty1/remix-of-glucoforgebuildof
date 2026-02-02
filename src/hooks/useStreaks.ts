@@ -20,7 +20,7 @@ const STREAK_LABELS: Record<StreakType, { name: string; icon: string; descriptio
   platform_visit: {
     name: 'Daily Visits',
     icon: '🔥',
-    description: 'Consecutive days visiting GlycoForge',
+    description: 'Consecutive days visiting GlucoForge',
   },
   data_upload: {
     name: 'Data Uploads',
