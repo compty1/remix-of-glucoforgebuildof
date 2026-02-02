@@ -53,14 +53,14 @@ export function useTrialMatching(options: UseTrialMatchingOptions = {}) {
         queryBuilder = queryBuilder.ilike("phase", `%${phase}%`);
       }
 
-      // Filter by status if specified
+      // Filter by status if specified - use exact matching on overall_status
       if (status) {
         if (status === "recruiting") {
-          queryBuilder = queryBuilder.or("status.ilike.%Recruiting%,recruiting_status.ilike.%Recruiting%");
+          queryBuilder = queryBuilder.eq("overall_status", "Recruiting");
         } else if (status === "enrolling") {
-          queryBuilder = queryBuilder.or("status.ilike.%Enrolling%,recruiting_status.ilike.%Enrolling%");
+          queryBuilder = queryBuilder.eq("overall_status", "Enrolling by Invitation");
         } else if (status === "active") {
-          queryBuilder = queryBuilder.ilike("status", "%Active%");
+          queryBuilder = queryBuilder.eq("overall_status", "Active, not recruiting");
         }
       }
 
