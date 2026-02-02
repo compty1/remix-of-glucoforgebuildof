@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { useAccessibilityAudit, usePerformanceMonitor } from "@/utils/qa-utils";
+import { useEngagementTracking } from "@/hooks/useEngagementTracking";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Journey from "./pages/Journey";
@@ -126,6 +127,9 @@ const App = () => {
   const initialize = useAuthStore((state) => state.initialize);
   
   // QA utilities for development
+  // Track user engagement (visits, streaks)
+  useEngagementTracking();
+  
   useAccessibilityAudit();
   usePerformanceMonitor();
 

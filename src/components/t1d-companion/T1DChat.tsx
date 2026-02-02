@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useSavedIssues } from '@/hooks/useSavedIssues';
 import { useActiveChat } from '@/hooks/useChatSessions';
 import { ChatMessage } from './ChatMessage';
+import { ChatExport } from './ChatExport';
 import { SuggestedQuestions } from '@/components/chat/SuggestedQuestions';
 import { 
   Send, 
@@ -260,6 +261,10 @@ export function T1DChat({ initialMessage, initialContext, sessionId }: T1DChatPr
           )}
         </div>
         <div className="flex gap-2">
+          <ChatExport 
+            messages={messages.map(m => ({ ...m, timestamp: new Date(m.timestamp) }))} 
+            contextTitle={initialContext?.title} 
+          />
           {user && messages.length > 0 && (
             <Button
               variant="outline"
