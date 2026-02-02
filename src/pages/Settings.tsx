@@ -44,9 +44,9 @@ const PushNotificationsSection = () => {
 
   const handleTestNotification = () => {
     if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification('GlycoForge Test', {
+      new Notification('GlucoForge Test', {
         body: 'Push notifications are working correctly!',
-        icon: '/glycoforge-icon.png',
+        icon: '/glucoforge-icon.png',
       });
       toast({
         title: "Test Sent",

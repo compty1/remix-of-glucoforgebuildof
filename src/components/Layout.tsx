@@ -134,7 +134,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                 <div className="space-y-4">
-                  <h3 className="font-bold text-white text-lg">GlycoForge</h3>
+                  <h3 className="font-bold text-white text-lg">GlucoForge</h3>
                   <p className="text-sm text-white/70">
                     Forging tools. Fueling hope. Fighting diabetes together.
                   </p>
@@ -183,7 +183,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
               </div>
               <div className="mt-8 pt-8 border-t border-white/20 text-center text-sm text-white/60">
-                <p>&copy; 2024 GlycoForge. An emerging 501(c)(3) nonprofit organization.</p>
+                <p>&copy; 2024 GlucoForge. An emerging 501(c)(3) nonprofit organization.</p>
               </div>
             </div>
           </footer>

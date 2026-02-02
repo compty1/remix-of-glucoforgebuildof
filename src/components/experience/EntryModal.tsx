@@ -39,7 +39,7 @@ export function EntryModal({ submission, open, onOpenChange }: EntryModalProps) 
   };
 
   const handleShare = async () => {
-    const shareText = `"${submission.content.slice(0, 100)}..." - Shared on GlycoForge`;
+    const shareText = `"${submission.content.slice(0, 100)}..." - Shared on GlucoForge`;
     try {
       if (navigator.share) {
         await navigator.share({
