@@ -150,7 +150,7 @@ export function useGlobalSearch() {
             title: t.title,
             description: t.brief_summary?.slice(0, 100) || t.nct_id || 'Clinical trial',
             category: 'trial',
-            url: `/trial-matching`,
+            url: `/trials`,
           });
         });
       }

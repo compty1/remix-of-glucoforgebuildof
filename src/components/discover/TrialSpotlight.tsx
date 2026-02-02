@@ -109,7 +109,7 @@ export function TrialSpotlight() {
                 )}
               </div>
             ))}
-            <Link to="/trial-matching">
+            <Link to="/trials">
               <Button variant="outline" size="sm" className="w-full mt-2">
                 Find Trials Near You
                 <ArrowRight className="h-4 w-4 ml-1" />
