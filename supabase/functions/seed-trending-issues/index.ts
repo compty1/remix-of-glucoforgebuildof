@@ -16,34 +16,45 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Device IDs from query
-    const deviceIds = {
-      dexcomG7: "3ec1da2b-c459-4ee6-8918-24b4d3480ad5",
-      libre3: "bc58fdd1-592e-4dce-806e-0c3e93edfb9a",
-      omnipod5: "1be67c6c-2256-4f5a-90eb-a2ea983285cf",
-      tslimX2: "9577913e-9e01-431e-a8a4-f37795537764",
-      medtronic780G: "2a3398c0-7c74-4738-a7b8-60f52243fa94",
-      dexcomG6: "2546de8e-5763-4d22-8c23-8b495288d861",
-      tandemMobi: "8907e384-7243-4536-8080-2f493887375e",
-      ilet: "0257756d-d218-4eee-92c1-3c7e34ee0e94",
+    // Dynamically fetch device IDs by name
+    const { data: devices, error: devicesError } = await supabase
+      .from("devices")
+      .select("id, name");
+
+    if (devicesError) {
+      console.error("Error fetching devices:", devicesError);
+      throw devicesError;
+    }
+
+    // Create lookup map by device name (case-insensitive partial match)
+    const getDeviceId = (searchName: string): string | null => {
+      const device = devices?.find(d => 
+        d.name.toLowerCase().includes(searchName.toLowerCase())
+      );
+      return device?.id || null;
     };
 
-    // Check if data already exists
-    const { count } = await supabase
-      .from("trending_device_issues")
-      .select("*", { count: "exact", head: true });
+    const deviceIds = {
+      dexcomG7: getDeviceId("Dexcom G7"),
+      libre3: getDeviceId("Libre 3"),
+      omnipod5: getDeviceId("Omnipod 5"),
+      tslimX2: getDeviceId("t:slim X2"),
+      medtronic780G: getDeviceId("780G"),
+      dexcomG6: getDeviceId("Dexcom G6"),
+      tandemMobi: getDeviceId("Mobi"),
+      ilet: getDeviceId("iLet"),
+    };
 
-    if (count && count > 0) {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: `Trending issues already seeded (${count} records exist)`,
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200,
-        }
-      );
+    console.log("Resolved device IDs:", deviceIds);
+
+    // Delete existing data first to allow re-seeding
+    const { error: deleteError } = await supabase
+      .from("trending_device_issues")
+      .delete()
+      .neq("id", "00000000-0000-0000-0000-000000000000");
+
+    if (deleteError) {
+      console.error("Error deleting existing data:", deleteError);
     }
 
     const trendingIssues = [
