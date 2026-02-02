@@ -1,87 +1,82 @@
-# GlucoForge Platform Completion Plan
 
-## Status: ✅ ALL PHASES COMPLETED
+# Clinical Trial Finder Fixes
 
----
+## Issues Identified
 
-## ✅ Phase 1: Data Population - COMPLETE
-- Created `seed-research-items` edge function → **50 research articles seeded**
-- Created `seed-t1d-events` edge function → **23 events seeded**
-- Created `seed-diabetes-organizations` edge function → **12 organizations seeded**
-- Created database tables: `t1d_events`, `diabetes_organizations`
-- Created hooks: `useT1DEvents`, `useDiabetesOrganizations`
-- Updated `EventsNearMe.tsx` and `DiabetesOrganizations.tsx` to fetch from database
+### Issue 1: 404 Error on Trial Matching Page
+Links throughout the app point to `/trial-matching`, but the actual route in `App.tsx` is `/trials`.
 
-## ✅ Phase 2: Dashboard Widget Enhancements - COMPLETE
-- Updated `DashboardWidgets.tsx` to fetch real user data from `uploads` table
-- Glucose trends widget now displays actual TIR, GMI, CV from user's analysis
-- Community insights widget shows real post counts
-- Recent activity widget shows user's actual uploads and surveys
+**Affected files:**
+- `src/components/discover/TrialSpotlight.tsx` - Line 112
+- `src/hooks/useGlobalSearch.ts` - Line 153
 
-## ✅ Phase 3: AI Features Enhancement - COMPLETE
-- Added `ChatExport` component for exporting chats to clipboard, text, markdown, or print
-- Created `DynamicPredictions` component with live AI-powered Q&A about T1D future
-- Created `ai-center-predictions` edge function using Lovable AI
-- Updated AICenter with new "Ask AI" tab
-- Chat session persistence working with `useActiveChat` hook
+### Issue 2: Incorrect Trial Status Filtering
+The "recruiting" filter shows completed trials because:
+1. The query filters on `status` column which doesn't exist (should be `overall_status`)
+2. The `%Recruiting%` pattern also matches "Active, not recruiting"
 
-## ✅ Phase 4: Notifications & Email System - COMPLETE
-- Email digest signup component created (`EmailDigestSignup.tsx`)
-- Push notifications infrastructure verified with service worker (`sw.js`)
-- `notification-triggers` edge function ready for scheduled execution
-- `send-weekly-digest` edge function configured with Resend
-
-## ✅ Phase 5: User Engagement Features - COMPLETE
-- Created `useEngagementTracking` hook for automatic streak/achievement tracking
-- Integrated engagement tracking in App.tsx
-- `useActionTracking` hook provides methods for tracking specific user actions
-- Achievement system triggers on uploads, surveys, comments, reviews
-
-## ✅ Phase 6-7: Data & Polish - COMPLETE
-- All seed functions deployed and executed successfully
-- Edge function config updated in `supabase/config.toml`
-- Existing data orchestrator and clinical trials functions verified
+**Affected file:**
+- `src/hooks/useTrialMatching.ts` - Lines 57-64
 
 ---
 
-## Final Database State
+## Implementation Plan
 
-| Category | Count | Status |
-|----------|-------|--------|
-| Devices | 8 | ✅ Populated |
-| Medications | 49 | ✅ Populated |
-| Community Posts | 493 | ✅ Populated |
-| Clinical Trials | 13 | ✅ Populated |
-| Warrior Stories | 10 | ✅ Populated |
-| Articles | 20 | ✅ Populated |
-| Shop Products | 10 | ✅ Populated |
-| T1D Companies | 56 | ✅ Populated |
-| Bounties | 46 | ✅ Populated |
-| Public Glucose Data | 31,500 | ✅ Populated |
-| Research Items | 50 | ✅ Seeded |
-| T1D Events | 23 | ✅ Seeded |
-| Organizations | 12 | ✅ Seeded |
+### Step 1: Fix Route Links
+Update all references from `/trial-matching` to `/trials`:
+
+**TrialSpotlight.tsx:**
+```tsx
+// Change line 112
+<Link to="/trials">  // was: /trial-matching
+```
+
+**useGlobalSearch.ts:**
+```tsx
+// Change line 153
+url: `/trials`,  // was: /trial-matching
+```
+
+### Step 2: Fix Status Filtering Logic
+Update `useTrialMatching.ts` to use correct column name and exact matching:
+
+**Current problematic code:**
+```typescript
+if (status === "recruiting") {
+  queryBuilder = queryBuilder.or("status.ilike.%Recruiting%,recruiting_status.ilike.%Recruiting%");
+}
+```
+
+**Fixed code:**
+```typescript
+if (status === "recruiting") {
+  // Use exact match on overall_status to avoid matching "Active, not recruiting"
+  queryBuilder = queryBuilder.eq("overall_status", "Recruiting");
+} else if (status === "enrolling") {
+  queryBuilder = queryBuilder.eq("overall_status", "Enrolling by Invitation");
+} else if (status === "active") {
+  queryBuilder = queryBuilder.eq("overall_status", "Active, not recruiting");
+}
+```
+
+This uses exact matching on the correct `overall_status` column instead of pattern matching.
 
 ---
 
-## New Files Created
+## Files to Modify
 
-### Components
-- `src/components/t1d-companion/ChatExport.tsx` - Export chats for healthcare providers
-- `src/components/ai-center/DynamicPredictions.tsx` - Live AI Q&A about T1D future
-- `src/components/dashboard/EmailDigestSignup.tsx` - Weekly digest subscription
-
-### Hooks
-- `src/hooks/useEngagementTracking.ts` - Automatic visit/streak/achievement tracking
-- `src/hooks/useT1DEvents.ts` - Fetch events from database
-- `src/hooks/useDiabetesOrganizations.ts` - Fetch organizations from database
-
-### Edge Functions
-- `supabase/functions/ai-center-predictions/index.ts` - Lovable AI predictions
-- `supabase/functions/seed-research-items/index.ts` - Seed research data
-- `supabase/functions/seed-t1d-events/index.ts` - Seed events data
-- `supabase/functions/seed-diabetes-organizations/index.ts` - Seed org data
+| File | Change |
+|------|--------|
+| `src/components/discover/TrialSpotlight.tsx` | Update Link from `/trial-matching` to `/trials` |
+| `src/hooks/useGlobalSearch.ts` | Update URL from `/trial-matching` to `/trials` |
+| `src/hooks/useTrialMatching.ts` | Fix status filter to use `overall_status` with exact matching |
 
 ---
 
-## Platform Fully Operational ✅
+## Expected Outcome
+
+After these changes:
+- Clicking "Find Trials Near You" will navigate to `/trials` correctly
+- Global search results for trials will link to the correct page
+- The "Recruiting" filter will only show trials with `overall_status = "Recruiting"` (currently 5 trials in database)
+- Completed trials will no longer appear in recruiting results
