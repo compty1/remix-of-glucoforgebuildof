@@ -5415,6 +5415,8 @@ export type Database = {
           person_name: string | null
           platform: string | null
           social_handle: string | null
+          source_link_verified: boolean | null
+          source_link_verified_at: string | null
           source_type: string | null
           source_url: string | null
           story_content: string
@@ -5435,6 +5437,8 @@ export type Database = {
           person_name?: string | null
           platform?: string | null
           social_handle?: string | null
+          source_link_verified?: boolean | null
+          source_link_verified_at?: string | null
           source_type?: string | null
           source_url?: string | null
           story_content: string
@@ -5455,6 +5459,8 @@ export type Database = {
           person_name?: string | null
           platform?: string | null
           social_handle?: string | null
+          source_link_verified?: boolean | null
+          source_link_verified_at?: string | null
           source_type?: string | null
           source_url?: string | null
           story_content?: string

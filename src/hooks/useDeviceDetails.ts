@@ -131,10 +131,14 @@ export const useDeviceDetails = (deviceId: string | undefined) => {
           .from('devices')
           .select('*')
           .eq('id', deviceId)
-          .single();
+          .maybeSingle();
 
         if (deviceError) throw deviceError;
-        if (!deviceData) throw new Error('Device not found');
+        if (!deviceData) {
+          setError('Device not found. The device may have been updated or removed.');
+          setLoading(false);
+          return;
+        }
 
         // Fetch device metrics
         const { data: metricsData } = await supabase
