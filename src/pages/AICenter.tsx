@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InfoRail } from '@/components/InfoRail';
+import { DynamicPredictions } from '@/components/ai-center/DynamicPredictions';
 import { 
   Brain, 
   Sparkles, 
@@ -22,7 +23,8 @@ import {
   ChevronRight,
   Utensils,
   Droplet,
-  Shield
+  Shield,
+  MessageSquare
 } from 'lucide-react';
 
 interface Prediction {
@@ -283,17 +285,26 @@ export default function AICenter() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-3">
-            <Tabs defaultValue="predictions" className="space-y-8">
-              <TabsList className="grid w-full grid-cols-2 max-w-md">
+            <Tabs defaultValue="ask-ai" className="space-y-8">
+              <TabsList className="grid w-full grid-cols-3 max-w-lg">
+                <TabsTrigger value="ask-ai" className="gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Ask AI
+                </TabsTrigger>
                 <TabsTrigger value="predictions" className="gap-2">
                   <TrendingUp className="h-4 w-4" />
-                  Future Predictions
+                  Predictions
                 </TabsTrigger>
                 <TabsTrigger value="scenarios" className="gap-2">
                   <Lightbulb className="h-4 w-4" />
-                  AI Scenarios
+                  Scenarios
                 </TabsTrigger>
               </TabsList>
+
+              {/* Ask AI Tab */}
+              <TabsContent value="ask-ai" className="space-y-6">
+                <DynamicPredictions />
+              </TabsContent>
 
               {/* Predictions Tab */}
               <TabsContent value="predictions" className="space-y-6">
