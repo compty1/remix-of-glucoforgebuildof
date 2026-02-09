@@ -20,6 +20,8 @@ export interface CommunityPost {
   post_type: string | null;
   parent_post_id: string | null;
   url: string | null;
+  confidence_score: number | null;
+  link_status: Record<string, any> | null;
 }
 
 export interface SearchFilters {

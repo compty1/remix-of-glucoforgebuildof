@@ -231,11 +231,24 @@ const CommunityPostDetail: React.FC = () => {
                   {post.device_mentioned}
                 </Badge>
               )}
-              {post.is_solution && (
-                <Badge className="text-sm bg-green-600 hover:bg-green-700">
-                  Solution
-                </Badge>
-              )}
+            {post.is_solution && (
+              <Badge className="text-sm bg-green-600 hover:bg-green-700">
+                Solution
+              </Badge>
+            )}
+            {/* Confidence Badge */}
+            {post.confidence_score != null && (
+              <Badge 
+                variant="outline" 
+                className={`text-sm ${
+                  post.confidence_score >= 0.7 ? 'border-green-500 text-green-700' : 
+                  post.confidence_score >= 0.4 ? 'border-yellow-500 text-yellow-700' : 
+                  'border-red-500 text-red-700'
+                }`}
+              >
+                {post.confidence_score >= 0.7 ? 'High' : post.confidence_score >= 0.4 ? 'Medium' : 'Low'} confidence
+              </Badge>
+            )}
             </div>
 
             {/* Title */}
@@ -364,6 +377,14 @@ const CommunityPostDetail: React.FC = () => {
                   data-test="original-link"
                 >
                   <Button variant="outline" size="sm">
+                    {/* Link Status Dot */}
+                    <span className={`inline-block w-2 h-2 rounded-full mr-1 ${
+                      post.link_status?.status === 'ok' || post.link_status?.status === 'ok_fallback'
+                        ? 'bg-green-500' 
+                        : post.link_status?.status === 'dead' 
+                          ? 'bg-red-500' 
+                          : 'bg-yellow-500'
+                    }`} />
                     <ExternalLink className="h-4 w-4 mr-2" />
                     Find Similar Discussion
                   </Button>
