@@ -1,0 +1,1 @@
+ALTER TABLE public.market_data ADD CONSTRAINT market_data_ticker_date_unique UNIQUE (ticker_symbol, data_date);
