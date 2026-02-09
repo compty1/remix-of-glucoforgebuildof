@@ -1,82 +1,68 @@
 
-# Clinical Trial Finder Fixes
+# Fix Community Solutions: Posts Not Loading, Categories, and Comments
 
-## Issues Identified
+## Problems Found
 
-### Issue 1: 404 Error on Trial Matching Page
-Links throughout the app point to `/trial-matching`, but the actual route in `App.tsx` is `/trials`.
+1. **Comments/replies showing as top-level posts**: The search query fetches ALL 493 rows from `community_posts` including 243 comments and 27 replies. These appear as cards with title "Comment" and source "reddit" -- making them look broken.
 
-**Affected files:**
-- `src/components/discover/TrialSpotlight.tsx` - Line 112
-- `src/hooks/useGlobalSearch.ts` - Line 153
+2. **Clicking posts shows "not found"**: The `CommunityPulse` widget links to `/community/${post.id}` (using UUID), but the actual route is `/community-solutions/:postId` and the detail page queries by the `post_id` field (e.g., `curated_cgm_insurance_1`). This mismatch causes 404s.
 
-### Issue 2: Incorrect Trial Status Filtering
-The "recruiting" filter shows completed trials because:
-1. The query filters on `status` column which doesn't exist (should be `overall_status`)
-2. The `%Recruiting%` pattern also matches "Active, not recruiting"
+3. **Category badges inaccurate**: Comments have `source: 'reddit'` (generic) instead of specific subreddit names like `r/dexcom`, so they all fall into "General" category even when they belong to a specific subreddit's thread.
 
-**Affected file:**
-- `src/hooks/useTrialMatching.ts` - Lines 57-64
+4. **Trending solutions include comments**: The `useTrendingSolutions` hook doesn't filter by `post_type`, showing comment entries in the trending sidebar.
 
 ---
 
-## Implementation Plan
+## Plan
 
-### Step 1: Fix Route Links
-Update all references from `/trial-matching` to `/trials`:
+### Step 1: Filter out comments/replies from main search query
+**File:** `src/hooks/useCommunitySearch.ts`
 
-**TrialSpotlight.tsx:**
-```tsx
-// Change line 112
-<Link to="/trials">  // was: /trial-matching
+Add `.eq('post_type', 'post')` to the main `fetchPosts` query so only actual posts appear in the community solutions list. This removes 270 comments/replies from showing as standalone cards.
+
+Also add the same filter to `useTrendingSolutions` so trending sidebar only shows real posts.
+
+### Step 2: Fix CommunityPulse link format
+**File:** `src/components/discover/CommunityPulse.tsx`
+
+Change the link from:
+```
+/community/${post.id}
+```
+to:
+```
+/community-solutions/${post.post_id}
 ```
 
-**useGlobalSearch.ts:**
-```tsx
-// Change line 153
-url: `/trials`,  // was: /trial-matching
-```
+This requires the query to also select `post_id` alongside the other fields, and filter to only show actual posts (not comments).
 
-### Step 2: Fix Status Filtering Logic
-Update `useTrialMatching.ts` to use correct column name and exact matching:
+### Step 3: Ensure detail page handles edge cases
+**File:** `src/pages/CommunityPostDetail.tsx`
 
-**Current problematic code:**
-```typescript
-if (status === "recruiting") {
-  queryBuilder = queryBuilder.or("status.ilike.%Recruiting%,recruiting_status.ilike.%Recruiting%");
-}
-```
+The detail page already queries correctly by `post_id`. No changes needed here -- the fix in Step 2 ensures correct links are generated.
 
-**Fixed code:**
-```typescript
-if (status === "recruiting") {
-  // Use exact match on overall_status to avoid matching "Active, not recruiting"
-  queryBuilder = queryBuilder.eq("overall_status", "Recruiting");
-} else if (status === "enrolling") {
-  queryBuilder = queryBuilder.eq("overall_status", "Enrolling by Invitation");
-} else if (status === "active") {
-  queryBuilder = queryBuilder.eq("overall_status", "Active, not recruiting");
-}
-```
-
-This uses exact matching on the correct `overall_status` column instead of pattern matching.
+### Step 4: Verify category accuracy
+The source categories in `sourceCategories.ts` already correctly map subreddit names. The issue was that comments had `source: 'reddit'` (generic). By filtering them out (Step 1), only posts with proper subreddit sources like `r/dexcom`, `r/diabetes_t1` etc. will appear, and categories will be accurate.
 
 ---
 
-## Files to Modify
+## Technical Details
+
+### Files to modify
 
 | File | Change |
 |------|--------|
-| `src/components/discover/TrialSpotlight.tsx` | Update Link from `/trial-matching` to `/trials` |
-| `src/hooks/useGlobalSearch.ts` | Update URL from `/trial-matching` to `/trials` |
-| `src/hooks/useTrialMatching.ts` | Fix status filter to use `overall_status` with exact matching |
+| `src/hooks/useCommunitySearch.ts` | Add `post_type = 'post'` filter to `fetchPosts` and `useTrendingSolutions` queries |
+| `src/components/discover/CommunityPulse.tsx` | Fix link to use `/community-solutions/${post.post_id}`, add `post_id` to select, filter by `post_type` |
 
----
+### Database impact
+- No schema changes needed
+- Post count will go from ~493 to ~223 visible posts (comments still exist for detail page comments section)
+- Comments remain accessible via the detail page's comments section (queried by `parent_post_id`)
 
-## Expected Outcome
-
-After these changes:
-- Clicking "Find Trials Near You" will navigate to `/trials` correctly
-- Global search results for trials will link to the correct page
-- The "Recruiting" filter will only show trials with `overall_status = "Recruiting"` (currently 5 trials in database)
-- Completed trials will no longer appear in recruiting results
+### What stays unchanged
+- All other pages and components
+- Comment display on post detail pages
+- Save/bookmark functionality
+- Search and filter logic (just adds one more filter condition)
+- Source category mapping logic
