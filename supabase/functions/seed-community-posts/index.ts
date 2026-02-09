@@ -3074,11 +3074,10 @@ serve(async (req) => {
     console.log(`Found ${curatedPosts.length} total posts, ${uniquePosts.length} unique posts`);
     
     const postsToInsert = uniquePosts.map(post => {
-      // Generate a proper Reddit search URL that reliably returns results
-      const subreddit = post.source.replace('r/', '');
-      // Use the full title for better search matching, with proper encoding
-      const searchQuery = encodeURIComponent(post.title || '');
-      const url = `https://www.reddit.com/r/${subreddit}/search/?q=${searchQuery}&restrict_sr=1&sort=relevance&t=all`;
+      // Generate a Google search URL targeting Reddit for reliable results
+      // Google site:reddit.com search is far more reliable than Reddit's own search
+      const titleWords = (post.title || '').replace(/[^a-zA-Z0-9\s]/g, '').split(/\s+/).slice(0, 8).join('+');
+      const url = `https://www.google.com/search?q=site:reddit.com+${post.source.replace('r/', '')}+${titleWords}`;
       
       return {
         source: post.source,

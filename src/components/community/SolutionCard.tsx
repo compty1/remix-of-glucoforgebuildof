@@ -358,6 +358,7 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
+                title="Search for similar community discussions on Reddit"
               >
                 <Button
                   variant="ghost"
@@ -365,7 +366,7 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                   className="h-8 text-xs"
                 >
                   <ExternalLink className="h-3.5 w-3.5 mr-1" />
-                  View Original
+                  Find Discussion
                 </Button>
               </a>
             )}
