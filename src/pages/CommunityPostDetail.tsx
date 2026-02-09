@@ -360,10 +360,11 @@ const CommunityPostDetail: React.FC = () => {
                   href={post.url}
                   target="_blank"
                   rel="noopener noreferrer"
+                  title="Search for similar community discussions on Reddit"
                 >
                   <Button variant="outline" size="sm">
                     <ExternalLink className="h-4 w-4 mr-2" />
-                    View Original
+                    Find Similar Discussion
                   </Button>
                 </a>
               )}
@@ -449,12 +450,16 @@ const CommunityPostDetail: React.FC = () => {
                       href={post.url}
                       target="_blank"
                       rel="noopener noreferrer"
+                      title="Search for similar community discussions on Reddit"
                     >
                       <Button variant="outline" size="sm">
                         <ExternalLink className="h-4 w-4 mr-2" />
-                        View original discussion
+                        Find similar discussion on Reddit
                       </Button>
                     </a>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Opens a search for similar community discussions
+                    </p>
                   </div>
                 )}
               </div>
