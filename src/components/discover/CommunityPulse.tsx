@@ -14,7 +14,8 @@ export function CommunityPulse() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('community_posts')
-        .select('id, title, content, source, score, num_comments, published_at, is_solution, topic_tags')
+        .select('id, post_id, title, content, source, score, num_comments, published_at, is_solution, topic_tags')
+        .eq('post_type', 'post')
         .order('score', { ascending: false })
         .limit(5);
       
@@ -78,7 +79,7 @@ export function CommunityPulse() {
             {posts.map((post) => (
               <Link
                 key={post.id}
-                to={`/community/${post.id}`}
+                to={`/community-solutions/${post.post_id}`}
                 className="block p-3 rounded-lg bg-background border hover:border-primary/40 transition-colors"
               >
                 <h4 className="font-medium text-sm line-clamp-1 mb-1">{post.title}</h4>

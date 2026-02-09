@@ -58,7 +58,8 @@ export const useCommunitySearch = (initialFilters?: Partial<SearchFilters>) => {
   const fetchPosts = async () => {
     let query = supabase
       .from('community_posts')
-      .select('*', { count: 'exact' });
+      .select('*', { count: 'exact' })
+      .eq('post_type', 'post');
 
     // Apply text search if query exists
     if (filters.query) {
@@ -217,6 +218,7 @@ export const useTrendingSolutions = (limit: number = 10) => {
       const { data, error } = await supabase
         .from('community_posts')
         .select('*')
+        .eq('post_type', 'post')
         .gte('published_at', oneDayAgo)
         .order('score', { ascending: false, nullsFirst: false })
         .limit(limit);
