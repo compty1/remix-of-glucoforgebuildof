@@ -353,15 +353,21 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
             )}
 
             {post.url && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => window.open(post.url!, '_blank', 'noopener,noreferrer')}
-                className="h-8 text-xs"
+              <a
+                href={post.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
               >
-                <ExternalLink className="h-3.5 w-3.5 mr-1" />
-                View Original
-              </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs"
+                >
+                  <ExternalLink className="h-3.5 w-3.5 mr-1" />
+                  View Original
+                </Button>
+              </a>
             )}
             {onAskAI && (
               <Button

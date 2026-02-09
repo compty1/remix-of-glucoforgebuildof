@@ -13,7 +13,8 @@ import {
   Check,
   User,
   StickyNote,
-  Calendar
+  Calendar,
+  ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,9 +33,14 @@ import { formatDistanceToNow, format } from 'date-fns';
 const CommunityPostDetail: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
+  const [commentLimit, setCommentLimit] = useState(10);
   const { data: post, isLoading: postLoading, error: postError } = useSinglePost(postId || null);
-  const { data: comments, isLoading: commentsLoading } = usePostComments(postId || null);
+  const { data: commentsResult, isLoading: commentsLoading } = usePostComments(postId || null, commentLimit);
   
+  const comments = commentsResult?.comments || [];
+  const totalComments = commentsResult?.totalCount || 0;
+  const hasMoreComments = commentsResult?.hasMore || false;
+
   const [isCopied, setIsCopied] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [showNotesModal, setShowNotesModal] = useState(false);
@@ -138,6 +144,10 @@ const CommunityPostDetail: React.FC = () => {
         }
       }
     });
+  };
+
+  const handleLoadMoreComments = () => {
+    setCommentLimit(prev => prev + 10);
   };
 
   if (postLoading) {
@@ -261,7 +271,7 @@ const CommunityPostDetail: React.FC = () => {
               </span>
               <span className="flex items-center gap-1">
                 <MessageSquare className="h-4 w-4" />
-                {comments?.length || post.num_comments || 0} comments
+                {totalComments || post.num_comments || 0} comments
               </span>
               <span className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
@@ -346,14 +356,16 @@ const CommunityPostDetail: React.FC = () => {
               </Button>
 
               {post.url && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(post.url!, '_blank', 'noopener,noreferrer')}
+                <a
+                  href={post.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  View Original
-                </Button>
+                  <Button variant="outline" size="sm">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    View Original
+                  </Button>
+                </a>
               )}
             </div>
           </CardContent>
@@ -365,15 +377,15 @@ const CommunityPostDetail: React.FC = () => {
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <MessageSquare className="h-5 w-5" />
               Comments
-              {comments && comments.length > 0 && (
+              {totalComments > 0 && (
                 <span className="text-sm font-normal text-muted-foreground">
-                  (Showing {comments.length}{post.num_comments && post.num_comments > comments.length ? ` of ${post.num_comments}` : ''})
+                  (Showing {comments.length} of {totalComments})
                 </span>
               )}
             </h2>
           </CardHeader>
           <CardContent>
-            {commentsLoading ? (
+            {commentsLoading && comments.length === 0 ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="pl-4 border-l-2 border-muted">
@@ -382,7 +394,7 @@ const CommunityPostDetail: React.FC = () => {
                   </div>
                 ))}
               </div>
-            ) : !comments || comments.length === 0 ? (
+            ) : comments.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">
                 No comments available for this post.
               </p>
@@ -412,23 +424,39 @@ const CommunityPostDetail: React.FC = () => {
                     </p>
                   </div>
                 ))}
-              </div>
-            )}
 
-            {/* Show prompt to view original if there are more comments */}
-            {post.num_comments && comments && post.num_comments > comments.length && post.url && (
-              <div className="text-center pt-4 border-t">
-                <p className="text-sm text-muted-foreground mb-2">
-                  Showing {comments.length} of {post.num_comments} comments
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.open(post.url!, '_blank', 'noopener,noreferrer')}
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  View all comments on original post
-                </Button>
+                {/* Load More Comments */}
+                {hasMoreComments && (
+                  <div className="text-center pt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleLoadMoreComments}
+                    >
+                      <ChevronDown className="h-4 w-4 mr-2" />
+                      Load More Comments ({comments.length} of {totalComments})
+                    </Button>
+                  </div>
+                )}
+
+                {/* View original when all loaded */}
+                {!hasMoreComments && post.url && (
+                  <div className="text-center pt-4 border-t">
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {totalComments > 0 ? `All ${totalComments} comments loaded` : 'All comments loaded'}
+                    </p>
+                    <a
+                      href={post.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <Button variant="outline" size="sm">
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        View original discussion
+                      </Button>
+                    </a>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

@@ -16,12 +16,15 @@ interface PostCommentsProps {
 export const PostComments: React.FC<PostCommentsProps> = ({ 
   postId, 
   isExpanded, 
-  limit,
+  limit = 5,
   showViewAll = false,
   onViewAllClick,
 }) => {
-  const { data: comments, isLoading, error } = usePostComments(isExpanded ? postId : null);
+  const { data: commentsResult, isLoading, error } = usePostComments(isExpanded ? postId : null, limit);
   const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
+
+  const comments = commentsResult?.comments || [];
+  const totalCount = commentsResult?.totalCount || 0;
 
   if (!isExpanded) return null;
 
@@ -46,7 +49,7 @@ export const PostComments: React.FC<PostCommentsProps> = ({
     );
   }
 
-  if (!comments || comments.length === 0) {
+  if (comments.length === 0) {
     return (
       <div className="pt-3 border-t text-sm text-muted-foreground">
         No comments available
@@ -66,16 +69,12 @@ export const PostComments: React.FC<PostCommentsProps> = ({
     });
   };
 
-  // Show all comments by default (no limit unless explicitly set)
-  const displayedComments = limit !== undefined ? comments.slice(0, limit) : comments;
-  const hasMoreComments = limit !== undefined && comments.length > displayedComments.length;
-
   return (
     <div className="space-y-3 pt-3 border-t">
       <span className="text-xs font-medium text-muted-foreground">
-        {comments.length} {comments.length === 1 ? 'Comment' : 'Comments'}
+        {totalCount} {totalCount === 1 ? 'Comment' : 'Comments'}
       </span>
-      {displayedComments.map((comment) => {
+      {comments.map((comment) => {
         const isCommentExpanded = expandedComments.has(comment.id);
         const shouldTruncate = comment.content && comment.content.length > 200;
         const displayContent = isCommentExpanded || !shouldTruncate
@@ -119,14 +118,14 @@ export const PostComments: React.FC<PostCommentsProps> = ({
           </div>
         );
       })}
-      {(hasMoreComments || showViewAll) && onViewAllClick && (
+      {(totalCount > comments.length || showViewAll) && onViewAllClick && (
         <Button
           variant="ghost"
           size="sm"
           onClick={onViewAllClick}
           className="h-7 px-2 text-xs text-primary"
         >
-          View all {comments.length} comments
+          View all {totalCount} comments
         </Button>
       )}
     </div>

@@ -6,69 +6,214 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Curated realistic comments for community posts
-const commentsData = [
-  // CGM-related comments
-  { parent_title: 'Dexcom', topic: 'cgm', comments: [
-    { content: "I've found that using Skin Tac before applying helps the sensor stick for the full 10 days. Game changer for summer!", score: 45 },
-    { content: "The G7 warm-up time is so much better than the G6. Only 30 minutes now instead of 2 hours.", score: 38 },
-    { content: "Pro tip: if your sensor is reading high at night, make sure you're not sleeping on that arm. Compression lows are real!", score: 67 },
-    { content: "I overlay the sensor with Simpatch and it survives swimming, showering, everything. Highly recommend.", score: 52 },
-    { content: "Anyone else notice the first day readings are always a bit off? I usually wait until day 2 to fully trust it.", score: 41 },
-    { content: "The urgent low soon alarm has literally saved me multiple times. Don't silence it!", score: 89 },
-    { content: "My endo said to calibrate only when your blood sugar is stable, not when it's rising or falling. Made a big difference in accuracy.", score: 56 },
-  ]},
-  // Pump-related comments
-  { parent_title: 'Omnipod', topic: 'pump', comments: [
-    { content: "The Omnipod 5 algorithm takes about 2 weeks to really learn your patterns. Be patient!", score: 73 },
-    { content: "I rotate between arms, stomach, and lower back. Absorption is definitely different in each spot.", score: 44 },
-    { content: "If you're getting occlusions, try warming up your insulin before filling the pod. Room temp works better.", score: 61 },
-    { content: "The phone app is way more reliable than the PDM now. I haven't touched my PDM in months.", score: 37 },
-    { content: "Best adhesive combo: Skin Tac underneath and Tegaderm over the top. Survives anything.", score: 48 },
-    { content: "I've found that Activity mode is essential for any exercise over 30 minutes. Prevents those delayed lows.", score: 55 },
-  ]},
-  // Low blood sugar comments
-  { parent_title: 'low blood sugar', topic: 'hypo', comments: [
-    { content: "15-15 rule changed my life. 15g carbs, wait 15 minutes. No more overcorrecting and going high!", score: 92 },
-    { content: "Glucose tabs are more predictable than juice for me. Each tab is exactly 4g, easy to dose.", score: 67 },
-    { content: "I keep a small bag of skittles in every jacket pocket, gym bag, and car. You never know!", score: 54 },
-    { content: "For nighttime lows, I've found a small glass of milk works better than pure sugar - the protein helps it last.", score: 43 },
-    { content: "If you're going low after exercise, try reducing basal 2 hours before, not just during.", score: 78 },
-    { content: "Hypoglycemia unawareness is real and scary. Regular low-sugar free periods help restore awareness.", score: 85 },
-    { content: "I treat at 80 now instead of waiting until I'm actually low. Prevention is easier than correction.", score: 49 },
-    { content: "The shaky hands before a low are my body's early warning. Learned to trust those subtle signs.", score: 36 },
-  ]},
-  // High blood sugar comments
-  { parent_title: 'high blood sugar', topic: 'hyper', comments: [
-    { content: "Rage bolusing never works. Small corrections every 2-3 hours are way more effective.", score: 103 },
-    { content: "Check for bubbles in your tubing! I had mysterious highs for a week before I spotted the air pocket.", score: 76 },
-    { content: "Stress highs are real. I've started doing 5-minute breathing exercises and it actually helps my BG.", score: 58 },
-    { content: "If you're high and don't come down with a correction, your site might be bad. Change it!", score: 81 },
-    { content: "Walking for 15 minutes after a meal prevents so many spikes. I just do laps around my office now.", score: 94 },
-    { content: "Dawn phenomenon hit me hard until I adjusted my basal between 4-7am. Worth the effort to fine-tune.", score: 65 },
-  ]},
-  // Exercise comments
-  { parent_title: 'exercise', topic: 'exercise', comments: [
-    { content: "Cardio drops me, weights raise me. I do weights first, then cardio, and it evens out.", score: 112 },
-    { content: "A small snack (15g carbs) 30 minutes before a workout prevents the crash for me.", score: 57 },
-    { content: "I've learned to check my CGM arrow before exercise. If I'm already trending down, I eat something first.", score: 48 },
-    { content: "Post-exercise lows can hit 6-12 hours later. I reduce my overnight basal by 20% on gym days.", score: 86 },
-    { content: "Swimming is tricky because you can't wear a CGM. I check before, eat a snack, and check immediately after.", score: 41 },
-    { content: "I keep my pump on during yoga but disconnect for swimming. Everyone finds their own balance.", score: 33 },
-    { content: "Hot yoga spikes my sugar because of the stress response. I've learned to pre-bolus for it.", score: 29 },
-  ]},
-  // Food and bolusing comments
-  { parent_title: 'bolusing', topic: 'food', comments: [
-    { content: "Pizza requires a dual wave bolus for me: 50% now, 50% over 3 hours. Works every time.", score: 98 },
-    { content: "I pre-bolus 15-20 minutes for most meals. The spike reduction is incredible.", score: 77 },
-    { content: "Protein and fat definitely raise blood sugar, just slowly. I add 50% of protein grams to my carb count.", score: 54 },
-    { content: "Coffee raises my blood sugar even when it's black. I bolus 10 units for my morning cup.", score: 42 },
-    { content: "Chinese food is my nemesis. Extended bolus for 4-5 hours is the only thing that works.", score: 63 },
-    { content: "Ice cream is surprisingly manageable with the fat slowing absorption. Pizza is way harder.", score: 35 },
-    { content: "I use the TAG method (total available glucose) for high-fat meals. Changed everything.", score: 71 },
-    { content: "Learning carb counting was the best investment of time. I weigh everything now and my control improved 20%.", score: 88 },
-  ]},
+// Topic-specific comment pools
+const commentsByTopic: Record<string, string[]> = {
+  glucose_lows: [
+    "The 15-15 rule changed everything for me. 15g carbs, wait 15 minutes. No more overcorrecting!",
+    "Glucose tabs are way more predictable than juice. Each tab is exactly 4g carbs.",
+    "I keep emergency snacks literally everywhere - car, gym bag, office desk, nightstand.",
+    "For nighttime lows, a small glass of milk works better than pure sugar - the protein helps sustain.",
+    "Reducing basal 2 hours before exercise instead of just during helped me avoid post-workout lows.",
+    "Hypoglycemia unawareness is real and scary. Keeping BG above 80 for 2 weeks helped restore my awareness.",
+    "I treat at 80 now instead of waiting until I'm actually low. Prevention beats correction every time.",
+    "The shaky hands before a low are my early warning system. Learned to trust those subtle signs.",
+    "My endo suggested Baqsimi nasal glucagon for emergencies - way easier than mixing a kit during a severe low.",
+    "Compression lows from sleeping on my CGM arm had me overtreating for months before I figured it out.",
+    "I found that liquid glucose works faster than tablets for me. Everyone's different though.",
+    "Setting my low alert to 80 instead of 70 gives me much more time to treat before symptoms hit.",
+    "After a low, I wait the full 15 minutes before eating more. Hard to do but prevents the rebound high.",
+    "My kids know where my glucose tabs are and what to do. Teaching them was the best safety decision.",
+    "Post-exercise lows can hit 6-12 hours later. I reduce overnight basal by 20% on gym days.",
+  ],
+  glucose_highs: [
+    "Rage bolusing never works for me. Small corrections every 2-3 hours are way more effective.",
+    "Check for bubbles in your tubing! I had mysterious highs for a week before spotting the air pocket.",
+    "Stress highs are real. 5-minute breathing exercises actually help bring my BG down.",
+    "If you're high and don't come down with a correction, your infusion site might be bad. Change it!",
+    "Walking for 15 minutes after a meal prevents so many spikes. I do laps around my office now.",
+    "Dawn phenomenon hit me hard until I adjusted my basal between 4-7am. Worth the effort to fine-tune.",
+    "Stubborn highs above 300 - I always check ketones first. If positive, drink water and call the endo.",
+    "I found that eating protein and veggies first, then carbs, reduces my post-meal spike significantly.",
+    "Pre-bolusing 15-20 minutes before eating was the single biggest improvement to my post-meal numbers.",
+    "Dehydration makes highs worse. I aim for 8+ glasses of water daily, especially when running high.",
+    "Site rotation is crucial. I was injecting in the same spot and getting inconsistent absorption.",
+    "A 10-minute walk after dinner brings my post-meal spike down by 30-50 mg/dL consistently.",
+    "I discovered my morning coffee was spiking me even black. Now I bolus a unit for it.",
+    "Extended bolus for high-fat meals was a game changer. Pizza no longer ruins my entire night.",
+  ],
+  devices: [
+    "Using Skin Tac before applying helps my sensor stick for the full wear period. Total game changer!",
+    "The first 24 hours of any new sensor are always a bit off for me. I wait before fully trusting readings.",
+    "My endo said to only calibrate when BG is stable, not rising or falling. Made a big difference.",
+    "I overlay with Simpatch and it survives swimming, showering, everything. Highly recommend.",
+    "Back of the arm is the best placement for me - less compression lows and fewer snags on doorframes.",
+    "If your sensor is reading wildly off, try removing and reinserting the transmitter before replacing.",
+    "I use a product called Mastisol for adhesion - even better than Skin Tac in my experience.",
+    "Customer service will replace failed sensors. Always call - they track patterns in production batches.",
+    "The warm-up period used to stress me out. Now I start the new sensor while the old one is still running.",
+    "Keep sensors at room temperature before inserting. Cold sensors seem to be less accurate initially.",
+    "I mark my rotation sites on a body diagram so I don't reuse the same spot too soon.",
+    "For people with sensitive skin, try Flonase spray on the site before applying. Reduces irritation.",
+    "Auto-mode algorithms take 2+ weeks to learn your patterns. Be patient during the adjustment period.",
+    "Always carry a backup meter and strips. Technology fails at the worst possible moments.",
+  ],
+  cgm: [
+    "Compression lows are so common at night. Switching to my abdomen fixed most of the false alerts.",
+    "I use the Dexcom follow app so my partner can see my readings. Peace of mind for both of us.",
+    "Libre reads interstitial fluid, so it lags finger sticks by 10-15 min. Don't make decisions during rapid changes.",
+    "If your sensor falls off early, contact the manufacturer. They almost always send a replacement.",
+    "G7's 30-minute warmup is such an improvement over G6's 2 hours. Small things make a big difference.",
+    "The urgent low soon alarm has literally saved me multiple times. Never silence it!",
+    "Accuracy improves after the first day. I always compare to finger sticks on day 1.",
+    "I learned to look at the trend arrow, not just the number. A flat 120 is very different from a rising 120.",
+  ],
+  pump: [
+    "The Omnipod 5 algorithm takes about 2 weeks to learn your patterns. Don't give up early!",
+    "I rotate between arms, stomach, and lower back. Absorption is different in each spot.",
+    "If you're getting occlusions, try warming insulin to room temp before filling the pod.",
+    "Activity mode is essential for any exercise over 30 minutes. Prevents those delayed lows.",
+    "Best adhesive combo: Skin Tac underneath and Tegaderm over the top. Survives anything.",
+    "Keep your pump settings updated - weight changes, activity changes, everything affects dosing.",
+    "I always prime at least 0.3 units into a new site to make sure insulin is flowing.",
+    "Steel cannulas work better for me than Teflon ones. Less kinking, more predictable absorption.",
+    "If your pump keeps alarming for occlusions, try a different body site. Some areas just don't work well.",
+    "Fill the reservoir slowly to avoid microbubbles. Tap out any visible air before connecting.",
+  ],
+  exercise: [
+    "Cardio drops me, weights raise me. I do weights first, then cardio, and it evens out.",
+    "A small snack (15g carbs) 30 minutes before a workout prevents the crash for me.",
+    "I check my CGM arrow before exercise. If already trending down, I eat something first.",
+    "Post-exercise lows can hit 6-12 hours later. I reduce overnight basal by 20% on gym days.",
+    "Swimming is tricky with devices. I check before, eat a snack, and check immediately after.",
+    "I found that zone 2 cardio is much more predictable for BG than HIIT workouts.",
+    "Hot yoga spikes my sugar from the stress response. I've learned to pre-bolus for it.",
+    "For long hikes, I reduce my basal by 50% and carry extra snacks. Nature doesn't have vending machines.",
+    "Morning workouts require less basal reduction for me than evening ones. Dawn phenomenon helps.",
+    "Team sports are the hardest - adrenaline spikes then exercise drops. I just check BG every 30 min.",
+    "Strength training makes me go high during, then low after. I bolus small before and reduce basal after.",
+    "I keep a dedicated gym bag with glucose tabs, meter, and extra pump supplies. Always ready.",
+  ],
+  food: [
+    "Pizza requires a dual wave bolus: 50% now, 50% over 3-4 hours. Works every time for me.",
+    "Pre-bolusing 15-20 minutes for most meals reduced my spikes dramatically.",
+    "Protein and fat definitely raise blood sugar, just slowly. I add 50% of protein grams to my carb count.",
+    "Coffee raises my blood sugar even when it's black. I bolus 1 unit for my morning cup.",
+    "Chinese food is my nemesis. Extended bolus for 4-5 hours is the only thing that works.",
+    "A food scale was the single biggest improvement to my carb counting accuracy.",
+    "Hidden carbs are everywhere - sauces, dressings, even 'sugar-free' products. Read every label.",
+    "I use the TAG method (total available glucose) for high-fat meals. Changed everything.",
+    "Restaurant portions are usually 2x what you'd make at home. I always overestimate carbs when dining out.",
+    "Eating veggies and protein before carbs in the same meal noticeably reduces my spike.",
+    "Meal prepping on Sundays means I know exact carb counts all week. Less guessing = better control.",
+    "Sushi rice is surprisingly high glycemic. I bolus more aggressively for sushi than you'd expect.",
+  ],
+  travel: [
+    "NEVER put insulin in checked luggage. Pressure and temperature changes can ruin it.",
+    "I bring double supplies in carry-on and split extras with my travel companion's bag.",
+    "Get a TSA notification card from your endo. Not required but speeds up the security line.",
+    "Time zone changes: adjust pump clock gradually, 1-2 hours per day to avoid wild swings.",
+    "A Frio cooling wallet keeps insulin safe in hot climates without needing refrigeration.",
+    "I carry a doctor's letter in English and the local language when traveling internationally.",
+    "Airport food courts are carb nightmares. I bring my own measured snacks for the flight.",
+    "Travel insurance that covers T1D supplies is essential. I use World Nomads.",
+    "Keep glucose tabs in your pocket, not your bag. You need them accessible during turbulence.",
+    "Altitude changes (hiking, skiing) affect BG too. I check more frequently above 5000ft.",
+  ],
+  emotional: [
+    "Therapy with someone who understands chronic illness was the best investment I ever made.",
+    "Diabetes burnout is real. It's okay to do the minimum sometimes. 80% is better than giving up.",
+    "Finding online T1D community changed everything. People who actually GET IT make such a difference.",
+    "I stopped apologizing for checking my BG in public. It's a medical necessity, not something to hide.",
+    "Letting go of perfectionism with my numbers improved both my mental health and my A1C.",
+    "Bad diabetes days don't make you a bad person. Some days the numbers just don't cooperate.",
+    "My partner attended a diabetes education session with me. Having support at home matters so much.",
+    "I celebrate small wins - 3 days in range, a perfect bolus, remembering to rotate sites.",
+    "Comparing your numbers to others is toxic. Everyone's diabetes is different.",
+    "Joining a T1D support group gave me friends who understand without explanation.",
+    "I tell new friends about my T1D early. The relief of not hiding it is enormous.",
+    "Diabetes distress is clinically recognized now. Ask your endo for mental health resources.",
+  ],
+  morning: [
+    "My morning routine: check CGM, bolus for breakfast 15 min early, then eat while getting ready.",
+    "Dawn phenomenon is worse when I'm sleep deprived. Prioritizing sleep helps my morning numbers.",
+    "I set my pump to increase basal at 4am to combat the morning rise. Took a week to find the right amount.",
+    "Skipping breakfast actually makes my BG worse - the stress hormones spike without food to balance.",
+    "Morning coffee + stress = guaranteed spike. I bolus before my first sip now.",
+  ],
+  nighttime: [
+    "A small protein snack before bed (cheese, nuts) stabilizes my overnight numbers better than anything.",
+    "I set a custom low alarm at 80 for nighttime - gives me more warning before hitting 70.",
+    "My partner learned to recognize my low signs in my sleep. They wake me before the alarm even goes off.",
+    "Sleep mode on my pump targets 112-120 and has almost eliminated overnight lows.",
+    "Late dinners mess up my overnight control. I try to eat by 7pm when possible.",
+  ],
+};
+
+// Generic comments for posts that don't match specific topics
+const genericComments = [
+  "This is exactly what I needed to hear. Thank you for sharing your experience!",
+  "I've had the same experience. You're definitely not alone in this.",
+  "My endo recommended something similar and it really helped me.",
+  "Bookmarking this for later. Great advice from someone who's been there!",
+  "This worked for my daughter too. T1D parenting is tough but we figure it out together.",
+  "I wish someone had told me this years ago. Better late than never!",
+  "Following this thread for more tips. Great discussion everyone.",
+  "I tried this approach and noticed a difference within a week.",
+  "This is the kind of practical advice that makes these communities so valuable.",
+  "Shared this with my diabetes care team. They thought it was great insight.",
+  "Thank you for being so open about this. It helps normalize the struggle.",
+  "Been doing this for 6 months now and my A1C dropped significantly.",
+  "Great tip! Adding this to my diabetes management toolkit.",
+  "As a newly diagnosed person, posts like this give me so much hope.",
+  "My experience was similar. Finding what works for YOU is the key takeaway.",
 ];
+
+const usernamePrefixes = [
+  'T1D_Warrior', 'T1D_Parent', 'T1D_Fighter', 'T1D_Runner', 'T1D_Athlete',
+  'PumpUser', 'CGM_Life', 'InsulinDependent', 'BetaCell', 'DiabetesDaily',
+  'LoopUser', 'AutoMode', 'SugarSurfer', 'CarbCounter', 'BasalBoss',
+  'SensorLife', 'PodPeople', 'TandemUser', 'DexcomFan', 'T1_Since',
+  'DiabetesDad', 'DiabetesMom', 'T1D_Nurse', 'T1D_Endo', 'T1D_Life',
+];
+
+function getCommentsForPost(topicTags: string[], content: string | null): string[] {
+  const pool: string[] = [];
+  
+  // Add topic-specific comments
+  for (const tag of (topicTags || [])) {
+    const topicComments = commentsByTopic[tag];
+    if (topicComments) {
+      pool.push(...topicComments);
+    }
+  }
+  
+  // Check content for additional topic matches
+  const contentLower = (content || '').toLowerCase();
+  if (contentLower.includes('pump') || contentLower.includes('omnipod') || contentLower.includes('tandem')) {
+    pool.push(...(commentsByTopic.pump || []));
+  }
+  if (contentLower.includes('cgm') || contentLower.includes('dexcom') || contentLower.includes('libre') || contentLower.includes('sensor')) {
+    pool.push(...(commentsByTopic.cgm || []));
+  }
+  if (contentLower.includes('exercise') || contentLower.includes('workout') || contentLower.includes('running')) {
+    pool.push(...(commentsByTopic.exercise || []));
+  }
+  if (contentLower.includes('food') || contentLower.includes('carb') || contentLower.includes('meal') || contentLower.includes('bolus')) {
+    pool.push(...(commentsByTopic.food || []));
+  }
+  
+  // Always add generic comments as fallback
+  pool.push(...genericComments);
+  
+  // Deduplicate
+  return [...new Set(pool)];
+}
+
+function generateUsername(): string {
+  const prefix = usernamePrefixes[Math.floor(Math.random() * usernamePrefixes.length)];
+  const suffix = Math.floor(Math.random() * 9999);
+  return `${prefix}_${suffix}`;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -80,112 +225,80 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // First, get existing parent posts to attach comments to
-    const { data: parentPosts, error: fetchError } = await supabase
+    // Get all top-level posts
+    const { data: allPosts, error: postsError } = await supabase
       .from('community_posts')
-      .select('id, post_id, title, device_mentioned, topic_tags')
-      .is('parent_post_id', null)
-      .limit(100);
+      .select('id, post_id, title, content, topic_tags, score, published_at, num_comments')
+      .eq('post_type', 'post')
+      .order('score', { ascending: false });
 
-    if (fetchError) throw fetchError;
+    if (postsError) throw postsError;
 
-    const insertedComments: any[] = [];
+    // Get posts that already have comments in community_comments
+    const { data: existingComments, error: existingError } = await supabase
+      .from('community_comments')
+      .select('post_id');
+    
+    if (existingError) throw existingError;
 
-    for (const topicGroup of commentsData) {
-      // Find matching parent posts for this topic
-      const matchingPosts = parentPosts?.filter(post => {
-        const titleMatch = post.title?.toLowerCase().includes(topicGroup.parent_title.toLowerCase());
-        const deviceMatch = post.device_mentioned?.toLowerCase().includes(topicGroup.topic.toLowerCase());
-        const tagMatch = post.topic_tags?.some((tag: string) => tag.toLowerCase().includes(topicGroup.topic.toLowerCase()));
-        return titleMatch || deviceMatch || tagMatch;
-      }) || [];
+    const postsWithComments = new Set((existingComments || []).map(c => c.post_id));
 
-      // If we found matching posts, add comments to them
-      for (const parentPost of matchingPosts.slice(0, 3)) {
-        for (const comment of topicGroup.comments) {
-          const commentData = {
-            source: 'reddit',
-            post_id: `comment_${crypto.randomUUID().slice(0, 8)}`,
-            title: 'Comment',
-            content: comment.content,
-            author_anonymous: `T1D_${['Warrior', 'Parent', 'Champion', 'Fighter', 'Survivor', 'Helper'][Math.floor(Math.random() * 6)]}_${Math.floor(Math.random() * 9999)}`,
-            score: comment.score + Math.floor(Math.random() * 20) - 10,
-            num_comments: 0,
-            parent_post_id: parentPost.post_id,
-            post_type: 'comment',
-            is_solution: Math.random() > 0.7,
-            topic_tags: parentPost.topic_tags || [topicGroup.topic],
-            published_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-          };
+    let totalInserted = 0;
+    let postsProcessed = 0;
 
-          const { data, error } = await supabase
-            .from('community_posts')
-            .upsert(commentData, { onConflict: 'post_id' })
-            .select()
-            .single();
+    for (const post of (allPosts || [])) {
+      // Skip posts that already have comments
+      if (postsWithComments.has(post.id)) continue;
 
-          if (!error && data) {
-            insertedComments.push(data);
-          }
-        }
-      }
-    }
+      // Determine number of comments (5-15, scaled by num_comments metadata)
+      const metadata = post.num_comments || 10;
+      const numToGenerate = Math.max(5, Math.min(15, Math.round(metadata / 15)));
 
-    // Also create some generic comments for posts without specific matches
-    const genericComments = [
-      "This is exactly what I needed to hear. Thank you for sharing!",
-      "I've had the same experience. You're not alone in this.",
-      "My endo recommended something similar. It really helped.",
-      "Bookmarking this for later. Great advice!",
-      "This worked for my daughter too. T1D parenting is tough but we figure it out together.",
-      "I wish someone had told me this years ago. Better late than never!",
-      "Following this thread for more tips. Great discussion everyone.",
-      "I tried this and it made a noticeable difference within a week.",
-    ];
+      const commentPool = getCommentsForPost(post.topic_tags || [], post.content);
+      
+      // Shuffle and pick
+      const shuffled = commentPool.sort(() => Math.random() - 0.5);
+      const selected = shuffled.slice(0, numToGenerate);
 
-    for (const post of parentPosts?.slice(0, 20) || []) {
-      const numComments = Math.floor(Math.random() * 3) + 1;
-      for (let i = 0; i < numComments; i++) {
-        const commentData = {
-          source: 'reddit',
-          post_id: `generic_comment_${crypto.randomUUID().slice(0, 8)}`,
-          title: 'Comment',
-          content: genericComments[Math.floor(Math.random() * genericComments.length)],
-          author_anonymous: `T1D_User_${Math.floor(Math.random() * 9999)}`,
-          score: Math.floor(Math.random() * 50) + 5,
-          num_comments: 0,
-          parent_post_id: post.post_id,
-          post_type: 'comment',
-          is_solution: false,
-          published_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
+      const commentsToInsert = selected.map((content, i) => {
+        const maxScore = Math.max(10, Math.floor((post.score || 50) * 0.8));
+        return {
+          post_id: post.id, // UUID reference
+          content,
+          author_anonymous: generateUsername(),
+          score: Math.floor(Math.random() * maxScore) + 1,
+          created_at: new Date(
+            new Date(post.published_at || Date.now()).getTime() + 
+            (i + 1) * (Math.random() * 48 * 60 * 60 * 1000) // within 48 hours
+          ).toISOString(),
         };
+      });
 
-        const { data, error } = await supabase
-          .from('community_posts')
-          .upsert(commentData, { onConflict: 'post_id' })
-          .select()
-          .single();
+      const { error: insertError } = await supabase
+        .from('community_comments')
+        .insert(commentsToInsert);
 
-        if (!error && data) {
-          insertedComments.push(data);
-        }
+      if (!insertError) {
+        totalInserted += commentsToInsert.length;
+        postsProcessed++;
+      } else {
+        console.error(`Error inserting comments for post ${post.post_id}:`, insertError);
       }
     }
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Seeded ${insertedComments.length} comments`,
-        inserted: insertedComments.length,
+        message: `Seeded ${totalInserted} comments across ${postsProcessed} posts`,
+        totalInserted,
+        postsProcessed,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-
   } catch (err) {
     console.error("Error seeding comments:", err);
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: err instanceof Error ? err.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
