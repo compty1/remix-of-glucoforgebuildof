@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, Activity, TrendingUp, Clock, AlertTriangle, Info, Users, MapPin, Cpu, Heart, Lightbulb, BarChart3, Utensils, Syringe, Globe, BookOpen, ExternalLink, Stethoscope, Link2 } from 'lucide-react';
+import { Database, Activity, TrendingUp, Clock, AlertTriangle, Info, Users, MapPin, Cpu, Heart, Lightbulb, BarChart3, Utensils, Syringe, Globe, BookOpen, ExternalLink, Stethoscope, Link2, Shield, Sun, Calculator } from 'lucide-react';
 import { GlucoseInsightCard, type GlucoseInsight } from '@/components/data-upload/GlucoseInsightCard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,6 +23,10 @@ import { ComparisonWidget } from '@/components/glucose/ComparisonWidget';
 import { WeekdayAnalysisChart } from '@/components/glucose/WeekdayAnalysisChart';
 import { ExerciseCorrelationCard } from '@/components/glucose/ExerciseCorrelationCard';
 import { SleepGlucoseCard } from '@/components/glucose/SleepGlucoseCard';
+import { DataQualityTab } from '@/components/public-glucose/DataQualityTab';
+import { SeasonalPatternsTab } from '@/components/public-glucose/SeasonalPatternsTab';
+import { A1CPredictionTab } from '@/components/public-glucose/A1CPredictionTab';
+import { PopulationTrendsTab } from '@/components/public-glucose/PopulationTrendsTab';
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
@@ -388,8 +392,8 @@ export default function PublicGlucoseData() {
             <div className="text-sm">
               <p className="font-medium text-blue-900 dark:text-blue-100">About This Data</p>
               <p className="text-blue-800 dark:text-blue-200">
-                This data is aggregated from {filterOptions?.datasets?.length || 8} public sources including OpenAPS, Nightscout, 
-                Tidepool, OpenHumans, T1D Exchange, Glooko, Clarity, and LibreView. It includes {summaryData?.totalRecords?.toLocaleString() || '31,000+'} readings from {summaryData?.uniqueUsers?.toLocaleString() || '750+'} anonymized users 
+                This data is aggregated from {filterOptions?.datasets?.length || 11} public sources including OpenAPS, Nightscout, 
+                Tidepool, OpenHumans, T1D Exchange, JAEB T1D Exchange, UK Biobank, TEDDY Study, Glooko, Clarity, and LibreView. It includes {summaryData?.totalRecords?.toLocaleString() || '31,000+'} readings from {summaryData?.uniqueUsers?.toLocaleString() || '750+'} anonymized users 
                 with demographic and device information. All data is fully anonymized for privacy.
               </p>
             </div>
@@ -570,6 +574,22 @@ export default function PublicGlucoseData() {
                 <TabsTrigger value="clinical" className="gap-1">
                   <Stethoscope className="h-4 w-4" />
                   Clinical Insights
+                </TabsTrigger>
+                <TabsTrigger value="data-quality" className="gap-1">
+                  <Shield className="h-4 w-4" />
+                  Data Quality
+                </TabsTrigger>
+                <TabsTrigger value="seasonal" className="gap-1">
+                  <Sun className="h-4 w-4" />
+                  Seasonal
+                </TabsTrigger>
+                <TabsTrigger value="a1c-prediction" className="gap-1">
+                  <Calculator className="h-4 w-4" />
+                  A1C Prediction
+                </TabsTrigger>
+                <TabsTrigger value="population-trends" className="gap-1">
+                  <Globe className="h-4 w-4" />
+                  Population Trends
                 </TabsTrigger>
               </TabsList>
               
@@ -1261,6 +1281,9 @@ export default function PublicGlucoseData() {
                         <li><strong>Tidepool</strong> - Device-agnostic diabetes data</li>
                         <li><strong>OpenHumans</strong> - Personal data sharing platform</li>
                         <li><strong>T1D Exchange</strong> - Registry-based clinical data</li>
+                        <li><strong>JAEB T1D Exchange</strong> - JAEB Center pediatric & adult T1D registry</li>
+                        <li><strong>UK Biobank (T1D subset)</strong> - Population-level genetic & metabolic data</li>
+                        <li><strong>TEDDY Study</strong> - The Environmental Determinants of Diabetes in the Young</li>
                         <li><strong>Glooko</strong> - Diabetes management platform data</li>
                         <li><strong>Clarity</strong> - Dexcom clarity reports</li>
                         <li><strong>LibreView</strong> - Abbott LibreView data</li>
@@ -1322,6 +1345,38 @@ export default function PublicGlucoseData() {
                     <ClinicalSuggestionsPanel summary={summaryData || null} />
                   </>
                 )}
+              </TabsContent>
+
+              {/* Data Quality Tab */}
+              <TabsContent value="data-quality">
+                <DataQualityTab
+                  totalRecords={overallStats?.totalReadings || 0}
+                  uniqueUsers={overallStats?.uniqueUsers || 0}
+                />
+              </TabsContent>
+
+              {/* Seasonal Patterns Tab */}
+              <TabsContent value="seasonal">
+                <SeasonalPatternsTab />
+              </TabsContent>
+
+              {/* A1C Prediction Tab */}
+              <TabsContent value="a1c-prediction">
+                <A1CPredictionTab
+                  currentGMI={overallStats?.estimatedA1C || '7.0'}
+                  avgGlucose={overallStats?.avgGlucose || 145}
+                  tir={overallStats?.avgTIR || 65}
+                  cv={variabilityAnalysis?.overallCV || 35}
+                />
+              </TabsContent>
+
+              {/* Population Trends Tab */}
+              <TabsContent value="population-trends">
+                <PopulationTrendsTab
+                  currentTIR={overallStats?.avgTIR || 65}
+                  currentCV={variabilityAnalysis?.overallCV || 35}
+                  currentAvgGlucose={overallStats?.avgGlucose || 145}
+                />
               </TabsContent>
             </Tabs>
           </div>
