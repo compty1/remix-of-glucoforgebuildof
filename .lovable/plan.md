@@ -1,118 +1,88 @@
 
 
-# Fix Community Comments, Links, and Data Completeness
+# Enhance Community Posts: Links, Comments, and Data Quality
 
-## Issues Found
+## Current State
 
-### 1. Most posts have ZERO actual comments in the database
-- 193 curated posts have `num_comments` metadata (e.g., 234, 189) but zero rows in `community_comments` or `community_posts` children tables
-- Only ~20 posts have child rows in `community_posts` (via `parent_post_id`)
-- Only ~30 posts (the "intimacy" batch) have rows in `community_comments`
-- **This is why "No comments available" appears** -- the comments were never seeded
+After full analysis, here is what is working and what needs improvement:
 
-### 2. Original post URLs are broken
-- **193 posts** use Reddit search URLs (e.g., `https://www.reddit.com/r/diabetes/search?q=How%20I%20got%20my%20insurance%20to%20cover%20a%20CGM&restrict_sr=1`). These link to a search results page, not the actual post -- often showing zero results.
-- **30 posts** use fake placeholder URLs (e.g., `https://reddit.com/r/diabetes_t1/comments/example1`). These return 404.
-- **Zero posts** have real, working Reddit permalink URLs.
+### What Works
+- Comment retrieval pipeline: UUID resolution, querying both tables, deduplication, pagination -- all functional
+- Load More Comments button exists and works
+- All 223 posts have 5-15 seeded comments (1,559 total in `community_comments`)
 
-### 3. No "Load More" for comments
-- Comments are hard-limited to 50 with no pagination or "Load More" button
+### What Needs Fixing
+
+#### 1. ALL "View Original" links open Reddit Search, not actual posts
+Every single one of the 223 posts uses a URL like:
+```
+https://www.reddit.com/r/diabetes/search/?q=Getting%20affordable%20insulin%20in%20the%20US&restrict_sr=1&sort=relevance
+```
+This opens Reddit's search results page (often showing 0 results), NOT an actual post. Users expect to land on the original discussion thread.
+
+**Fix**: Since these are curated posts (not scraped from real Reddit threads), there are no real Reddit permalinks to link to. The best approach is to improve the search URL to maximize the chance of finding relevant content:
+- Use Google search as the link target: `https://www.google.com/search?q=site:reddit.com+{title keywords}` -- this is much more reliable at finding relevant Reddit discussions than Reddit's own search
+- Update the button label to "Find Original Discussion" to set accurate expectations
+- Update all 223 existing URLs in the database via the seed function
+
+#### 2. Seeded comments are generic and low quality
+Comments like "I tried this approach and noticed a difference within a week" and "Posts like this give me so much hope" are not topically relevant. They don't reference the actual post content (insulin costs, CGM tips, etc.).
+
+**Fix**: Update the `seed-community-comments` edge function to generate topic-specific comments. For example, for a post about "Getting affordable insulin in the US", comments should mention Walmart ReliOn, Mark Cuban's Cost Plus Drugs, manufacturer assistance programs, etc. This requires:
+- Grouping comment templates by topic tag and device type
+- Creating 15-20 comment template pools per topic category
+- Re-seeding all comments with the improved templates
+
+#### 3. Comment count mismatch
+Posts show `num_comments: 234` in metadata but only have 5-15 actual comments. The UI shows "Showing 5 of 5" which looks odd when the post card says "234 comments".
+
+**Fix**: Update `num_comments` on each post to match the actual seeded comment count, so the numbers are consistent.
 
 ---
 
-## Plan
+## Implementation Plan
 
-### Step 1: Seed comments for ALL curated posts
-**File:** `supabase/functions/seed-community-comments/index.ts` (create new edge function)
+### Step 1: Update seed-community-comments with topic-specific comments
+**File**: `supabase/functions/seed-community-comments/index.ts`
 
-Create a new edge function that generates realistic, helpful comments for every curated post that currently has zero comments. For each post:
-- Generate 5-15 comments based on the post's `num_comments` metadata (scaled down proportionally)
-- Comments will be topically relevant to the post's content, device, and tags
-- Use realistic Reddit-style anonymous usernames, scores, and timestamps
-- Insert into `community_comments` table using the post's UUID as `post_id`
+- Create topic-specific comment pools (keyed by topic tags like `insurance`, `exercise`, `diet`, `cgm_tips`, `mental_health`, etc.)
+- Each pool has 20-30 unique, substantive comments referencing real strategies, product names, and experiences
+- Comments for "Getting affordable insulin" would mention Walmart ReliOn, GoodRx, manufacturer coupons, etc.
+- Comments for "CGM accuracy tips" would mention calibration, hydration, compression lows, etc.
+- Delete existing generic comments and re-seed with high-quality ones
+- Generate 8-20 comments per post (scaled by original `num_comments` metadata)
 
-### Step 2: Fix original post URLs to use proper Reddit search links
-**File:** `supabase/functions/seed-community-posts/index.ts`
+### Step 2: Fix all post URLs to use Google-powered Reddit search
+**File**: `supabase/functions/seed-community-posts/index.ts`
 
-Update the URL generation logic to use a more reliable Reddit search format. Since these are curated posts (not scraped from real Reddit threads), the best approach is to:
-- Use `https://www.reddit.com/r/{subreddit}/search/?q={title}&restrict_sr=1&sort=relevance` which is the standard Reddit search format that actually works
-- Replace the `example` placeholder URLs with proper search URLs
-- Add a database migration or update script to fix existing URLs
+- Update URL generation to use `https://www.google.com/search?q=site:reddit.com+{shortened title keywords}`
+- This reliably surfaces real Reddit discussions on the same topic
+- Run a database update to fix all 223 existing URLs
 
-**File:** Update existing post URLs in the database via the seed function to correct all broken links.
+### Step 3: Update num_comments to match actual data
+After re-seeding comments, update each post's `num_comments` to equal the actual count of comments in `community_comments` for that post. This keeps the UI numbers consistent.
 
-### Step 3: Add "Load More Comments" pagination
-**File:** `src/hooks/useCommunitySearch.ts`
+### Step 4: Update UI labels for link clarity
+**Files**: `src/pages/CommunityPostDetail.tsx`, `src/components/community/SolutionCard.tsx`
 
-Refactor `usePostComments` to accept a `limit` parameter and support pagination:
-- Initial load: 10 comments
-- "Load More" increments by 10, up to 50
-- Return `totalComments` count alongside the data so the UI knows if there are more
-
-**File:** `src/pages/CommunityPostDetail.tsx`
-
-Add a "Load More Comments" button at the bottom of the comments list:
-- Shows "Load More Comments (showing X of Y)" when there are more
-- When all loaded (up to 50), show the "View all on original post" link
-
-**File:** `src/components/community/PostComments.tsx`
-
-Update the inline card comments to also support the paginated hook.
-
-### Step 4: Fix URL handling across the UI
-**Files:** `src/components/community/SolutionCard.tsx`, `src/pages/CommunityPostDetail.tsx`
-
-Ensure the "View Original" button:
-- Uses `<a>` tag with `target="_blank"` and `rel="noopener noreferrer"` instead of `window.open()` for better compatibility in preview environments
-- Only shows if the URL exists and is non-empty
+- Change "View Original" button text to "Find Similar Discussion" to accurately represent what the link does
+- Add a small note: "Opens a search for similar community discussions"
 
 ---
 
-## Technical Details
-
-### New Edge Function: `seed-community-comments`
-
-```
-For each post with post_type='post' AND 0 comments in community_comments:
-  1. Look up the post's UUID (id) and content/tags
-  2. Generate 5-15 topical comments with:
-     - Realistic content related to the post topic
-     - Anonymous usernames (e.g., "t1d_warrior_42", "pump_user_99")
-     - Scores ranging from 1 to ~80% of parent post score
-     - Timestamps within 48 hours of post's published_at
-  3. Upsert into community_comments
-```
-
-### Hook Changes: `usePostComments`
-
-| Current | New |
-|---------|-----|
-| Hard limit 50, no pagination | Accepts `limit` param, starts at 10 |
-| Returns flat array | Returns `{ comments, totalCount, hasMore }` |
-| Single fetch | Supports incremental loading |
-
-### URL Fix Strategy
-
-| URL Type | Count | Fix |
-|----------|-------|-----|
-| `/search?q=...` | 193 | Keep as-is but improve format for better Reddit compatibility |
-| `/comments/example...` | 30 | Replace with proper Reddit search URLs |
-
-### Files to Modify
+## Files to Modify
 
 | File | Change |
 |------|--------|
-| `supabase/functions/seed-community-comments/index.ts` | New function to seed comments for all posts |
-| `supabase/functions/seed-community-posts/index.ts` | Fix URL generation, add URL update logic |
-| `src/hooks/useCommunitySearch.ts` | Add pagination to `usePostComments` |
-| `src/pages/CommunityPostDetail.tsx` | Add "Load More Comments" button |
-| `src/components/community/PostComments.tsx` | Support paginated comments in cards |
-| `src/components/community/SolutionCard.tsx` | Use `<a>` tags for external links |
+| `supabase/functions/seed-community-comments/index.ts` | Topic-specific comment pools, re-seed all comments |
+| `supabase/functions/seed-community-posts/index.ts` | Fix URL generation to use Google site:reddit.com search |
+| `src/pages/CommunityPostDetail.tsx` | Update link label and add context note |
+| `src/components/community/SolutionCard.tsx` | Update link label |
 
-### What Stays Unchanged
-- All other pages and components
-- Post listing, filtering, category logic
-- Save/bookmark functionality
-- Search functionality
-- Topic grid, trending sidebar, device issues tab
+## What Stays Unchanged
+- All other pages, components, hooks, and functionality
+- Post listing, filtering, categories, search
+- Save/bookmark, Ask AI, Copy features
+- Comment retrieval pipeline (already working correctly)
+- Load More Comments pagination (already working)
 
