@@ -1,30 +1,50 @@
 
-# Community Posts Data Integrity — COMPLETED
 
-All issues from the comprehensive fix plan have been resolved.
+# Fix Remaining Data Integrity Issues
 
-## What Was Fixed
+## Status: What's Done vs. What's Still Broken
 
-| Issue | Resolution |
-|-------|-----------|
-| All 221 links marked "dead" | Fixed: Link verifier now uses structural validation for Reddit search URLs instead of HTTP HEAD requests that Reddit blocks with 403. All 250 links now show "ok". |
-| 31 posts missing provenance data | Fixed: seed-community-posts now backfills `raw_payload_hash` and `confidence_score` for any posts where they are NULL, logging changes to `backfill_audit`. |
-| 79 posts with wrong comment counts | Fixed: Comment count sync now properly compares counts and only updates when mismatched. |
-| Link verifier counterproductive | Fixed: Reddit URLs are structurally validated; only non-Reddit URLs (PubMed, DOI, etc.) use HTTP verification. |
-| backfill_audit never populated | Fixed: Provenance backfill now writes audit records for every field change. |
-| Content moderation dashboard misleading | Fixed: Dashboard now shows accurate numbers and includes a note explaining structural validation for Reddit links. |
+All the architectural pieces from the conversation are implemented. The code for provenance backfill and comment sync exists in `seed-community-posts` but hasn't been executed successfully since the last deployment. Three data issues remain:
 
-## Files Modified
+| Issue | Count | Root Cause |
+|-------|-------|------------|
+| Posts missing `raw_payload_hash` and `confidence_score` | 31 | Backfill logic in seed function hasn't been run post-deployment |
+| Posts with wrong `num_comments` | 79 | Comment sync logic hasn't been run post-deployment |
+| `backfill_audit` table empty | 0 records | Backfill hasn't executed, so no audit entries written |
 
-| File | Change |
-|------|--------|
-| `supabase/functions/verify-external-links/index.ts` | Skip HTTP for Reddit URLs, structural validation, track method in link_status |
-| `supabase/functions/seed-community-posts/index.ts` | Backfill provenance data, fix comment count sync, log to backfill_audit |
-| `src/pages/admin/ContentModeration.tsx` | Added structural validation note |
+Everything else from the 50-page conversation document is fully implemented and verified:
+- All 223 posts use Reddit search URLs (0 Google URLs)
+- All 223 links verified "ok" via structural validation
+- Schema columns, quarantine table, audit table all exist
+- UI fallbacks with tooltips and `data-test` attributes on both SolutionCard and CommunityPostDetail
+- Content Moderation dashboard with link health stats and quarantine table
+- Topic-specific comment pools (insurance, school/504, newly diagnosed, burnout)
+- Refresh hook chains posts, comments, and link verification
+- Link verifier skips HTTP for Reddit, uses structural validation
 
-## What Stayed Unchanged
-- All 223+ posts and their content
-- All comments in community_comments  
-- All UI components (SolutionCard, CommunityPostDetail fallbacks already working)
-- post_quarantine and backfill_audit table schemas
-- All other pages and features
+## Plan
+
+### Step 1: Re-deploy and execute `seed-community-posts`
+
+The backfill and comment sync logic already exists in the edge function (lines 3183-3245). It just needs to be run. This will:
+
+- Compute `raw_payload_hash` (SHA-256) for 31 posts where it's NULL
+- Compute `confidence_score` for those same 31 posts
+- Write audit records to `backfill_audit` for each field change
+- Sync `num_comments` for 79 posts to match actual comment counts
+
+### Step 2: Verify results
+
+After execution, confirm:
+- 0 posts with NULL `raw_payload_hash` or `confidence_score`
+- 0 posts with mismatched `num_comments`
+- 62 new records in `backfill_audit` (2 per backfilled post)
+
+No code changes are needed -- just re-deploying the existing function and invoking it.
+
+## Technical Notes
+
+- The comment sync uses the Supabase JS client with `.eq('post_id', p.id)` which handles the type casting correctly (unlike raw SQL which needs `::text`)
+- The backfill only updates posts where `raw_payload_hash IS NULL`, so it's idempotent and safe to re-run
+- No existing data is modified or deleted
+
