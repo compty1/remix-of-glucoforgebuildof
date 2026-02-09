@@ -3180,10 +3180,10 @@ serve(async (req) => {
       console.log(`Fixed ${fixedCount} broken URLs`);
     }
 
-    // Sync num_comments with actual comment counts
+    // Sync num_comments with actual comment counts (using post_id text match)
     const { data: allPosts } = await supabase
       .from('community_posts')
-      .select('id')
+      .select('id, num_comments')
       .eq('post_type', 'post');
 
     let syncedCount = 0;
@@ -3193,12 +3193,56 @@ serve(async (req) => {
           .from('community_comments')
           .select('*', { count: 'exact', head: true })
           .eq('post_id', p.id);
-        if (count !== null && count > 0) {
-          await supabase.from('community_posts').update({ num_comments: count }).eq('id', p.id);
+        const actualCount = count ?? 0;
+        if (actualCount > 0 && actualCount !== p.num_comments) {
+          await supabase.from('community_posts').update({ num_comments: actualCount }).eq('id', p.id);
           syncedCount++;
         }
       }
       console.log(`Synced comment counts for ${syncedCount} posts`);
+    }
+
+    // Backfill provenance data for posts missing raw_payload_hash or confidence_score
+    const { data: missingProvenance } = await supabase
+      .from('community_posts')
+      .select('id, title, content, topic_tags, source')
+      .is('raw_payload_hash', null);
+
+    let backfilledCount = 0;
+    if (missingProvenance && missingProvenance.length > 0) {
+      for (const post of missingProvenance) {
+        const hashInput = (post.title || '') + (post.content || '');
+        const hash = await computeHash(hashInput);
+        const confidence = computeConfidence(post);
+
+        await supabase.from('community_posts').update({
+          raw_payload_hash: hash,
+          confidence_score: confidence,
+        }).eq('id', post.id);
+
+        // Log to backfill_audit
+        await supabase.from('backfill_audit').insert([
+          {
+            post_id: post.id,
+            field_name: 'raw_payload_hash',
+            old_value: null,
+            new_value: hash,
+            performed_by: 'seed-community-posts',
+            reason: 'Backfill missing provenance data',
+          },
+          {
+            post_id: post.id,
+            field_name: 'confidence_score',
+            old_value: null,
+            new_value: String(confidence),
+            performed_by: 'seed-community-posts',
+            reason: 'Backfill missing provenance data',
+          },
+        ]);
+
+        backfilledCount++;
+      }
+      console.log(`Backfilled provenance for ${backfilledCount} posts`);
     }
 
     console.log(`Successfully seeded ${postsToInsert.length} curated community posts`);
@@ -3211,6 +3255,7 @@ serve(async (req) => {
         quarantined: quarantined.length,
         urlsFixed: fixedCount,
         commentsSynced: syncedCount,
+        provenanceBackfilled: backfilledCount,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

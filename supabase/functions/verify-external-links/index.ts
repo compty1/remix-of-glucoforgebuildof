@@ -55,7 +55,35 @@ function detectSourceType(url: string): string {
   return 'unknown';
 }
 
-async function verifyUrl(url: string): Promise<{ valid: boolean; status?: number; error?: string }> {
+// Check if a URL is a Reddit search URL we constructed (always structurally valid)
+function isRedditSearchUrl(url: string): boolean {
+  return /^https:\/\/(www\.)?reddit\.com\/search\/?\?q=/.test(url);
+}
+
+// Structural validation: check URL format without HTTP request
+function structurallyValidate(url: string): { valid: boolean; method: string } {
+  try {
+    const parsed = new URL(url);
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return { valid: false, method: 'structural' };
+    }
+    // Reddit search URLs we generate are always valid
+    if (isRedditSearchUrl(url)) {
+      return { valid: true, method: 'structural_reddit_search' };
+    }
+    return { valid: true, method: 'structural_format' };
+  } catch {
+    return { valid: false, method: 'structural' };
+  }
+}
+
+async function verifyUrl(url: string): Promise<{ valid: boolean; status?: number; error?: string; method: string }> {
+  // Skip HTTP verification for Reddit URLs — they block server-side requests with 403
+  if (url.includes('reddit.com')) {
+    const structural = structurallyValidate(url);
+    return { ...structural, status: undefined };
+  }
+
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -66,9 +94,9 @@ async function verifyUrl(url: string): Promise<{ valid: boolean; status?: number
     });
     clearTimeout(timeoutId);
     const valid = response.status >= 200 && response.status < 400;
-    return { valid, status: response.status };
+    return { valid, status: response.status, method: 'http_head' };
   } catch (error) {
-    return { valid: false, error: error instanceof Error ? error.message : 'Unknown error' };
+    return { valid: false, error: error instanceof Error ? error.message : 'Unknown error', method: 'http_head' };
   }
 }
 
@@ -87,6 +115,7 @@ interface VerificationResult {
   fallbackUrl?: string | null;
   fallbackValid?: boolean;
   sourceType: string;
+  method: string;
   postId?: string;
 }
 
@@ -106,12 +135,12 @@ serve(async (req) => {
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
       );
 
-      // Process in batches of 50
       const batchSize = 50;
       let offset = 0;
       let totalProcessed = 0;
       let totalValid = 0;
       let totalDead = 0;
+      let totalStructural = 0;
 
       while (true) {
         const { data: posts, error } = await supabase
@@ -127,15 +156,23 @@ serve(async (req) => {
           if (!post.url) continue;
 
           const result = await verifyUrl(post.url);
-          const linkStatus = {
+          const linkStatus: Record<string, unknown> = {
             status: result.valid ? 'ok' : 'dead',
             http_code: result.status || null,
             error: result.error || null,
+            method: result.method,
             last_checked: new Date().toISOString(),
           };
 
+          // Track structural validations
+          if (result.method.startsWith('structural')) {
+            totalStructural++;
+            linkStatus.status = 'ok';
+            linkStatus.note = 'Structurally validated (no HTTP check)';
+          }
+
           let fallbackUrl: string | null = null;
-          if (!result.valid) {
+          if (!result.valid && !result.method.startsWith('structural')) {
             fallbackUrl = generateFallbackUrl(post.url);
             if (fallbackUrl && fallbackUrl !== post.url) {
               const fallbackResult = await verifyUrl(fallbackUrl);
@@ -145,15 +182,17 @@ serve(async (req) => {
             }
           }
 
+          const isValid = linkStatus.status === 'ok' || linkStatus.status === 'ok_fallback';
+
           await supabase.from('community_posts').update({
             link_status: linkStatus,
-            source_link_verified: result.valid,
+            source_link_verified: isValid,
             source_link_verified_at: new Date().toISOString(),
             ...(fallbackUrl && !result.valid ? { canonical_url: fallbackUrl } : {}),
           }).eq('id', post.id);
 
           totalProcessed++;
-          if (result.valid) totalValid++;
+          if (isValid) totalValid++;
           else totalDead++;
         }
 
@@ -165,7 +204,7 @@ serve(async (req) => {
         JSON.stringify({
           success: true,
           mode: 'fix',
-          summary: { totalProcessed, totalValid, totalDead },
+          summary: { totalProcessed, totalValid, totalDead, totalStructural },
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
@@ -182,14 +221,14 @@ serve(async (req) => {
     const results: VerificationResult[] = await Promise.all(
       urls.slice(0, 50).map(async (url: string) => {
         if (!url || typeof url !== 'string') {
-          return { originalUrl: url || '', valid: false, error: 'Invalid URL', sourceType: 'unknown' };
+          return { originalUrl: url || '', valid: false, error: 'Invalid URL', sourceType: 'unknown', method: 'none' };
         }
 
         const result = await verifyUrl(url);
         let fallbackUrl: string | null = null;
         let fallbackValid = false;
 
-        if (!result.valid) {
+        if (!result.valid && !result.method.startsWith('structural')) {
           fallbackUrl = generateFallbackUrl(url);
           if (fallbackUrl && fallbackUrl !== url) {
             const fallbackResult = await verifyUrl(fallbackUrl);
@@ -205,6 +244,7 @@ serve(async (req) => {
           fallbackUrl,
           fallbackValid,
           sourceType: detectSourceType(url),
+          method: result.method,
         };
       })
     );
