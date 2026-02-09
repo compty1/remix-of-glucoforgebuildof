@@ -355,18 +355,31 @@ const CommunityPostDetail: React.FC = () => {
                 Copy
               </Button>
 
-              {post.url && (
+              {post.url ? (
                 <a
                   href={post.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   title="Search for similar community discussions on Reddit"
+                  data-test="original-link"
                 >
                   <Button variant="outline" size="sm">
                     <ExternalLink className="h-4 w-4 mr-2" />
                     Find Similar Discussion
                   </Button>
                 </a>
+              ) : (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline" size="sm" disabled>
+                        <ExternalLink className="h-4 w-4 mr-2 opacity-50" />
+                        Source Unavailable
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Original link unavailable</TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
           </CardContent>
@@ -441,22 +454,29 @@ const CommunityPostDetail: React.FC = () => {
                 )}
 
                 {/* View original when all loaded */}
-                {!hasMoreComments && post.url && (
+                {!hasMoreComments && (
                   <div className="text-center pt-4 border-t">
                     <p className="text-sm text-muted-foreground mb-2">
                       {totalComments > 0 ? `All ${totalComments} comments loaded` : 'All comments loaded'}
                     </p>
-                    <a
-                      href={post.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title="Search for similar community discussions on Reddit"
-                    >
-                      <Button variant="outline" size="sm">
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Find similar discussion on Reddit
+                    {post.url ? (
+                      <a
+                        href={post.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        title="Search for similar community discussions on Reddit"
+                      >
+                        <Button variant="outline" size="sm">
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Find similar discussion on Reddit
+                        </Button>
+                      </a>
+                    ) : (
+                      <Button variant="outline" size="sm" disabled>
+                        <ExternalLink className="h-4 w-4 mr-2 opacity-50" />
+                        Source Unavailable
                       </Button>
-                    </a>
+                    )}
                     <p className="text-xs text-muted-foreground mt-1">
                       Opens a search for similar community discussions
                     </p>

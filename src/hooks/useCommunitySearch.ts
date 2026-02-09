@@ -276,10 +276,18 @@ export const useRefreshCommunityData = () => {
         const { data: seedData, error: seedError } = await supabase.functions.invoke('seed-community-posts');
         
         if (seedError) throw seedError;
-        return seedData;
       }
       
-      return data;
+      // Seed comments for any new posts
+      console.log('Seeding comments for new posts...');
+      await supabase.functions.invoke('seed-community-comments');
+      
+      // Verify links in background (non-blocking)
+      supabase.functions.invoke('verify-external-links', { 
+        body: { mode: 'fix' } 
+      }).catch(err => console.error('Link verification error:', err));
+      
+      return data || { success: true };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to refresh data';
       setRefreshError(message);

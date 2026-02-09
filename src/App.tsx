@@ -101,6 +101,7 @@ import AdminArticles from "./pages/admin/AdminArticles";
 import AdminLowSugarStories from "./pages/admin/AdminLowSugarStories";
 import AdminWarriors from "./pages/admin/AdminWarriors";
 import AdminShop from "./pages/admin/AdminShop";
+import ContentModeration from "./pages/admin/ContentModeration";
 
 // New Pages - Phases 1-8
 import AICenter from "./pages/AICenter";
@@ -245,6 +246,7 @@ const AppContent = () => {
         <Route path="/admin/low-sugar-stories" element={<AdminRoute><AdminLowSugarStories /></AdminRoute>} />
         <Route path="/admin/warriors" element={<AdminRoute><AdminWarriors /></AdminRoute>} />
         <Route path="/admin/shop" element={<AdminRoute><AdminShop /></AdminRoute>} />
+        <Route path="/admin/content-moderation" element={<AdminRoute><ContentModeration /></AdminRoute>} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>

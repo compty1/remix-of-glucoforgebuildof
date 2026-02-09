@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,11 +16,9 @@ const fallbackPatterns: Record<string, (id: string) => string> = {
   patent: (id: string) => `https://patents.google.com/patent/${id}`,
 };
 
-// Extract identifier from URL for fallback generation
 function extractIdentifier(url: string, source: string): string | null {
   try {
     const urlObj = new URL(url);
-    
     switch (source) {
       case 'pubmed':
         const pmidMatch = url.match(/\/(\d+)\/?$/);
@@ -46,65 +45,37 @@ function extractIdentifier(url: string, source: string): string | null {
   }
 }
 
-// Detect source type from URL
 function detectSourceType(url: string): string {
-  if (url.includes('pubmed.ncbi.nlm.nih.gov') || url.includes('ncbi.nlm.nih.gov/pubmed')) {
-    return 'pubmed';
-  }
-  if (url.includes('doi.org')) {
-    return 'doi';
-  }
-  if (url.includes('clinicaltrials.gov')) {
-    return 'clinicaltrials';
-  }
-  if (url.includes('reddit.com')) {
-    return 'reddit';
-  }
-  if (url.includes('openalex.org')) {
-    return 'openalex';
-  }
-  if (url.includes('patents.google.com')) {
-    return 'patent';
-  }
+  if (url.includes('pubmed.ncbi.nlm.nih.gov') || url.includes('ncbi.nlm.nih.gov/pubmed')) return 'pubmed';
+  if (url.includes('doi.org')) return 'doi';
+  if (url.includes('clinicaltrials.gov')) return 'clinicaltrials';
+  if (url.includes('reddit.com')) return 'reddit';
+  if (url.includes('openalex.org')) return 'openalex';
+  if (url.includes('patents.google.com')) return 'patent';
   return 'unknown';
 }
 
-// Verify if a URL is accessible
 async function verifyUrl(url: string): Promise<{ valid: boolean; status?: number; error?: string }> {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
     const response = await fetch(url, {
       method: 'HEAD',
       signal: controller.signal,
-      headers: {
-        'User-Agent': 'GlucoForge Link Verifier/1.0'
-      }
+      headers: { 'User-Agent': 'GlucoForge Link Verifier/1.0' }
     });
-    
     clearTimeout(timeoutId);
-    
-    // Consider 2xx and 3xx as valid
     const valid = response.status >= 200 && response.status < 400;
     return { valid, status: response.status };
   } catch (error) {
-    return { 
-      valid: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
-    };
+    return { valid: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
-// Generate fallback URL if primary fails
 function generateFallbackUrl(originalUrl: string): string | null {
   const sourceType = detectSourceType(originalUrl);
   const identifier = extractIdentifier(originalUrl, sourceType);
-  
-  if (!identifier || !fallbackPatterns[sourceType]) {
-    return null;
-  }
-  
+  if (!identifier || !fallbackPatterns[sourceType]) return null;
   return fallbackPatterns[sourceType](identifier);
 }
 
@@ -116,6 +87,7 @@ interface VerificationResult {
   fallbackUrl?: string | null;
   fallbackValid?: boolean;
   sourceType: string;
+  postId?: string;
 }
 
 serve(async (req) => {
@@ -124,8 +96,82 @@ serve(async (req) => {
   }
 
   try {
-    const { urls } = await req.json();
+    const body = await req.json();
+    const { urls, mode = 'verify' } = body;
 
+    // MODE: "fix" — fetch posts from DB, verify, and update link_status
+    if (mode === 'fix') {
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      );
+
+      // Process in batches of 50
+      const batchSize = 50;
+      let offset = 0;
+      let totalProcessed = 0;
+      let totalValid = 0;
+      let totalDead = 0;
+
+      while (true) {
+        const { data: posts, error } = await supabase
+          .from('community_posts')
+          .select('id, url, title')
+          .not('url', 'is', null)
+          .range(offset, offset + batchSize - 1);
+
+        if (error) throw error;
+        if (!posts || posts.length === 0) break;
+
+        for (const post of posts) {
+          if (!post.url) continue;
+
+          const result = await verifyUrl(post.url);
+          const linkStatus = {
+            status: result.valid ? 'ok' : 'dead',
+            http_code: result.status || null,
+            error: result.error || null,
+            last_checked: new Date().toISOString(),
+          };
+
+          let fallbackUrl: string | null = null;
+          if (!result.valid) {
+            fallbackUrl = generateFallbackUrl(post.url);
+            if (fallbackUrl && fallbackUrl !== post.url) {
+              const fallbackResult = await verifyUrl(fallbackUrl);
+              if (fallbackResult.valid) {
+                linkStatus.status = 'ok_fallback';
+              }
+            }
+          }
+
+          await supabase.from('community_posts').update({
+            link_status: linkStatus,
+            source_link_verified: result.valid,
+            source_link_verified_at: new Date().toISOString(),
+            ...(fallbackUrl && !result.valid ? { canonical_url: fallbackUrl } : {}),
+          }).eq('id', post.id);
+
+          totalProcessed++;
+          if (result.valid) totalValid++;
+          else totalDead++;
+        }
+
+        offset += batchSize;
+        if (posts.length < batchSize) break;
+      }
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          mode: 'fix',
+          summary: { totalProcessed, totalValid, totalDead },
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // MODE: "verify" (default) — check provided URLs without DB writes
     if (!urls || !Array.isArray(urls)) {
       return new Response(
         JSON.stringify({ error: 'Please provide a urls array' }),
@@ -136,18 +182,13 @@ serve(async (req) => {
     const results: VerificationResult[] = await Promise.all(
       urls.slice(0, 50).map(async (url: string) => {
         if (!url || typeof url !== 'string') {
-          return {
-            originalUrl: url || '',
-            valid: false,
-            error: 'Invalid URL',
-            sourceType: 'unknown'
-          };
+          return { originalUrl: url || '', valid: false, error: 'Invalid URL', sourceType: 'unknown' };
         }
 
         const result = await verifyUrl(url);
         let fallbackUrl: string | null = null;
         let fallbackValid = false;
-        
+
         if (!result.valid) {
           fallbackUrl = generateFallbackUrl(url);
           if (fallbackUrl && fallbackUrl !== url) {
@@ -155,7 +196,7 @@ serve(async (req) => {
             fallbackValid = fallbackResult.valid;
           }
         }
-        
+
         return {
           originalUrl: url,
           valid: result.valid,
@@ -163,7 +204,7 @@ serve(async (req) => {
           error: result.error,
           fallbackUrl,
           fallbackValid,
-          sourceType: detectSourceType(url)
+          sourceType: detectSourceType(url),
         };
       })
     );
@@ -172,15 +213,11 @@ serve(async (req) => {
       total: results.length,
       valid: results.filter(r => r.valid).length,
       invalid: results.filter(r => !r.valid).length,
-      fixable: results.filter(r => !r.valid && r.fallbackValid).length
+      fixable: results.filter(r => !r.valid && r.fallbackValid).length,
     };
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        results,
-        summary
-      }),
+      JSON.stringify({ success: true, results, summary }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

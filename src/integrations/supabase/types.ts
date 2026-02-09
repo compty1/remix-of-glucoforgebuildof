@@ -426,6 +426,39 @@ export type Database = {
         }
         Relationships: []
       }
+      backfill_audit: {
+        Row: {
+          field_name: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          performed_at: string
+          performed_by: string
+          post_id: string
+          reason: string | null
+        }
+        Insert: {
+          field_name: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          performed_at?: string
+          performed_by?: string
+          post_id: string
+          reason?: string | null
+        }
+        Update: {
+          field_name?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          performed_at?: string
+          performed_by?: string
+          post_id?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
       bounties: {
         Row: {
           category: string | null
@@ -807,16 +840,21 @@ export type Database = {
       community_posts: {
         Row: {
           author_anonymous: string | null
+          canonical_url: string | null
+          confidence_score: number | null
           content: string | null
           device_mentioned: string | null
           fetched_at: string
           id: string
           is_solution: boolean | null
+          link_status: Json | null
           num_comments: number | null
           parent_post_id: string | null
           post_id: string
           post_type: string | null
           published_at: string | null
+          quarantined: boolean | null
+          raw_payload_hash: string | null
           score: number | null
           sentiment: string | null
           source: string
@@ -828,16 +866,21 @@ export type Database = {
         }
         Insert: {
           author_anonymous?: string | null
+          canonical_url?: string | null
+          confidence_score?: number | null
           content?: string | null
           device_mentioned?: string | null
           fetched_at?: string
           id?: string
           is_solution?: boolean | null
+          link_status?: Json | null
           num_comments?: number | null
           parent_post_id?: string | null
           post_id: string
           post_type?: string | null
           published_at?: string | null
+          quarantined?: boolean | null
+          raw_payload_hash?: string | null
           score?: number | null
           sentiment?: string | null
           source: string
@@ -849,16 +892,21 @@ export type Database = {
         }
         Update: {
           author_anonymous?: string | null
+          canonical_url?: string | null
+          confidence_score?: number | null
           content?: string | null
           device_mentioned?: string | null
           fetched_at?: string
           id?: string
           is_solution?: boolean | null
+          link_status?: Json | null
           num_comments?: number | null
           parent_post_id?: string | null
           post_id?: string
           post_type?: string | null
           published_at?: string | null
+          quarantined?: boolean | null
+          raw_payload_hash?: string | null
           score?: number | null
           sentiment?: string | null
           source?: string
@@ -3353,6 +3401,39 @@ export type Database = {
           description?: string | null
           id?: string
           insight_type?: string
+        }
+        Relationships: []
+      }
+      post_quarantine: {
+        Row: {
+          id: string
+          post_id: string | null
+          raw_payload: Json
+          received_at: string
+          review_notes: string | null
+          reviewed: boolean | null
+          reviewer: string | null
+          validation_errors: Json
+        }
+        Insert: {
+          id?: string
+          post_id?: string | null
+          raw_payload: Json
+          received_at?: string
+          review_notes?: string | null
+          reviewed?: boolean | null
+          reviewer?: string | null
+          validation_errors: Json
+        }
+        Update: {
+          id?: string
+          post_id?: string | null
+          raw_payload?: Json
+          received_at?: string
+          review_notes?: string | null
+          reviewed?: boolean | null
+          reviewer?: string | null
+          validation_errors?: Json
         }
         Relationships: []
       }
