@@ -324,11 +324,12 @@ export const useSinglePost = (postId: string | null) => {
 
 // Hook for fetching comments/replies for a specific post
 // Supports both the community_posts table (parent_post_id approach) and community_comments table
-export const usePostComments = (postId: string | null) => {
+// Returns { comments, totalCount, hasMore } with pagination support
+export const usePostComments = (postId: string | null, limit: number = 10) => {
   return useQuery({
-    queryKey: ['post-comments', postId],
+    queryKey: ['post-comments', postId, limit],
     queryFn: async () => {
-      if (!postId) return [];
+      if (!postId) return { comments: [] as CommunityPost[], totalCount: 0, hasMore: false };
 
       // Step 1: Resolve the post's UUID from the string post_id
       const { data: postData } = await supabase
@@ -343,7 +344,7 @@ export const usePostComments = (postId: string | null) => {
         .select('*')
         .eq('parent_post_id', postId)
         .order('score', { ascending: false, nullsFirst: false })
-        .limit(50);
+        .limit(100);
 
       if (postsError) throw postsError;
 
@@ -355,7 +356,7 @@ export const usePostComments = (postId: string | null) => {
           .select('*')
           .eq('post_id', postData.id)
           .order('score', { ascending: false, nullsFirst: false })
-          .limit(50);
+          .limit(100);
         commentsData = data || [];
       }
 
@@ -386,7 +387,7 @@ export const usePostComments = (postId: string | null) => {
         topic_tags: post.topic_tags || [],
       })) as CommunityPost[];
 
-      // Combine, deduplicate by id, sort by score, limit to 50
+      // Combine, deduplicate by id, sort by score
       const seen = new Set<string>();
       const allComments = [...mappedPosts, ...mappedComments]
         .filter(c => {
@@ -394,10 +395,16 @@ export const usePostComments = (postId: string | null) => {
           seen.add(c.id);
           return true;
         })
-        .sort((a, b) => (b.score || 0) - (a.score || 0))
-        .slice(0, 50);
+        .sort((a, b) => (b.score || 0) - (a.score || 0));
 
-      return allComments;
+      const totalCount = allComments.length;
+      const limitedComments = allComments.slice(0, limit);
+
+      return {
+        comments: limitedComments,
+        totalCount,
+        hasMore: totalCount > limit,
+      };
     },
     enabled: !!postId,
     staleTime: 5 * 60 * 1000,
