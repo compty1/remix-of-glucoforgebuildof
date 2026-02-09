@@ -147,6 +147,56 @@ const commentsByTopic: Record<string, string[]> = {
     "Sleep mode on my pump targets 112-120 and has almost eliminated overnight lows.",
     "Late dinners mess up my overnight control. I try to eat by 7pm when possible.",
   ],
+  insurance: [
+    "Always appeal a denial - first appeals succeed about 50% of the time. Don't give up!",
+    "Ask your endo to write a prior auth letter emphasizing medical necessity. It makes a huge difference.",
+    "Walmart ReliOn insulin is $25/vial OTC. Not ideal long-term but can save your life in an emergency.",
+    "GoodRx coupons brought my test strip cost down by 60%. Check every prescription.",
+    "Mark Cuban's Cost Plus Drugs has some diabetes supplies at near-wholesale prices. Worth checking.",
+    "If you lose coverage, manufacturers have patient assistance programs. Lilly, Novo, Sanofi all have them.",
+    "Document everything - keep copies of all denial letters, appeal letters, and medical records.",
+    "Some states have emergency insulin access laws. Know your state's rules before you need them.",
+    "Your endo's office usually has a billing specialist who can help with insurance fights. Ask for help.",
+    "Switching from brand to biosimilar insulin saved me hundreds per month with no difference in control.",
+  ],
+  school_504: [
+    "A 504 plan is legally binding - schools MUST accommodate. An IEP is even stronger if your child qualifies.",
+    "Include specific language about CGM access, snack access, and nurse availability in the 504 plan.",
+    "Field trips: the school must provide a trained adult who can administer glucagon. Non-negotiable.",
+    "My kid's teacher learned to read the Dexcom Follow app. Now they can spot trends before my kid does.",
+    "Request that your child can keep their phone for CGM access. Most schools will accommodate with a 504.",
+    "Document every incident. If the school violates the 504, you need a paper trail for OCR complaints.",
+    "The school nurse should have backup supplies: extra insulin, glucagon, glucose tabs, ketone strips.",
+    "Lunchtime bolusing was our biggest challenge. We worked with the nurse to create a simple checklist.",
+    "PE teachers need specific training - exercise affects T1D kids differently. Include it in the 504.",
+    "Standardized testing accommodations: extra breaks, snack access, and glucose monitoring are all reasonable.",
+  ],
+  newly_diagnosed: [
+    "The honeymoon phase is real - your pancreas still makes some insulin at first. Enjoy the easier management while it lasts.",
+    "Carb counting feels impossible at first. Start simple: learn your 10 most common meals first.",
+    "It's okay to cry, be angry, and grieve. You just got handed a lifelong diagnosis. Feel your feelings.",
+    "Don't compare your numbers to anyone else's. Everyone's diabetes is literally different.",
+    "Join a T1D community online - having people who truly understand is worth more than any textbook.",
+    "Your first A1C doesn't define your future. It takes months to learn your body's patterns.",
+    "Ask your endo about CGM as soon as possible. The data is life-changing for new diabetics.",
+    "Keep a log for the first month - even rough notes help you and your endo see patterns.",
+    "You WILL eat cake, pizza, ice cream again. You just need to learn how to dose for it.",
+    "Low blood sugar feels terrifying the first time. Practice treating it calmly - 15g carbs, wait 15 min.",
+    "Get a medical ID bracelet. It feels dramatic but paramedics need to know if you're unconscious.",
+    "It gets easier. The first 3 months are the hardest. Ask literally any long-term T1D - we all struggled at first.",
+  ],
+  burnout: [
+    "Taking a 'diabetes vacation' doesn't mean stopping insulin. It means simplifying everything else.",
+    "Minimum viable diabetes management: keep CGM on, take insulin, check ketones if high. That's enough on hard days.",
+    "Therapy specifically for chronic illness burnout exists. Ask your endo for a referral.",
+    "I set my pump to auto-mode and stopped obsessing over every number. My A1C barely changed.",
+    "Burnout is your body telling you this is too much. It's a signal, not a failure.",
+    "Taking breaks from diabetes social media helped me enormously. The constant optimization culture is exhausting.",
+    "I told my endo I was burned out. They adjusted my targets to be less aggressive temporarily. It helped.",
+    "Automating what you can (auto-mode pump, CGM) reduces the decision fatigue that causes burnout.",
+    "Some days I eat the same 3 meals because I know the carb counts. Boring but zero mental effort.",
+    "Peer support groups for diabetes burnout exist. Hearing others say 'me too' is incredibly healing.",
+  ],
 };
 
 // Generic comments for posts that don't match specific topics
@@ -201,6 +251,18 @@ function getCommentsForPost(topicTags: string[], content: string | null): string
   if (contentLower.includes('food') || contentLower.includes('carb') || contentLower.includes('meal') || contentLower.includes('bolus')) {
     pool.push(...(commentsByTopic.food || []));
   }
+  if (contentLower.includes('insurance') || contentLower.includes('coverage') || contentLower.includes('cost') || contentLower.includes('afford')) {
+    pool.push(...(commentsByTopic.insurance || []));
+  }
+  if (contentLower.includes('school') || contentLower.includes('504') || contentLower.includes('iep') || contentLower.includes('teacher')) {
+    pool.push(...(commentsByTopic.school_504 || []));
+  }
+  if (contentLower.includes('diagnosed') || contentLower.includes('new to') || contentLower.includes('just started') || contentLower.includes('honeymoon')) {
+    pool.push(...(commentsByTopic.newly_diagnosed || []));
+  }
+  if (contentLower.includes('burnout') || contentLower.includes('exhausted') || contentLower.includes('tired of') || contentLower.includes('give up')) {
+    pool.push(...(commentsByTopic.burnout || []));
+  }
   
   // Always add generic comments as fallback
   pool.push(...genericComments);
@@ -250,9 +312,9 @@ serve(async (req) => {
       // Skip posts that already have comments
       if (postsWithComments.has(post.id)) continue;
 
-      // Determine number of comments (5-15, scaled by num_comments metadata)
+      // Determine number of comments (8-20, scaled by num_comments metadata)
       const metadata = post.num_comments || 10;
-      const numToGenerate = Math.max(5, Math.min(15, Math.round(metadata / 15)));
+      const numToGenerate = Math.max(8, Math.min(20, Math.round(metadata / 10)));
 
       const commentPool = getCommentsForPost(post.topic_tags || [], post.content);
       

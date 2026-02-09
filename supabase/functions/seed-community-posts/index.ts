@@ -3059,7 +3059,34 @@ serve(async (req) => {
     );
 
     console.log('Starting seed of curated community posts...');
-    
+
+    // Helper: generate Reddit search URL from title
+    function generateRedditSearchUrl(title: string): string {
+      const titleWords = (title || '')
+        .replace(/[^a-zA-Z0-9\s]/g, '')
+        .split(/\s+/)
+        .filter((w: string) => w.length > 3)
+        .slice(0, 6)
+        .join('+');
+      return `https://www.reddit.com/search/?q=${titleWords}&type=link&sort=relevance&t=all`;
+    }
+
+    // Helper: compute SHA-256 hash for deduplication
+    async function computeHash(text: string): Promise<string> {
+      const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+      return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Helper: compute confidence score
+    function computeConfidence(post: { title?: string; content?: string; topic_tags?: string[]; source?: string }): number {
+      return (
+        ((post.title?.length || 0) > 10 ? 0.3 : 0) +
+        ((post.content?.length || 0) > 50 ? 0.3 : 0) +
+        ((post.topic_tags?.length || 0) > 0 ? 0.2 : 0) +
+        (post.source ? 0.2 : 0)
+      );
+    }
+
     // Deduplicate posts by post_id (keep first occurrence)
     const seenIds = new Set<string>();
     const uniquePosts = curatedPosts.filter(post => {
@@ -3072,18 +3099,30 @@ serve(async (req) => {
     });
     
     console.log(`Found ${curatedPosts.length} total posts, ${uniquePosts.length} unique posts`);
-    
-    const postsToInsert = uniquePosts.map(post => {
-      // Generate a Reddit-wide search URL with optimized parameters
-      const titleWords = (post.title || '')
-        .replace(/[^a-zA-Z0-9\s]/g, '')
-        .split(/\s+/)
-        .filter(w => w.length > 3)
-        .slice(0, 6)
-        .join('+');
-      const url = `https://www.reddit.com/search/?q=${titleWords}&type=link&sort=relevance&t=all`;
-      
-      return {
+
+    // Validate and prepare posts, quarantining invalid ones
+    const postsToInsert = [];
+    const quarantined = [];
+
+    for (const post of uniquePosts) {
+      const errors: string[] = [];
+      if (!post.title || post.title.length < 3) errors.push('title too short');
+      if (!post.content || post.content.length < 10) errors.push('content too short');
+
+      if (errors.length > 0) {
+        quarantined.push({
+          raw_payload: post,
+          validation_errors: errors,
+        });
+        continue;
+      }
+
+      const url = generateRedditSearchUrl(post.title);
+      const hashInput = (post.title || '') + (post.content || '');
+      const raw_payload_hash = await computeHash(hashInput);
+      const confidence_score = computeConfidence(post);
+
+      postsToInsert.push({
         source: post.source,
         post_id: post.post_id,
         title: post.title || '',
@@ -3100,8 +3139,17 @@ serve(async (req) => {
         published_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
         fetched_at: new Date().toISOString(),
         url: url,
-      };
-    });
+        raw_payload_hash,
+        confidence_score,
+        quarantined: false,
+      });
+    }
+
+    // Insert quarantined posts
+    if (quarantined.length > 0) {
+      await supabase.from('post_quarantine').insert(quarantined);
+      console.log(`Quarantined ${quarantined.length} invalid posts`);
+    }
 
     const { data, error } = await supabase
       .from('community_posts')
@@ -3116,13 +3164,53 @@ serve(async (req) => {
       throw error;
     }
 
+    // Fix any remaining Google search URLs or example URLs
+    const { data: brokenUrls } = await supabase
+      .from('community_posts')
+      .select('id, title, url')
+      .or('url.ilike.%google.com%,url.ilike.%/comments/example%');
+
+    let fixedCount = 0;
+    if (brokenUrls && brokenUrls.length > 0) {
+      for (const row of brokenUrls) {
+        const newUrl = generateRedditSearchUrl(row.title);
+        await supabase.from('community_posts').update({ url: newUrl }).eq('id', row.id);
+        fixedCount++;
+      }
+      console.log(`Fixed ${fixedCount} broken URLs`);
+    }
+
+    // Sync num_comments with actual comment counts
+    const { data: allPosts } = await supabase
+      .from('community_posts')
+      .select('id')
+      .eq('post_type', 'post');
+
+    let syncedCount = 0;
+    if (allPosts) {
+      for (const p of allPosts) {
+        const { count } = await supabase
+          .from('community_comments')
+          .select('*', { count: 'exact', head: true })
+          .eq('post_id', p.id);
+        if (count !== null && count > 0) {
+          await supabase.from('community_posts').update({ num_comments: count }).eq('id', p.id);
+          syncedCount++;
+        }
+      }
+      console.log(`Synced comment counts for ${syncedCount} posts`);
+    }
+
     console.log(`Successfully seeded ${postsToInsert.length} curated community posts`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: `Seeded ${postsToInsert.length} curated T1D community solutions`,
-        count: postsToInsert.length
+        count: postsToInsert.length,
+        quarantined: quarantined.length,
+        urlsFixed: fixedCount,
+        commentsSynced: syncedCount,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

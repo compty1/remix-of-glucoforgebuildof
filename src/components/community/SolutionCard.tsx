@@ -352,13 +352,14 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
               </TooltipProvider>
             )}
 
-            {post.url && (
+            {post.url ? (
               <a
                 href={post.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
                 title="Search for similar community discussions on Reddit"
+                data-test="original-link"
               >
                 <Button
                   variant="ghost"
@@ -369,6 +370,18 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                   Find Discussion
                 </Button>
               </a>
+            ) : (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 text-xs" disabled onClick={(e) => e.stopPropagation()}>
+                      <ExternalLink className="h-3.5 w-3.5 mr-1 opacity-50" />
+                      Source Unavailable
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Original link unavailable</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             {onAskAI && (
               <Button
