@@ -329,25 +329,38 @@ export const usePostComments = (postId: string | null) => {
     queryKey: ['post-comments', postId],
     queryFn: async () => {
       if (!postId) return [];
-      
-      // First try community_posts with parent_post_id
+
+      // Step 1: Resolve the post's UUID from the string post_id
+      const { data: postData } = await supabase
+        .from('community_posts')
+        .select('id')
+        .eq('post_id', postId)
+        .maybeSingle();
+
+      // Step 2: Query community_posts children (parent_post_id = string post_id)
       const { data: postsData, error: postsError } = await supabase
         .from('community_posts')
         .select('*')
         .eq('parent_post_id', postId)
-        .order('score', { ascending: false, nullsFirst: false });
+        .order('score', { ascending: false, nullsFirst: false })
+        .limit(50);
 
       if (postsError) throw postsError;
-      
-      // Also try the dedicated community_comments table if it exists
-      const { data: commentsData } = await supabase
-        .from('community_comments')
-        .select('*')
-        .eq('post_id', postId)
-        .order('score', { ascending: false, nullsFirst: false });
 
-      // Combine both sources, mapping community_comments to CommunityPost format
-      const mappedComments = (commentsData || []).map(comment => ({
+      // Step 3: Query community_comments using the resolved UUID
+      let commentsData: any[] = [];
+      if (postData?.id) {
+        const { data } = await supabase
+          .from('community_comments')
+          .select('*')
+          .eq('post_id', postData.id)
+          .order('score', { ascending: false, nullsFirst: false })
+          .limit(50);
+        commentsData = data || [];
+      }
+
+      // Map community_comments to CommunityPost format
+      const mappedComments = commentsData.map(comment => ({
         id: comment.id,
         source: 'community',
         post_id: comment.id,
@@ -372,10 +385,18 @@ export const usePostComments = (postId: string | null) => {
         sentiment: post.sentiment as 'positive' | 'neutral' | 'negative' | null,
         topic_tags: post.topic_tags || [],
       })) as CommunityPost[];
-      
-      // Combine and sort by score
-      const allComments = [...mappedPosts, ...mappedComments].sort((a, b) => (b.score || 0) - (a.score || 0));
-      
+
+      // Combine, deduplicate by id, sort by score, limit to 50
+      const seen = new Set<string>();
+      const allComments = [...mappedPosts, ...mappedComments]
+        .filter(c => {
+          if (seen.has(c.id)) return false;
+          seen.add(c.id);
+          return true;
+        })
+        .sort((a, b) => (b.score || 0) - (a.score || 0))
+        .slice(0, 50);
+
       return allComments;
     },
     enabled: !!postId,

@@ -364,7 +364,12 @@ const CommunityPostDetail: React.FC = () => {
           <CardHeader>
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <MessageSquare className="h-5 w-5" />
-              Comments ({comments?.length || 0})
+              Comments
+              {comments && comments.length > 0 && (
+                <span className="text-sm font-normal text-muted-foreground">
+                  (Showing {comments.length}{post.num_comments && post.num_comments > comments.length ? ` of ${post.num_comments}` : ''})
+                </span>
+              )}
             </h2>
           </CardHeader>
           <CardContent>
@@ -407,6 +412,23 @@ const CommunityPostDetail: React.FC = () => {
                     </p>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Show prompt to view original if there are more comments */}
+            {post.num_comments && comments && post.num_comments > comments.length && post.url && (
+              <div className="text-center pt-4 border-t">
+                <p className="text-sm text-muted-foreground mb-2">
+                  Showing {comments.length} of {post.num_comments} comments
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(post.url!, '_blank', 'noopener,noreferrer')}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  View all comments on original post
+                </Button>
               </div>
             )}
           </CardContent>
