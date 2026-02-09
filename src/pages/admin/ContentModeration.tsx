@@ -78,7 +78,7 @@ const ContentModeration: React.FC = () => {
         </div>
 
         {/* Link Health Dashboard */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -124,6 +124,10 @@ const ContentModeration: React.FC = () => {
             </CardContent>
           </Card>
         </div>
+        <p className="text-xs text-muted-foreground mb-8">
+          <Shield className="h-3 w-3 inline mr-1" />
+          Reddit search links are structurally validated (not HTTP-verified) since Reddit blocks server-side requests.
+        </p>
 
         {/* Actions */}
         <div className="flex gap-3 mb-8">
