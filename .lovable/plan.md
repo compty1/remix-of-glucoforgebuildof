@@ -1,68 +1,85 @@
 
-# Fix Community Solutions: Posts Not Loading, Categories, and Comments
+# Fix: Community Post Comments Not Showing
 
-## Problems Found
+## Root Cause
 
-1. **Comments/replies showing as top-level posts**: The search query fetches ALL 493 rows from `community_posts` including 243 comments and 27 replies. These appear as cards with title "Comment" and source "reddit" -- making them look broken.
+The `usePostComments` hook receives the `post_id` string (e.g., `curated_international_travel_1`) and queries both tables with it. However:
 
-2. **Clicking posts shows "not found"**: The `CommunityPulse` widget links to `/community/${post.id}` (using UUID), but the actual route is `/community-solutions/:postId` and the detail page queries by the `post_id` field (e.g., `curated_cgm_insurance_1`). This mismatch causes 404s.
+1. **`community_posts` table**: Only ~20 posts have child comment rows (via `parent_post_id`). Most posts (including `curated_international_travel_1`) have zero comment rows despite showing `num_comments: 167`.
+2. **`community_comments` table**: Stores `post_id` as the **UUID** (`id` column from `community_posts`), not the string `post_id`. So the query `.eq('post_id', postId)` with a string like `curated_international_travel_1` never matches anything in this table.
 
-3. **Category badges inaccurate**: Comments have `source: 'reddit'` (generic) instead of specific subreddit names like `r/dexcom`, so they all fall into "General" category even when they belong to a specific subreddit's thread.
+**Result**: Comments show as 0 for most posts.
 
-4. **Trending solutions include comments**: The `useTrendingSolutions` hook doesn't filter by `post_type`, showing comment entries in the trending sidebar.
+## Fix
 
----
+### Step 1: Fix `usePostComments` to resolve UUID before querying `community_comments`
 
-## Plan
-
-### Step 1: Filter out comments/replies from main search query
 **File:** `src/hooks/useCommunitySearch.ts`
 
-Add `.eq('post_type', 'post')` to the main `fetchPosts` query so only actual posts appear in the community solutions list. This removes 270 comments/replies from showing as standalone cards.
+The hook needs to:
+1. First fetch the post's UUID (`id`) from `community_posts` using the string `post_id`
+2. Query `community_comments` using that UUID
+3. Query `community_posts` children using the string `post_id` (this part already works)
+4. Combine results, limit display to 50, sort by score
 
-Also add the same filter to `useTrendingSolutions` so trending sidebar only shows real posts.
+```typescript
+export const usePostComments = (postId: string | null) => {
+  return useQuery({
+    queryKey: ['post-comments', postId],
+    queryFn: async () => {
+      if (!postId) return [];
 
-### Step 2: Fix CommunityPulse link format
-**File:** `src/components/discover/CommunityPulse.tsx`
+      // Get the UUID for this post_id
+      const { data: postData } = await supabase
+        .from('community_posts')
+        .select('id')
+        .eq('post_id', postId)
+        .maybeSingle();
 
-Change the link from:
+      // Query community_posts children (parent_post_id = string post_id)
+      const { data: postsData, error: postsError } = await supabase
+        .from('community_posts')
+        .select('*')
+        .eq('parent_post_id', postId)
+        .order('score', { ascending: false, nullsFirst: false })
+        .limit(50);
+
+      if (postsError) throw postsError;
+
+      // Query community_comments using UUID
+      let commentsData: any[] = [];
+      if (postData?.id) {
+        const { data } = await supabase
+          .from('community_comments')
+          .select('*')
+          .eq('post_id', postData.id)
+          .order('score', { ascending: false, nullsFirst: false })
+          .limit(50);
+        commentsData = data || [];
+      }
+
+      // Combine, deduplicate, sort by score, limit to 50
+      // ... (existing mapping logic stays the same)
+    },
+  });
+};
 ```
-/community/${post.id}
-```
-to:
-```
-/community-solutions/${post.post_id}
-```
 
-This requires the query to also select `post_id` alongside the other fields, and filter to only show actual posts (not comments).
+### Step 2: Limit displayed comments to 50 with "View Original" prompt
 
-### Step 3: Ensure detail page handles edge cases
 **File:** `src/pages/CommunityPostDetail.tsx`
 
-The detail page already queries correctly by `post_id`. No changes needed here -- the fix in Step 2 ensures correct links are generated.
+After the comments list, if there are more comments than shown (based on `num_comments`), display a message like "Showing 50 of 167 comments" with a link to view the original post for the rest. The "View Original" button already exists -- just add a note near the comments section.
 
-### Step 4: Verify category accuracy
-The source categories in `sourceCategories.ts` already correctly map subreddit names. The issue was that comments had `source: 'reddit'` (generic). By filtering them out (Step 1), only posts with proper subreddit sources like `r/dexcom`, `r/diabetes_t1` etc. will appear, and categories will be accurate.
-
----
-
-## Technical Details
-
-### Files to modify
+## Files to Modify
 
 | File | Change |
 |------|--------|
-| `src/hooks/useCommunitySearch.ts` | Add `post_type = 'post'` filter to `fetchPosts` and `useTrendingSolutions` queries |
-| `src/components/discover/CommunityPulse.tsx` | Fix link to use `/community-solutions/${post.post_id}`, add `post_id` to select, filter by `post_type` |
+| `src/hooks/useCommunitySearch.ts` | Fix `usePostComments` to resolve UUID before querying `community_comments`, limit to 50 |
+| `src/pages/CommunityPostDetail.tsx` | Add "Showing X of Y comments" message with prompt to view original for the rest |
 
-### Database impact
-- No schema changes needed
-- Post count will go from ~493 to ~223 visible posts (comments still exist for detail page comments section)
-- Comments remain accessible via the detail page's comments section (queried by `parent_post_id`)
-
-### What stays unchanged
-- All other pages and components
-- Comment display on post detail pages
+## What Stays Unchanged
+- All other components, pages, and hooks
+- Post listing, filtering, categories
 - Save/bookmark functionality
-- Search and filter logic (just adds one more filter condition)
-- Source category mapping logic
+- The `PostComments` component (used in cards) -- it calls the same hook, so it benefits automatically
