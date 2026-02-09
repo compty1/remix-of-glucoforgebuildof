@@ -5381,6 +5381,13 @@ export type Database = {
             referencedRelation: "community_posts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_saved_posts_community_post_id_fkey"
+            columns: ["community_post_id"]
+            isOneToOne: false
+            referencedRelation: "vw_posts_link_health"
+            referencedColumns: ["post_id"]
+          },
         ]
       }
       user_streaks: {
@@ -5553,7 +5560,124 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      vw_posts_link_health: {
+        Row: {
+          canonical_url: string | null
+          confidence_score: number | null
+          http_code: number | null
+          last_checked: string | null
+          link_status_val: string | null
+          post_id: string | null
+          title: string | null
+          url: string | null
+        }
+        Insert: {
+          canonical_url?: string | null
+          confidence_score?: number | null
+          http_code?: never
+          last_checked?: never
+          link_status_val?: never
+          post_id?: string | null
+          title?: string | null
+          url?: string | null
+        }
+        Update: {
+          canonical_url?: string | null
+          confidence_score?: number | null
+          http_code?: never
+          last_checked?: never
+          link_status_val?: never
+          post_id?: string | null
+          title?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
+      vw_quarantine_error_summary: {
+        Row: {
+          err_text: string | null
+          occurrences: number | null
+        }
+        Relationships: []
+      }
+      vw_quarantine_priority: {
+        Row: {
+          error_count: number | null
+          priority_score: number | null
+          quarantine_id: string | null
+          received_at: string | null
+          recency_score: number | null
+          reviewed: boolean | null
+          title: string | null
+          validation_errors: Json | null
+        }
+        Insert: {
+          error_count?: never
+          priority_score?: never
+          quarantine_id?: string | null
+          received_at?: string | null
+          recency_score?: never
+          reviewed?: boolean | null
+          title?: never
+          validation_errors?: Json | null
+        }
+        Update: {
+          error_count?: never
+          priority_score?: never
+          quarantine_id?: string | null
+          received_at?: string | null
+          recency_score?: never
+          reviewed?: boolean | null
+          title?: never
+          validation_errors?: Json | null
+        }
+        Relationships: []
+      }
+      vw_quarantine_recent: {
+        Row: {
+          body_snippet: string | null
+          post_id: string | null
+          quarantine_id: string | null
+          raw_payload: Json | null
+          received_at: string | null
+          review_notes: string | null
+          reviewed: boolean | null
+          reviewer: string | null
+          source: string | null
+          source_url: string | null
+          title: string | null
+          validation_errors: Json | null
+        }
+        Insert: {
+          body_snippet?: never
+          post_id?: string | null
+          quarantine_id?: string | null
+          raw_payload?: Json | null
+          received_at?: string | null
+          review_notes?: string | null
+          reviewed?: boolean | null
+          reviewer?: string | null
+          source?: never
+          source_url?: never
+          title?: never
+          validation_errors?: Json | null
+        }
+        Update: {
+          body_snippet?: never
+          post_id?: string | null
+          quarantine_id?: string | null
+          raw_payload?: Json | null
+          received_at?: string | null
+          review_notes?: string | null
+          reviewed?: boolean | null
+          reviewer?: string | null
+          source?: never
+          source_url?: never
+          title?: never
+          validation_errors?: Json | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_glucose_filter_options: { Args: never; Returns: Json }

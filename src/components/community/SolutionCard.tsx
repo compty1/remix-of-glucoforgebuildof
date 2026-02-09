@@ -147,6 +147,19 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-wrap">
             {getSentimentIcon()}
+            {/* Confidence Badge */}
+            {post.confidence_score != null && (
+              <Badge 
+                variant="outline" 
+                className={`text-xs ${
+                  post.confidence_score >= 0.7 ? 'border-green-500 text-green-700' : 
+                  post.confidence_score >= 0.4 ? 'border-yellow-500 text-yellow-700' : 
+                  'border-red-500 text-red-700'
+                }`}
+              >
+                {post.confidence_score >= 0.7 ? 'High' : post.confidence_score >= 0.4 ? 'Medium' : 'Low'} confidence
+              </Badge>
+            )}
             {/* Source Category Badge */}
             <Badge 
               variant="outline" 
@@ -366,6 +379,14 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
                   size="sm"
                   className="h-8 text-xs"
                 >
+                  {/* Link Status Dot */}
+                  <span className={`inline-block w-2 h-2 rounded-full mr-1 ${
+                    post.link_status?.status === 'ok' || post.link_status?.status === 'ok_fallback'
+                      ? 'bg-green-500' 
+                      : post.link_status?.status === 'dead' 
+                        ? 'bg-red-500' 
+                        : 'bg-yellow-500'
+                  }`} />
                   <ExternalLink className="h-3.5 w-3.5 mr-1" />
                   Find Discussion
                 </Button>
