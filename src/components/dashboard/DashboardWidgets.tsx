@@ -159,9 +159,9 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
               
               const { data: surveys } = await supabase
                 .from('survey_responses')
-                .select('id, survey_id, submitted_at')
+                .select('id, survey_id, completed_at')
                 .eq('user_id', user.id)
-                .order('submitted_at', { ascending: false })
+                .order('completed_at', { ascending: false })
                 .limit(3);
               
               setData({
