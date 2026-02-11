@@ -59,6 +59,23 @@ export function PopulationTrendsTab({ currentTIR, currentCV, currentAvgGlucose }
 
   return (
     <div className="space-y-6">
+      {/* Population Trends Overview */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="p-4 flex items-start gap-3">
+          <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-medium mb-1">About Population-Level Trends</p>
+            <p className="text-muted-foreground">
+              This tab compares glycemic outcomes across major T1D research cohorts and tracks multi-year trends in 
+              technology adoption and glycemic control. Data is sourced from published studies (JAEB T1D Exchange, UK Biobank, 
+              TEDDY, JDRF CREATE) and aggregated CGM datasets. The improvement in population TIR since 2018 is primarily 
+              attributed to increased CGM and AID adoption, with the ATTD consensus establishing 70% TIR as the recommended target. 
+              Regional disparities reflect differences in healthcare access, insurance coverage, and technology availability.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Key Trend Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
@@ -95,7 +112,11 @@ export function PopulationTrendsTab({ currentTIR, currentCV, currentAvgGlucose }
       <Card>
         <CardHeader>
           <CardTitle>Population TIR Trends (2018-2024)</CardTitle>
-          <CardDescription>How Time in Range has improved across AID, MDI, and overall populations</CardDescription>
+          <CardDescription>
+            Year-over-year Time in Range trends segmented by insulin delivery method. AID users consistently outperform MDI 
+            users by 15–22 percentage points. The overall population TIR improvement tracks closely with CGM adoption rates, 
+            suggesting CGM awareness alone drives better decision-making even without automated systems.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={320}>
@@ -120,7 +141,11 @@ export function PopulationTrendsTab({ currentTIR, currentCV, currentAvgGlucose }
             <Globe className="h-5 w-5" />
             Cross-Study Comparison
           </CardTitle>
-          <CardDescription>How this dataset compares to major T1D research cohorts</CardDescription>
+          <CardDescription>
+            Side-by-side comparison of this dataset's metrics with published cohort studies. The "N" column shows participant count — 
+            larger cohorts provide more statistical power. Color-coded TIR values: green ≥70% (meets ATTD target), yellow 60–69%, 
+            red &lt;60%. The ATTD Consensus row represents recommended clinical targets, not measured data.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -167,6 +192,10 @@ export function PopulationTrendsTab({ currentTIR, currentCV, currentAvgGlucose }
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Regional TIR Comparison</CardTitle>
+            <CardDescription>
+              TIR and CGM usage rates by world region. Regions with higher CGM adoption consistently show better TIR outcomes, 
+              demonstrating the strong correlation between technology access and glycemic control.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>
@@ -187,6 +216,10 @@ export function PopulationTrendsTab({ currentTIR, currentCV, currentAvgGlucose }
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Technology Adoption Trends</CardTitle>
+            <CardDescription>
+              Percentage of T1D population using CGM, insulin pumps, and AID systems from 2018–2024. 
+              AID adoption has grown 10× since 2018, driven by FDA clearances of Control-IQ (2020), Omnipod 5 (2022), and 780G (2023).
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={260}>

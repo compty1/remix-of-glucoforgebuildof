@@ -39,6 +39,24 @@ const RADAR_DATA = [
 export function SeasonalPatternsTab() {
   return (
     <div className="space-y-6">
+      {/* Seasonal Overview */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="p-4 flex items-start gap-3">
+          <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-medium mb-1">About Seasonal Patterns</p>
+            <p className="text-muted-foreground">
+              Seasonal glucose patterns are analyzed by aggregating CGM data across calendar months and grouping into 
+              meteorological seasons (Winter: Dec–Feb, Spring: Mar–May, Summer: Jun–Aug, Autumn: Sep–Nov). Research from 
+              the DCCT/EDIC trial and population-level CGM studies consistently show that glucose control varies seasonally 
+              due to changes in physical activity, dietary patterns, daylight exposure affecting circadian rhythms, and 
+              temperature-related insulin absorption rates. Warmer months typically see improved insulin sensitivity from 
+              increased blood flow and activity levels.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Season Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {SEASONAL_SUMMARY.map((season) => {
@@ -64,7 +82,11 @@ export function SeasonalPatternsTab() {
       <Card>
         <CardHeader>
           <CardTitle>Monthly Glucose Trends</CardTitle>
-          <CardDescription>Average glucose and Time in Range across the calendar year</CardDescription>
+          <CardDescription>
+            Average glucose and Time in Range plotted across all 12 calendar months. The left axis tracks average glucose (mg/dL) — 
+            lower values indicate better glycemic control. The right axis shows TIR (%) — higher values are better. 
+            Notice the inverse relationship: months with lower average glucose correspond to higher TIR.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={320}>
@@ -87,7 +109,11 @@ export function SeasonalPatternsTab() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Seasonal Performance Radar</CardTitle>
-            <CardDescription>Comparing glucose management across seasons</CardDescription>
+            <CardDescription>
+              Multi-metric comparison across seasons. Each axis represents a normalized score (0–100) for: TIR, 
+              low CV (glucose stability), low hypo events, overall stability, and average glucose. 
+              Larger area = better overall performance for that season.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
@@ -108,7 +134,11 @@ export function SeasonalPatternsTab() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Hypoglycemia Events by Month</CardTitle>
-            <CardDescription>Average hypo events per user per month</CardDescription>
+            <CardDescription>
+              Average number of hypoglycemia episodes (&lt;70 mg/dL for ≥15 minutes) per user per month. 
+              Summer months show slightly higher hypo rates due to increased physical activity and improved insulin sensitivity, 
+              which can cause unexpected lows. December spikes reflect holiday meal irregularities.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>

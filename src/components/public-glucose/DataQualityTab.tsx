@@ -55,6 +55,24 @@ export function DataQualityTab({ totalRecords, uniqueUsers }: DataQualityTabProp
 
   return (
     <div className="space-y-6">
+      {/* Data Quality Overview */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="p-4 flex items-start gap-3">
+          <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-medium mb-1">About Data Quality Metrics</p>
+            <p className="text-muted-foreground">
+              Data quality is assessed across four dimensions: <strong>Completeness</strong> measures the percentage of required 
+              fields (timestamp, glucose value, user demographics, device info) present in each record. <strong>Confidence scores</strong> (0–1) 
+              combine completeness with sensor calibration status, data continuity (gaps &lt;30 min), and cross-validation against 
+              known physiological ranges (40–500 mg/dL). Sources are categorized as: <strong>Registry</strong> (curated clinical datasets with 
+              rigorous validation), <strong>Platform</strong> (CGM manufacturer or management app exports), <strong>Study</strong> (controlled 
+              research cohort data), and <strong>Community</strong> (user-contributed open-source datasets).
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Overview Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
@@ -92,7 +110,11 @@ export function DataQualityTab({ totalRecords, uniqueUsers }: DataQualityTabProp
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Confidence Score Distribution</CardTitle>
-            <CardDescription>How many sources fall into each confidence band</CardDescription>
+            <CardDescription>
+              Records grouped by confidence band. High confidence (≥0.8) means complete required fields, validated timestamps, 
+              and continuous sensor data. Medium (0.5–0.8) may have some missing demographics or minor gaps. Low (&lt;0.5) has significant 
+              missing data but glucose values are still valid.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
@@ -110,7 +132,10 @@ export function DataQualityTab({ totalRecords, uniqueUsers }: DataQualityTabProp
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Source Type Breakdown</CardTitle>
-            <CardDescription>Records by data source category</CardDescription>
+            <CardDescription>
+              Total records contributed by each source category. Registry data (T1D Exchange, JAEB) has the highest validation standards. 
+              Platform data (Tidepool, Nightscout) provides the most volume. Study data (UK Biobank, TEDDY) offers controlled research context.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={220}>
@@ -134,7 +159,11 @@ export function DataQualityTab({ totalRecords, uniqueUsers }: DataQualityTabProp
             <Database className="h-5 w-5" />
             Source Attribution & Quality Metrics
           </CardTitle>
-          <CardDescription>Per-dataset confidence, completeness, and contribution metrics</CardDescription>
+          <CardDescription>
+            Detailed per-source breakdown showing records contributed, user count, data completeness (percentage of required fields present), 
+            confidence score (combined quality metric), and date range of available data. Sources with confidence ≥0.90 are highlighted 
+            as high-quality and given greater weight in population-level analyses.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">

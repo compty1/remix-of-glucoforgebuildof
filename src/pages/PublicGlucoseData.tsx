@@ -775,6 +775,11 @@ export default function PublicGlucoseData() {
                       <TrendingUp className="h-5 w-5" />
                       Time in Range Distribution
                     </CardTitle>
+                    <CardDescription>
+                      Breakdown of glucose readings into clinical ranges defined by the ADA/ATTD consensus: Below Range (&lt;70 mg/dL, hypoglycemia risk), 
+                      In Range (70–180 mg/dL, the primary glycemic target), and Above Range (&gt;180 mg/dL, hyperglycemia). 
+                      Clinical targets recommend ≥70% time in range, &lt;4% below range, and &lt;25% above range.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={200}>
@@ -788,9 +793,40 @@ export default function PublicGlucoseData() {
                     </ResponsiveContainer>
                   </CardContent>
                 </Card>
+
+                {/* Patterns Explanation */}
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardContent className="p-4 flex items-start gap-3">
+                    <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="font-medium mb-1">Understanding Daily Patterns</p>
+                      <p className="text-muted-foreground">
+                        The 24-hour glucose pattern chart shows the average, minimum, and maximum glucose values across all users for each hour of the day. 
+                        The <strong>dawn phenomenon</strong> (4–7 AM rise) is caused by overnight counter-regulatory hormone surges (cortisol, growth hormone) that 
+                        increase hepatic glucose output. <strong>Post-meal spikes</strong> visible after 8 AM, 12 PM, and 6 PM reflect carbohydrate absorption timing. 
+                        The shaded area between min and max represents the population's glucose variability at each hour — narrower bands indicate more consistent control.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
 
               <TabsContent value="demographics" className="space-y-6">
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardContent className="p-4 flex items-start gap-3">
+                    <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="font-medium mb-1">About Demographics Data</p>
+                      <p className="text-muted-foreground">
+                        Demographics data is derived from self-reported user profiles across all integrated data sources. Age groups, geographic regions, 
+                        and device usage are cross-referenced to reveal how population characteristics correlate with glycemic outcomes. 
+                        Research from the T1D Exchange registry consistently shows that adolescents (13–17) have the lowest TIR due to hormonal changes, 
+                        while older adults (60+) often achieve the highest TIR. Regional differences primarily reflect technology access and healthcare infrastructure.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 {/* Age-based TIR */}
                 <Card>
                   <CardHeader>
@@ -798,7 +834,11 @@ export default function PublicGlucoseData() {
                       <Users className="h-5 w-5" />
                       Time in Range by Age Group
                     </CardTitle>
-                    <CardDescription>Comparing glycemic control across different age groups</CardDescription>
+                    <CardDescription>
+                      Comparing glycemic control across different age groups. Each bar represents the average percentage of time 
+                      glucose readings fall within the 70–180 mg/dL target range for users in that age bracket. Data is aggregated 
+                      from all sources with demographic information available.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={280}>
@@ -823,6 +863,10 @@ export default function PublicGlucoseData() {
                     <Card>
                       <CardHeader>
                         <CardTitle>Age Distribution</CardTitle>
+                        <CardDescription>
+                          Proportional representation of each age group in the dataset. Larger segments indicate more data points, 
+                          which increases statistical confidence for that group's glucose metrics.
+                        </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <ResponsiveContainer width="100%" height={250}>
@@ -850,6 +894,10 @@ export default function PublicGlucoseData() {
                     <Card>
                       <CardHeader>
                         <CardTitle>Top Regions</CardTitle>
+                        <CardDescription>
+                          Geographic distribution of data contributors. North America and Europe typically dominate due to higher 
+                          CGM adoption rates and availability of data-sharing platforms like Nightscout and Tidepool.
+                        </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <ResponsiveContainer width="100%" height={250}>
@@ -868,6 +916,22 @@ export default function PublicGlucoseData() {
               </TabsContent>
 
               <TabsContent value="devices" className="space-y-6">
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardContent className="p-4 flex items-start gap-3">
+                    <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                    <div className="text-sm">
+                      <p className="font-medium mb-1">About Device Analysis</p>
+                      <p className="text-muted-foreground">
+                        This tab compares glycemic outcomes across different insulin delivery methods. <strong>AID (Automated Insulin Delivery)</strong> systems 
+                        like Omnipod 5, Tandem Control-IQ, and Medtronic 780G automatically adjust basal insulin rates based on CGM readings, typically 
+                        achieving 10–15% higher TIR than manual dosing. <strong>MDI (Multiple Daily Injections)</strong> relies on user-administered 
+                        basal and bolus injections. The JDRF CREATE trial (2022) demonstrated that AID systems significantly improve TIR while reducing 
+                        hypoglycemia events, particularly overnight.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 {/* Device-based TIR */}
                 <Card>
                   <CardHeader>
@@ -875,7 +939,11 @@ export default function PublicGlucoseData() {
                       <Cpu className="h-5 w-5" />
                       Time in Range by Insulin Delivery Method
                     </CardTitle>
-                    <CardDescription>Comparing control outcomes across different pump systems and MDI</CardDescription>
+                    <CardDescription>
+                      Comparing control outcomes across different pump systems and MDI. Each bar represents the average TIR 
+                      for users on that delivery method. AID systems automate basal adjustments every 5 minutes based on predicted glucose, 
+                      while standard pumps and MDI require manual dosing decisions.
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
@@ -893,7 +961,8 @@ export default function PublicGlucoseData() {
                     </ResponsiveContainer>
                     <p className="text-sm text-muted-foreground mt-4">
                       Note: Automated insulin delivery (AID) systems like Omnipod 5, Tandem t:slim X2 with Control-IQ, 
-                      and Medtronic 780G typically show higher TIR due to automated basal adjustments.
+                      and Medtronic 780G typically show higher TIR due to automated basal adjustments every 5 minutes. 
+                      Users on MDI can still achieve excellent control with consistent carb counting and pre-bolusing strategies.
                     </p>
                   </CardContent>
                 </Card>
@@ -903,6 +972,11 @@ export default function PublicGlucoseData() {
                   <Card>
                     <CardHeader>
                       <CardTitle>Insulin Delivery Method Distribution</CardTitle>
+                      <CardDescription>
+                        Proportional breakdown of insulin delivery methods used by participants in this dataset. 
+                        Globally, pump and AID adoption has grown from ~28% in 2018 to over 52% in 2024, 
+                        driven by improved insurance coverage and clinical evidence from trials like JDRF CREATE and ATTD consensus recommendations.
+                      </CardDescription>
                     </CardHeader>
                     <CardContent>
                       <ResponsiveContainer width="100%" height={250}>
@@ -932,6 +1006,22 @@ export default function PublicGlucoseData() {
               <TabsContent value="variability" className="space-y-6">
                 {variabilityAnalysis && (
                   <>
+                    <Card className="border-primary/20 bg-primary/5">
+                      <CardContent className="p-4 flex items-start gap-3">
+                        <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                        <div className="text-sm">
+                          <p className="font-medium mb-1">Understanding Glucose Variability</p>
+                          <p className="text-muted-foreground">
+                            Glucose variability measures how much blood sugar levels fluctuate over time. The <strong>Coefficient of Variation (CV)</strong> is 
+                            calculated as standard deviation divided by mean glucose × 100. The International Consensus on CGM (2019, DOI: 10.2337/dc19-1009) 
+                            established CV &lt;36% as the target, as it is independently associated with reduced hypoglycemia risk regardless of A1C. 
+                            <strong> Standard Deviation (SD)</strong> shows the absolute spread of glucose values in mg/dL. 
+                            <strong> Mean Glucose</strong> is the arithmetic average of all readings and is used to calculate the Glucose Management Indicator (GMI).
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
                     {/* Overall Variability Stats */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <Card>
@@ -977,7 +1067,9 @@ export default function PublicGlucoseData() {
                           Glucose Variability by Time of Day
                         </CardTitle>
                         <CardDescription>
-                          Lower CV indicates more stable glucose. Target: CV &lt; 36%
+                          CV and average glucose broken down by time blocks (overnight, morning, afternoon, evening). 
+                          Overnight periods typically show lower CV due to reduced food intake, while post-meal periods show higher 
+                          variability. Target: CV &lt; 36% for each time block indicates stable control throughout the day.
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
@@ -1009,8 +1101,8 @@ export default function PublicGlucoseData() {
                             <p className="font-medium">Clinical Interpretation</p>
                             <p className="text-muted-foreground">
                               {variabilityAnalysis.overallCV < 36 
-                                ? `CV of ${variabilityAnalysis.overallCV}% is within the target range (<36%), indicating stable glucose control with reduced hypoglycemia risk.`
-                                : `CV of ${variabilityAnalysis.overallCV}% is above the target of 36%, suggesting higher glucose variability. Consider reviewing meal timing, insulin timing, and activity patterns.`
+                                ? `CV of ${variabilityAnalysis.overallCV}% is within the target range (<36%), indicating stable glucose control with reduced hypoglycemia risk. The International Consensus on CGM recommends maintaining CV below 36% as an independent predictor of hypoglycemia prevention, separate from A1C targets.`
+                                : `CV of ${variabilityAnalysis.overallCV}% is above the target of 36%, suggesting higher glucose variability and increased hypoglycemia risk. Consider reviewing meal timing, insulin-to-carb ratios, correction factors, and activity patterns. High CV is independently associated with adverse cardiovascular outcomes per the DCCT/EDIC follow-up data.`
                               }
                             </p>
                           </div>
@@ -1024,6 +1116,21 @@ export default function PublicGlucoseData() {
               <TabsContent value="mealtime" className="space-y-6">
                 {mealPatternAnalysis && mealPatternAnalysis.carbRangeStats.length > 0 ? (
                   <>
+                    <Card className="border-primary/20 bg-primary/5">
+                      <CardContent className="p-4 flex items-start gap-3">
+                        <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                        <div className="text-sm">
+                          <p className="font-medium mb-1">About Meal Pattern Data</p>
+                          <p className="text-muted-foreground">
+                            Meal data is collected from users who log carbohydrate intake alongside their CGM readings. Each data point pairs a 
+                            carb amount with the subsequent 3-hour glucose response window. This analysis reveals how different carb loads 
+                            affect post-prandial glucose control across the population. Research from the ADA Standards of Care (2024) confirms 
+                            that carb counting accuracy and pre-bolus timing are the two strongest modifiable predictors of post-meal glucose outcomes.
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
                     {/* Carb Range Analysis */}
                     <Card>
                       <CardHeader>
@@ -1032,7 +1139,9 @@ export default function PublicGlucoseData() {
                           Glucose Outcomes by Carb Intake
                         </CardTitle>
                         <CardDescription>
-                          How different carb amounts correlate with Time in Range ({mealPatternAnalysis.totalMealEvents.toLocaleString()} meal events)
+                          How different carb amounts correlate with Time in Range across {mealPatternAnalysis.totalMealEvents.toLocaleString()} meal events. 
+                          The left axis shows average glucose (mg/dL) during the 3-hour post-meal window, while the right axis shows the 
+                          percentage of time spent within the 70–180 mg/dL target range during that period.
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
@@ -1057,12 +1166,13 @@ export default function PublicGlucoseData() {
                         <div className="flex items-start gap-3">
                           <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                           <div className="text-sm">
-                            <p className="font-medium mb-2">Meal Management Tips from Research</p>
+                            <p className="font-medium mb-2">Evidence-Based Meal Management Strategies</p>
                             <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                              <li>Pre-bolus 15-20 minutes before eating to reduce post-meal spikes</li>
-                              <li>Lower carb meals often result in more stable glucose patterns</li>
-                              <li>Consider protein and fat content which slow carb absorption</li>
-                              <li>Activity after meals can help reduce glucose spikes</li>
+                              <li><strong>Pre-bolus 15–20 minutes</strong> before eating to allow insulin onset to match carb absorption (ADA Standards of Care 2024)</li>
+                              <li><strong>Lower carb meals</strong> produce smaller glucose excursions and require less insulin, reducing dosing error impact</li>
+                              <li><strong>Protein and fat</strong> slow gastric emptying, extending carb absorption over 3–5 hours — consider extended boluses for high-fat meals</li>
+                              <li><strong>Post-meal activity</strong> (even a 15-minute walk) can reduce peak glucose by 20–30 mg/dL through GLUT4-mediated glucose uptake</li>
+                              <li><strong>Glycemic index matters</strong>: low-GI foods produce more gradual glucose rises, improving post-meal TIR</li>
                             </ul>
                           </div>
                         </div>
@@ -1075,7 +1185,8 @@ export default function PublicGlucoseData() {
                       <Utensils className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                       <h3 className="text-xl font-semibold mb-2">Limited Meal Data</h3>
                       <p className="text-muted-foreground">
-                        Not enough meal data in the current filter selection.
+                        Meal data requires users to log carbohydrate intake alongside CGM readings. Not enough paired meal-glucose 
+                        data is available in the current filter selection. Try broadening your filters to include more data sources.
                       </p>
                     </CardContent>
                   </Card>
@@ -1085,6 +1196,22 @@ export default function PublicGlucoseData() {
               <TabsContent value="insulin" className="space-y-6">
                 {insulinDosingAnalysis && insulinDosingAnalysis.doseRangeStats.length > 0 ? (
                   <>
+                    <Card className="border-primary/20 bg-primary/5">
+                      <CardContent className="p-4 flex items-start gap-3">
+                        <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+                        <div className="text-sm">
+                          <p className="font-medium mb-1">About Insulin Dosing Data</p>
+                          <p className="text-muted-foreground">
+                            This tab analyzes the relationship between insulin dosing patterns and glucose outcomes across the population. 
+                            <strong> Bolus doses</strong> are rapid-acting insulin given for meals or corrections. <strong>Basal rates</strong> are 
+                            background insulin delivered continuously by pumps or via long-acting injections. Data is sourced from pump uploads 
+                            (Omnipod, Tandem, Medtronic) and manually logged injection records. These are population-level correlations — 
+                            individual insulin needs vary based on insulin sensitivity, body weight, activity, and many other factors.
+                          </p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
                     {/* Stats */}
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       <Card>
@@ -1119,7 +1246,9 @@ export default function PublicGlucoseData() {
                           Glucose Outcomes by Bolus Dose Size
                         </CardTitle>
                         <CardDescription>
-                          How different bolus amounts correlate with Time in Range
+                          How different bolus amounts correlate with glucose outcomes. The left axis shows the average glucose (mg/dL) 
+                          in the 3 hours following the dose, while the right axis shows the percentage of that time spent in range (70–180 mg/dL). 
+                          Larger doses generally correspond to larger meals and may show higher variability.
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
@@ -1144,7 +1273,9 @@ export default function PublicGlucoseData() {
                         <CardHeader>
                           <CardTitle>Glucose by Basal Rate</CardTitle>
                           <CardDescription>
-                            Time in Range across different basal insulin rates (pump users)
+                            Time in Range across different basal insulin rates for pump users. Basal rates represent the continuous 
+                            background insulin delivery (units/hour). Optimal basal rates keep fasting glucose stable without causing 
+                            overnight hypoglycemia. AID systems automatically adjust these rates every 5 minutes.
                           </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -1167,10 +1298,12 @@ export default function PublicGlucoseData() {
                       <CardContent className="p-4 flex items-start gap-3">
                         <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
                         <div className="text-sm">
-                          <p className="font-medium text-amber-900 dark:text-amber-100">Important Note</p>
+                          <p className="font-medium text-amber-900 dark:text-amber-100">Important Medical Disclaimer</p>
                           <p className="text-amber-800 dark:text-amber-200">
-                            Insulin dosing is highly individual. These population-level patterns show correlations, not causation.
-                            Never adjust your insulin without consulting your healthcare provider.
+                            Insulin dosing is highly individual and depends on insulin sensitivity, body weight, activity level, stress, 
+                            illness, and many other factors. These population-level patterns show statistical correlations, not causation. 
+                            Never adjust your insulin doses, basal rates, or insulin-to-carb ratios without consulting your endocrinologist 
+                            or diabetes care team. Incorrect dosing can cause dangerous hypoglycemia or diabetic ketoacidosis.
                           </p>
                         </div>
                       </CardContent>
@@ -1182,7 +1315,8 @@ export default function PublicGlucoseData() {
                       <Syringe className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                       <h3 className="text-xl font-semibold mb-2">Limited Insulin Data</h3>
                       <p className="text-muted-foreground">
-                        Not enough insulin dosing data in the current filter selection.
+                        Insulin dosing data requires pump uploads or manual injection logging. Not enough insulin-glucose paired 
+                        data is available in the current filter selection. Try including more data sources.
                       </p>
                     </CardContent>
                   </Card>
