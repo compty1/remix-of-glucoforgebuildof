@@ -76,7 +76,7 @@ import {
 import { useAuthStore } from '@/store/authStore';
 import { supabase } from '@/integrations/supabase/client';
 import { EntityLogo } from '@/components/ui/entity-logo';
-import dropIcon from '@/assets/glucoforge-logo-new.png';
+import dropIcon from '@/assets/glycoforge-drop-icon-new.png';
 
 // ============================================
 // REORGANIZED NAVIGATION STRUCTURE
@@ -329,11 +329,11 @@ export function AppSidebar() {
         <div className="flex items-center justify-center mb-6 px-2">
           {state === "collapsed" ? (
             <div className="flex items-center justify-center">
-              <img src={dropIcon} alt="GF" className="h-10 w-10 flex-shrink-0 logo-animated-drop object-contain" />
+              <img src={dropIcon} alt="GF" className="h-8 w-8 flex-shrink-0 logo-animated-drop object-contain" />
             </div>
           ) : (
-            <div className="flex items-center gap-3 w-full px-2">
-              <img src={dropIcon} alt="GlucoForge" className="h-10 w-10 flex-shrink-0 logo-animated-drop object-contain" />
+            <div className="flex items-center gap-2.5 w-full px-2">
+              <img src={dropIcon} alt="GlucoForge" className="h-8 w-8 flex-shrink-0 logo-animated-drop object-contain" />
               <span className="text-xl font-bold bg-gradient-to-r from-brand-purple-dark to-brand-purple-light bg-clip-text text-transparent">
                 GlucoForge
               </span>
