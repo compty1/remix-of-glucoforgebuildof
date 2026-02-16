@@ -4,13 +4,156 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip } from 'recharts';
-import { TrendingUp, Calendar, Users, Target, Beaker, ExternalLink, AlertCircle, Award, Lightbulb } from 'lucide-react';
+import { TrendingUp, Calendar, Users, Target, Beaker, ExternalLink, AlertCircle, Award, Lightbulb, Heart, Dna, FlaskConical, Microscope } from 'lucide-react';
 import { useState } from 'react';
 import { useClinicalTrialsDetailed } from '@/hooks/useClinicalTrialsDetailed';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { EntityLogo } from '@/components/ui/entity-logo';
 import CureProgressStats from '@/components/cure/CureProgressStats';
+import { motion } from 'framer-motion';
+
+function CureHeroAnimation() {
+  const phases = [
+    { label: 'Discovery', icon: Microscope, progress: 100, color: 'hsl(var(--chart-4))' },
+    { label: 'Phase 1', icon: FlaskConical, progress: 100, color: 'hsl(var(--chart-2))' },
+    { label: 'Phase 2', icon: Dna, progress: 75, color: 'hsl(var(--chart-5))' },
+    { label: 'Phase 3', icon: Beaker, progress: 40, color: 'hsl(var(--chart-3))' },
+    { label: 'Cure', icon: Heart, progress: 0, color: 'hsl(var(--success))' },
+  ];
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-primary/5 via-background to-accent/5 p-6 md:p-10 mb-8">
+      {/* Floating background particles */}
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full bg-primary/10"
+          style={{
+            width: 8 + i * 6,
+            height: 8 + i * 6,
+            top: `${15 + i * 14}%`,
+            left: `${10 + i * 15}%`,
+          }}
+          animate={{
+            y: [0, -20, 0],
+            opacity: [0.3, 0.6, 0.3],
+          }}
+          transition={{
+            duration: 3 + i * 0.5,
+            repeat: Infinity,
+            delay: i * 0.4,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+
+      <div className="relative z-10">
+        {/* Title */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-8"
+        >
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
+            The Journey to a <span className="text-gradient">T1D Cure</span>
+          </h2>
+          <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto">
+            Tracking the global pipeline from lab discovery to real-world cure
+          </p>
+        </motion.div>
+
+        {/* Animated Pipeline */}
+        <div className="flex items-center justify-between gap-2 md:gap-0 max-w-3xl mx-auto">
+          {phases.map((phase, i) => {
+            const Icon = phase.icon;
+            return (
+              <div key={phase.label} className="flex items-center flex-1 last:flex-initial">
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.3 + i * 0.15, type: 'spring', stiffness: 200 }}
+                  className="flex flex-col items-center gap-2 relative"
+                >
+                  <motion.div
+                    className="w-12 h-12 md:w-14 md:h-14 rounded-full flex items-center justify-center border-2"
+                    style={{
+                      borderColor: phase.color,
+                      background: phase.progress === 100
+                        ? phase.color
+                        : 'hsl(var(--background))',
+                    }}
+                    animate={phase.progress > 0 && phase.progress < 100 ? {
+                      boxShadow: [
+                        `0 0 0px ${phase.color}`,
+                        `0 0 20px ${phase.color}`,
+                        `0 0 0px ${phase.color}`,
+                      ],
+                    } : {}}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <Icon
+                      className="h-5 w-5 md:h-6 md:w-6"
+                      style={{
+                        color: phase.progress === 100
+                          ? 'hsl(var(--background))'
+                          : phase.color,
+                      }}
+                    />
+                  </motion.div>
+                  <span className="text-[10px] md:text-xs font-medium text-muted-foreground text-center">
+                    {phase.label}
+                  </span>
+                  {phase.progress > 0 && phase.progress < 100 && (
+                    <motion.span
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 1 }}
+                      className="text-[10px] font-bold"
+                      style={{ color: phase.color }}
+                    >
+                      {phase.progress}%
+                    </motion.span>
+                  )}
+                </motion.div>
+
+                {/* Connector line */}
+                {i < phases.length - 1 && (
+                  <div className="flex-1 h-0.5 bg-border mx-1 md:mx-3 relative overflow-hidden">
+                    <motion.div
+                      className="absolute inset-y-0 left-0 h-full"
+                      style={{ background: phase.color }}
+                      initial={{ width: '0%' }}
+                      animate={{ width: `${phase.progress}%` }}
+                      transition={{ delay: 0.6 + i * 0.2, duration: 1, ease: 'easeOut' }}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Animated pulse text */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.5 }}
+          className="text-center text-xs text-muted-foreground mt-6"
+        >
+          <span className="inline-flex items-center gap-1.5">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
+            </span>
+            Live data from global clinical trial registries
+          </span>
+        </motion.p>
+      </div>
+    </div>
+  );
+}
 
 export default function CureProgress() {
   const { data: clinicalTrials, loading, error, refreshData } = useClinicalTrialsDetailed();
@@ -68,6 +211,9 @@ export default function CureProgress() {
           <p className="text-muted-foreground mb-8">
             Real-time tracking of Type 1 diabetes cure research progress from ClinicalTrials.gov worldwide database.
           </p>
+
+          {/* Illustrative Cure Pipeline Animation */}
+          <CureHeroAnimation />
 
           {error && (
             <Alert variant="destructive" className="mb-8">
