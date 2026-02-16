@@ -22,6 +22,7 @@ const TYPE_ICONS: Record<string, string> = {
   device: '📱',
   fda_alert: '⚠️',
   challenge: '🏃',
+  connection_request: '🤝',
 };
 
 function NotificationItem({ 

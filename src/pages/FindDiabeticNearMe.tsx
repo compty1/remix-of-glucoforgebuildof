@@ -7,13 +7,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Users, Building2, Globe, Search, ExternalLink, Shield, Heart, MessageCircle, Eye, Lightbulb } from 'lucide-react';
+import { MapPin, Users, Building2, Globe, Search, ExternalLink, Shield, Heart, MessageCircle, Eye, Lightbulb, Handshake } from 'lucide-react';
 import { useDiabeticProfiles } from '@/hooks/useDiabeticProfiles';
 import { useCommunityDirectory } from '@/hooks/useCommunityDirectory';
 import { UserProfileCard } from '@/components/find-diabetics/UserProfileCard';
 import { CommunityDirectoryCard } from '@/components/find-diabetics/CommunityDirectoryCard';
 import { OptInBanner } from '@/components/find-diabetics/OptInBanner';
 import { ConnectionRequestModal } from '@/components/find-diabetics/ConnectionRequestModal';
+import { ConnectionsTab } from '@/components/find-diabetics/ConnectionsTab';
 import { useAuthStore } from '@/store/authStore';
 
 const US_STATES = [
@@ -57,7 +58,8 @@ const FindDiabeticNearMe: React.FC = () => {
   const [locationInput, setLocationInput] = useState('');
   const [connectUserId, setConnectUserId] = useState<string | null>(null);
 
-  const { profiles, isLoading, myProfile, myProfileLoading, upsertProfile, sendConnectionRequest, myRequests } = useDiabeticProfiles(stateFilter, searchQuery);
+  const { profiles, isLoading, myProfile, myProfileLoading, upsertProfile, sendConnectionRequest, myRequests, connectedProfiles, updateConnectionStatus } = useDiabeticProfiles(stateFilter, searchQuery);
+  const pendingIncomingCount = myRequests.filter(r => r.to_user_id === user?.id && r.status === 'pending').length;
   const { data: directory = [], isLoading: dirLoading } = useCommunityDirectory(stateFilter, orgTypeFilter || undefined);
 
   const sentRequestUserIds = myRequests.filter(r => r.from_user_id === user?.id).map(r => r.to_user_id);
@@ -117,10 +119,18 @@ const FindDiabeticNearMe: React.FC = () => {
         )}
 
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid grid-cols-4 w-full max-w-xl mx-auto">
+          <TabsList className="grid grid-cols-5 w-full max-w-2xl mx-auto">
             <TabsTrigger value="users"><Users className="h-4 w-4 mr-1" /> People</TabsTrigger>
             <TabsTrigger value="orgs"><Building2 className="h-4 w-4 mr-1" /> Orgs</TabsTrigger>
             <TabsTrigger value="online"><Globe className="h-4 w-4 mr-1" /> Online</TabsTrigger>
+            <TabsTrigger value="connections" className="relative">
+              <Handshake className="h-4 w-4 mr-1" /> Connections
+              {pendingIncomingCount > 0 && (
+                <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
+                  {pendingIncomingCount}
+                </Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="tips"><Lightbulb className="h-4 w-4 mr-1" /> Tips</TabsTrigger>
           </TabsList>
 
@@ -276,6 +286,27 @@ const FindDiabeticNearMe: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Connections Tab */}
+          <TabsContent value="connections" className="space-y-4">
+            {user ? (
+              <ConnectionsTab
+                userId={user.id}
+                myRequests={myRequests}
+                connectedProfiles={connectedProfiles}
+                onAccept={(id) => updateConnectionStatus.mutate({ requestId: id, status: 'accepted' })}
+                onDecline={(id) => updateConnectionStatus.mutate({ requestId: id, status: 'declined' })}
+                isUpdating={updateConnectionStatus.isPending}
+              />
+            ) : (
+              <Card className="border-dashed">
+                <CardContent className="py-8 text-center">
+                  <p className="text-muted-foreground">Sign in to manage your connections.</p>
+                  <Button asChild className="mt-3"><a href="/auth">Sign In</a></Button>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Tips Tab */}
