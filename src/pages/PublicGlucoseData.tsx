@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Database, Activity, TrendingUp, Clock, AlertTriangle, Info, Users, MapPin, Cpu, Heart, Lightbulb, BarChart3, Utensils, Syringe, Globe, BookOpen, ExternalLink, Stethoscope, Link2, Shield, Sun, Calculator } from 'lucide-react';
+import { Database, Activity, TrendingUp, Clock, AlertTriangle, Info, Users, MapPin, Cpu, Heart, Lightbulb, BarChart3, Utensils, Syringe, Globe, BookOpen, ExternalLink, Stethoscope, Link2, Shield, Sun, Calculator, Target } from 'lucide-react';
 import { GlucoseInsightCard, type GlucoseInsight } from '@/components/data-upload/GlucoseInsightCard';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,6 +27,7 @@ import { DataQualityTab } from '@/components/public-glucose/DataQualityTab';
 import { SeasonalPatternsTab } from '@/components/public-glucose/SeasonalPatternsTab';
 import { A1CPredictionTab } from '@/components/public-glucose/A1CPredictionTab';
 import { PopulationTrendsTab } from '@/components/public-glucose/PopulationTrendsTab';
+import { PeerComparisonPanel } from '@/components/glucose/PeerComparisonPanel';
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
@@ -590,6 +591,10 @@ export default function PublicGlucoseData() {
                 <TabsTrigger value="population-trends" className="gap-1">
                   <Globe className="h-4 w-4" />
                   Population Trends
+                </TabsTrigger>
+                <TabsTrigger value="your-comparison" className="gap-1">
+                  <Target className="h-4 w-4" />
+                  Your Comparison
                 </TabsTrigger>
               </TabsList>
               
@@ -1511,6 +1516,11 @@ export default function PublicGlucoseData() {
                   currentCV={variabilityAnalysis?.overallCV || 35}
                   currentAvgGlucose={overallStats?.avgGlucose || 145}
                 />
+              </TabsContent>
+
+              {/* Your Comparison Tab */}
+              <TabsContent value="your-comparison">
+                <PeerComparisonPanel />
               </TabsContent>
             </Tabs>
           </div>

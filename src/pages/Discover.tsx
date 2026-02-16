@@ -13,6 +13,7 @@ import { CommunityPulse } from '@/components/discover/CommunityPulse';
 import { CureProgressWidget } from '@/components/discover/CureProgressWidget';
 import { DataSourcesBadge } from '@/components/discover/DataSourcesBadge';
 import { QuickStatCard } from '@/components/discover/QuickStatCard';
+import { PeerComparisonPanel } from '@/components/glucose/PeerComparisonPanel';
 import { useQuery } from '@tanstack/react-query';
 
 interface DiscoveryCardData {
@@ -125,11 +126,12 @@ const Discover = () => {
         <DataSourcesBadge />
 
         {/* Multi-Source Data Widgets */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 my-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 my-8">
           <LiveResearchFeed />
           <TrialSpotlight />
           <CommunityPulse />
           <CureProgressWidget />
+          <PeerComparisonPanel compact />
         </div>
 
         {/* Category Tabs */}

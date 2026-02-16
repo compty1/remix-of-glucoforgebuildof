@@ -5774,6 +5774,7 @@ export type Database = {
     }
     Functions: {
       get_glucose_filter_options: { Args: never; Returns: Json }
+      get_high_performer_benchmarks: { Args: never; Returns: Json }
       get_public_glucose_summary: {
         Args: {
           p_age_range?: string
