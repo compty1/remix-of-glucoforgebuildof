@@ -50,6 +50,7 @@ import { BookmarkedItemsWidget } from '@/components/dashboard/BookmarkedItemsWid
 import { ClaimedProjectsWidget } from '@/components/dashboard/ClaimedProjectsWidget';
 import { AchievementsWidget } from '@/components/dashboard/AchievementsWidget';
 import { StreaksWidget } from '@/components/dashboard/StreaksWidget';
+import { PeerComparisonPanel } from '@/components/glucose/PeerComparisonPanel';
 import { Trophy, Flame } from 'lucide-react';
 
 const availableWidgets: DashboardWidget[] = [
@@ -151,6 +152,15 @@ const availableWidgets: DashboardWidget[] = [
     description: 'Track your daily visit and activity streaks',
     icon: Flame,
     defaultSize: { w: 4, h: 3 }
+  },
+  {
+    id: 'peer-comparison',
+    title: 'Peer Comparison',
+    component: () => <PeerComparisonPanel compact />,
+    category: 'Health',
+    description: 'Compare your glucose data against users with excellent control',
+    icon: Users,
+    defaultSize: { w: 4, h: 4 }
   }
 ];
 
