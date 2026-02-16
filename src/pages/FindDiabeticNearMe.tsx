@@ -58,7 +58,7 @@ const FindDiabeticNearMe: React.FC = () => {
   const [locationInput, setLocationInput] = useState('');
   const [connectUserId, setConnectUserId] = useState<string | null>(null);
 
-  const { profiles, isLoading, myProfile, myProfileLoading, upsertProfile, sendConnectionRequest, myRequests, connectedProfiles, updateConnectionStatus } = useDiabeticProfiles(stateFilter, searchQuery);
+  const { profiles, isLoading, myProfile, myProfileLoading, upsertProfile, sendConnectionRequest, myRequests, connectedProfiles, updateConnectionStatus, removeConnection } = useDiabeticProfiles(stateFilter, searchQuery);
   const pendingIncomingCount = myRequests.filter(r => r.to_user_id === user?.id && r.status === 'pending').length;
   const { data: directory = [], isLoading: dirLoading } = useCommunityDirectory(stateFilter, orgTypeFilter || undefined);
 
@@ -297,7 +297,9 @@ const FindDiabeticNearMe: React.FC = () => {
                 connectedProfiles={connectedProfiles}
                 onAccept={(id) => updateConnectionStatus.mutate({ requestId: id, status: 'accepted' })}
                 onDecline={(id) => updateConnectionStatus.mutate({ requestId: id, status: 'declined' })}
+                onRemove={(id) => removeConnection.mutate(id)}
                 isUpdating={updateConnectionStatus.isPending}
+                isRemoving={removeConnection.isPending}
               />
             ) : (
               <Card className="border-dashed">

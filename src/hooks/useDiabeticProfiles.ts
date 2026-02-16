@@ -172,6 +172,25 @@ export function useDiabeticProfiles(stateFilter?: string, searchQuery?: string) 
     },
   });
 
+  const removeConnection = useMutation({
+    mutationFn: async (requestId: string) => {
+      if (!user) throw new Error('Must be logged in');
+      const { error } = await supabase
+        .from('connection_requests')
+        .delete()
+        .eq('id', requestId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['connection-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['connected-profiles'] });
+      toast({ title: 'Disconnected', description: 'You have removed this connection.' });
+    },
+    onError: (err: any) => {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    },
+  });
+
   return {
     profiles: profilesQuery.data || [],
     isLoading: profilesQuery.isLoading,
@@ -182,5 +201,6 @@ export function useDiabeticProfiles(stateFilter?: string, searchQuery?: string) 
     myRequests: myRequestsQuery.data || [],
     connectedProfiles: connectedProfilesQuery.data || [],
     updateConnectionStatus,
+    removeConnection,
   };
 }
