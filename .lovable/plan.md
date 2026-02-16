@@ -1,76 +1,125 @@
 
 
-# Compare Your Data to High-Performing Users
+# Find a Diabetic Near Me
 
 ## Overview
-Create a "Peer Comparison" feature that compares the logged-in user's uploaded CGM data against population benchmarks from the public glucose dataset -- specifically filtering for users with "excellent" and "good" control levels. This comparison will appear in three places: the User Dashboard (as a new widget), the Public Glucose Data page (as a new tab), and the Discover page (as a new widget card).
+Create a new page at `/find-diabetics` that helps T1D users connect with other Type 1 diabetics nearby. This combines two approaches:
 
-## What You'll See
+1. **Opt-in User Discovery**: Users of this app can choose to make themselves discoverable by setting a general location (city/state). Other users can then browse nearby diabetics and request to connect.
+2. **External Community Directory**: Curated, real public resources -- local JDRF chapters, ADA offices, Beyond Type 1 meetups, Reddit community hubs, and diabetes camp alumni networks -- with direct working links so users can find active T1D communities near them.
 
-### 1. New Hook: `useGlucoseComparison`
-A central hook that:
-- Fetches the user's latest upload analysis (TIR, avg glucose, CV, GMI, time below/above range, patterns)
-- Queries the public glucose dataset via RPC to get benchmarks for "excellent" control users (TIR, avg glucose, CV, time below 70, time above 180)
-- Computes detailed comparison metrics: deltas, percentile ranking, strengths/weaknesses identification
-- Identifies which user patterns (e.g., dawn phenomenon, post-meal spikes) the high-performers have solved and how
+This avoids any privacy issues since internal matching is strictly opt-in, and external data only links to public organizations and community hubs.
 
-### 2. New Component: `PeerComparisonPanel`
-A reusable component showing:
-- **Side-by-side metrics table**: Your TIR vs Top Performers' TIR, Your CV vs theirs, etc. with color-coded arrows and delta badges
-- **Radar chart**: Visual overlay comparing user profile vs high-performer profile across 6 dimensions (TIR, CV, time below, time above, avg glucose, GMI)
-- **Strengths & areas for improvement**: Auto-detected based on where user exceeds or falls behind the benchmark
-- **"How they do it" section**: For each metric where user is behind, show what device/pump combo, time-of-day patterns, and insulin strategies the high-performers use (derived from public data demographics breakdown)
-- **Percentile placement**: Where user sits in the overall population distribution
+## Privacy-First Design
+- Users must explicitly opt in to be discoverable (default is hidden)
+- Only city/state and display name are shown -- no email, no real name unless they choose
+- Users can set a "looking for" preference (e.g., "workout buddy", "parent of T1D child", "pump user")
+- One-click opt-out at any time
 
-### 3. New Database RPC: `get_high_performer_benchmarks`
-A database function that computes aggregate stats for users with "excellent" and "good" control levels:
-- Average glucose, TIR, CV, time below 70, time above 180
-- Breakdown by time of day (morning/afternoon/evening/night)
-- Most common pump models and CGM models among high performers
-- Comparison by age range
+## Page Sections
 
-### 4. Integration Points
+### 1. Hero Section
+- Title: "Find a Diabetic Near Me"
+- Subtitle explaining the dual approach: connect with app users + find local T1D communities
+- Location input (city, state, or ZIP)
 
-**Dashboard** (`src/pages/Dashboard.tsx`):
-- Add a new widget `peer-comparison` to the available widgets list
-- Shows a compact summary card with: your TIR vs top performers, quick gap analysis, and a link to full comparison
+### 2. Nearby App Users (Opt-in)
+- Grid of user cards showing: avatar, display name, city/state, diagnosis duration, device setup, "looking for" tags
+- Filter by: distance/state, interests, device type
+- "Request to Connect" button (sends in-app notification)
+- Banner prompting logged-in users to opt in if they haven't
 
-**Public Glucose Data** (`src/pages/PublicGlucoseData.tsx`):
-- Add a new "Your Comparison" tab in the existing tab list
-- Shows the full `PeerComparisonPanel` with all detailed analysis
-- Only visible when user is logged in and has upload data; otherwise shows a prompt to upload
+### 3. Local T1D Communities & Organizations
+- Seeded directory of real organizations with real links:
+  - **JDRF Chapters** (jdrf.org/chapter) -- local walks, meetups, mentoring
+  - **ADA Local Offices** (diabetes.org/community) -- support groups
+  - **Beyond Type 1** (beyondtype1.org) -- online + in-person community
+  - **College Diabetes Network** (collegediabetesnetwork.org) -- campus chapters
+  - **Diabetes camps** (diabetescamps.org) -- alumni networks
+  - **TypeOneNation Summits** -- annual JDRF events by city
+- Each entry: name, type, state/region, description, direct URL, category
 
-**Discover** (`src/pages/Discover.tsx`):
-- Add a new widget card in the multi-source data widgets grid
-- Compact card showing: "Your TIR: X% vs Top Performers: Y%" with a link to full comparison
+### 4. Reddit & Online Communities by Region
+- Curated list of active Reddit communities with real search links:
+  - r/diabetes_t1d, r/diabetes, r/Type1Diabetes
+  - Regional search links (e.g., reddit.com/r/diabetes_t1d/search?q=meetup+[state])
+  - Discord servers, Facebook groups (linked by name)
+- "Find local posts" feature that generates Reddit search URLs for the user's entered location
 
-## Technical Details
+### 5. Tips for Meeting Other Diabetics
+- Practical advice cards: diabetes walks, endo waiting rooms, CGM spotting, online-to-IRL tips
+- Safety tips for meeting people from the internet
+
+## Technical Implementation
+
+### Database
+
+**New table: `diabetic_profiles`**
+- `id` (uuid, PK)
+- `user_id` (uuid, unique, references profiles)
+- `display_name` (text)
+- `city` (text)
+- `state` (text)
+- `zip_code` (text, nullable)
+- `latitude` (float, nullable, for distance calc)
+- `longitude` (float, nullable)
+- `diagnosis_year` (int, nullable)
+- `device_setup` (text, nullable -- e.g., "Dexcom G7 + Omnipod 5")
+- `looking_for` (text[], nullable -- e.g., ["workout buddy", "parent support"])
+- `bio_snippet` (text, nullable, max 200 chars)
+- `is_visible` (boolean, default true)
+- `created_at`, `updated_at` (timestamptz)
+
+RLS: Users can read all visible profiles. Users can only insert/update/delete their own row.
+
+**New table: `t1d_community_directory`**
+- `id` (uuid, PK)
+- `name` (text)
+- `organization_type` (text -- "jdrf_chapter", "ada_office", "campus_chapter", "camp", "online_community", "support_group")
+- `description` (text)
+- `city` (text, nullable)
+- `state` (text, nullable)
+- `region` (text, nullable)
+- `url` (text)
+- `is_national` (boolean)
+- `created_at` (timestamptz)
+
+RLS: Public read access.
+
+**New table: `connection_requests`**
+- `id` (uuid, PK)
+- `from_user_id` (uuid)
+- `to_user_id` (uuid)
+- `status` (text -- "pending", "accepted", "declined")
+- `message` (text, nullable)
+- `created_at` (timestamptz)
+
+RLS: Users can read/create their own requests and read requests sent to them.
+
+### Edge Function
+**`seed-diabetic-directory`**: Seeds `t1d_community_directory` with 40-50 real organizations:
+- 15+ JDRF chapters (with real jdrf.org URLs)
+- 10+ ADA local offices
+- 5+ College Diabetes Network chapters
+- 5+ diabetes camps
+- 10+ online communities (Reddit, Discord, Facebook groups with real links)
 
 ### New Files
-- `src/hooks/useGlucoseComparison.ts` - Core comparison logic hook
-- `src/components/glucose/PeerComparisonPanel.tsx` - Full comparison UI with radar chart, side-by-side table, strengths/weaknesses, and "how they do it" section
+- `src/pages/FindDiabeticNearMe.tsx` -- Main page with all sections
+- `src/hooks/useDiabeticProfiles.ts` -- Hook for fetching/managing opt-in profiles and connection requests
+- `src/hooks/useCommunityDirectory.ts` -- Hook for fetching the organization directory
+- `src/components/find-diabetics/UserProfileCard.tsx` -- Card component for displaying a discoverable user
+- `src/components/find-diabetics/OptInBanner.tsx` -- Prompt for users to make themselves discoverable
+- `src/components/find-diabetics/CommunityDirectoryCard.tsx` -- Card for external organizations
+- `src/components/find-diabetics/ConnectionRequestModal.tsx` -- Modal for sending a connect request
+- `supabase/functions/seed-diabetic-directory/index.ts` -- Seeder for real organizations
 
 ### Modified Files
-- `src/pages/Dashboard.tsx` - Add `peer-comparison` widget to `availableWidgets` array
-- `src/pages/PublicGlucoseData.tsx` - Add "Your Comparison" tab
-- `src/pages/Discover.tsx` - Add compact comparison widget card
+- `src/App.tsx` -- Add route `/find-diabetics` (protected)
+- `src/components/AppSidebar.tsx` -- Add "Find a Diabetic" link in the Community section
 
-### Database Changes
-- New RPC function `get_high_performer_benchmarks` that aggregates stats from `public_glucose_data` filtered to `control_level IN ('excellent', 'good')`, returning: avg glucose, TIR percentages, CV, time-of-day breakdowns, top pump/CGM models, and age-range breakdowns
-
-### Data Flow
-1. User's latest upload `detailed_analysis` JSON provides their metrics
-2. RPC call to `get_high_performer_benchmarks` provides population benchmarks for high performers
-3. Hook computes deltas, percentiles, strengths, and actionable insights
-4. Components render the comparison with Recharts radar chart and comparison tables
-
-### Key Comparison Metrics
-- Time in Range (70-180 mg/dL)
-- Time Below Range (< 70 mg/dL)
-- Time Above Range (> 180 mg/dL)
-- Average Glucose
-- GMI (Glucose Management Indicator)
-- CV (Coefficient of Variation)
-- Time-of-day patterns (morning, afternoon, evening, night)
-- Device/pump strategy insights from high performers
-
+### Patterns
+- Follows existing Layout + BackButton + Card patterns
+- Community directory cards match the Events/Organizations page style
+- Opt-in profile cards follow the Warrior Spotlight card style
+- Location filtering follows the Events Near Me pattern (state dropdown + search)
