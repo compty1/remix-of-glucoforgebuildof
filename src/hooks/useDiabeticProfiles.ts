@@ -131,6 +131,47 @@ export function useDiabeticProfiles(stateFilter?: string, searchQuery?: string) 
     enabled: !!user,
   });
 
+  // Fetch profiles for all users involved in connection requests
+  const connectedUserIds = (myRequestsQuery.data || []).flatMap(r => [r.from_user_id, r.to_user_id]).filter(id => id !== user?.id);
+  const uniqueUserIds = [...new Set(connectedUserIds)];
+
+  const connectedProfilesQuery = useQuery({
+    queryKey: ['connected-profiles', uniqueUserIds.sort().join(',')],
+    queryFn: async () => {
+      if (uniqueUserIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('diabetic_profiles')
+        .select('*')
+        .in('user_id', uniqueUserIds);
+      if (error) throw error;
+      return data as DiabeticProfile[];
+    },
+    enabled: !!user && uniqueUserIds.length > 0,
+  });
+
+  const updateConnectionStatus = useMutation({
+    mutationFn: async ({ requestId, status }: { requestId: string; status: string }) => {
+      if (!user) throw new Error('Must be logged in');
+      const { error } = await supabase
+        .from('connection_requests')
+        .update({ status })
+        .eq('id', requestId)
+        .eq('to_user_id', user.id);
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['connection-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['connected-profiles'] });
+      toast({
+        title: variables.status === 'accepted' ? 'Connection accepted!' : 'Request declined',
+        description: variables.status === 'accepted' ? 'You are now connected.' : 'The request has been declined.',
+      });
+    },
+    onError: (err: any) => {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    },
+  });
+
   return {
     profiles: profilesQuery.data || [],
     isLoading: profilesQuery.isLoading,
@@ -139,5 +180,7 @@ export function useDiabeticProfiles(stateFilter?: string, searchQuery?: string) 
     upsertProfile,
     sendConnectionRequest,
     myRequests: myRequestsQuery.data || [],
+    connectedProfiles: connectedProfilesQuery.data || [],
+    updateConnectionStatus,
   };
 }
