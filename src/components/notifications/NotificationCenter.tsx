@@ -23,6 +23,7 @@ const TYPE_ICONS: Record<string, string> = {
   fda_alert: '⚠️',
   challenge: '🏃',
   connection_request: '🤝',
+  direct_message: '💬',
 };
 
 function NotificationItem({ 
