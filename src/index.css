@@ -355,11 +355,14 @@
   animation: pulseForge 2s ease-in-out infinite;
 }
 
-/* Blood Drop Animation - simulates dripping/falling effect */
+/* Blood Drop Animation - simulates dripping/falling effect with entrance */
 @keyframes bloodDropFall {
   0% {
-    transform: translateY(-8px) scale(0.95);
-    opacity: 0.7;
+    transform: translateY(-30px) scale(0.6);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.6;
   }
   40% {
     transform: translateY(0px) scale(1);
