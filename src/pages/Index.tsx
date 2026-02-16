@@ -20,18 +20,18 @@ interface DiscoveryCardData {
   icon_url: string;
   credibility: 'High' | 'Medium' | 'Low';
   mechanism: string;
-  sources: Array<{ title: string; url: string }>;
+  sources: Array<{title: string;url: string;}>;
   created_at: string;
 }
 
 const volunteerRoles = [
-  { id: 'frontend', title: 'Frontend Developer', description: 'Build user interfaces with React and TypeScript', icon: Code },
-  { id: 'backend', title: 'Backend Developer', description: 'Build APIs and data infrastructure', icon: Server },
-  { id: 'data', title: 'Data Scientist', description: 'Analyze patterns and build AI models', icon: PieChart },
-  { id: 'design', title: 'UI/UX Designer', description: 'Design beautiful, accessible experiences', icon: Palette },
-  { id: 'devops', title: 'DevOps Engineer', description: 'Build infrastructure and deployment pipelines', icon: Server },
-  { id: 'writer', title: 'Technical Writer', description: 'Document features and create guides', icon: FileText },
-];
+{ id: 'frontend', title: 'Frontend Developer', description: 'Build user interfaces with React and TypeScript', icon: Code },
+{ id: 'backend', title: 'Backend Developer', description: 'Build APIs and data infrastructure', icon: Server },
+{ id: 'data', title: 'Data Scientist', description: 'Analyze patterns and build AI models', icon: PieChart },
+{ id: 'design', title: 'UI/UX Designer', description: 'Design beautiful, accessible experiences', icon: Palette },
+{ id: 'devops', title: 'DevOps Engineer', description: 'Build infrastructure and deployment pipelines', icon: Server },
+{ id: 'writer', title: 'Technical Writer', description: 'Document features and create guides', icon: FileText }];
+
 
 const Index = () => {
   const navigate = useNavigate();
@@ -42,20 +42,20 @@ const Index = () => {
   useEffect(() => {
     const fetchFeaturedInsights = async () => {
       try {
-        const { data, error } = await supabase
-          .from('discovery_cards')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(3);
+        const { data, error } = await supabase.
+        from('discovery_cards').
+        select('*').
+        order('created_at', { ascending: false }).
+        limit(3);
 
         if (error) throw error;
-        
-        const typedData = (data || []).map(item => ({
+
+        const typedData = (data || []).map((item) => ({
           ...item,
           credibility: item.credibility as 'High' | 'Medium' | 'Low',
-          sources: Array.isArray(item.sources) ? item.sources as Array<{ title: string; url: string }> : []
+          sources: Array.isArray(item.sources) ? item.sources as Array<{title: string;url: string;}> : []
         }));
-        
+
         setFeaturedInsights(typedData);
       } catch (error) {
         console.error('Error fetching insights:', error);
@@ -74,7 +74,7 @@ const Index = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-brand-purple-dark/20 via-transparent to-brand-purple-light/20"></div>
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center gap-4 mb-8">
-            <img src={dropIcon} alt="GlucoForge" className="h-16 md:h-20 w-auto logo-animated-drop object-contain" />
+            
             <span className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-brand-purple-dark to-brand-purple-light bg-clip-text text-transparent">
               GlucoForge
             </span>
@@ -87,34 +87,34 @@ const Index = () => {
             Daily stress shards that could be eliminated with simple, smart solutions. We're building them — together.
           </p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               className="bg-brand-red hover:bg-brand-red-dark text-white text-xl px-12 py-4 h-auto font-bold shadow-brand hover:shadow-glow transition-all"
               onClick={async () => {
                 try {
                   const { data, error } = await supabase.functions.invoke('create-donation', {
                     body: { amount: 25 }
                   });
-                  
+
                   if (error) throw error;
-                  
+
                   if (data?.url) {
                     window.open(data.url, '_blank');
                   }
                 } catch (error) {
                   console.error('Donation error:', error);
                 }
-              }}
-            >
+              }}>
+
               Donate Now
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button 
-              variant="outline" 
-              size="lg" 
+            <Button
+              variant="outline"
+              size="lg"
               className="text-xl px-12 py-4 h-auto font-semibold border-2 border-white text-white hover:bg-white/10 backdrop-blur-sm"
-              onClick={() => navigate(user ? "/dashboard" : "/auth")}
-            >
+              onClick={() => navigate(user ? "/dashboard" : "/auth")}>
+
               {user ? "Go to Dashboard" : "Get Started"}
             </Button>
           </div>
@@ -213,11 +213,11 @@ const Index = () => {
                 </div>
               </div>
               <div className="mt-8 text-center">
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   onClick={() => navigate("/get-involved")}
-                  className="gap-2"
-                >
+                  className="gap-2">
+
                   <Heart className="h-5 w-5" />
                   Help Create More Stories
                 </Button>
@@ -241,17 +241,17 @@ const Index = () => {
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             {[
-              { icon: Heart, label: 'Personalized Health' },
-              { icon: Activity, label: 'CGM Insights' },
-              { icon: Beaker, label: 'Mega Discoveries' },
-              { icon: Globe, label: 'Global Data' },
-              { icon: TrendingUp, label: 'New Findings' },
-              { icon: Database, label: 'Clinical Data' },
-              { icon: Brain, label: 'Advanced AI Patterns' },
-              { icon: Users, label: 'Community Discussions' },
-              { icon: PieChart, label: 'Impact Visualizer' },
-            ].map((item, i) => (
-              <Card key={i} className="text-center command-center-widget hover:border-primary/50 transition-colors">
+            { icon: Heart, label: 'Personalized Health' },
+            { icon: Activity, label: 'CGM Insights' },
+            { icon: Beaker, label: 'Mega Discoveries' },
+            { icon: Globe, label: 'Global Data' },
+            { icon: TrendingUp, label: 'New Findings' },
+            { icon: Database, label: 'Clinical Data' },
+            { icon: Brain, label: 'Advanced AI Patterns' },
+            { icon: Users, label: 'Community Discussions' },
+            { icon: PieChart, label: 'Impact Visualizer' }].
+            map((item, i) =>
+            <Card key={i} className="text-center command-center-widget hover:border-primary/50 transition-colors">
                 <CardContent className="p-6">
                   <div className="w-12 h-12 mx-auto mb-3 forge-gradient rounded-full flex items-center justify-center">
                     <item.icon className="h-6 w-6 text-white" />
@@ -259,7 +259,7 @@ const Index = () => {
                   <p className="font-medium text-foreground">{item.label}</p>
                 </CardContent>
               </Card>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -322,12 +322,12 @@ const Index = () => {
           </div>
           
           <div className="text-center mt-12">
-            <Button 
-              size="lg" 
+            <Button
+              size="lg"
               variant="outline"
               onClick={() => navigate("/get-involved")}
-              className="gap-2"
-            >
+              className="gap-2">
+
               I'm Ready to Help
               <ArrowRight className="h-5 w-5" />
             </Button>
@@ -395,12 +395,12 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {volunteerRoles.map((role) => (
-              <Card 
-                key={role.id} 
-                className="command-center-widget cursor-pointer hover:border-primary/50 transition-all hover:shadow-md"
-                onClick={() => navigate("/get-involved")}
-              >
+            {volunteerRoles.map((role) =>
+            <Card
+              key={role.id}
+              className="command-center-widget cursor-pointer hover:border-primary/50 transition-all hover:shadow-md"
+              onClick={() => navigate("/get-involved")}>
+
                 <CardContent className="p-6">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -413,7 +413,7 @@ const Index = () => {
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            )}
           </div>
           
           <div className="text-center">
@@ -437,10 +437,10 @@ const Index = () => {
             </p>
           </div>
           
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3].map((i) => (
-                <Card key={i} className="animate-pulse">
+          {loading ?
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) =>
+            <Card key={i} className="animate-pulse">
                   <CardHeader>
                     <div className="h-6 bg-muted rounded w-3/4"></div>
                   </CardHeader>
@@ -451,23 +451,23 @@ const Index = () => {
                     </div>
                   </CardContent>
                 </Card>
-              ))}
+            )}
+            </div> :
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {featuredInsights.map((insight) =>
+            <DiscoveryCard key={insight.id} data={insight} />
+            )}
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredInsights.map((insight) => (
-                <DiscoveryCard key={insight.id} data={insight} />
-              ))}
-            </div>
-          )}
+          }
           
           <div className="text-center mt-16">
             <Link to="/discover">
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="text-lg px-12 py-4 h-auto border-primary/20 hover:bg-primary/5 transition-forge"
-              >
+              <Button
+                variant="outline"
+                size="lg"
+                className="text-lg px-12 py-4 h-auto border-primary/20 hover:bg-primary/5 transition-forge">
+
                 View All Discoveries
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
@@ -540,29 +540,29 @@ const Index = () => {
             Be part of a community that's revolutionizing how we understand and manage diabetes through shared knowledge and real-world evidence.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              variant="medical" 
-              size="lg" 
+            <Button
+              variant="medical"
+              size="lg"
               className="text-lg px-8"
-              onClick={() => navigate(user ? "/dashboard" : "/auth")}
-            >
+              onClick={() => navigate(user ? "/dashboard" : "/auth")}>
+
               <Heart className="mr-2" />
               {user ? "Go to Dashboard" : "Get Started Today"}
             </Button>
-            <Button 
-              variant="hero" 
-              size="lg" 
+            <Button
+              variant="hero"
+              size="lg"
               className="text-lg px-8 bg-white/20 hover:bg-white/30"
-              onClick={() => navigate("/research")}
-            >
+              onClick={() => navigate("/research")}>
+
               Explore Research
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
         </div>
       </section>
-    </Layout>
-  );
+    </Layout>);
+
 };
 
 export default Index;
