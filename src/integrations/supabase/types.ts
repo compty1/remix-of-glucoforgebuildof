@@ -1038,6 +1038,33 @@ export type Database = {
         }
         Relationships: []
       }
+      connection_requests: {
+        Row: {
+          created_at: string
+          from_user_id: string
+          id: string
+          message: string | null
+          status: string
+          to_user_id: string
+        }
+        Insert: {
+          created_at?: string
+          from_user_id: string
+          id?: string
+          message?: string | null
+          status?: string
+          to_user_id: string
+        }
+        Update: {
+          created_at?: string
+          from_user_id?: string
+          id?: string
+          message?: string | null
+          status?: string
+          to_user_id?: string
+        }
+        Relationships: []
+      }
       cure_milestones: {
         Row: {
           completed_date: string | null
@@ -1920,6 +1947,60 @@ export type Database = {
           title?: string
           updated_at?: string
           view_count?: number | null
+        }
+        Relationships: []
+      }
+      diabetic_profiles: {
+        Row: {
+          bio_snippet: string | null
+          city: string
+          created_at: string
+          device_setup: string | null
+          diagnosis_year: number | null
+          display_name: string
+          id: string
+          is_visible: boolean
+          latitude: number | null
+          longitude: number | null
+          looking_for: string[] | null
+          state: string
+          updated_at: string
+          user_id: string
+          zip_code: string | null
+        }
+        Insert: {
+          bio_snippet?: string | null
+          city: string
+          created_at?: string
+          device_setup?: string | null
+          diagnosis_year?: number | null
+          display_name: string
+          id?: string
+          is_visible?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          looking_for?: string[] | null
+          state: string
+          updated_at?: string
+          user_id: string
+          zip_code?: string | null
+        }
+        Update: {
+          bio_snippet?: string | null
+          city?: string
+          created_at?: string
+          device_setup?: string | null
+          diagnosis_year?: number | null
+          display_name?: string
+          id?: string
+          is_visible?: boolean
+          latitude?: number | null
+          longitude?: number | null
+          looking_for?: string[] | null
+          state?: string
+          updated_at?: string
+          user_id?: string
+          zip_code?: string | null
         }
         Relationships: []
       }
@@ -4503,6 +4584,45 @@ export type Database = {
           search_keywords?: string[] | null
           solution_count?: number | null
           title?: string
+        }
+        Relationships: []
+      }
+      t1d_community_directory: {
+        Row: {
+          city: string | null
+          created_at: string
+          description: string
+          id: string
+          is_national: boolean
+          name: string
+          organization_type: string
+          region: string | null
+          state: string | null
+          url: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          is_national?: boolean
+          name: string
+          organization_type: string
+          region?: string | null
+          state?: string | null
+          url: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_national?: boolean
+          name?: string
+          organization_type?: string
+          region?: string | null
+          state?: string | null
+          url?: string
         }
         Relationships: []
       }

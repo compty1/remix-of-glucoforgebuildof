@@ -52,7 +52,8 @@ import {
   HeartPulse,
   Smile,
   Gift,
-  Flame } from
+  Flame,
+  MapPin } from
 'lucide-react';
 import {
   Sidebar,
@@ -164,7 +165,8 @@ const getInvolvedItems = [
 // Other
 const otherItems = [
 { title: "Shop", url: "/shop", icon: ShoppingBag },
-{ title: "Events Near Me", url: "/events", icon: Calendar }];
+{ title: "Events Near Me", url: "/events", icon: Calendar },
+{ title: "Find a Diabetic", url: "/find-diabetics", icon: MapPin }];
 
 
 // Support & Settings
