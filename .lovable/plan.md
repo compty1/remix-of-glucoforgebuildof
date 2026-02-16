@@ -1,57 +1,87 @@
 
 
-# Connection Management and Notification System for Find a Diabetic Near Me
+# Remove Connection + Direct Messaging for Find a Diabetic Near Me
 
-## Verification Results
-All three pages (/diabetes-burnout, /find-diabetics, /dashboard) render correctly with no console errors. Data loads successfully across all features.
+## Overview
+Two additions to the existing Connections tab on `/find-diabetics`:
+1. A "Remove Connection" button on each accepted connection card, with a confirmation dialog
+2. A full direct messaging (DM) system so connected users can chat after accepting a request
 
-## New Features
+## 1. Remove/Disconnect from a Connection
 
-### 1. Accept/Decline Connection Requests + Connections List
+### UI Changes
+- Add a "Disconnect" button (with `UserMinus` icon) to each card in the "My Connections" section of `ConnectionsTab.tsx`
+- Clicking it opens an `AlertDialog` confirmation: "Are you sure you want to disconnect from [name]?"
+- On confirm, deletes the `connection_requests` row entirely
 
-**New tab "Connections" on the Find a Diabetic Near Me page** (added as a 5th tab alongside People, Orgs, Online, Tips):
+### Hook Changes (`useDiabeticProfiles.ts`)
+- Add a `removeConnection` mutation that deletes from `connection_requests` where `id` matches and the user is either `from_user_id` or `to_user_id`
 
-- **Incoming Requests section**: Shows pending requests sent TO the user, each with the sender's profile info (display name, city/state, message), and Accept / Decline buttons
-- **My Connections section**: Shows all accepted connections with linked profile cards. Each card has a "View Profile" action
-- **Sent Requests section**: Shows outgoing pending requests with status badges
+### Database (Migration)
+- Add an RLS policy on `connection_requests` allowing DELETE when `auth.uid()` is either `from_user_id` or `to_user_id`
 
-**Hook changes (`useDiabeticProfiles.ts`)**:
-- Add `updateConnectionStatus` mutation (updates `connection_requests.status` to "accepted" or "declined")
-- Add query to fetch profiles for connected users (join connection_requests with diabetic_profiles)
-- Enrich `myRequests` data with sender/receiver profile info by fetching associated `diabetic_profiles`
+## 2. Direct Messaging Between Connected Users
 
-**New component**: `src/components/find-diabetics/ConnectionsTab.tsx`
-- Renders the three sections (incoming, connections, sent)
-- Each incoming request shows the sender's avatar, name, location, their intro message, and Accept/Decline buttons
-- Accepted connections show full profile cards with the connection date
+### Database (Migration)
+New table: `direct_messages`
+- `id` (uuid, PK, default gen_random_uuid())
+- `sender_id` (uuid, not null)
+- `receiver_id` (uuid, not null)
+- `content` (text, not null)
+- `is_read` (boolean, default false)
+- `created_at` (timestamptz, default now())
 
-### 2. In-App Notification on New Connection Request
+RLS policies:
+- SELECT: user can read messages where they are sender or receiver
+- INSERT: user can send messages where `sender_id = auth.uid()` AND the sender+receiver pair has an accepted connection request
+- UPDATE: receiver can mark messages as read (`is_read` only)
 
-**Database trigger** (via migration):
-- Create a trigger function `notify_connection_request()` on the `connection_requests` table
-- On INSERT: creates a row in `notifications` for `to_user_id` with type "connection_request", title "New Connection Request", a message including the sender's display name, and link "/find-diabetics" (navigates to the Connections tab)
-- On UPDATE (status changed to "accepted"): creates a notification for `from_user_id` saying their request was accepted
+Enable realtime: `ALTER PUBLICATION supabase_realtime ADD TABLE public.direct_messages;`
 
-This leverages the existing `notifications` table and `NotificationCenter` component -- no changes needed to the notification UI. The bell icon will automatically show the new notification with the unread badge.
+Notification trigger: `notify_direct_message()` -- on INSERT, creates a notification for the receiver with type "direct_message", linking to `/find-diabetics`
 
-**NotificationCenter update**: Add `connection_request` to the `TYPE_ICONS` map (use a handshake or user-plus icon emoji).
+### New Hook: `src/hooks/useDirectMessages.ts`
+- `useConversation(otherUserId)`: fetches all messages between current user and otherUserId, ordered by created_at
+- `sendMessage` mutation: inserts into `direct_messages`
+- `markAsRead` mutation: updates `is_read = true` for unread messages from the other user
+- Realtime subscription on `direct_messages` to get live updates
+- `useUnreadCounts()`: fetches unread message counts grouped by sender for badge display
 
-## Technical Details
+### New Component: `src/components/find-diabetics/DirectMessagePanel.tsx`
+- A slide-out panel (using Sheet from radix) or inline expandable section
+- Shows conversation history with the selected connection
+- Message input at the bottom with send button
+- Messages styled similarly to the existing `ChatMessage.tsx` pattern (user on right, other on left)
+- Auto-scroll to latest message
+- Marks messages as read when the panel is open
 
-### Database Migration
-- New trigger function `notify_connection_request()` (SECURITY DEFINER) that:
-  - On INSERT: looks up sender's `display_name` from `diabetic_profiles`, inserts into `notifications` for the recipient
-  - On UPDATE to "accepted": looks up accepter's `display_name`, inserts into `notifications` for the original sender
-- Trigger: `AFTER INSERT OR UPDATE ON connection_requests`
+### UI Integration in `ConnectionsTab.tsx`
+- Add a "Message" button (with `MessageCircle` icon) next to each accepted connection card
+- Clicking opens the `DirectMessagePanel` for that user
+- Show unread message count badge on each connection card if there are unread messages
+- Add unread count to the "Connections" tab badge in `FindDiabeticNearMe.tsx`
 
-### Modified Files
-- `src/hooks/useDiabeticProfiles.ts` -- Add `updateConnectionStatus` mutation, add profiles-enriched requests query
-- `src/pages/FindDiabeticNearMe.tsx` -- Add 5th "Connections" tab with badge showing pending count
-- `src/components/notifications/NotificationCenter.tsx` -- Add `connection_request` icon to TYPE_ICONS
+### Notification Center Update
+- Add `direct_message` to the `TYPE_ICONS` map in `NotificationCenter.tsx` (use `💬` icon)
+
+## Files Summary
 
 ### New Files
-- `src/components/find-diabetics/ConnectionsTab.tsx` -- Full connections management UI with incoming requests, accepted connections, and sent requests sections
+- `src/hooks/useDirectMessages.ts`
+- `src/components/find-diabetics/DirectMessagePanel.tsx`
+
+### Modified Files
+- `src/hooks/useDiabeticProfiles.ts` -- add `removeConnection` mutation
+- `src/components/find-diabetics/ConnectionsTab.tsx` -- add Disconnect button with confirmation, Message button, unread badges, DM panel integration
+- `src/pages/FindDiabeticNearMe.tsx` -- pass `removeConnection` to ConnectionsTab, update badge to include unread DMs
+- `src/components/notifications/NotificationCenter.tsx` -- add `direct_message` icon
+
+### Database Migration
+- RLS DELETE policy on `connection_requests`
+- `direct_messages` table with RLS policies
+- Realtime enabled for `direct_messages`
+- `notify_direct_message()` trigger function and trigger
 
 ### Unchanged
-- All existing pages, components, and features remain untouched
-- Diabetes Burnout page, Peer Comparison, Dashboard, Discover, Public Glucose Data -- no changes
+All other pages and features remain untouched.
+
