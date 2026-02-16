@@ -1,90 +1,76 @@
 
 
-# Diabetes Burnout Resource Page
+# Compare Your Data to High-Performing Users
 
 ## Overview
-Create a comprehensive, standalone Diabetes Burnout page at `/diabetes-burnout` that serves as a practical, actionable resource hub. It will combine clinical data, real community posts with working links, supplement/prescription guidance (including seasonal Vitamin D emphasis), and structured recovery plans.
+Create a "Peer Comparison" feature that compares the logged-in user's uploaded CGM data against population benchmarks from the public glucose dataset -- specifically filtering for users with "excellent" and "good" control levels. This comparison will appear in three places: the User Dashboard (as a new widget), the Public Glucose Data page (as a new tab), and the Discover page (as a new widget card).
 
-## Page Structure
+## What You'll See
 
-### 1. Hero Section
-- Title: "Diabetes Burnout" with a subtitle emphasizing this is a practical resource that actually works
-- Brief clinical definition of diabetes burnout vs. general burnout
-- Key statistics (e.g., 36-45% of T1D adults experience burnout at some point, per Diabetes Care research)
+### 1. New Hook: `useGlucoseComparison`
+A central hook that:
+- Fetches the user's latest upload analysis (TIR, avg glucose, CV, GMI, time below/above range, patterns)
+- Queries the public glucose dataset via RPC to get benchmarks for "excellent" control users (TIR, avg glucose, CV, time below 70, time above 180)
+- Computes detailed comparison metrics: deltas, percentile ranking, strengths/weaknesses identification
+- Identifies which user patterns (e.g., dawn phenomenon, post-meal spikes) the high-performers have solved and how
 
-### 2. Recognizing Burnout - Signs & Symptoms
-- Checklist-style section with common burnout indicators:
-  - Skipping blood sugar checks
-  - "Rage bolusing" or ignoring highs
-  - Avoiding doctor appointments
-  - Feeling resentful toward diabetes management
-  - Emotional numbness about numbers
-  - Carb-counting fatigue
-- Interactive self-assessment quiz (simple scoring)
+### 2. New Component: `PeerComparisonPanel`
+A reusable component showing:
+- **Side-by-side metrics table**: Your TIR vs Top Performers' TIR, Your CV vs theirs, etc. with color-coded arrows and delta badges
+- **Radar chart**: Visual overlay comparing user profile vs high-performer profile across 6 dimensions (TIR, CV, time below, time above, avg glucose, GMI)
+- **Strengths & areas for improvement**: Auto-detected based on where user exceeds or falls behind the benchmark
+- **"How they do it" section**: For each metric where user is behind, show what device/pump combo, time-of-day patterns, and insulin strategies the high-performers use (derived from public data demographics breakdown)
+- **Percentile placement**: Where user sits in the overall population distribution
 
-### 3. Evidence-Based Recovery Plans
-Tabbed sections with structured, actionable plans:
-- **The 2-Week Reset**: A day-by-day minimal viable management plan to ease back in
-- **The Permission Plan**: Structured "good enough" targets instead of perfection
-- **The Delegation Plan**: What to automate (CGM alerts, AID systems) to reduce decision fatigue
-- **The Social Plan**: How to communicate with family/friends/coworkers about burnout
+### 3. New Database RPC: `get_high_performer_benchmarks`
+A database function that computes aggregate stats for users with "excellent" and "good" control levels:
+- Average glucose, TIR, CV, time below 70, time above 180
+- Breakdown by time of day (morning/afternoon/evening/night)
+- Most common pump models and CGM models among high performers
+- Comparison by age range
 
-### 4. Supplement & Prescription Guidance for Stress/Anxiety
-- **Vitamin D** (emphasized for winter/seasonal):
-  - Why T1D patients are especially susceptible (autoimmune link, indoor time)
-  - Deficiency symptoms: fatigue, muscle weakness, bone pain, depression, frequent illness, slow wound healing
-  - Recommended dosing (2000-5000 IU daily in winter)
-  - Testing recommendations (25-hydroxyvitamin D blood test)
-- **Magnesium**: For anxiety, sleep, and insulin sensitivity
-- **Omega-3s**: Anti-inflammatory, mood support
-- **B-Complex**: Energy, nerve health
-- **Ashwagandha**: Cortisol reduction
-- **Prescription options**: SSRIs/SNRIs commonly used alongside T1D, buspirone for anxiety, noting diabetes-specific considerations
-- Each entry includes: dosage info, evidence level, precautions with insulin, and when to talk to a doctor
+### 4. Integration Points
 
-### 5. Real Community Solutions (Seeded Data)
-- Create a new database table `burnout_community_posts` with real Reddit posts and comments about diabetes burnout solutions
-- Seed via an edge function `seed-burnout-posts` with 15-20 real posts from:
-  - r/diabetes_t1d
-  - r/diabetes
-  - r/Type1Diabetes
-  - Beyond Type 1 forums
-- Each post includes: title, content, author (anonymized), score, real working Reddit search URLs, comments
-- Display using existing `SolutionCard`-style components with comments, upvotes, and source links
-- Topic categories: "Taking a Break", "Automation Saved Me", "Therapy That Worked", "Simplifying Management", "CGM Burnout"
+**Dashboard** (`src/pages/Dashboard.tsx`):
+- Add a new widget `peer-comparison` to the available widgets list
+- Shows a compact summary card with: your TIR vs top performers, quick gap analysis, and a link to full comparison
 
-### 6. Practical Daily Tools
-- A "Minimum Viable Diabetes" checklist for bad days
-- A "Burnout Emergency Kit" - immediate actions when feeling overwhelmed
-- Printable/downloadable recovery plan summary
+**Public Glucose Data** (`src/pages/PublicGlucoseData.tsx`):
+- Add a new "Your Comparison" tab in the existing tab list
+- Shows the full `PeerComparisonPanel` with all detailed analysis
+- Only visible when user is logged in and has upload data; otherwise shows a prompt to upload
 
-### 7. Mental Health Professional Resources
-- How to find a diabetes-specialized therapist
-- Telehealth options
-- Crisis hotlines (988 Suicide & Crisis Lifeline, JDRF peer support)
+**Discover** (`src/pages/Discover.tsx`):
+- Add a new widget card in the multi-source data widgets grid
+- Compact card showing: "Your TIR: X% vs Top Performers: Y%" with a link to full comparison
 
-## Technical Implementation
-
-### Database
-- New table: `burnout_community_posts` with columns matching `community_posts` schema plus a `burnout_category` text field
-- New table: `burnout_comments` for threaded comments on burnout posts
-- RLS: Public read access (no auth required for reading), matching existing community tables
-
-### Edge Function
-- `seed-burnout-posts`: Seeds 15-20 real community posts with realistic data, working Reddit search URLs, and 3-5 comments each
+## Technical Details
 
 ### New Files
-- `src/pages/DiabetesBurnout.tsx` - Main page component with all sections
-- `src/hooks/useBurnoutPosts.ts` - Hook to fetch burnout community posts and comments
-- `supabase/functions/seed-burnout-posts/index.ts` - Seeder edge function
+- `src/hooks/useGlucoseComparison.ts` - Core comparison logic hook
+- `src/components/glucose/PeerComparisonPanel.tsx` - Full comparison UI with radar chart, side-by-side table, strengths/weaknesses, and "how they do it" section
 
 ### Modified Files
-- `src/App.tsx` - Add route `/diabetes-burnout`
-- `src/components/AppSidebar.tsx` - Add navigation link under the Mental Health / Well-being section
+- `src/pages/Dashboard.tsx` - Add `peer-comparison` widget to `availableWidgets` array
+- `src/pages/PublicGlucoseData.tsx` - Add "Your Comparison" tab
+- `src/pages/Discover.tsx` - Add compact comparison widget card
 
-### Patterns
-- Uses existing `Layout`, `BackButton`, `Card`, `Tabs`, `Badge` components
-- Community posts follow the same `SolutionCard` display pattern with `PostComments` integration
-- Supplement data follows the `QualityOfLife` page pattern with evidence levels and dosage info
-- All community post URLs use Reddit-wide search URL format (e.g., `reddit.com/search/?q={keywords}&type=link`) matching the existing link validation system
+### Database Changes
+- New RPC function `get_high_performer_benchmarks` that aggregates stats from `public_glucose_data` filtered to `control_level IN ('excellent', 'good')`, returning: avg glucose, TIR percentages, CV, time-of-day breakdowns, top pump/CGM models, and age-range breakdowns
+
+### Data Flow
+1. User's latest upload `detailed_analysis` JSON provides their metrics
+2. RPC call to `get_high_performer_benchmarks` provides population benchmarks for high performers
+3. Hook computes deltas, percentiles, strengths, and actionable insights
+4. Components render the comparison with Recharts radar chart and comparison tables
+
+### Key Comparison Metrics
+- Time in Range (70-180 mg/dL)
+- Time Below Range (< 70 mg/dL)
+- Time Above Range (> 180 mg/dL)
+- Average Glucose
+- GMI (Glucose Management Indicator)
+- CV (Coefficient of Variation)
+- Time-of-day patterns (morning, afternoon, evening, night)
+- Device/pump strategy insights from high performers
 
