@@ -1,125 +1,57 @@
 
 
-# Find a Diabetic Near Me
+# Connection Management and Notification System for Find a Diabetic Near Me
 
-## Overview
-Create a new page at `/find-diabetics` that helps T1D users connect with other Type 1 diabetics nearby. This combines two approaches:
+## Verification Results
+All three pages (/diabetes-burnout, /find-diabetics, /dashboard) render correctly with no console errors. Data loads successfully across all features.
 
-1. **Opt-in User Discovery**: Users of this app can choose to make themselves discoverable by setting a general location (city/state). Other users can then browse nearby diabetics and request to connect.
-2. **External Community Directory**: Curated, real public resources -- local JDRF chapters, ADA offices, Beyond Type 1 meetups, Reddit community hubs, and diabetes camp alumni networks -- with direct working links so users can find active T1D communities near them.
+## New Features
 
-This avoids any privacy issues since internal matching is strictly opt-in, and external data only links to public organizations and community hubs.
+### 1. Accept/Decline Connection Requests + Connections List
 
-## Privacy-First Design
-- Users must explicitly opt in to be discoverable (default is hidden)
-- Only city/state and display name are shown -- no email, no real name unless they choose
-- Users can set a "looking for" preference (e.g., "workout buddy", "parent of T1D child", "pump user")
-- One-click opt-out at any time
+**New tab "Connections" on the Find a Diabetic Near Me page** (added as a 5th tab alongside People, Orgs, Online, Tips):
 
-## Page Sections
+- **Incoming Requests section**: Shows pending requests sent TO the user, each with the sender's profile info (display name, city/state, message), and Accept / Decline buttons
+- **My Connections section**: Shows all accepted connections with linked profile cards. Each card has a "View Profile" action
+- **Sent Requests section**: Shows outgoing pending requests with status badges
 
-### 1. Hero Section
-- Title: "Find a Diabetic Near Me"
-- Subtitle explaining the dual approach: connect with app users + find local T1D communities
-- Location input (city, state, or ZIP)
+**Hook changes (`useDiabeticProfiles.ts`)**:
+- Add `updateConnectionStatus` mutation (updates `connection_requests.status` to "accepted" or "declined")
+- Add query to fetch profiles for connected users (join connection_requests with diabetic_profiles)
+- Enrich `myRequests` data with sender/receiver profile info by fetching associated `diabetic_profiles`
 
-### 2. Nearby App Users (Opt-in)
-- Grid of user cards showing: avatar, display name, city/state, diagnosis duration, device setup, "looking for" tags
-- Filter by: distance/state, interests, device type
-- "Request to Connect" button (sends in-app notification)
-- Banner prompting logged-in users to opt in if they haven't
+**New component**: `src/components/find-diabetics/ConnectionsTab.tsx`
+- Renders the three sections (incoming, connections, sent)
+- Each incoming request shows the sender's avatar, name, location, their intro message, and Accept/Decline buttons
+- Accepted connections show full profile cards with the connection date
 
-### 3. Local T1D Communities & Organizations
-- Seeded directory of real organizations with real links:
-  - **JDRF Chapters** (jdrf.org/chapter) -- local walks, meetups, mentoring
-  - **ADA Local Offices** (diabetes.org/community) -- support groups
-  - **Beyond Type 1** (beyondtype1.org) -- online + in-person community
-  - **College Diabetes Network** (collegediabetesnetwork.org) -- campus chapters
-  - **Diabetes camps** (diabetescamps.org) -- alumni networks
-  - **TypeOneNation Summits** -- annual JDRF events by city
-- Each entry: name, type, state/region, description, direct URL, category
+### 2. In-App Notification on New Connection Request
 
-### 4. Reddit & Online Communities by Region
-- Curated list of active Reddit communities with real search links:
-  - r/diabetes_t1d, r/diabetes, r/Type1Diabetes
-  - Regional search links (e.g., reddit.com/r/diabetes_t1d/search?q=meetup+[state])
-  - Discord servers, Facebook groups (linked by name)
-- "Find local posts" feature that generates Reddit search URLs for the user's entered location
+**Database trigger** (via migration):
+- Create a trigger function `notify_connection_request()` on the `connection_requests` table
+- On INSERT: creates a row in `notifications` for `to_user_id` with type "connection_request", title "New Connection Request", a message including the sender's display name, and link "/find-diabetics" (navigates to the Connections tab)
+- On UPDATE (status changed to "accepted"): creates a notification for `from_user_id` saying their request was accepted
 
-### 5. Tips for Meeting Other Diabetics
-- Practical advice cards: diabetes walks, endo waiting rooms, CGM spotting, online-to-IRL tips
-- Safety tips for meeting people from the internet
+This leverages the existing `notifications` table and `NotificationCenter` component -- no changes needed to the notification UI. The bell icon will automatically show the new notification with the unread badge.
 
-## Technical Implementation
+**NotificationCenter update**: Add `connection_request` to the `TYPE_ICONS` map (use a handshake or user-plus icon emoji).
 
-### Database
+## Technical Details
 
-**New table: `diabetic_profiles`**
-- `id` (uuid, PK)
-- `user_id` (uuid, unique, references profiles)
-- `display_name` (text)
-- `city` (text)
-- `state` (text)
-- `zip_code` (text, nullable)
-- `latitude` (float, nullable, for distance calc)
-- `longitude` (float, nullable)
-- `diagnosis_year` (int, nullable)
-- `device_setup` (text, nullable -- e.g., "Dexcom G7 + Omnipod 5")
-- `looking_for` (text[], nullable -- e.g., ["workout buddy", "parent support"])
-- `bio_snippet` (text, nullable, max 200 chars)
-- `is_visible` (boolean, default true)
-- `created_at`, `updated_at` (timestamptz)
-
-RLS: Users can read all visible profiles. Users can only insert/update/delete their own row.
-
-**New table: `t1d_community_directory`**
-- `id` (uuid, PK)
-- `name` (text)
-- `organization_type` (text -- "jdrf_chapter", "ada_office", "campus_chapter", "camp", "online_community", "support_group")
-- `description` (text)
-- `city` (text, nullable)
-- `state` (text, nullable)
-- `region` (text, nullable)
-- `url` (text)
-- `is_national` (boolean)
-- `created_at` (timestamptz)
-
-RLS: Public read access.
-
-**New table: `connection_requests`**
-- `id` (uuid, PK)
-- `from_user_id` (uuid)
-- `to_user_id` (uuid)
-- `status` (text -- "pending", "accepted", "declined")
-- `message` (text, nullable)
-- `created_at` (timestamptz)
-
-RLS: Users can read/create their own requests and read requests sent to them.
-
-### Edge Function
-**`seed-diabetic-directory`**: Seeds `t1d_community_directory` with 40-50 real organizations:
-- 15+ JDRF chapters (with real jdrf.org URLs)
-- 10+ ADA local offices
-- 5+ College Diabetes Network chapters
-- 5+ diabetes camps
-- 10+ online communities (Reddit, Discord, Facebook groups with real links)
-
-### New Files
-- `src/pages/FindDiabeticNearMe.tsx` -- Main page with all sections
-- `src/hooks/useDiabeticProfiles.ts` -- Hook for fetching/managing opt-in profiles and connection requests
-- `src/hooks/useCommunityDirectory.ts` -- Hook for fetching the organization directory
-- `src/components/find-diabetics/UserProfileCard.tsx` -- Card component for displaying a discoverable user
-- `src/components/find-diabetics/OptInBanner.tsx` -- Prompt for users to make themselves discoverable
-- `src/components/find-diabetics/CommunityDirectoryCard.tsx` -- Card for external organizations
-- `src/components/find-diabetics/ConnectionRequestModal.tsx` -- Modal for sending a connect request
-- `supabase/functions/seed-diabetic-directory/index.ts` -- Seeder for real organizations
+### Database Migration
+- New trigger function `notify_connection_request()` (SECURITY DEFINER) that:
+  - On INSERT: looks up sender's `display_name` from `diabetic_profiles`, inserts into `notifications` for the recipient
+  - On UPDATE to "accepted": looks up accepter's `display_name`, inserts into `notifications` for the original sender
+- Trigger: `AFTER INSERT OR UPDATE ON connection_requests`
 
 ### Modified Files
-- `src/App.tsx` -- Add route `/find-diabetics` (protected)
-- `src/components/AppSidebar.tsx` -- Add "Find a Diabetic" link in the Community section
+- `src/hooks/useDiabeticProfiles.ts` -- Add `updateConnectionStatus` mutation, add profiles-enriched requests query
+- `src/pages/FindDiabeticNearMe.tsx` -- Add 5th "Connections" tab with badge showing pending count
+- `src/components/notifications/NotificationCenter.tsx` -- Add `connection_request` icon to TYPE_ICONS
 
-### Patterns
-- Follows existing Layout + BackButton + Card patterns
-- Community directory cards match the Events/Organizations page style
-- Opt-in profile cards follow the Warrior Spotlight card style
-- Location filtering follows the Events Near Me pattern (state dropdown + search)
+### New Files
+- `src/components/find-diabetics/ConnectionsTab.tsx` -- Full connections management UI with incoming requests, accepted connections, and sent requests sections
+
+### Unchanged
+- All existing pages, components, and features remain untouched
+- Diabetes Burnout page, Peer Comparison, Dashboard, Discover, Public Glucose Data -- no changes
