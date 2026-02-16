@@ -75,7 +75,7 @@ const Index = () => {
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="flex items-center justify-center gap-4 mb-8">
             
-            <span className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-brand-purple-dark to-brand-purple-light bg-clip-text text-accent-foreground">
+            <span className="text-4xl font-bold bg-gradient-to-r from-brand-purple-dark to-brand-purple-light bg-clip-text text-accent-foreground md:text-7xl">
               GlucoForge
             </span>
           </div>
