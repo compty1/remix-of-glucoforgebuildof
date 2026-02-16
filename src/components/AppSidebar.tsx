@@ -76,7 +76,7 @@ import {
 import { useAuthStore } from '@/store/authStore';
 import { supabase } from '@/integrations/supabase/client';
 import { EntityLogo } from '@/components/ui/entity-logo';
-import dropIcon from '@/assets/glycoforge-drop-icon-new.png';
+import dropIcon from '@/assets/glucoforge-logo.svg';
 
 // ============================================
 // REORGANIZED NAVIGATION STRUCTURE

@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Lock, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
-import logoImage from '@/assets/glucoforge-logo-new.png';
+import logoImage from '@/assets/glucoforge-logo.svg';
 import { z } from 'zod';
 
 const passwordSchema = z.object({
