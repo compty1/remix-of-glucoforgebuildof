@@ -498,6 +498,99 @@ export type Database = {
         }
         Relationships: []
       }
+      burnout_comments: {
+        Row: {
+          author_anonymous: string | null
+          content: string
+          created_at: string
+          id: string
+          parent_comment_id: string | null
+          post_id: string
+          score: number | null
+        }
+        Insert: {
+          author_anonymous?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          parent_comment_id?: string | null
+          post_id: string
+          score?: number | null
+        }
+        Update: {
+          author_anonymous?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          parent_comment_id?: string | null
+          post_id?: string
+          score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "burnout_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "burnout_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "burnout_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "burnout_community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      burnout_community_posts: {
+        Row: {
+          author_anonymous: string | null
+          burnout_category: string | null
+          content: string | null
+          created_at: string
+          id: string
+          num_comments: number | null
+          published_at: string | null
+          score: number | null
+          sentiment: string | null
+          source: string
+          source_url: string | null
+          title: string
+          topic_tags: string[] | null
+        }
+        Insert: {
+          author_anonymous?: string | null
+          burnout_category?: string | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          num_comments?: number | null
+          published_at?: string | null
+          score?: number | null
+          sentiment?: string | null
+          source?: string
+          source_url?: string | null
+          title: string
+          topic_tags?: string[] | null
+        }
+        Update: {
+          author_anonymous?: string | null
+          burnout_category?: string | null
+          content?: string | null
+          created_at?: string
+          id?: string
+          num_comments?: number | null
+          published_at?: string | null
+          score?: number | null
+          sentiment?: string | null
+          source?: string
+          source_url?: string | null
+          title?: string
+          topic_tags?: string[] | null
+        }
+        Relationships: []
+      }
       challenge_participants: {
         Row: {
           challenge_id: string | null

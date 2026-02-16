@@ -51,7 +51,8 @@ import {
   GraduationCap,
   HeartPulse,
   Smile,
-  Gift } from
+  Gift,
+  Flame } from
 'lucide-react';
 import {
   Sidebar,
@@ -136,6 +137,7 @@ const newsItems = [
 const qualityOfLifeItems = [
 { title: "Quality of Life", url: "/quality-of-life", icon: SparklesIcon },
 { title: "Mental Health Hub", url: "/mental-health", icon: HeartPulse },
+{ title: "Diabetes Burnout", url: "/diabetes-burnout", icon: Flame },
 { title: "Healthcare Experience", url: "/healthcare-experience", icon: Stethoscope },
 { title: "Low Blood Sugar World", url: "/low-blood-sugar-world", icon: Droplet },
 { title: "Diabeto 18+", url: "/diabeto-18plus", icon: AlertTriangle }];
