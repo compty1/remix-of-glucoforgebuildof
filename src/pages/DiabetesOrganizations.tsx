@@ -232,23 +232,22 @@ export default function DiabetesOrganizations() {
 
                     {/* Actions */}
                     <div className="flex gap-2 pt-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex-1 gap-2"
-                        onClick={() => window.open(org.website_url, '_blank')}
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        Website
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        className="flex-1 gap-2"
-                        onClick={() => window.open(org.donate_url, '_blank')}
-                      >
-                        <Heart className="h-3 w-3" />
-                        Donate
-                      </Button>
+                      {org.website_url && (
+                        <Button variant="outline" size="sm" className="flex-1 gap-2" asChild>
+                          <a href={org.website_url} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="h-3 w-3" />
+                            Website
+                          </a>
+                        </Button>
+                      )}
+                      {org.donate_url && (
+                        <Button size="sm" className="flex-1 gap-2" asChild>
+                          <a href={org.donate_url} target="_blank" rel="noopener noreferrer">
+                            <Heart className="h-3 w-3" />
+                            Donate
+                          </a>
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

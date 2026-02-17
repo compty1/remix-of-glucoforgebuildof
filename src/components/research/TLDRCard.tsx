@@ -147,12 +147,10 @@ export const TLDRCard: React.FC<TLDRCardProps> = ({
             </Button>
           )}
           {getPaperUrl() && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => window.open(getPaperUrl()!, '_blank', 'noopener,noreferrer')}
-            >
-              <ExternalLink className="h-4 w-4" />
+            <Button variant="outline" size="sm" asChild>
+              <a href={getPaperUrl()!} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4" />
+              </a>
             </Button>
           )}
         </div>

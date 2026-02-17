@@ -273,21 +273,21 @@ export default function EventsNearMe() {
                         </div>
 
                         <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            className="gap-2"
-                            onClick={() => window.open(event.registration_url, '_blank')}
-                          >
-                            Register
-                            <ExternalLink className="h-3 w-3" />
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => window.open(event.website_url, '_blank')}
-                          >
-                            Learn More
-                          </Button>
+                          {event.registration_url && (
+                            <Button size="sm" className="gap-2" asChild>
+                              <a href={event.registration_url} target="_blank" rel="noopener noreferrer">
+                                Register
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            </Button>
+                          )}
+                          {event.website_url && (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={event.website_url} target="_blank" rel="noopener noreferrer">
+                                Learn More
+                              </a>
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </div>

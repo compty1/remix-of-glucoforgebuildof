@@ -120,12 +120,11 @@ export const ResearchAnalysisModal: React.FC<ResearchAnalysisModalProps> = ({
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4 border-t">
-            <Button 
-              className="flex-1"
-              onClick={() => window.open(item.link, '_blank', 'noopener,noreferrer')}
-            >
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Read Full Study
+            <Button className="flex-1" asChild>
+              <a href={item.link} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Read Full Study
+              </a>
             </Button>
             <Button variant="outline" onClick={onClose}>
               Close Analysis

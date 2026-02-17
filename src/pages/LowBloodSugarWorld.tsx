@@ -39,11 +39,11 @@ const categoryIcons = {
   other: <Droplet className="h-5 w-5" />
 };
 
-const categoryColors = {
-  funny: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-  scary: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-  educational: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-  other: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
+const categoryColors: Record<string, string> = {
+  funny: 'bg-warning/20 text-warning dark:bg-warning/30',
+  scary: 'bg-destructive/20 text-destructive dark:bg-destructive/30',
+  educational: 'bg-primary/20 text-primary dark:bg-primary/30',
+  other: 'bg-muted text-muted-foreground'
 };
 
 const StoryCard: React.FC<{ story: LowSugarStory; onUpvote: (id: string) => void }> = ({ 

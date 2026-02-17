@@ -83,7 +83,7 @@ const predictions: Prediction[] = [
     description: 'Long-acting basal insulins requiring only weekly or monthly injections reach widespread availability.',
     probability: 75,
     category: 'treatment',
-    keyFactors: ['Insulin Icodec approval', 'Lilly once-weekly insulin', 'Pharmacokinetic improvements', 'Patient preference data']
+    keyFactors: ['Insulin icodec (Awiqli) FDA-approved 2024', 'Lilly once-weekly insulin in Phase 3', 'Pharmacokinetic improvements', 'Patient preference data supporting adoption']
   },
   {
     id: '5',
