@@ -6,88 +6,104 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Diabetes-related company tickers
+const DIABETES_TICKERS = [
+  { ticker: 'DXCM', name: 'Dexcom Inc.' },
+  { ticker: 'TNDM', name: 'Tandem Diabetes Care' },
+  { ticker: 'ABT', name: 'Abbott Laboratories' },
+  { ticker: 'MDT', name: 'Medtronic PLC' },
+  { ticker: 'PODD', name: 'Insulet Corporation' },
+  { ticker: 'LLY', name: 'Eli Lilly and Company' },
+  { ticker: 'NVO', name: 'Novo Nordisk A/S' },
+];
+
+// Fetch real stock quotes from Yahoo Finance v8 API (free, no key needed)
+async function fetchQuote(ticker: string): Promise<{
+  price: number;
+  marketCap: number;
+  changePercent: number;
+  volume: number;
+} | null> {
+  try {
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Accept': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      console.log(`[FINANCIAL-MARKET-FEED] Yahoo Finance returned ${response.status} for ${ticker}`);
+      return null;
+    }
+
+    const data = await response.json();
+    const meta = data?.chart?.result?.[0]?.meta;
+
+    if (!meta) return null;
+
+    const price = meta.regularMarketPrice || 0;
+    const previousClose = meta.chartPreviousClose || meta.previousClose || price;
+    const changePercent = previousClose > 0
+      ? ((price - previousClose) / previousClose) * 100
+      : 0;
+
+    return {
+      price: Math.round(price * 100) / 100,
+      marketCap: meta.marketCap || 0,
+      changePercent: Math.round(changePercent * 100) / 100,
+      volume: meta.regularMarketVolume || 0,
+    };
+  } catch (err) {
+    console.error(`[FINANCIAL-MARKET-FEED] Error fetching ${ticker}:`, err);
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    console.log('[FINANCIAL-MARKET-FEED] Starting market data fetch');
+    console.log('[FINANCIAL-MARKET-FEED] Starting real market data fetch');
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Simulated market data for major diabetes companies
-    // In production, this would call Yahoo Finance or Alpha Vantage APIs
     const today = new Date().toISOString().split('T')[0];
-    
-    const marketData = [
-      {
-        company_name: 'Dexcom Inc.',
-        ticker_symbol: 'DXCM',
-        current_price: 98.45,
-        market_cap: 38500000000,
-        change_percent: 2.3,
-        volume: 3245000,
-        data_date: today
-      },
-      {
-        company_name: 'Tandem Diabetes Care',
-        ticker_symbol: 'TNDM',
-        current_price: 52.18,
-        market_cap: 3400000000,
-        change_percent: -1.2,
-        volume: 1823000,
-        data_date: today
-      },
-      {
-        company_name: 'Abbott Laboratories',
-        ticker_symbol: 'ABT',
-        current_price: 117.32,
-        market_cap: 203000000000,
-        change_percent: 0.8,
-        volume: 5124000,
-        data_date: today
-      },
-      {
-        company_name: 'Medtronic PLC',
-        ticker_symbol: 'MDT',
-        current_price: 87.64,
-        market_cap: 114000000000,
-        change_percent: 1.5,
-        volume: 4567000,
-        data_date: today
-      },
-      {
-        company_name: 'Insulet Corporation',
-        ticker_symbol: 'PODD',
-        current_price: 245.89,
-        market_cap: 17200000000,
-        change_percent: 3.1,
-        volume: 892000,
-        data_date: today
-      },
-      {
-        company_name: 'Eli Lilly and Company',
-        ticker_symbol: 'LLY',
-        current_price: 789.23,
-        market_cap: 745000000000,
-        change_percent: 2.7,
-        volume: 2345000,
-        data_date: today
-      },
-      {
-        company_name: 'Novo Nordisk A/S',
-        ticker_symbol: 'NVO',
-        current_price: 102.45,
-        market_cap: 465000000000,
-        change_percent: 1.9,
-        volume: 1876000,
-        data_date: today
+    const marketData: any[] = [];
+
+    for (const company of DIABETES_TICKERS) {
+      const quote = await fetchQuote(company.ticker);
+
+      if (quote) {
+        marketData.push({
+          company_name: company.name,
+          ticker_symbol: company.ticker,
+          current_price: quote.price,
+          market_cap: quote.marketCap,
+          change_percent: quote.changePercent,
+          volume: quote.volume,
+          data_date: today,
+        });
+        console.log(`[FINANCIAL-MARKET-FEED] ${company.ticker}: $${quote.price} (${quote.changePercent > 0 ? '+' : ''}${quote.changePercent}%)`);
       }
-    ];
+
+      // Rate limit
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+
+    if (marketData.length === 0) {
+      console.log('[FINANCIAL-MARKET-FEED] No data fetched from Yahoo Finance');
+      return new Response(
+        JSON.stringify({ success: true, message: 'No market data available', count: 0 }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Upsert market data
     const { error: marketError } = await supabaseClient
@@ -99,7 +115,7 @@ serve(async (req) => {
       throw marketError;
     }
 
-    console.log(`[FINANCIAL-MARKET-FEED] Upserted ${marketData.length} market data records`);
+    console.log(`[FINANCIAL-MARKET-FEED] Upserted ${marketData.length} real market data records`);
 
     // Fetch and return latest data
     const { data: latestMarketData } = await supabaseClient
@@ -109,14 +125,13 @@ serve(async (req) => {
       .order('created_at', { ascending: false })
       .limit(20);
 
-    console.log('[FINANCIAL-MARKET-FEED] Successfully completed');
-
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Market data updated successfully',
+        message: 'Market data updated from Yahoo Finance',
         count: marketData.length,
-        data: latestMarketData
+        data: latestMarketData,
+        source: 'Yahoo Finance',
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
