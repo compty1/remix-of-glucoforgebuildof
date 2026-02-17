@@ -13,13 +13,13 @@ export function DailyTasksJar() {
   return (
     <>
       <Card className="overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10">
+        <CardHeader className="bg-gradient-to-r from-primary/10 to-accent/10">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <ListChecks className="h-5 w-5 text-blue-500" />
+              <ListChecks className="h-5 w-5 text-primary" />
               Daily Tasks Others Don't Have
             </CardTitle>
-            <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+            <Badge variant="secondary" className="bg-primary/10 text-primary">
               {submissions.length} tasks shared
             </Badge>
           </div>
@@ -31,12 +31,12 @@ export function DailyTasksJar() {
               {/* IV Bag */}
               <svg viewBox="0 0 80 120" className="w-full h-full">
                 {/* Bag */}
-                <rect x="10" y="10" width="60" height="70" rx="5" fill="none" stroke="currentColor" strokeWidth="2" className="text-blue-300" />
+                <rect x="10" y="10" width="60" height="70" rx="5" fill="none" stroke="currentColor" strokeWidth="2" className="text-primary/40" />
                 <rect x="10" y="10" width="60" height="70" rx="5" fill="url(#ivGradient)" className="opacity-50" />
                 
                 {/* Tube */}
-                <path d="M40 80 L40 100" stroke="currentColor" strokeWidth="3" className="text-blue-400" />
-                <circle cx="40" cy="105" r="5" fill="currentColor" className="text-blue-500" />
+                <path d="M40 80 L40 100" stroke="currentColor" strokeWidth="3" className="text-primary/50" />
+                <circle cx="40" cy="105" r="5" fill="currentColor" className="text-primary" />
                 
                 {/* Drip Animation Target */}
                 <defs>
@@ -63,7 +63,7 @@ export function DailyTasksJar() {
                       ease: 'easeIn'
                     }}
                   >
-                    <Droplet className="h-3 w-3 text-blue-500 fill-blue-400" />
+                    <Droplet className="h-3 w-3 text-primary fill-primary/70" />
                   </motion.div>
                 ))}
               </AnimatePresence>
@@ -87,7 +87,7 @@ export function DailyTasksJar() {
                       animate={{ scale: [1, 1.1, 1] }}
                       transition={{ duration: 2, repeat: Infinity, delay: index * 0.3 }}
                     >
-                      <Droplet className="h-4 w-4 text-blue-500 fill-blue-400" />
+                      <Droplet className="h-4 w-4 text-primary fill-primary/70" />
                     </motion.div>
                   </div>
                   <p className="text-sm flex-1 line-clamp-2">{submission.content}</p>

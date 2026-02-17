@@ -122,11 +122,11 @@ export default function GlucoseUpload() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
+        return <CheckCircle className="h-5 w-5 text-success" />;
       case 'error':
-        return <AlertCircle className="h-5 w-5 text-red-600" />;
+        return <AlertCircle className="h-5 w-5 text-destructive" />;
       case 'processing':
-        return <BarChart3 className="h-5 w-5 text-blue-600" />;
+        return <BarChart3 className="h-5 w-5 text-primary" />;
       default:
         return <Clock className="h-5 w-5 text-warning" />;
     }

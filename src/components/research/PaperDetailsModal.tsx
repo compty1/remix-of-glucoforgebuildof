@@ -32,13 +32,13 @@ interface PaperDetailsModalProps {
 
 // Color mapping for research fields
 const FIELD_COLORS: Record<string, string> = {
-  'Medicine': 'bg-red-500/10 text-red-600 border-red-500/20',
-  'Biology': 'bg-green-500/10 text-green-600 border-green-500/20',
-  'Computer Science': 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  'Engineering': 'bg-orange-500/10 text-orange-600 border-orange-500/20',
-  'Chemistry': 'bg-purple-500/10 text-purple-600 border-purple-500/20',
-  'Physics': 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20',
-  'Mathematics': 'bg-pink-500/10 text-pink-600 border-pink-500/20',
+  'Medicine': 'bg-destructive/10 text-destructive border-destructive/20',
+  'Biology': 'bg-success/10 text-success border-success/20',
+  'Computer Science': 'bg-primary/10 text-primary border-primary/20',
+  'Engineering': 'bg-warning/10 text-warning border-warning/20',
+  'Chemistry': 'bg-accent text-accent-foreground border-border',
+  'Physics': 'bg-chart-1/10 text-chart-1 border-chart-1/20',
+  'Mathematics': 'bg-brand-red/10 text-brand-red border-brand-red/20',
 };
 
 const getFieldColorClass = (field: string): string => {
@@ -66,7 +66,7 @@ export const PaperDetailsModal: React.FC<PaperDetailsModalProps> = ({
         <DialogHeader className="space-y-3">
           <div className="flex items-start gap-2 flex-wrap">
             {paper.openAccess ? (
-              <Badge variant="outline" className="bg-green-500/10 text-green-600 border-green-500/20">
+              <Badge variant="outline" className="bg-success/10 text-success border-success/20">
                 <Unlock className="h-3 w-3 mr-1" />
                 Open Access
               </Badge>

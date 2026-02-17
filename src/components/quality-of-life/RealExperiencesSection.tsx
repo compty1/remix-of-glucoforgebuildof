@@ -33,14 +33,14 @@ const categoryIcons: Record<string, React.ReactNode> = {
 };
 
 const categoryColors: Record<string, string> = {
-  'Sleep': 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  'Exercise': 'bg-green-500/10 text-green-600 border-green-500/20',
-  'Mental Health': 'bg-purple-500/10 text-purple-600 border-purple-500/20',
-  'Diet': 'bg-orange-500/10 text-orange-600 border-orange-500/20',
-  'Technology': 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20',
-  'Work/Life': 'bg-pink-500/10 text-pink-600 border-pink-500/20',
-  'Supplements': 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
-  'Relationships': 'bg-red-500/10 text-red-600 border-red-500/20'
+  'Sleep': 'bg-chart-2/10 text-chart-2 border-chart-2/20',
+  'Exercise': 'bg-success/10 text-success border-success/20',
+  'Mental Health': 'bg-accent text-accent-foreground border-border',
+  'Diet': 'bg-warning/10 text-warning border-warning/20',
+  'Technology': 'bg-primary/10 text-primary border-primary/20',
+  'Work/Life': 'bg-brand-red/10 text-brand-red border-brand-red/20',
+  'Supplements': 'bg-chart-4/10 text-chart-4 border-chart-4/20',
+  'Relationships': 'bg-destructive/10 text-destructive border-destructive/20'
 };
 
 export default function RealExperiencesSection() {

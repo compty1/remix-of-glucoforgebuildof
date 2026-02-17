@@ -80,8 +80,8 @@ export default function WarriorSpotlight() {
           </Card>
           <Card className="command-center-widget">
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="h-12 w-12 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
-                <Heart className="h-6 w-6 text-red-500" />
+              <div className="h-12 w-12 rounded-full bg-brand-red/10 flex items-center justify-center">
+                <Heart className="h-6 w-6 text-brand-red" />
               </div>
               <div>
                 <p className="text-2xl font-bold">
@@ -93,8 +93,8 @@ export default function WarriorSpotlight() {
           </Card>
           <Card className="command-center-widget">
             <CardContent className="p-4 flex items-center gap-4">
-              <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                <Trophy className="h-6 w-6 text-green-600" />
+              <div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center">
+                <Trophy className="h-6 w-6 text-success" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{featuredStories.length}</p>
@@ -134,7 +134,7 @@ export default function WarriorSpotlight() {
             {featuredStories.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-4">
-                  <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+                  <Badge variant="secondary" className="bg-warning/10 text-warning">
                     Featured Warriors
                   </Badge>
                 </div>

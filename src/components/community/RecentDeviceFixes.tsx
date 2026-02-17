@@ -66,9 +66,9 @@ export const RecentDeviceFixes: React.FC<RecentDeviceFixesProps> = ({
       case 'easy':
         return 'bg-primary/10 text-primary border-primary/20';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+        return 'bg-warning/10 text-warning';
       case 'hard':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
+        return 'bg-highlight/10 text-highlight';
       default:
         return 'bg-muted text-muted-foreground';
     }

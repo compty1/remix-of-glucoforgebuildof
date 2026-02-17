@@ -59,15 +59,15 @@ export function CommunityPulse() {
   }
 
   return (
-    <Card className="border-orange-200 dark:border-orange-800 bg-orange-50/30 dark:bg-orange-900/10">
+    <Card className="border-warning/30 dark:border-warning/20 bg-warning/5 dark:bg-warning/5">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Users className="h-5 w-5 text-orange-600" />
+            <Users className="h-5 w-5 text-warning" />
             Community Pulse
           </CardTitle>
           <div className="flex gap-2">
-            <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 text-xs">
+            <Badge className="bg-warning/10 text-warning text-xs">
               {stats?.posts?.toLocaleString()} Posts
             </Badge>
           </div>
@@ -100,7 +100,7 @@ export function CommunityPulse() {
                     {post.source}
                   </Badge>
                   {post.is_solution && (
-                    <Badge className="bg-green-100 text-green-800 text-xs">
+                    <Badge className="bg-success/10 text-success text-xs">
                       Solution
                     </Badge>
                   )}
