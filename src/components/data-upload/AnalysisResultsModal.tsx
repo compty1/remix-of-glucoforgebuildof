@@ -511,14 +511,14 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
                 <TabsContent value="insights" className="mt-0 space-y-6">
                   {/* AI Key Findings */}
                   {aiInsights?.keyFindings && aiInsights.keyFindings.length > 0 && (
-                    <div className="p-4 rounded-lg bg-blue-500/5 border border-blue-500/20">
-                      <h3 className="font-semibold text-blue-600 dark:text-blue-400 mb-3">
+                    <div className="p-4 rounded-lg bg-primary/5 border border-primary/20">
+                      <h3 className="font-semibold text-primary mb-3">
                         🔬 AI Key Findings
                       </h3>
                       <ul className="space-y-2">
                         {aiInsights.keyFindings.map((finding, index) => (
                           <li key={index} className="text-sm flex items-start gap-2">
-                            <span className="text-blue-500">•</span>
+                            <span className="text-primary">•</span>
                             <span>{finding}</span>
                           </li>
                         ))}

@@ -386,7 +386,7 @@ export default function AppCenter() {
                             <a href={selectedApp.download_urls.android} target="_blank" rel="noopener noreferrer">
                               <PlayCircle className="h-4 w-4" />
                               Google Play
-                              <CheckCircle2 className="h-3 w-3 text-green-600 ml-1" />
+                              <CheckCircle2 className="h-3 w-3 text-success ml-1" />
                             </a>
                           </Button>
                         )}
@@ -427,15 +427,15 @@ export default function AppCenter() {
                     {/* Pros & Cons */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {selectedApp.pros && selectedApp.pros.length > 0 && (
-                        <div className="p-4 rounded-lg bg-green-50 dark:bg-green-900/20">
-                          <h4 className="font-semibold text-green-700 dark:text-green-300 mb-3 flex items-center gap-2">
+                        <div className="p-4 rounded-lg bg-success/5 dark:bg-success/10">
+                          <h4 className="font-semibold text-success mb-3 flex items-center gap-2">
                             <ThumbsUp className="h-4 w-4" />
                             What Users Like
                           </h4>
                           <ul className="space-y-2">
                             {selectedApp.pros.map((pro, i) => (
                               <li key={i} className="text-sm flex items-start gap-2">
-                                <Check className="h-4 w-4 text-green-600 mt-0.5" />
+                                <Check className="h-4 w-4 text-success mt-0.5" />
                                 {pro}
                               </li>
                             ))}
@@ -443,15 +443,15 @@ export default function AppCenter() {
                         </div>
                       )}
                       {selectedApp.cons && selectedApp.cons.length > 0 && (
-                        <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20">
-                          <h4 className="font-semibold text-red-700 dark:text-red-300 mb-3 flex items-center gap-2">
+                        <div className="p-4 rounded-lg bg-destructive/5 dark:bg-destructive/10">
+                          <h4 className="font-semibold text-destructive mb-3 flex items-center gap-2">
                             <ThumbsDown className="h-4 w-4" />
                             Could Be Improved
                           </h4>
                           <ul className="space-y-2">
                             {selectedApp.cons.map((con, i) => (
                               <li key={i} className="text-sm flex items-start gap-2">
-                                <X className="h-4 w-4 text-red-600 mt-0.5" />
+                                <X className="h-4 w-4 text-destructive mt-0.5" />
                                 {con}
                               </li>
                             ))}
@@ -510,23 +510,23 @@ export default function AppCenter() {
                       <>
                         {/* Sentiment Summary */}
                         <div className="grid grid-cols-3 gap-3 mb-4">
-                          <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 text-center">
-                            <div className="text-2xl font-bold text-green-600">
+                          <div className="p-3 rounded-lg bg-success/5 dark:bg-success/10 text-center">
+                            <div className="text-2xl font-bold text-success">
                               {buzz.filter(b => b.sentiment === 'positive').length}
                             </div>
-                            <div className="text-xs text-green-700 dark:text-green-300">Positive</div>
+                            <div className="text-xs text-success">Positive</div>
                           </div>
-                          <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-center">
-                            <div className="text-2xl font-bold text-yellow-600">
+                          <div className="p-3 rounded-lg bg-warning/5 dark:bg-warning/10 text-center">
+                            <div className="text-2xl font-bold text-warning">
                               {buzz.filter(b => b.sentiment === 'neutral').length}
                             </div>
-                            <div className="text-xs text-yellow-700 dark:text-yellow-300">Neutral</div>
+                            <div className="text-xs text-warning">Neutral</div>
                           </div>
-                          <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-center">
-                            <div className="text-2xl font-bold text-red-600">
+                          <div className="p-3 rounded-lg bg-destructive/5 dark:bg-destructive/10 text-center">
+                            <div className="text-2xl font-bold text-destructive">
                               {buzz.filter(b => b.sentiment === 'negative').length}
                             </div>
-                            <div className="text-xs text-red-700 dark:text-red-300">Negative</div>
+                            <div className="text-xs text-destructive">Negative</div>
                           </div>
                         </div>
 

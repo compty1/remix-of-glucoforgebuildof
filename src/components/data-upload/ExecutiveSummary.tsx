@@ -72,7 +72,7 @@ const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Time in Range (70-180)</span>
-                <span className={`font-bold ${tirMet ? 'text-green-600' : 'text-yellow-600'}`}>
+                <span className={`font-bold ${tirMet ? 'text-success' : 'text-warning'}`}>
                   {overallTIR.toFixed(1)}%
                 </span>
               </div>
@@ -112,7 +112,7 @@ const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
           </div>
           <div className="text-center p-3 rounded-lg bg-muted/50">
             <p className="text-xs text-muted-foreground mb-1">CV</p>
-            <p className={`font-bold text-lg ${keyMetrics.cv <= 36 ? 'text-green-600' : 'text-yellow-600'}`}>
+            <p className={`font-bold text-lg ${keyMetrics.cv <= 36 ? 'text-success' : 'text-warning'}`}>
               {keyMetrics.cv.toFixed(1)}%
             </p>
             <p className="text-xs text-muted-foreground">
@@ -121,7 +121,7 @@ const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
           </div>
           <div className="text-center p-3 rounded-lg bg-muted/50">
             <p className="text-xs text-muted-foreground mb-1">Time Low</p>
-            <p className={`font-bold text-lg ${keyMetrics.timeBelow70 <= 4 ? 'text-green-600' : 'text-red-600'}`}>
+            <p className={`font-bold text-lg ${keyMetrics.timeBelow70 <= 4 ? 'text-success' : 'text-destructive'}`}>
               {keyMetrics.timeBelow70.toFixed(1)}%
             </p>
             <p className="text-xs text-muted-foreground">
@@ -158,9 +158,9 @@ const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({
 
         {/* Encouragement */}
         {encouragement && (
-          <div className="flex items-start gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-            <Sparkles className="h-4 w-4 text-green-600 mt-0.5" />
-            <p className="text-sm text-green-700 dark:text-green-400">
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-success/10 border border-success/20">
+            <Sparkles className="h-4 w-4 text-success mt-0.5" />
+            <p className="text-sm text-success">
               {encouragement}
             </p>
           </div>

@@ -8,26 +8,26 @@ const STREAK_CONFIG = {
   platform_visit: {
     label: 'Daily Visits',
     icon: Calendar,
-    color: 'text-orange-500',
-    bgColor: 'bg-orange-500/10'
+    color: 'text-warning',
+    bgColor: 'bg-warning/10'
   },
   data_upload: {
     label: 'Data Uploads',
     icon: Upload,
-    color: 'text-blue-500',
-    bgColor: 'bg-blue-500/10'
+    color: 'text-primary',
+    bgColor: 'bg-primary/10'
   },
   survey: {
     label: 'Survey Streak',
     icon: FileText,
-    color: 'text-green-500',
-    bgColor: 'bg-green-500/10'
+    color: 'text-success',
+    bgColor: 'bg-success/10'
   },
   tir_70: {
     label: 'TIR > 70%',
     icon: TrendingUp,
-    color: 'text-purple-500',
-    bgColor: 'bg-purple-500/10'
+    color: 'text-chart-5',
+    bgColor: 'bg-chart-5/10'
   }
 };
 
