@@ -302,27 +302,36 @@ export function AppSidebar() {
     "hover:bg-muted text-foreground transition-colors";
   };
 
-  // Render a navigation group
-  const renderNavGroup = (label: string, items: typeof mainNavItems, emoji?: string) =>
+  // Render a collapsible navigation group
+  const renderNavGroup = (label: string, items: typeof mainNavItems, emoji?: string, defaultOpen?: boolean) =>
   <SidebarGroup>
-      <SidebarGroupLabel className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider flex items-center gap-1`}>
-        {emoji && <span>{emoji}</span>}
-        {label}
-      </SidebarGroupLabel>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          {items.map((item) =>
-        <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
-                <NavLink to={item.url} className={getNavClasses(item.url)}>
-                  <item.icon className={`h-4 w-4 ${isActive(item.url) ? '' : 'text-brand-teal'}`} />
-                  {state !== "collapsed" && <span>{item.title}</span>}
-                </NavLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-        )}
-        </SidebarMenu>
-      </SidebarGroupContent>
+      <Collapsible defaultOpen={defaultOpen ?? true} className="group/navgroup">
+        <SidebarGroupLabel asChild className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider flex items-center gap-1 cursor-pointer`}>
+          <CollapsibleTrigger className="flex items-center justify-between w-full">
+            <span className="flex items-center gap-1">
+              {emoji && <span>{emoji}</span>}
+              {label}
+            </span>
+            {state !== "collapsed" && <ChevronRight className="h-3 w-3 transition-transform duration-200 group-data-[state=open]/navgroup:rotate-90" />}
+          </CollapsibleTrigger>
+        </SidebarGroupLabel>
+        <CollapsibleContent>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {items.map((item) =>
+            <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink to={item.url} className={getNavClasses(item.url)}>
+                      <item.icon className={`h-4 w-4 ${isActive(item.url) ? '' : 'text-brand-teal'}`} />
+                      {state !== "collapsed" && <span>{item.title}</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+            )}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </CollapsibleContent>
+      </Collapsible>
     </SidebarGroup>;
 
 
@@ -346,184 +355,202 @@ export function AppSidebar() {
         </div>
 
         {/* Main Navigation */}
-        {renderNavGroup("Main", mainNavItems, "📍")}
+        {renderNavGroup("Main", mainNavItems, "📍", true)}
 
         {/* Community & Support */}
         {renderNavGroup("Community", communityItems, "💬")}
 
         {/* Devices & Medications */}
         <SidebarGroup>
-          <SidebarGroupLabel className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider flex items-center gap-1`}>
-            <span>🏥</span>
-            Devices & Meds
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {/* Devices Submenu */}
-              <Collapsible
-                open={devicesOpen}
-                onOpenChange={setDevicesOpen}
-                className="group/collapsible">
+          <Collapsible defaultOpen={true} className="group/devmeds">
+            <SidebarGroupLabel asChild className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider flex items-center gap-1 cursor-pointer`}>
+              <CollapsibleTrigger className="flex items-center justify-between w-full">
+                <span className="flex items-center gap-1">
+                  <span>🏥</span>
+                  Devices & Meds
+                </span>
+                {state !== "collapsed" && <ChevronRight className="h-3 w-3 transition-transform duration-200 group-data-[state=open]/devmeds:rotate-90" />}
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {/* Devices Submenu */}
+                  <Collapsible
+                    open={devicesOpen}
+                    onOpenChange={setDevicesOpen}
+                    className="group/collapsible">
 
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton
-                      className={`w-full justify-between ${
-                      currentPath === '/devices' || currentPath.startsWith('/devices/') ?
-                      "bg-brand-purple-dark/10 text-brand-purple-dark font-semibold" :
-                      "hover:bg-muted"}`
-                      }>
+                    <SidebarMenuItem>
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton
+                          className={`w-full justify-between ${
+                          currentPath === '/devices' || currentPath.startsWith('/devices/') ?
+                          "bg-brand-purple-dark/10 text-brand-purple-dark font-semibold" :
+                          "hover:bg-muted"}`
+                          }>
 
-                      <div className="flex items-center gap-2">
-                        <Smartphone className={`h-4 w-4 ${currentPath.startsWith('/devices') ? '' : 'text-brand-teal'}`} />
-                        {state !== "collapsed" && <span>Devices</span>}
-                      </div>
-                      {state !== "collapsed" &&
-                      <ChevronRight className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                      }
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild>
-                          <NavLink to="/devices" className={getNavClasses('/devices')}>
-                            <LayoutGrid className="h-3 w-3" />
-                            {state !== "collapsed" && <span>All Devices</span>}
-                          </NavLink>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                      {devices.map((device) =>
-                      <SidebarMenuSubItem key={device.id}>
-                          <SidebarMenuSubButton asChild>
-                            <NavLink
-                            to={`/devices/${device.id}`}
-                            className={getDeviceNavClasses(device.id)}>
+                          <div className="flex items-center gap-2">
+                            <Smartphone className={`h-4 w-4 ${currentPath.startsWith('/devices') ? '' : 'text-brand-teal'}`} />
+                            {state !== "collapsed" && <span>Devices</span>}
+                          </div>
+                          {state !== "collapsed" &&
+                          <ChevronRight className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                          }
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          <SidebarMenuSubItem>
+                            <SidebarMenuSubButton asChild>
+                              <NavLink to="/devices" className={getNavClasses('/devices')}>
+                                <LayoutGrid className="h-3 w-3" />
+                                {state !== "collapsed" && <span>All Devices</span>}
+                              </NavLink>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                          {devices.map((device) =>
+                          <SidebarMenuSubItem key={device.id}>
+                              <SidebarMenuSubButton asChild>
+                                <NavLink
+                                to={`/devices/${device.id}`}
+                                className={getDeviceNavClasses(device.id)}>
 
-                              <EntityLogo
-                              type="device"
-                              name={device.manufacturer || device.name}
-                              size="xs" />
+                                  <EntityLogo
+                                  type="device"
+                                  name={device.manufacturer || device.name}
+                                  size="xs" />
 
-                              {state !== "collapsed" && <span>{device.name}</span>}
-                            </NavLink>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      )}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </SidebarMenuItem>
-              </Collapsible>
+                                  {state !== "collapsed" && <span>{device.name}</span>}
+                                </NavLink>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          )}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </SidebarMenuItem>
+                  </Collapsible>
 
-              {/* Other device/med items */}
-              {deviceMedItems.map((item) =>
-              <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavClasses(item.url)}>
-                      <item.icon className={`h-4 w-4 ${isActive(item.url) ? '' : 'text-brand-teal'}`} />
-                      {state !== "collapsed" && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
+                  {/* Other device/med items */}
+                  {deviceMedItems.map((item) =>
+                  <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink to={item.url} className={getNavClasses(item.url)}>
+                          <item.icon className={`h-4 w-4 ${isActive(item.url) ? '' : 'text-brand-teal'}`} />
+                          {state !== "collapsed" && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </Collapsible>
         </SidebarGroup>
 
         {/* Research & Science */}
         <SidebarGroup>
-          <SidebarGroupLabel className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider flex items-center gap-1`}>
-            <span>🔬</span>
-            Research
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {/* Deep Dive Projects Submenu */}
-              <Collapsible
-                open={projectsOpen}
-                onOpenChange={setProjectsOpen}
-                className="group/projects">
+          <Collapsible defaultOpen={true} className="group/research">
+            <SidebarGroupLabel asChild className={`${state === "collapsed" ? "sr-only" : ""} text-muted-foreground font-semibold text-xs uppercase tracking-wider flex items-center gap-1 cursor-pointer`}>
+              <CollapsibleTrigger className="flex items-center justify-between w-full">
+                <span className="flex items-center gap-1">
+                  <span>🔬</span>
+                  Research
+                </span>
+                {state !== "collapsed" && <ChevronRight className="h-3 w-3 transition-transform duration-200 group-data-[state=open]/research:rotate-90" />}
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {/* Deep Dive Projects Submenu */}
+                  <Collapsible
+                    open={projectsOpen}
+                    onOpenChange={setProjectsOpen}
+                    className="group/projects">
 
-                <SidebarMenuItem>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuButton
-                      className={`w-full justify-between ${
-                      currentPath.startsWith('/projects') ?
-                      "bg-primary/10 text-primary font-medium" :
-                      "hover:bg-muted/50"}`
-                      }>
+                    <SidebarMenuItem>
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton
+                          className={`w-full justify-between ${
+                          currentPath.startsWith('/projects') ?
+                          "bg-primary/10 text-primary font-medium" :
+                          "hover:bg-muted/50"}`
+                          }>
 
-                      <div className="flex items-center gap-2">
-                        <FolderOpen className="h-4 w-4" />
-                        {state !== "collapsed" && <span>Deep Dive Projects</span>}
-                      </div>
-                      {state !== "collapsed" &&
-                      <ChevronRight className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/projects:rotate-90" />
-                      }
-                    </SidebarMenuButton>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {featuredProjects.map((project) =>
-                      <SidebarMenuSubItem key={project.id}>
-                          <SidebarMenuSubButton asChild>
-                            <NavLink
-                            to={`/projects/${project.slug}`}
-                            className={currentPath === `/projects/${project.slug}` ?
-                            "bg-primary text-primary-foreground font-medium" :
-                            "hover:bg-muted/50 transition-colors"}>
+                          <div className="flex items-center gap-2">
+                            <FolderOpen className="h-4 w-4" />
+                            {state !== "collapsed" && <span>Deep Dive Projects</span>}
+                          </div>
+                          {state !== "collapsed" &&
+                          <ChevronRight className="h-4 w-4 transition-transform duration-200 group-data-[state=open]/projects:rotate-90" />
+                          }
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {featuredProjects.map((project) =>
+                          <SidebarMenuSubItem key={project.id}>
+                              <SidebarMenuSubButton asChild>
+                                <NavLink
+                                to={`/projects/${project.slug}`}
+                                className={currentPath === `/projects/${project.slug}` ?
+                                "bg-primary text-primary-foreground font-medium" :
+                                "hover:bg-muted/50 transition-colors"}>
 
-                              <FolderOpen className="h-3 w-3" />
-                              {state !== "collapsed" &&
-                            <span className="truncate">{project.title}</span>
-                            }
-                            </NavLink>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      )}
-                      
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild>
-                          <NavLink
-                            to="/projects"
-                            className={currentPath === '/projects' ?
-                            "bg-primary text-primary-foreground font-medium" :
-                            "hover:bg-muted/50 transition-colors"}>
+                                  <FolderOpen className="h-3 w-3" />
+                                  {state !== "collapsed" &&
+                                <span className="truncate">{project.title}</span>
+                                }
+                                </NavLink>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          )}
+                          
+                          <SidebarMenuSubItem>
+                            <SidebarMenuSubButton asChild>
+                              <NavLink
+                                to="/projects"
+                                className={currentPath === '/projects' ?
+                                "bg-primary text-primary-foreground font-medium" :
+                                "hover:bg-muted/50 transition-colors"}>
 
-                            <LayoutGrid className="h-3 w-3" />
-                            {state !== "collapsed" && <span>View All Projects</span>}
-                          </NavLink>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                      
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild>
-                          <NavLink
-                            to="/projects?submit=true"
-                            className="hover:bg-muted/50 transition-colors">
+                                <LayoutGrid className="h-3 w-3" />
+                                {state !== "collapsed" && <span>View All Projects</span>}
+                              </NavLink>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                          
+                          <SidebarMenuSubItem>
+                            <SidebarMenuSubButton asChild>
+                              <NavLink
+                                to="/projects?submit=true"
+                                className="hover:bg-muted/50 transition-colors">
 
-                            <Plus className="h-3 w-3" />
-                            {state !== "collapsed" && <span>Submit a Project</span>}
-                          </NavLink>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </SidebarMenuItem>
-              </Collapsible>
+                                <Plus className="h-3 w-3" />
+                                {state !== "collapsed" && <span>Submit a Project</span>}
+                              </NavLink>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </SidebarMenuItem>
+                  </Collapsible>
 
-              {researchItems.map((item) =>
-              <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={item.url} className={getNavClasses(item.url)}>
-                      <item.icon className={`h-4 w-4 ${isActive(item.url) ? '' : 'text-brand-teal'}`} />
-                      {state !== "collapsed" && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
+                  {researchItems.map((item) =>
+                  <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton asChild>
+                        <NavLink to={item.url} className={getNavClasses(item.url)}>
+                          <item.icon className={`h-4 w-4 ${isActive(item.url) ? '' : 'text-brand-teal'}`} />
+                          {state !== "collapsed" && <span>{item.title}</span>}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </CollapsibleContent>
+          </Collapsible>
         </SidebarGroup>
 
         {/* Data & Analytics */}
