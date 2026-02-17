@@ -336,8 +336,8 @@ export function AppSidebar() {
               <img src={dropIcon} alt="GF" className="h-8 w-8 flex-shrink-0 logo-animated-drop object-contain" />
             </div> :
 
-          <div className="flex items-center gap-2.5 w-full px-2">
-              
+          <div className="flex items-center gap-2 w-full px-2">
+              <img src={dropIcon} alt="GF" className="h-7 w-7 flex-shrink-0 logo-animated-drop object-contain" />
               <span className="text-xl font-bold bg-gradient-to-r from-brand-purple-dark to-brand-purple-light bg-clip-text text-transparent">
                 GlucoForge
               </span>
