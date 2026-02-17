@@ -162,9 +162,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <Link to="/donations-info" className="block text-white/70 hover:text-brand-teal transition-colors">
                       Donations Data
                     </Link>
-                    <a href="#" className="block text-white/70 hover:text-brand-teal transition-colors">
+                    <Link to="/about" className="block text-white/70 hover:text-brand-teal transition-colors">
                       501(c)(3) Status
-                    </a>
+                    </Link>
                     <Link to="/contact" className="block text-white/70 hover:text-brand-teal transition-colors">
                       Contact
                     </Link>

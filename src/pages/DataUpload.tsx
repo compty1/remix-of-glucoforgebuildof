@@ -418,7 +418,7 @@ const DataUpload = () => {
                       <div className="flex items-center gap-3">
                         {file.status === 'complete' && (
                           <Badge variant="outline" className="text-xs">
-                            {file.insights} insights
+                            {file.insights?.length || 0} insights
                           </Badge>
                         )}
                         {getStatusIcon(file.status)}

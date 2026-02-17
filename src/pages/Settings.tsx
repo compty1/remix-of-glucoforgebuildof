@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 import { useAuthStore } from '@/store/authStore';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -128,6 +129,7 @@ const PushNotificationsSection = () => {
 const Settings = () => {
   const { toast } = useToast();
   const { user, signOut } = useAuthStore();
+  const { theme, setTheme: setNextTheme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState({
     displayName: '',
@@ -147,8 +149,6 @@ const Settings = () => {
     publicProfile: false,
     researchParticipation: true
   });
-
-  const [theme, setTheme] = useState('system');
 
   useEffect(() => {
     if (user) {
@@ -319,11 +319,11 @@ const Settings = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="name">Display Name</Label>
-                    <Input id="name" placeholder="Your display name" />
+                    <Input id="name" placeholder="Your display name" value={profile.displayName} onChange={(e) => setProfile(prev => ({ ...prev, displayName: e.target.value }))} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" placeholder="Your email address" disabled />
+                    <Input id="email" type="email" value={user?.email || ''} disabled />
                     <p className="text-xs text-muted-foreground">Email cannot be changed here. Contact support if needed.</p>
                   </div>
                 </div>
@@ -383,12 +383,7 @@ const Settings = () => {
                 <Separator />
 
                 <div className="flex justify-end">
-                  <Button onClick={() => {
-                    toast({
-                      title: "Profile Updated",
-                      description: "Your profile changes have been saved successfully.",
-                    });
-                  }}>Save Changes</Button>
+                  <Button onClick={handleSaveProfile} disabled={loading}>Save Changes</Button>
                 </div>
               </CardContent>
             </Card>
@@ -583,17 +578,22 @@ const Settings = () => {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Account Security</h3>
                   <div className="space-y-3">
-                    <Button variant="outline" className="w-full justify-start">
+                    <Button variant="outline" className="w-full justify-start" onClick={() => {
+                      toast({
+                        title: "Change Password",
+                        description: "Please use the Profile page to change your password.",
+                      });
+                    }}>
                       <Lock className="h-4 w-4 mr-2" />
                       Change Password
                     </Button>
-                    <Button variant="outline" className="w-full justify-start">
+                    <Button variant="outline" className="w-full justify-start" disabled>
                       <Shield className="h-4 w-4 mr-2" />
-                      Enable Two-Factor Authentication
+                      Two-Factor Authentication (Coming Soon)
                     </Button>
-                    <Button variant="outline" className="w-full justify-start">
+                    <Button variant="outline" className="w-full justify-start" disabled>
                       <Eye className="h-4 w-4 mr-2" />
-                      View Login Activity
+                      View Login Activity (Coming Soon)
                     </Button>
                   </div>
                 </div>
@@ -620,7 +620,7 @@ const Settings = () => {
                     <Button
                       variant={theme === 'light' ? 'default' : 'outline'}
                       className="h-20 flex-col gap-2"
-                      onClick={() => setTheme('light')}
+                      onClick={() => setNextTheme('light')}
                     >
                       <Sun className="h-6 w-6" />
                       Light
@@ -628,7 +628,7 @@ const Settings = () => {
                     <Button
                       variant={theme === 'dark' ? 'default' : 'outline'}
                       className="h-20 flex-col gap-2"
-                      onClick={() => setTheme('dark')}
+                      onClick={() => setNextTheme('dark')}
                     >
                       <Moon className="h-6 w-6" />
                       Dark
@@ -636,7 +636,7 @@ const Settings = () => {
                     <Button
                       variant={theme === 'system' ? 'default' : 'outline'}
                       className="h-20 flex-col gap-2"
-                      onClick={() => setTheme('system')}
+                      onClick={() => setNextTheme('system')}
                     >
                       <Smartphone className="h-6 w-6" />
                       System
@@ -688,11 +688,11 @@ const Settings = () => {
                   </p>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Button variant="outline" className="justify-start">
+                    <Button variant="outline" className="justify-start" onClick={() => toast({ title: "Coming Soon", description: "Data export will be available in a future update." })}>
                       <Download className="h-4 w-4 mr-2" />
                       Export Glucose Data
                     </Button>
-                    <Button variant="outline" className="justify-start">
+                    <Button variant="outline" className="justify-start" onClick={() => toast({ title: "Coming Soon", description: "Data export will be available in a future update." })}>
                       <Download className="h-4 w-4 mr-2" />
                       Export All Data
                     </Button>
@@ -744,25 +744,7 @@ const Settings = () => {
                 <Separator />
 
                 <div className="space-y-4">
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span>Glucose Data</span>
-                      <span>2.4 GB</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Device Logs</span>
-                      <span>892 MB</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Images & Files</span>
-                      <span>1.2 GB</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between font-semibold">
-                      <span>Total Used</span>
-                      <span>4.5 GB of 10 GB</span>
-                    </div>
-                  </div>
+                  <p className="text-sm text-muted-foreground italic">Storage usage tracking coming soon.</p>
                 </div>
 
                 <Separator />
@@ -770,11 +752,15 @@ const Settings = () => {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-destructive">Danger Zone</h3>
                   <div className="space-y-3">
-                    <Button variant="outline" className="w-full justify-start text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground">
+                    <Button variant="outline" className="w-full justify-start text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => toast({ variant: "destructive", title: "Coming Soon", description: "Data deletion will be available in a future update." })}>
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete All Data
                     </Button>
-                    <Button variant="outline" className="w-full justify-start text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground">
+                    <Button variant="outline" className="w-full justify-start text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => {
+                      if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                        handleDeleteAccount();
+                      }
+                    }}>
                       <AlertTriangle className="h-4 w-4 mr-2" />
                       Delete Account
                     </Button>
