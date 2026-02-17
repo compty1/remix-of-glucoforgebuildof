@@ -84,14 +84,14 @@ export function DataQualityTab({ totalRecords, uniqueUsers }: DataQualityTabProp
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <Shield className="h-6 w-6 text-green-600 mx-auto mb-2" />
+            <Shield className="h-6 w-6 text-success mx-auto mb-2" />
             <p className="text-2xl font-bold">{overallConfidence}</p>
             <p className="text-sm text-muted-foreground">Avg Confidence</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <BarChart3 className="h-6 w-6 text-blue-600 mx-auto mb-2" />
+            <BarChart3 className="h-6 w-6 text-primary mx-auto mb-2" />
             <p className="text-2xl font-bold">{overallCompleteness}%</p>
             <p className="text-sm text-muted-foreground">Data Completeness</p>
           </CardContent>

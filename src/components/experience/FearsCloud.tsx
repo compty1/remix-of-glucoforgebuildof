@@ -24,7 +24,7 @@ export function FearsCloud() {
               <CloudLightning className="h-5 w-5 text-purple-500" />
               Fears & Worries
             </CardTitle>
-            <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+            <Badge variant="secondary" className="bg-accent text-accent-foreground">
               {submissions.length} fears released
             </Badge>
           </div>

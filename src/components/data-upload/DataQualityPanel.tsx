@@ -36,16 +36,16 @@ const DataQualityPanel: React.FC<DataQualityPanelProps> = ({
   } = dataQuality;
 
   const wearTimeColor = percentCGMActive >= 70 
-    ? 'text-green-600' 
+    ? 'text-success' 
     : percentCGMActive >= 50 
-      ? 'text-yellow-600' 
-      : 'text-red-600';
+      ? 'text-warning' 
+      : 'text-destructive';
 
   const wearTimeProgressColor = percentCGMActive >= 70 
-    ? 'bg-green-500' 
+    ? 'bg-success' 
     : percentCGMActive >= 50 
-      ? 'bg-yellow-500' 
-      : 'bg-red-500';
+      ? 'bg-warning' 
+      : 'bg-destructive';
 
   const formatDuration = (minutes: number) => {
     if (minutes < 60) return `${Math.round(minutes)} min`;

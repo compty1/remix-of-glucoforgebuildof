@@ -26,9 +26,9 @@ const Companies = () => {
 
   const filters: CompanyFilters = useMemo(() => ({
     search: searchQuery,
-    companyType: companyType || undefined,
-    focusArea: focusArea || undefined,
-    country: country || undefined
+    companyType: companyType && companyType !== 'all' ? companyType : undefined,
+    focusArea: focusArea && focusArea !== 'all' ? focusArea : undefined,
+    country: country && country !== 'all' ? country : undefined,
   }), [searchQuery, companyType, focusArea, country]);
 
   const { companies, loading, error, stats, refetch } = useT1DCompanies(filters);

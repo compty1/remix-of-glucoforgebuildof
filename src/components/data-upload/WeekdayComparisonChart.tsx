@@ -117,10 +117,10 @@ const WeekdayComparisonChart = ({ dailyStats }: WeekdayComparisonChartProps) => 
       <CardContent>
         {/* Summary Comparison */}
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className={`p-4 rounded-lg border-2 ${weekdayBetter ? 'border-green-500 bg-green-500/5' : 'border-muted'}`}>
+          <div className={`p-4 rounded-lg border-2 ${weekdayBetter ? 'border-success bg-success/5' : 'border-muted'}`}>
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold">Weekdays</h3>
-              {weekdayBetter && <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded">Better</span>}
+              {weekdayBetter && <span className="text-xs bg-success/20 text-success px-2 py-0.5 rounded">Better</span>}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -134,10 +134,10 @@ const WeekdayComparisonChart = ({ dailyStats }: WeekdayComparisonChartProps) => 
             </div>
           </div>
 
-          <div className={`p-4 rounded-lg border-2 ${!weekdayBetter ? 'border-green-500 bg-green-500/5' : 'border-muted'}`}>
+          <div className={`p-4 rounded-lg border-2 ${!weekdayBetter ? 'border-success bg-success/5' : 'border-muted'}`}>
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold">Weekends</h3>
-              {!weekdayBetter && <span className="text-xs bg-green-500/20 text-green-600 px-2 py-0.5 rounded">Better</span>}
+              {!weekdayBetter && <span className="text-xs bg-success/20 text-success px-2 py-0.5 rounded">Better</span>}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>

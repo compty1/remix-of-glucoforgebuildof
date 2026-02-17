@@ -530,9 +530,9 @@ export function QoLDetailModal({ open, onOpenChange, item, type }: QoLDetailModa
               </Card>
             )}
 
-            <Card className="border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-900/10">
+            <Card className="border-primary/20 bg-primary/5 dark:border-primary/30 dark:bg-primary/10">
               <CardContent className="pt-4">
-                <p className="text-sm text-blue-800 dark:text-blue-200">
+                <p className="text-sm text-foreground/80">
                   <strong>Disclaimer:</strong> This information is for educational purposes only. 
                   Always consult your healthcare provider before starting any new supplement, 
                   especially if you have diabetes or take other medications.

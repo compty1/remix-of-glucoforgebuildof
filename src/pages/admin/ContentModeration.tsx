@@ -200,9 +200,9 @@ const ContentModeration: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Verified OK</p>
-                  <p className="text-2xl font-bold text-green-600">{statsLoading ? '...' : linkStats?.ok || 0}</p>
+                  <p className="text-2xl font-bold text-success">{statsLoading ? '...' : linkStats?.ok || 0}</p>
                 </div>
-                <CheckCircle className="h-8 w-8 text-green-600" />
+                <CheckCircle className="h-8 w-8 text-success" />
               </div>
             </CardContent>
           </Card>
@@ -211,7 +211,7 @@ const ContentModeration: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Dead Links</p>
-                  <p className="text-2xl font-bold text-red-600">{statsLoading ? '...' : linkStats?.dead || 0}</p>
+                  <p className="text-2xl font-bold text-destructive">{statsLoading ? '...' : linkStats?.dead || 0}</p>
                 </div>
                 <XCircle className="h-8 w-8 text-red-600" />
               </div>

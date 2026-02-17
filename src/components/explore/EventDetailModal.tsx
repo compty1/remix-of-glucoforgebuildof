@@ -28,11 +28,11 @@ const eraLabels: Record<string, string> = {
 };
 
 const categoryColors: Record<string, string> = {
-  'discovery': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-  'treatment': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-  'technology': 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-  'research': 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-  'cultural': 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300',
+  'discovery': 'bg-primary/10 text-primary dark:bg-primary/20',
+  'treatment': 'bg-success/10 text-success dark:bg-success/20',
+  'technology': 'bg-accent text-accent-foreground',
+  'research': 'bg-warning/10 text-warning dark:bg-warning/20',
+  'cultural': 'bg-chart-5/10 text-chart-5 dark:bg-chart-5/20',
   'landmark': 'bg-brand-red/10 text-brand-red',
 };
 
@@ -114,18 +114,18 @@ export function EventDetailModal({ event, open, onOpenChange }: EventDetailModal
 
           {/* Interesting Facts */}
           {event.interesting_facts && event.interesting_facts.length > 0 && (
-            <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+             <div className="bg-warning/5 dark:bg-warning/10 border border-warning/20 rounded-lg p-4">
               <div className="flex items-center gap-2 mb-3">
-                <Lightbulb className="h-5 w-5 text-amber-500" />
-                <h3 className="font-semibold text-amber-800 dark:text-amber-300">
+                <Lightbulb className="h-5 w-5 text-warning" />
+                <h3 className="font-semibold text-warning">
                   Did You Know?
                 </h3>
               </div>
               <ul className="space-y-2">
                 {event.interesting_facts.map((fact, index) => (
                   <li key={index} className="flex items-start gap-2 text-sm">
-                    <span className="text-amber-500 mt-0.5">•</span>
-                    <span className="text-amber-900 dark:text-amber-200">{fact}</span>
+                     <span className="text-warning mt-0.5">•</span>
+                    <span className="text-foreground/80">{fact}</span>
                   </li>
                 ))}
               </ul>

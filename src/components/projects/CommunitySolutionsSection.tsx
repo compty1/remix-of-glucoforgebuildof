@@ -10,11 +10,11 @@ interface CommunitySolutionsSectionProps {
 }
 
 const getEffectivenessLabel = (rating: number) => {
-  if (rating >= 4.5) return { label: 'Highly Effective', className: 'bg-green-500/10 text-green-600' };
-  if (rating >= 3.5) return { label: 'Effective', className: 'bg-blue-500/10 text-blue-600' };
-  if (rating >= 2.5) return { label: 'Moderately Effective', className: 'bg-yellow-500/10 text-yellow-600' };
-  if (rating >= 1.5) return { label: 'Mixed Results', className: 'bg-orange-500/10 text-orange-600' };
-  return { label: 'Experimental', className: 'bg-gray-500/10 text-gray-600' };
+  if (rating >= 4.5) return { label: 'Highly Effective', className: 'bg-success/10 text-success' };
+  if (rating >= 3.5) return { label: 'Effective', className: 'bg-primary/10 text-primary' };
+  if (rating >= 2.5) return { label: 'Moderately Effective', className: 'bg-warning/10 text-warning' };
+  if (rating >= 1.5) return { label: 'Mixed Results', className: 'bg-chart-3/10 text-chart-3' };
+  return { label: 'Experimental', className: 'bg-muted text-muted-foreground' };
 };
 
 export const CommunitySolutionsSection: React.FC<CommunitySolutionsSectionProps> = ({
