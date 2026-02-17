@@ -128,20 +128,20 @@ export default function GlucoseUpload() {
       case 'processing':
         return <BarChart3 className="h-5 w-5 text-blue-600" />;
       default:
-        return <Clock className="h-5 w-5 text-yellow-600" />;
+        return <Clock className="h-5 w-5 text-warning" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'bg-success/10 text-success';
       case 'error':
-        return 'bg-red-100 text-red-800';
+        return 'bg-destructive/10 text-destructive';
       case 'processing':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary/10 text-primary';
       default:
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-warning/10 text-warning';
     }
   };
 
@@ -276,12 +276,12 @@ export default function GlucoseUpload() {
                       )}
 
                       {file.status === 'completed' && file.insights && (
-                        <div className="mt-3 p-3 bg-green-50 rounded-lg">
-                          <h4 className="font-medium text-green-800 mb-2">Analysis Complete</h4>
+                        <div className="mt-3 p-3 bg-success/5 rounded-lg border border-success/20">
+                          <h4 className="font-medium text-success mb-2">Analysis Complete</h4>
                           <ul className="space-y-1">
                             {file.insights.map((insight, index) => (
-                              <li key={index} className="text-sm text-green-700 flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 bg-green-600 rounded-full"></div>
+                              <li key={index} className="text-sm text-success/80 flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 bg-success rounded-full"></div>
                                 {insight}
                               </li>
                             ))}
@@ -290,8 +290,8 @@ export default function GlucoseUpload() {
                       )}
 
                       {file.status === 'error' && (
-                        <div className="mt-3 p-3 bg-red-50 rounded-lg">
-                          <p className="text-sm text-red-700">
+                        <div className="mt-3 p-3 bg-destructive/5 rounded-lg border border-destructive/20">
+                          <p className="text-sm text-destructive">
                             Upload failed. Please check the file format and try again.
                           </p>
                         </div>

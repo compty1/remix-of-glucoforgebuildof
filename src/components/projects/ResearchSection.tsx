@@ -46,10 +46,10 @@ const getResearchTypeLabel = (type: string) => {
 };
 
 const getRelevanceBadge = (score: number) => {
-  if (score >= 80) return { label: 'Highly Relevant', className: 'bg-green-500/10 text-green-600' };
-  if (score >= 60) return { label: 'Relevant', className: 'bg-blue-500/10 text-blue-600' };
-  if (score >= 40) return { label: 'Somewhat Relevant', className: 'bg-yellow-500/10 text-yellow-600' };
-  return { label: 'Related', className: 'bg-gray-500/10 text-gray-600' };
+  if (score >= 80) return { label: 'Highly Relevant', className: 'bg-success/10 text-success' };
+  if (score >= 60) return { label: 'Relevant', className: 'bg-primary/10 text-primary' };
+  if (score >= 40) return { label: 'Somewhat Relevant', className: 'bg-warning/10 text-warning' };
+  return { label: 'Related', className: 'bg-muted text-muted-foreground' };
 };
 
 export const ResearchSection: React.FC<ResearchSectionProps> = ({ researchLinks }) => {

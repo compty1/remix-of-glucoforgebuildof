@@ -33,21 +33,21 @@ interface WarriorStoryCardProps {
 const getSourceBadgeColor = (sourceType: string | null | undefined) => {
   switch (sourceType) {
     case 'reddit':
-      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300';
+      return 'bg-warning/10 text-warning dark:bg-warning/20';
     case 'instagram':
-      return 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300';
+      return 'bg-destructive/10 text-destructive dark:bg-destructive/20';
     case 'facebook':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+      return 'bg-primary/10 text-primary dark:bg-primary/20';
     case 'twitter':
-      return 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300';
+      return 'bg-chart-1/10 text-chart-1 dark:bg-chart-1/20';
     case 'youtube':
-      return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+      return 'bg-destructive/10 text-destructive dark:bg-destructive/20';
     case 'linkedin':
-      return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300';
+      return 'bg-chart-2/10 text-chart-2 dark:bg-chart-2/20';
     case 'interview':
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300';
+      return 'bg-accent text-accent-foreground';
     default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+      return 'bg-muted text-muted-foreground';
   }
 };
 
@@ -87,7 +87,7 @@ export const WarriorStoryCard: React.FC<WarriorStoryCardProps> = ({ story, onRea
           </div>
           <div className="flex flex-col gap-1 items-end">
             {story.is_featured && (
-              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
+              <Badge variant="secondary" className="bg-warning/10 text-warning dark:bg-warning/20">
                 <Star className="h-3 w-3 mr-1" />
                 Featured
               </Badge>

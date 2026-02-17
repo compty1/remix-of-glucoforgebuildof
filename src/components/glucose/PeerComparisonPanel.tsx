@@ -15,7 +15,7 @@ const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3
 function DeltaBadge({ metric }: { metric: ComparisonMetric }) {
   const absDelta = Math.abs(metric.delta);
   if (absDelta < 0.5) return <Badge variant="outline" className="gap-1"><Minus className="h-3 w-3" /> On par</Badge>;
-  if (metric.isUserBetter) return <Badge className="gap-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"><ArrowUpRight className="h-3 w-3" /> +{absDelta}{metric.unit} ahead</Badge>;
+  if (metric.isUserBetter) return <Badge className="gap-1 bg-success/10 text-success dark:bg-success/20"><ArrowUpRight className="h-3 w-3" /> +{absDelta}{metric.unit} ahead</Badge>;
   return <Badge variant="destructive" className="gap-1"><ArrowDownRight className="h-3 w-3" /> {absDelta}{metric.unit} behind</Badge>;
 }
 
