@@ -10,6 +10,8 @@ import { NewsCard } from '@/components/news/NewsCard';
 import { FeaturedNewsCard } from '@/components/news/FeaturedNewsCard';
 import { NewsCategoryFilter } from '@/components/news/NewsCategoryFilter';
 import { BackButton } from '@/components/ui/back-button';
+import Layout from '@/components/Layout';
+import { toast } from 'sonner';
 
 const NewsCardSkeleton = () => (
   <Card className="overflow-hidden">
@@ -54,6 +56,7 @@ const News = () => {
   const secondaryFeatured = featuredArticles.slice(1, 3);
 
   return (
+    <Layout>
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <div className="bg-gradient-to-b from-primary/5 to-background border-b border-border/50">
@@ -84,7 +87,7 @@ const News = () => {
                 <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
                 {refreshing ? 'Refreshing...' : 'Refresh'}
               </Button>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button variant="outline" size="sm" className="gap-2" onClick={() => toast.success('Subscribe feature coming soon!')}>
                 <Rss className="h-4 w-4" />
                 Subscribe
               </Button>
@@ -207,6 +210,7 @@ const News = () => {
         )}
       </div>
     </div>
+    </Layout>
   );
 };
 

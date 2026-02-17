@@ -212,13 +212,17 @@ const MentalHealthHub = () => {
                     If you're experiencing a mental health crisis, help is available 24/7.
                   </p>
                   <div className="flex gap-3">
-                    <Button size="sm" className="accent-gradient">
-                      <Phone className="h-4 w-4 mr-2" />
-                      Crisis Hotline
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      Chat Support
-                    </Button>
+                    <a href="tel:988">
+                      <Button size="sm" className="accent-gradient">
+                        <Phone className="h-4 w-4 mr-2" />
+                        Call 988 Lifeline
+                      </Button>
+                    </a>
+                    <a href="https://988lifeline.org/chat/" target="_blank" rel="noopener noreferrer">
+                      <Button variant="outline" size="sm">
+                        Chat Support
+                      </Button>
+                    </a>
                   </div>
                 </div>
               </div>

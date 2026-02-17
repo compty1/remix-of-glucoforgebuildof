@@ -140,7 +140,7 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
 
   // Handle clicking on a community post - navigate to detail page
   const handlePostClick = (post: CommunityPost) => {
-    navigate(`/community/${post.post_id}`);
+    navigate(`/community-solutions/${post.post_id}`);
   };
 
   return (
