@@ -21,9 +21,9 @@ export function CommunitySolutionCard({
   sentiment,
 }: CommunitySolutionCardProps) {
   const getSourceColor = (source: string) => {
-    if (source.includes('diabetes')) return 'bg-blue-500/10 text-blue-600';
-    if (source.includes('dexcom')) return 'bg-green-500/10 text-green-600';
-    if (source.includes('omnipod')) return 'bg-purple-500/10 text-purple-600';
+    if (source.includes('diabetes')) return 'bg-primary/10 text-primary';
+    if (source.includes('dexcom')) return 'bg-success/10 text-success';
+    if (source.includes('omnipod')) return 'bg-chart-5/10 text-chart-5';
     return 'bg-muted text-muted-foreground';
   };
 

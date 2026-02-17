@@ -33,11 +33,11 @@ const GlucoseRiskMatrix = ({ data, hourlyStats }: GlucoseRiskMatrixProps) => {
         
         // High variability = high risk
         if (cv > 50 || hourData.min < 70 || hourData.max > 250) {
-          return { level: 'high', color: 'bg-red-500/80', risk: 'High Risk' };
+          return { level: 'high', color: 'bg-destructive/80', risk: 'High Risk' };
         } else if (cv > 36 || hourData.min < 80 || hourData.max > 180) {
-          return { level: 'medium', color: 'bg-yellow-500/70', risk: 'Moderate' };
+          return { level: 'medium', color: 'bg-warning/70', risk: 'Moderate' };
         } else {
-          return { level: 'low', color: 'bg-green-500/60', risk: 'Low Risk' };
+          return { level: 'low', color: 'bg-success/60', risk: 'Low Risk' };
         }
       }
     }
@@ -47,11 +47,11 @@ const GlucoseRiskMatrix = ({ data, hourlyStats }: GlucoseRiskMatrixProps) => {
     const isWeekend = dayIndex === 0 || dayIndex === 6;
     
     if (isHighRiskTime && isWeekend) {
-      return { level: 'high', color: 'bg-red-500/80', risk: 'High Risk' };
+      return { level: 'high', color: 'bg-destructive/80', risk: 'High Risk' };
     } else if (isHighRiskTime || isWeekend) {
-      return { level: 'medium', color: 'bg-yellow-500/70', risk: 'Moderate' };
+      return { level: 'medium', color: 'bg-warning/70', risk: 'Moderate' };
     }
-    return { level: 'low', color: 'bg-green-500/60', risk: 'Low Risk' };
+    return { level: 'low', color: 'bg-success/60', risk: 'Low Risk' };
   };
 
   // Calculate summary stats
@@ -77,24 +77,24 @@ const GlucoseRiskMatrix = ({ data, hourlyStats }: GlucoseRiskMatrixProps) => {
       <CardContent>
         {/* Summary Stats */}
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="flex items-center gap-2 p-3 bg-red-500/10 rounded-lg">
-            <TrendingUp className="h-4 w-4 text-red-500" />
+          <div className="flex items-center gap-2 p-3 bg-destructive/10 rounded-lg">
+            <TrendingUp className="h-4 w-4 text-destructive" />
             <div>
-              <p className="text-2xl font-bold text-red-500">{highRiskCount}</p>
+              <p className="text-2xl font-bold text-destructive">{highRiskCount}</p>
               <p className="text-xs text-muted-foreground">High Risk Hours</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 p-3 bg-yellow-500/10 rounded-lg">
-            <AlertTriangle className="h-4 w-4 text-yellow-500" />
+          <div className="flex items-center gap-2 p-3 bg-warning/10 rounded-lg">
+            <AlertTriangle className="h-4 w-4 text-warning" />
             <div>
-              <p className="text-2xl font-bold text-yellow-500">{mediumRiskCount}</p>
+              <p className="text-2xl font-bold text-warning">{mediumRiskCount}</p>
               <p className="text-xs text-muted-foreground">Moderate Hours</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 p-3 bg-green-500/10 rounded-lg">
-            <TrendingDown className="h-4 w-4 text-green-500" />
+          <div className="flex items-center gap-2 p-3 bg-success/10 rounded-lg">
+            <TrendingDown className="h-4 w-4 text-success" />
             <div>
-              <p className="text-2xl font-bold text-green-500">{168 - highRiskCount - mediumRiskCount}</p>
+              <p className="text-2xl font-bold text-success">{168 - highRiskCount - mediumRiskCount}</p>
               <p className="text-xs text-muted-foreground">Low Risk Hours</p>
             </div>
           </div>
@@ -142,15 +142,15 @@ const GlucoseRiskMatrix = ({ data, hourlyStats }: GlucoseRiskMatrixProps) => {
         {/* Legend */}
         <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t">
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-green-500/60" />
+            <div className="w-4 h-4 rounded bg-success/60" />
             <span className="text-xs text-muted-foreground">Low Risk</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-yellow-500/70" />
+            <div className="w-4 h-4 rounded bg-warning/70" />
             <span className="text-xs text-muted-foreground">Moderate</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-red-500/80" />
+            <div className="w-4 h-4 rounded bg-destructive/80" />
             <span className="text-xs text-muted-foreground">High Risk</span>
           </div>
         </div>

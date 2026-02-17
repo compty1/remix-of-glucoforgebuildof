@@ -311,7 +311,7 @@ export default function AdminWarriors() {
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold">{story.title}</h3>
                         {story.is_featured && (
-                          <Badge className="bg-amber-500/20 text-amber-600">
+                          <Badge className="bg-warning/20 text-warning">
                             <Trophy className="h-3 w-3 mr-1" />
                             Featured
                           </Badge>

@@ -74,25 +74,25 @@ const ProjectDetail: React.FC = () => {
 
   const getCategoryColor = (category: string): string => {
     const colors: Record<string, string> = {
-      'Gastrointestinal': 'bg-orange-500/10 text-orange-600 border-orange-500/20',
-      'Neurological': 'bg-purple-500/10 text-purple-600 border-purple-500/20',
-      'Metabolic': 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-      'Sleep': 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
-      'Psychological': 'bg-pink-500/10 text-pink-600 border-pink-500/20',
-      'Hormonal': 'bg-red-500/10 text-red-600 border-red-500/20',
-      'Environmental': 'bg-green-500/10 text-green-600 border-green-500/20',
-      'Dermatological': 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
-      'General': 'bg-gray-500/10 text-gray-600 border-gray-500/20',
+      'Gastrointestinal': 'bg-warning/10 text-warning border-warning/20',
+      'Neurological': 'bg-chart-5/10 text-chart-5 border-chart-5/20',
+      'Metabolic': 'bg-primary/10 text-primary border-primary/20',
+      'Sleep': 'bg-chart-1/10 text-chart-1 border-chart-1/20',
+      'Psychological': 'bg-chart-4/10 text-chart-4 border-chart-4/20',
+      'Hormonal': 'bg-destructive/10 text-destructive border-destructive/20',
+      'Environmental': 'bg-success/10 text-success border-success/20',
+      'Dermatological': 'bg-chart-3/10 text-chart-3 border-chart-3/20',
+      'General': 'bg-muted text-muted-foreground border-border',
     };
     return colors[category] || colors['General'];
   };
 
   const getDifficultyColor = (difficulty: string | null): string => {
     switch (difficulty) {
-      case 'mild': return 'bg-green-500/10 text-green-600 border-green-500/20';
-      case 'moderate': return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
-      case 'severe': return 'bg-red-500/10 text-red-600 border-red-500/20';
-      default: return 'bg-gray-500/10 text-gray-600 border-gray-500/20';
+      case 'mild': return 'bg-success/10 text-success border-success/20';
+      case 'moderate': return 'bg-warning/10 text-warning border-warning/20';
+      case 'severe': return 'bg-destructive/10 text-destructive border-destructive/20';
+      default: return 'bg-muted text-muted-foreground border-border';
     }
   };
 
@@ -335,9 +335,9 @@ const ProjectDetail: React.FC = () => {
 
             {/* Commonly Misdiagnosed As */}
             {project.commonly_misdiagnosed_as && project.commonly_misdiagnosed_as.length > 0 && (
-              <Card className="border-orange-500/30 bg-orange-500/5">
+              <Card className="border-warning/30 bg-warning/5">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2 text-orange-600">
+                  <CardTitle className="text-lg flex items-center gap-2 text-warning">
                     <AlertTriangle className="h-5 w-5" />
                     Often Misdiagnosed As
                   </CardTitle>
