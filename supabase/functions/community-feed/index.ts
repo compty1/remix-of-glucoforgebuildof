@@ -258,101 +258,37 @@ Deno.serve(async (req) => {
 
     console.log('Starting enhanced community feed fetch process');
 
-    // Greatly expanded subreddit list - 50+ T1D-related communities
+    // Focused subreddit list - active T1D communities only (avoids rate limiting from 60+ subs)
     const subreddits = [
-      // Core T1D Communities (Original)
-      'diabetes', 
-      'dexcom', 
-      'omnipod', 
-      'diabetes_t1', 
-      'diabetes_t2',
+      // Core T1D Communities (high-traffic, reliable)
+      'diabetes',
+      'dexcom',
+      'omnipod',
+      'diabetes_t1',
       'Type1Diabetes',
       'InsulinPumps',
       'cgm',
       'tandemdiabetes',
-      'medtronicdiabetes',
-      'lada',
       'FreeStyleLibre',
+      'T1D',
+      // Device & Tech
+      'diabetes_tech',
       'loopkit',
       'AndroidAPS',
-      'Nightscout',
-      'DiabetesType1',
-      'DiabetesTech',
-      'Diabetics',
-      'DiabetesRecipes',
-      'T1D',
-      'insulinpumpers',
-      'GestationalDiabetes',
-      'diabeticmemes',
-      
-      // NEW: Device & Technology Focused
-      'diabetes_tech',
-      'iLet',
-      'Tidepool',
-      'OpenAPS',
-      'Eversense',
-      'GuardianSensor',
-      'ControlIQ',
-      'OmniPod5',
-      'DexcomG7',
-      'DexcomG6',
-      'Libre3',
-      'MiniMed',
-      
-      // NEW: Age/Life Stage Focused
-      'diabetes_parents',
-      't1d_parents',
-      'Type1Kids',
-      'DiabetesTeens',
-      'CollegeDiabetics',
-      't1d_adults',
-      'SeniorDiabetics',
-      'PediatricDiabetes',
-      
-      // NEW: Lifestyle & Special Topics
-      'diabeticketo',
-      'diabeticfitness',
-      'diabeticathletes',
-      'diabetesrunners',
-      'DiabetesTravel',
-      'T1Dpregnancy',
-      'diabetesweightloss',
-      'diabeticfoodies',
-      
-      // NEW: Support & Mental Health
-      'DiabetesBurnout',
-      'Type1Support',
-      'DiabulimiaRecovery',
-      'DiabetesSpouses',
-      'ChronicIllness',
-      'diabetes_support',
-      
-      // NEW: Regional/International
-      'DiabetesUK',
-      'DiabetesAustralia',
-      'DiabetesCanada',
-      'DiabetesEurope',
-      'DiabetesNZ',
-      
-      // NEW: Specific Topics
-      'InsulinResistance',
-      'A1C',
-      'diabetesnews',
-      'diabetesscience',
-      'diabeticpets',
+      // Support
+      'diabetes_t2',
+      'lada',
     ];
     
     const allPosts: any[] = [];
     const allReplies: any[] = [];
 
-    // Fetch both new and top posts from each subreddit with increased limits
+    // Fetch new and top posts from each subreddit
     for (const subreddit of subreddits) {
-      // Fetch more posts per subreddit
-      const newPosts = await fetchRedditPosts(subreddit, 50, 'new');
-      // Fetch top posts from past month for more content
-      const topPosts = await fetchRedditPosts(subreddit, 30, 'top');
-      // Also fetch hot posts
-      const hotPosts = await fetchRedditPosts(subreddit, 25, 'hot');
+      const newPosts = await fetchRedditPosts(subreddit, 25, 'new');
+      const topPosts = await fetchRedditPosts(subreddit, 15, 'top');
+      // Skip hot - mostly overlaps with top/new
+      const hotPosts: RedditPost[] = [];
       
       const combinedPosts = [...newPosts, ...topPosts, ...hotPosts];
       const seenIds = new Set<string>();

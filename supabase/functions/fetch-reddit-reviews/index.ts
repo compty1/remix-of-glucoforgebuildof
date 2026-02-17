@@ -219,7 +219,7 @@ function extractReviewsFromContent(results: any[], deviceId: string, deviceName:
       title: title.substring(0, 200) || `${deviceName} Review`,
       content: content,
       sentiment,
-      helpful_count: Math.floor(Math.random() * 50) + 10,
+      helpful_count: 0,
       published_at: new Date().toISOString(),
       source_url: url,
       device_mentioned: deviceName,
