@@ -19,14 +19,20 @@ export type Database = {
           author_username: string | null
           category: string | null
           comments_count: number | null
+          confidence_score: number | null
           content: string
           created_at: string | null
           id: string
+          is_featured: boolean | null
           is_published: boolean | null
+          post_type: string | null
+          sentiment: string | null
           source_platform: string | null
+          source_type: string | null
           source_url: string | null
           tips: string[] | null
           title: string
+          topic_tags: string[] | null
           updated_at: string | null
           upvotes: number | null
           warnings: string[] | null
@@ -35,14 +41,20 @@ export type Database = {
           author_username?: string | null
           category?: string | null
           comments_count?: number | null
+          confidence_score?: number | null
           content: string
           created_at?: string | null
           id?: string
+          is_featured?: boolean | null
           is_published?: boolean | null
+          post_type?: string | null
+          sentiment?: string | null
           source_platform?: string | null
+          source_type?: string | null
           source_url?: string | null
           tips?: string[] | null
           title: string
+          topic_tags?: string[] | null
           updated_at?: string | null
           upvotes?: number | null
           warnings?: string[] | null
@@ -51,14 +63,20 @@ export type Database = {
           author_username?: string | null
           category?: string | null
           comments_count?: number | null
+          confidence_score?: number | null
           content?: string
           created_at?: string | null
           id?: string
+          is_featured?: boolean | null
           is_published?: boolean | null
+          post_type?: string | null
+          sentiment?: string | null
           source_platform?: string | null
+          source_type?: string | null
           source_url?: string | null
           tips?: string[] | null
           title?: string
+          topic_tags?: string[] | null
           updated_at?: string | null
           upvotes?: number | null
           warnings?: string[] | null
