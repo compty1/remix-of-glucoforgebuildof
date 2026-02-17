@@ -39,7 +39,7 @@ export function StreaksWidget() {
       <Card className="h-full">
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Flame className="h-5 w-5 text-orange-500" />
+            <Flame className="h-5 w-5 text-warning" />
             Your Streaks
           </CardTitle>
         </CardHeader>
@@ -59,7 +59,7 @@ export function StreaksWidget() {
     <Card className="h-full">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <Flame className="h-5 w-5 text-orange-500" />
+          <Flame className="h-5 w-5 text-warning" />
           Your Streaks
         </CardTitle>
       </CardHeader>

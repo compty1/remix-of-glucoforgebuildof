@@ -154,7 +154,7 @@ interface SupplementInfo {
 const supplements: SupplementInfo[] = [
   {
     name: "Vitamin D",
-    icon: <Sun className="h-5 w-5 text-yellow-500" />,
+    icon: <Sun className="h-5 w-5 text-warning" />,
     why: "T1D patients are 2-3x more likely to be deficient due to autoimmune mechanisms. Deficiency worsens fatigue, depression, and immune function — all of which compound burnout. Critical in winter months when UVB exposure is minimal.",
     dosage: "2,000-5,000 IU daily (Oct-April); test via 25-hydroxyvitamin D blood test; target 40-60 ng/mL",
     evidence: "Strong",
@@ -164,7 +164,7 @@ const supplements: SupplementInfo[] = [
   },
   {
     name: "Magnesium Glycinate",
-    icon: <Moon className="h-5 w-5 text-indigo-500" />,
+    icon: <Moon className="h-5 w-5 text-chart-1" />,
     why: "Reduces anxiety, improves sleep quality, and may improve insulin sensitivity. Up to 75% of adults don't get enough magnesium, and diabetes increases urinary magnesium loss.",
     dosage: "200-400mg before bed (glycinate form preferred for absorption and gentle on stomach)",
     evidence: "Strong",
@@ -172,7 +172,7 @@ const supplements: SupplementInfo[] = [
   },
   {
     name: "Omega-3 (EPA/DHA)",
-    icon: <Droplet className="h-5 w-5 text-blue-500" />,
+    icon: <Droplet className="h-5 w-5 text-primary" />,
     why: "Anti-inflammatory properties reduce systemic inflammation common in T1D. EPA specifically has been shown to support mood and reduce symptoms of depression.",
     dosage: "1,000-2,000mg combined EPA/DHA daily with food",
     evidence: "Strong",
@@ -180,7 +180,7 @@ const supplements: SupplementInfo[] = [
   },
   {
     name: "B-Complex",
-    icon: <Zap className="h-5 w-5 text-amber-500" />,
+    icon: <Zap className="h-5 w-5 text-warning" />,
     why: "Supports energy metabolism, nerve health (important for neuropathy prevention), and stress response. B12 deficiency is common in people taking metformin.",
     dosage: "One B-complex daily with food; or B12 1,000mcg sublingual if specifically deficient",
     evidence: "Moderate",
@@ -188,7 +188,7 @@ const supplements: SupplementInfo[] = [
   },
   {
     name: "Ashwagandha",
-    icon: <Leaf className="h-5 w-5 text-green-600" />,
+    icon: <Leaf className="h-5 w-5 text-success" />,
     why: "An adaptogen shown to reduce cortisol levels by up to 30% in clinical trials. Lower cortisol can mean less stress-induced blood sugar spikes and better sleep.",
     dosage: "300-600mg daily of KSM-66 or Sensoril extract",
     evidence: "Moderate",

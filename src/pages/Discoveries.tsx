@@ -41,11 +41,11 @@ export default function Discoveries() {
 
   const getImpactColor = (impact: string) => {
     switch (impact) {
-      case 'Breakthrough': return 'bg-purple-500 text-white';
-      case 'High': return 'bg-red-500 text-white';
-      case 'Medium': return 'bg-yellow-500 text-white';
-      case 'Low': return 'bg-blue-500 text-white';
-      default: return 'bg-gray-500 text-white';
+      case 'Breakthrough': return 'bg-chart-5 text-white';
+      case 'High': return 'bg-destructive text-destructive-foreground';
+      case 'Medium': return 'bg-warning text-warning-foreground';
+      case 'Low': return 'bg-primary text-primary-foreground';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 

@@ -45,10 +45,10 @@ const statusColors: Record<string, string> = {
 };
 
 const phaseColors: Record<string, string> = {
-  "Phase 1": "bg-purple-500/10 text-purple-600 dark:text-purple-400",
-  "Phase 2": "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  "Phase 3": "bg-orange-500/10 text-orange-600 dark:text-orange-400",
-  "Phase 4": "bg-green-500/10 text-green-600 dark:text-green-400",
+  "Phase 1": "bg-chart-5/10 text-chart-5",
+  "Phase 2": "bg-primary/10 text-primary",
+  "Phase 3": "bg-warning/10 text-warning",
+  "Phase 4": "bg-success/10 text-success",
 };
 
 export function TrialCard({ trial, onViewDetails }: TrialCardProps) {

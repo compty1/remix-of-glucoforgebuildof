@@ -425,7 +425,7 @@ export default function SupportGlucoForge() {
                         {phase.items.map((item, i) => (
                           <li key={i} className="flex items-center gap-2">
                             {phase.status === 'complete' ? (
-                              <CheckCircle2 className="h-3 w-3 text-green-500" />
+                              <CheckCircle2 className="h-3 w-3 text-success" />
                             ) : (
                               <div className="h-1.5 w-1.5 rounded-full bg-muted-foreground" />
                             )}
@@ -560,7 +560,7 @@ export default function SupportGlucoForge() {
                   <ul className="text-xs text-muted-foreground space-y-1">
                     {tier.benefits.map((benefit, i) => (
                       <li key={i} className="flex items-start gap-1">
-                        <CheckCircle2 className="h-3 w-3 text-green-500 flex-shrink-0 mt-0.5" />
+                        <CheckCircle2 className="h-3 w-3 text-success flex-shrink-0 mt-0.5" />
                         <span>{benefit}</span>
                       </li>
                     ))}

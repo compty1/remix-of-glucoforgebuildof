@@ -56,11 +56,11 @@ export function MySavedIssues({ onChatWithIssue }: MySavedIssuesProps) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'resolved':
-        return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+        return <CheckCircle2 className="h-4 w-4 text-success" />;
       case 'ongoing':
-        return <RefreshCw className="h-4 w-4 text-blue-500" />;
+        return <RefreshCw className="h-4 w-4 text-primary" />;
       default:
-        return <Clock className="h-4 w-4 text-amber-500" />;
+        return <Clock className="h-4 w-4 text-warning" />;
     }
   };
 
