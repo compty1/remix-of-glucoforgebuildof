@@ -7,15 +7,15 @@ import { ChevronRight } from "lucide-react";
 import { DevelopmentProject } from "@/data/developmentProjects";
 
 const categoryColors: Record<DevelopmentProject['category'], string> = {
-  'AI Intelligence': 'bg-purple-500/10 text-purple-600 border-purple-500/20 dark:text-purple-400',
-  'User Tools': 'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400',
-  'Device/Goals Management': 'bg-orange-500/10 text-orange-600 border-orange-500/20 dark:text-orange-400',
-  'Community Support': 'bg-green-500/10 text-green-600 border-green-500/20 dark:text-green-400',
+  'AI Intelligence': 'bg-accent/10 text-accent-foreground border-accent/20',
+  'User Tools': 'bg-primary/10 text-primary border-primary/20',
+  'Device/Goals Management': 'bg-warning/10 text-warning border-warning/20',
+  'Community Support': 'bg-success/10 text-success border-success/20',
 };
 
 const statusColors: Record<DevelopmentProject['status'], string> = {
-  'open': 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-  'in progress': 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  'open': 'bg-success/10 text-success',
+  'in progress': 'bg-warning/10 text-warning',
 };
 
 interface DevelopmentProjectCardProps {

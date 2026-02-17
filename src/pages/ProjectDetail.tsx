@@ -282,14 +282,14 @@ const ProjectDetail: React.FC = () => {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-yellow-500" />
+                    <Zap className="h-5 w-5 text-warning" />
                     What Makes It Worse
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {project.condition_triggers.map((trigger, index) => (
-                      <Badge key={index} variant="secondary" className="bg-yellow-500/10 text-yellow-700 border-yellow-500/20">
+                      <Badge key={index} variant="secondary" className="bg-warning/10 text-warning border-warning/20">
                         {trigger}
                       </Badge>
                     ))}

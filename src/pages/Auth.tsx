@@ -205,7 +205,7 @@ const Auth = () => {
               <CardTitle>
                 {forgotPasswordSent ? (
                   <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    <CheckCircle2 className="h-5 w-5 text-success" />
                     Check Your Email
                   </div>
                 ) : (
@@ -222,9 +222,9 @@ const Auth = () => {
             <CardContent>
               {forgotPasswordSent ? (
                 <div className="space-y-4">
-                  <Alert className="border-green-200 bg-green-50 dark:bg-green-900/10">
-                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    <AlertDescription className="text-green-800 dark:text-green-200">
+                  <Alert className="border-success/30 bg-success/5">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    <AlertDescription className="text-success">
                       Email sent! Click the link in your email to reset your password.
                     </AlertDescription>
                   </Alert>

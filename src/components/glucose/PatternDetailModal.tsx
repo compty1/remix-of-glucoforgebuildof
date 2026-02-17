@@ -197,9 +197,9 @@ export function PatternDetailModal({ open, onOpenChange, pattern, dataPointsUsed
 
   const getDifficultyBadge = (difficulty: 'easy' | 'moderate' | 'complex') => {
     switch (difficulty) {
-      case 'easy': return <Badge variant="outline" className="text-green-600">Easy</Badge>;
-      case 'moderate': return <Badge variant="outline" className="text-yellow-600">Moderate</Badge>;
-      case 'complex': return <Badge variant="outline" className="text-red-600">Complex</Badge>;
+      case 'easy': return <Badge variant="outline" className="text-success">Easy</Badge>;
+      case 'moderate': return <Badge variant="outline" className="text-warning">Moderate</Badge>;
+      case 'complex': return <Badge variant="outline" className="text-destructive">Complex</Badge>;
     }
   };
 

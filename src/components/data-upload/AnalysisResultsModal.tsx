@@ -528,8 +528,8 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
                   
                   {/* AI Priority Actions */}
                   {aiInsights?.priorityActions && aiInsights.priorityActions.length > 0 && (
-                    <div className="p-4 rounded-lg bg-amber-500/5 border border-amber-500/20">
-                      <h3 className="font-semibold text-amber-600 dark:text-amber-400 mb-3">
+                    <div className="p-4 rounded-lg bg-warning/5 border border-warning/20">
+                      <h3 className="font-semibold text-warning mb-3">
                         ⚡ Priority Actions
                       </h3>
                       <ul className="space-y-2">

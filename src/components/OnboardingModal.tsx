@@ -132,11 +132,11 @@ export const OnboardingModal = ({ open, onComplete, onDismiss }: OnboardingModal
         </div>
 
         {selectedRole === 'newly_diagnosed' && (
-          <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-            <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+          <div className="mt-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+            <h4 className="font-medium text-foreground mb-2">
               🎉 You'll get access to our First 100 Days program!
             </h4>
-            <p className="text-sm text-blue-800 dark:text-blue-200">
+            <p className="text-sm text-muted-foreground">
               Daily personalized tips, essential resources, and guided support for your first 100 days with diabetes.
             </p>
           </div>

@@ -82,7 +82,7 @@ const PushNotificationsSection = () => {
             <div className="space-y-0.5">
               <Label className="text-base flex items-center gap-2">
                 {isSubscribed ? (
-                  <BellRing className="h-4 w-4 text-emerald-500" />
+                  <BellRing className="h-4 w-4 text-success" />
                 ) : (
                   <BellOff className="h-4 w-4 text-muted-foreground" />
                 )}
@@ -114,7 +114,7 @@ const PushNotificationsSection = () => {
                 <Bell className="h-4 w-4 mr-2" />
                 Test Notification
               </Button>
-              <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600">
+              <Badge variant="secondary" className="bg-success/10 text-success">
                 <CheckCircle className="h-3 w-3 mr-1" />
                 Enabled
               </Badge>

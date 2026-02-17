@@ -549,16 +549,16 @@ export default function Profile() {
                   </div>
                   <p className="text-sm text-muted-foreground">Badges Earned</p>
                 </Card>
-                <Card className="p-4 text-center bg-amber-500/5 border-amber-500/20">
-                  <Star className="h-6 w-6 text-amber-500 mx-auto mb-2" />
-                  <div className="text-3xl font-bold text-amber-600">
+                <Card className="p-4 text-center bg-warning/5 border-warning/20">
+                  <Star className="h-6 w-6 text-warning mx-auto mb-2" />
+                  <div className="text-3xl font-bold text-warning">
                     {totalPoints}
                   </div>
                   <p className="text-sm text-muted-foreground">Total Points</p>
                 </Card>
-                <Card className="p-4 text-center bg-orange-500/5 border-orange-500/20">
-                  <Flame className="h-6 w-6 text-orange-500 mx-auto mb-2" />
-                  <div className="text-3xl font-bold text-orange-600">
+                <Card className="p-4 text-center bg-brand-red/5 border-brand-red/20">
+                  <Flame className="h-6 w-6 text-brand-red mx-auto mb-2" />
+                  <div className="text-3xl font-bold text-brand-red">
                     {getTotalStreakDays()}
                   </div>
                   <p className="text-sm text-muted-foreground">Streak Days</p>
@@ -577,7 +577,7 @@ export default function Profile() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Flame className="h-5 w-5 text-orange-500" />
+                      <Flame className="h-5 w-5 text-brand-red" />
                       Active Streaks
                     </CardTitle>
                   </CardHeader>
@@ -586,7 +586,7 @@ export default function Profile() {
                       {streaks.filter(s => s.current_streak > 0).map(streak => (
                         <div 
                           key={streak.id}
-                          className="flex items-center justify-between p-3 bg-orange-500/10 rounded-lg"
+                          className="flex items-center justify-between p-3 bg-brand-red/10 rounded-lg"
                         >
                           <div>
                             <p className="text-sm font-medium capitalize">
@@ -596,7 +596,7 @@ export default function Profile() {
                               Best: {streak.longest_streak}
                             </p>
                           </div>
-                          <div className="text-2xl font-bold text-orange-600 flex items-center gap-1">
+                          <div className="text-2xl font-bold text-brand-red flex items-center gap-1">
                             <Flame className="h-4 w-4" />
                             {streak.current_streak}
                           </div>

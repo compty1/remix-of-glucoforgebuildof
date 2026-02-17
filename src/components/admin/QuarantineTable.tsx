@@ -136,7 +136,7 @@ export const QuarantineTable: React.FC = () => {
                   {confidence !== null ? (
                     <Badge
                       variant="outline"
-                      className={`text-xs ${confidence >= 0.7 ? 'border-green-500 text-green-700' : confidence >= 0.4 ? 'border-yellow-500 text-yellow-700' : 'border-red-500 text-red-700'}`}
+                      className={`text-xs ${confidence >= 0.7 ? 'border-success text-success' : confidence >= 0.4 ? 'border-warning text-warning' : 'border-destructive text-destructive'}`}
                     >
                       {(confidence * 100).toFixed(0)}%
                     </Badge>

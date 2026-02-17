@@ -10,32 +10,32 @@ interface CategoryConfig {
 export const SOURCE_CATEGORIES: Record<SourceCategory, CategoryConfig> = {
   CGM: {
     label: 'CGM',
-    color: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+    color: 'bg-primary/10 text-primary border-primary/20',
     sources: ['r/dexcom', 'r/DexcomG7', 'r/Libre', 'r/cgm', 'r/freestyle'],
   },
   Pumps: {
     label: 'Pumps',
-    color: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+    color: 'bg-accent/10 text-accent-foreground border-accent/20',
     sources: ['r/Omnipod', 'r/insulinpump', 'r/TandemDiabetes', 'r/medtronic', 'r/OmnipodDash', 'r/OmnipodG6'],
   },
   Lifestyle: {
     label: 'Lifestyle',
-    color: 'bg-green-500/10 text-green-600 border-green-500/20',
+    color: 'bg-success/10 text-success border-success/20',
     sources: ['r/diabetes_t1', 'r/T1D', 'r/diabeats', 'r/diabetes', 'r/DiabetesRecipes', 'r/diabeticfitness'],
   },
   Parents: {
     label: 'Parents',
-    color: 'bg-pink-500/10 text-pink-600 border-pink-500/20',
+    color: 'bg-brand-red/10 text-brand-red border-brand-red/20',
     sources: ['r/T1Dparents', 'r/Parents_of_T1D', 'r/T1Dkids', 'r/diabetesparents'],
   },
   Tech: {
     label: 'Tech/DIY',
-    color: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+    color: 'bg-warning/10 text-warning border-warning/20',
     sources: ['r/loopkit', 'r/OpenAPS', 'r/AndroidAPS', 'r/Nightscout', 'r/LoopDIY'],
   },
   General: {
     label: 'General',
-    color: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
+    color: 'bg-muted text-muted-foreground border-border',
     sources: [],
   },
 };

@@ -76,8 +76,8 @@ export function AchievementsWidget() {
             <div className="text-2xl font-bold text-primary">{completedAchievements.length}</div>
             <p className="text-xs text-muted-foreground">Badges</p>
           </div>
-          <div className="text-center p-3 bg-amber-500/10 rounded-lg">
-            <div className="text-2xl font-bold text-amber-600 flex items-center justify-center gap-1">
+          <div className="text-center p-3 bg-warning/10 rounded-lg">
+            <div className="text-2xl font-bold text-warning flex items-center justify-center gap-1">
               <Star className="h-4 w-4" />
               {totalPoints}
             </div>
