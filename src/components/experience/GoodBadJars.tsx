@@ -22,7 +22,7 @@ function Jar({ type, submissions, count, onDropClick }: JarProps) {
     <div className="flex flex-col items-center">
       <div className="flex items-center gap-2 mb-4">
         {isGood ? (
-          <ThumbsUp className="h-6 w-6 text-green-500" />
+          <ThumbsUp className="h-6 w-6 text-success" />
         ) : (
           <ThumbsDown className="h-6 w-6 text-brand-red" />
         )}
@@ -132,7 +132,7 @@ export function GoodBadJars() {
   return (
     <>
       <Card className="overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-green-500/10 via-transparent to-brand-red/10">
+        <CardHeader className="bg-gradient-to-r from-success/10 via-transparent to-brand-red/10">
           <CardTitle className="text-center">Good vs Bad Experiences</CardTitle>
         </CardHeader>
         <CardContent className="p-8">

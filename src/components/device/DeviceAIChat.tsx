@@ -194,8 +194,8 @@ export function DeviceAIChat({
       </div>
 
       {/* Disclaimer */}
-      <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg mb-4 text-sm">
-        <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+      <div className="flex items-start gap-2 p-3 bg-warning/10 border border-warning/20 rounded-lg mb-4 text-sm">
+        <AlertTriangle className="h-4 w-4 text-warning mt-0.5 flex-shrink-0" />
         <p className="text-muted-foreground">
           <strong className="text-foreground">Community tips for your {deviceName}.</strong> These suggestions come from real users. Always consult your healthcare team.
         </p>

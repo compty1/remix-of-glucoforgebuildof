@@ -180,7 +180,7 @@ export const DeviceSolutionsTab: React.FC<DeviceSolutionsTabProps> = ({ deviceId
                         </Badge>
                       )}
                       {solution.isVerified && (
-                        <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
+                        <Badge className="bg-success/10 text-success border-success/20">
                           <CheckCircle2 className="h-3 w-3 mr-1" />
                           Verified
                         </Badge>
@@ -201,7 +201,7 @@ export const DeviceSolutionsTab: React.FC<DeviceSolutionsTabProps> = ({ deviceId
                       </div>
                     )}
                     {solution.successRate !== undefined && (
-                      <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500">
+                      <Badge variant="outline" className="bg-success/10 text-success">
                         {solution.successRate}% success
                       </Badge>
                     )}
@@ -215,15 +215,15 @@ export const DeviceSolutionsTab: React.FC<DeviceSolutionsTabProps> = ({ deviceId
                 
                 {/* Solution or Workaround for Issues */}
                 {solution.solution && (
-                  <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-lg p-3">
-                    <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400 mb-1">Solution</p>
+                  <div className="bg-success/5 border border-success/20 rounded-lg p-3">
+                    <p className="text-sm font-medium text-success mb-1">Solution</p>
                     <p className="text-sm">{solution.solution}</p>
                   </div>
                 )}
                 
                 {solution.workaround && !solution.solution && (
-                  <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3">
-                    <p className="text-sm font-medium text-amber-600 dark:text-amber-400 mb-1">Workaround</p>
+                  <div className="bg-warning/5 border border-warning/20 rounded-lg p-3">
+                    <p className="text-sm font-medium text-warning mb-1">Workaround</p>
                     <p className="text-sm">{solution.workaround}</p>
                   </div>
                 )}

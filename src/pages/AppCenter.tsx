@@ -99,7 +99,7 @@ const AppCard: React.FC<{ app: DiabetesApp; onClick: () => void }> = ({ app, onC
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold">{app.name}</h3>
                   {isOpenSource && (
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-success/10 text-success border-success/20">
                       <Github className="h-2.5 w-2.5 mr-0.5" />
                       Open Source
                     </Badge>
@@ -138,12 +138,12 @@ const AppCard: React.FC<{ app: DiabetesApp; onClick: () => void }> = ({ app, onC
                 </Badge>
               )}
               {isWebApp && (
-                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800">
+                <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/20">
                   <Globe className="h-3 w-3 mr-1" /> Web App
                 </Badge>
               )}
               {hasGithub && (
-                <Badge variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-900/20 dark:text-gray-300 dark:border-gray-800">
+                <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-border">
                   <Github className="h-3 w-3 mr-1" /> GitHub
                 </Badge>
               )}
@@ -539,9 +539,9 @@ export default function AppCenter() {
                                   <Badge 
                                     variant="outline" 
                                     className={`text-xs ${
-                                      post.sentiment === 'positive' ? 'bg-green-50 text-green-700 border-green-200' :
-                                      post.sentiment === 'negative' ? 'bg-red-50 text-red-700 border-red-200' :
-                                      'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                      post.sentiment === 'positive' ? 'bg-success/10 text-success border-success/20' :
+                                      post.sentiment === 'negative' ? 'bg-destructive/10 text-destructive border-destructive/20' :
+                                      'bg-warning/10 text-warning border-warning/20'
                                     }`}
                                   >
                                     {post.sentiment || 'neutral'}

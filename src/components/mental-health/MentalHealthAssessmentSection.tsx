@@ -157,7 +157,7 @@ const getResult = (score: number): AssessmentResult => {
       score: percentage,
       title: 'Managing Well',
       description: 'You appear to be handling the psychological aspects of T1D management effectively. Keep up your current coping strategies and support systems.',
-      color: 'text-green-600',
+      color: 'text-success',
       recommendations: [
         'Continue your current self-care routines',
         'Share your successful strategies with others in the community',
@@ -171,7 +171,7 @@ const getResult = (score: number): AssessmentResult => {
       score: percentage,
       title: 'Some Strain',
       description: 'You\'re experiencing moderate mental health strain from diabetes management. Implementing targeted coping strategies can help reduce this burden.',
-      color: 'text-yellow-600',
+      color: 'text-warning',
       recommendations: [
         'Try the Box Breathing technique for glucose anxiety',
         'Use the "Number is Information" reframe for checking BG',
@@ -186,7 +186,7 @@ const getResult = (score: number): AssessmentResult => {
       score: percentage,
       title: 'Significant Stress',
       description: 'You\'re experiencing significant mental health challenges related to diabetes. Professional support combined with community resources can help.',
-      color: 'text-orange-600',
+      color: 'text-highlight',
       recommendations: [
         'Consider speaking with a diabetes-specialized therapist',
         'Reach out to the T1D community for support',
@@ -202,7 +202,7 @@ const getResult = (score: number): AssessmentResult => {
       score: percentage,
       title: 'Immediate Support Needed',
       description: 'Your responses indicate you may need immediate mental health support. Please reach out to a mental health professional or crisis line.',
-      color: 'text-red-600',
+      color: 'text-destructive',
       recommendations: [
         'Contact a mental health crisis line immediately if you\'re in crisis',
         'Speak with your healthcare provider as soon as possible',
@@ -302,25 +302,25 @@ const MentalHealthAssessmentSection: React.FC = () => {
         <Card className="max-w-3xl mx-auto">
           <CardHeader className="text-center">
             <div className={`inline-flex items-center justify-center w-16 h-16 rounded-full mx-auto mb-4 ${
-              result.level === 'low' ? 'bg-green-500/10' :
-              result.level === 'moderate' ? 'bg-yellow-500/10' :
-              result.level === 'high' ? 'bg-orange-500/10' : 'bg-red-500/10'
+              result.level === 'low' ? 'bg-success/10' :
+              result.level === 'moderate' ? 'bg-warning/10' :
+              result.level === 'high' ? 'bg-highlight/10' : 'bg-destructive/10'
             }`}>
-              {result.level === 'low' ? <CheckCircle2 className="w-8 h-8 text-green-600" /> :
-               result.level === 'moderate' ? <Brain className="w-8 h-8 text-yellow-600" /> :
-               result.level === 'high' ? <AlertTriangle className="w-8 h-8 text-orange-600" /> :
-               <Phone className="w-8 h-8 text-red-600" />}
+              {result.level === 'low' ? <CheckCircle2 className="w-8 h-8 text-success" /> :
+               result.level === 'moderate' ? <Brain className="w-8 h-8 text-warning" /> :
+               result.level === 'high' ? <AlertTriangle className="w-8 h-8 text-highlight" /> :
+               <Phone className="w-8 h-8 text-destructive" />}
             </div>
             <CardTitle className={`text-2xl ${result.color}`}>{result.title}</CardTitle>
             <CardDescription className="text-base">{result.description}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {result.level === 'critical' && (
-              <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20">
+              <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
                 <div className="flex items-center gap-3">
-                  <Phone className="h-6 w-6 text-red-600" />
+                  <Phone className="h-6 w-6 text-destructive" />
                   <div>
-                    <div className="font-semibold text-red-600">Crisis Support Available 24/7</div>
+                    <div className="font-semibold text-destructive">Crisis Support Available 24/7</div>
                     <div className="text-sm text-muted-foreground">
                       National Suicide Prevention Lifeline: 988 | Crisis Text Line: Text HOME to 741741
                     </div>

@@ -288,7 +288,7 @@ export default function MedicineComparison() {
                     <TableRow>
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                          <CheckCircle2 className="h-4 w-4 text-success" />
                           Pros
                         </div>
                       </TableCell>
@@ -297,7 +297,7 @@ export default function MedicineComparison() {
                           {med.pros && (med.pros as string[]).length > 0 ? (
                             <ul className="text-sm space-y-1">
                               {(med.pros as string[]).slice(0, 3).map((pro, i) => (
-                                <li key={i} className="text-emerald-700 dark:text-emerald-400">
+                                <li key={i} className="text-success">
                                   • {pro}
                                 </li>
                               ))}

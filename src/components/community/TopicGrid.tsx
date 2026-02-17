@@ -84,7 +84,7 @@ const topics: Topic[] = [
     label: 'Overnight',
     icon: <Moon className="h-6 w-6" />,
     keywords: 'night overnight sleep basal dawn',
-    color: 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
+    color: 'bg-chart-2/10 text-chart-2 border-chart-2/20',
     description: 'Nighttime management',
   },
   {
@@ -92,7 +92,7 @@ const topics: Topic[] = [
     label: 'Mental Health',
     icon: <Heart className="h-6 w-6" />,
     keywords: 'burnout frustrated tired anxiety mental',
-    color: 'bg-pink-500/10 text-pink-600 border-pink-500/20',
+    color: 'bg-brand-red/10 text-brand-red border-brand-red/20',
     description: 'Emotional wellbeing',
   },
   {
@@ -100,7 +100,7 @@ const topics: Topic[] = [
     label: 'DIY Tech',
     icon: <Smartphone className="h-6 w-6" />,
     keywords: 'loop openaps nightscout diy',
-    color: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
+    color: 'bg-muted text-muted-foreground border-border',
     description: 'DIY closed loop systems',
   },
 ];

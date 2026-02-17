@@ -55,9 +55,9 @@ export const AdultPostCard: React.FC<AdultPostCardProps> = ({ post }) => {
 
   const getSentimentIcon = () => {
     switch (post.sentiment) {
-      case 'positive': return <Smile className="h-4 w-4 text-green-500" />;
-      case 'negative': return <Frown className="h-4 w-4 text-red-500" />;
-      default: return <Meh className="h-4 w-4 text-yellow-500" />;
+      case 'positive': return <Smile className="h-4 w-4 text-success" />;
+      case 'negative': return <Frown className="h-4 w-4 text-destructive" />;
+      default: return <Meh className="h-4 w-4 text-warning" />;
     }
   };
 
@@ -95,8 +95,8 @@ export const AdultPostCard: React.FC<AdultPostCardProps> = ({ post }) => {
               <Badge
                 variant="outline"
                 className={`text-xs ${
-                  post.confidence_score >= 0.9 ? 'border-green-500 text-green-700' :
-                  post.confidence_score >= 0.8 ? 'border-yellow-500 text-yellow-700' :
+                  post.confidence_score >= 0.9 ? 'border-success text-success' :
+                  post.confidence_score >= 0.8 ? 'border-warning text-warning' :
                   'border-muted-foreground text-muted-foreground'
                 }`}
               >
@@ -142,14 +142,14 @@ export const AdultPostCard: React.FC<AdultPostCardProps> = ({ post }) => {
 
         {/* Tips */}
         {post.tips && post.tips.length > 0 && (
-          <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+          <div className="p-3 bg-success/5 dark:bg-success/10 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
-              <Lightbulb className="h-4 w-4 text-green-600" />
-              <span className="font-medium text-sm text-green-800 dark:text-green-200">Tips</span>
+              <Lightbulb className="h-4 w-4 text-success" />
+              <span className="font-medium text-sm text-success">Tips</span>
             </div>
             <ul className="space-y-1">
               {post.tips.map((tip, i) => (
-                <li key={i} className="text-xs text-green-700 dark:text-green-300">• {tip}</li>
+                <li key={i} className="text-xs text-success">• {tip}</li>
               ))}
             </ul>
           </div>
@@ -157,14 +157,14 @@ export const AdultPostCard: React.FC<AdultPostCardProps> = ({ post }) => {
 
         {/* Warnings */}
         {post.warnings && post.warnings.length > 0 && (
-          <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+          <div className="p-3 bg-destructive/5 dark:bg-destructive/10 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
-              <span className="font-medium text-sm text-red-800 dark:text-red-200">Warnings</span>
+              <AlertTriangle className="h-4 w-4 text-destructive" />
+              <span className="font-medium text-sm text-destructive">Warnings</span>
             </div>
             <ul className="space-y-1">
               {post.warnings.map((w, i) => (
-                <li key={i} className="text-xs text-red-700 dark:text-red-300">• {w}</li>
+                <li key={i} className="text-xs text-destructive">• {w}</li>
               ))}
             </ul>
           </div>

@@ -8,9 +8,9 @@ import { useExperienceSubmissions, ExperienceSubmission } from '@/hooks/useExper
 import { EntryModal } from './EntryModal';
 
 const funItems = [
-  { icon: Candy, color: 'text-pink-500' },
-  { icon: Cookie, color: 'text-amber-500' },
-  { icon: Coffee, color: 'text-orange-500' },
+  { icon: Candy, color: 'text-destructive' },
+  { icon: Cookie, color: 'text-warning' },
+  { icon: Coffee, color: 'text-highlight' },
 ];
 
 export function EmbarrassingLowsJar() {
@@ -23,13 +23,13 @@ export function EmbarrassingLowsJar() {
   return (
     <>
       <Card className="overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-pink-500/10 via-orange-500/10 to-yellow-500/10">
+        <CardHeader className="bg-gradient-to-r from-destructive/10 via-warning/10 to-warning/5">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Laugh className="h-5 w-5 text-orange-500" />
+              <Laugh className="h-5 w-5 text-warning" />
               Embarrassing Low Stories
             </CardTitle>
-            <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+            <Badge variant="secondary" className="bg-warning/10 text-warning">
               {submissions.length} stories shared
             </Badge>
           </div>
@@ -39,7 +39,7 @@ export function EmbarrassingLowsJar() {
         </CardHeader>
         <CardContent className="p-6">
           {/* Fun Container Animation */}
-          <div className="relative h-48 bg-gradient-to-b from-orange-50 to-pink-50 dark:from-orange-950/20 dark:to-pink-950/20 rounded-xl overflow-hidden mb-6 border-2 border-dashed border-orange-200 dark:border-orange-800">
+          <div className="relative h-48 bg-gradient-to-b from-warning/5 to-destructive/5 dark:from-warning/10 dark:to-destructive/10 rounded-xl overflow-hidden mb-6 border-2 border-dashed border-warning/30 dark:border-warning/20">
             {/* Falling Items Animation */}
             <AnimatePresence>
               {submissions.slice(0, 20).map((_, index) => {
@@ -72,7 +72,7 @@ export function EmbarrassingLowsJar() {
             </AnimatePresence>
 
             {/* Pile at Bottom */}
-            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-orange-200/50 to-transparent dark:from-orange-800/30">
+            <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-warning/30 to-transparent dark:from-warning/20">
               <div className="flex justify-center gap-1 pt-4">
                 {funItems.map((item, i) => (
                   <item.icon key={i} className={`h-5 w-5 ${item.color} opacity-60`} />
@@ -94,14 +94,14 @@ export function EmbarrassingLowsJar() {
                 >
                   <div
                     onClick={() => setSelectedSubmission(submission)}
-                    className="p-4 rounded-lg bg-gradient-to-r from-pink-50 to-orange-50 dark:from-pink-950/20 dark:to-orange-950/20 border border-orange-100 dark:border-orange-900/30 hover:shadow-md cursor-pointer transition-all"
+                    className="p-4 rounded-lg bg-gradient-to-r from-destructive/5 to-warning/5 dark:from-destructive/10 dark:to-warning/10 border border-warning/20 dark:border-warning/15 hover:shadow-md cursor-pointer transition-all"
                   >
                     <div className="flex items-start gap-3">
                       <motion.div
                         animate={{ rotate: [0, -10, 10, 0] }}
                         transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 3 }}
                       >
-                        <Laugh className="h-5 w-5 text-orange-400 shrink-0" />
+                        <Laugh className="h-5 w-5 text-warning shrink-0" />
                       </motion.div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm line-clamp-2">{submission.content}</p>
@@ -109,7 +109,7 @@ export function EmbarrassingLowsJar() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="h-7 px-2 text-muted-foreground hover:text-orange-500"
+                            className="h-7 px-2 text-muted-foreground hover:text-warning"
                             onClick={(e) => {
                               e.stopPropagation();
                               // Handle upvote
@@ -119,7 +119,7 @@ export function EmbarrassingLowsJar() {
                             {submission.upvotes}
                           </Button>
                           {index === 0 && submission.upvotes > 0 && (
-                            <Badge className="bg-orange-100 text-orange-700 text-xs">
+                            <Badge className="bg-warning/10 text-warning text-xs">
                               🏆 Top Story
                             </Badge>
                           )}

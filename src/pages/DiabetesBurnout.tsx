@@ -277,7 +277,7 @@ const DiabetesBurnout = () => {
 
         {/* ── Signs & Assessment ───────────────────────────────── */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2"><AlertTriangle className="h-6 w-6 text-yellow-500" /> Recognizing Burnout</h2>
+          <h2 className="text-2xl font-bold flex items-center gap-2"><AlertTriangle className="h-6 w-6 text-warning" /> Recognizing Burnout</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <Card>
               <CardHeader><CardTitle className="text-lg">Common Signs</CardTitle></CardHeader>
@@ -422,18 +422,18 @@ const DiabetesBurnout = () => {
 
         {/* ── Supplements & Prescriptions ──────────────────────── */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2"><Pill className="h-6 w-6 text-green-600" /> Supplement & Prescription Guidance</h2>
+          <h2 className="text-2xl font-bold flex items-center gap-2"><Pill className="h-6 w-6 text-success" /> Supplement & Prescription Guidance</h2>
           <p className="text-sm text-muted-foreground">Evidence-based options to support mental health alongside diabetes management. Always discuss with your endocrinologist before starting.</p>
 
           <div className="space-y-4">
             {supplements.map((s, i) => (
-              <Card key={i} className={s.highlighted ? "border-yellow-400 border-2 bg-yellow-50/30 dark:bg-yellow-950/10" : ""}>
+              <Card key={i} className={s.highlighted ? "border-warning border-2 bg-warning/5 dark:bg-warning/5" : ""}>
                 <CardContent className="p-5 space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       {s.icon}
                       <h3 className="font-bold text-lg">{s.name}</h3>
-                      {s.highlighted && <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300">⚠️ Winter Priority</Badge>}
+                      {s.highlighted && <Badge className="bg-warning/10 text-warning border-warning/30">⚠️ Winter Priority</Badge>}
                     </div>
                     <Badge variant={s.evidence === "Strong" ? "default" : "outline"}>
                       {s.evidence} Evidence
@@ -451,12 +451,12 @@ const DiabetesBurnout = () => {
                     </div>
                   </div>
                   {s.symptoms && (
-                    <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800">
-                      <p className="text-xs font-semibold mb-2 text-yellow-800 dark:text-yellow-200">Deficiency Symptoms to Watch For:</p>
+                    <div className="p-3 rounded-lg bg-warning/5 dark:bg-warning/10 border border-warning/20">
+                      <p className="text-xs font-semibold mb-2 text-warning">Deficiency Symptoms to Watch For:</p>
                       <div className="grid grid-cols-2 gap-1">
                         {s.symptoms.map((symptom, j) => (
                           <div key={j} className="flex items-center gap-1.5 text-xs">
-                            <AlertTriangle className="h-3 w-3 text-yellow-600 shrink-0" />
+                            <AlertTriangle className="h-3 w-3 text-warning shrink-0" />
                             <span>{symptom}</span>
                           </div>
                         ))}
@@ -481,7 +481,7 @@ const DiabetesBurnout = () => {
                     <Badge variant="outline" className="text-xs">{rx.evidence} Evidence</Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">{rx.description}</p>
-                  <div className="p-2 rounded bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+                  <div className="p-2 rounded bg-primary/5 dark:bg-primary/10 border border-primary/20">
                     <p className="text-xs"><strong>T1D Consideration:</strong> {rx.t1dConsideration}</p>
                   </div>
                 </CardContent>
@@ -492,7 +492,7 @@ const DiabetesBurnout = () => {
 
         {/* ── Community Solutions ──────────────────────────────── */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2"><MessageSquare className="h-6 w-6 text-blue-500" /> Real Community Solutions</h2>
+          <h2 className="text-2xl font-bold flex items-center gap-2"><MessageSquare className="h-6 w-6 text-primary" /> Real Community Solutions</h2>
           <p className="text-sm text-muted-foreground">Real posts from T1D communities with practical solutions that worked for people experiencing burnout.</p>
 
           <div className="flex flex-wrap gap-2">
@@ -518,11 +518,11 @@ const DiabetesBurnout = () => {
 
         {/* ── Daily Tools ─────────────────────────────────────── */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2"><Battery className="h-6 w-6 text-emerald-500" /> Practical Daily Tools</h2>
+          <h2 className="text-2xl font-bold flex items-center gap-2"><Battery className="h-6 w-6 text-success" /> Practical Daily Tools</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="border-2 border-emerald-200 dark:border-emerald-800">
-              <CardHeader><CardTitle className="text-lg flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-emerald-500" /> Minimum Viable Diabetes (Bad Day Checklist)</CardTitle></CardHeader>
+            <Card className="border-2 border-success/30 dark:border-success/20">
+              <CardHeader><CardTitle className="text-lg flex items-center gap-2"><CheckCircle2 className="h-5 w-5 text-success" /> Minimum Viable Diabetes (Bad Day Checklist)</CardTitle></CardHeader>
               <CardContent className="space-y-2">
                 {[
                   "✅ Take basal/long-acting insulin",
@@ -537,10 +537,10 @@ const DiabetesBurnout = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-red-200 dark:border-red-800">
-              <CardHeader><CardTitle className="text-lg flex items-center gap-2"><HeartPulse className="h-5 w-5 text-red-500" /> Burnout Emergency Kit</CardTitle></CardHeader>
+            <Card className="border-2 border-destructive/30 dark:border-destructive/20">
+              <CardHeader><CardTitle className="text-lg flex items-center gap-2"><HeartPulse className="h-5 w-5 text-destructive" /> Burnout Emergency Kit</CardTitle></CardHeader>
               <CardContent className="space-y-2">
-                <p className="text-sm font-medium text-red-600 dark:text-red-400">When you feel overwhelmed RIGHT NOW:</p>
+                <p className="text-sm font-medium text-destructive">When you feel overwhelmed RIGHT NOW:</p>
                 {[
                   "1. Stop what you're doing. Take 3 deep breaths.",
                   "2. Check: Am I physically safe? (Not in DKA, not severely low)",
@@ -559,7 +559,7 @@ const DiabetesBurnout = () => {
 
         {/* ── Mental Health Resources ─────────────────────────── */}
         <section className="space-y-4">
-          <h2 className="text-2xl font-bold flex items-center gap-2"><Heart className="h-6 w-6 text-pink-500" /> Mental Health Professional Resources</h2>
+          <h2 className="text-2xl font-bold flex items-center gap-2"><Heart className="h-6 w-6 text-brand-red" /> Mental Health Professional Resources</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
@@ -584,9 +584,9 @@ const DiabetesBurnout = () => {
               </CardContent>
             </Card>
 
-            <Card className="border-red-200 dark:border-red-800 bg-red-50/30 dark:bg-red-950/10">
+            <Card className="border-destructive/30 dark:border-destructive/20 bg-destructive/5 dark:bg-destructive/5">
               <CardContent className="p-4 space-y-2">
-                <Phone className="h-6 w-6 text-red-500 mb-2" />
+                <Phone className="h-6 w-6 text-destructive mb-2" />
                 <h3 className="font-semibold text-sm">Crisis Resources</h3>
                 <div className="space-y-1.5">
                   <p className="text-xs"><strong>988 Suicide & Crisis Lifeline:</strong> Call or text 988</p>

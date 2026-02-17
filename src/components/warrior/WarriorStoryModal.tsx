@@ -170,13 +170,13 @@ export const WarriorStoryModal: React.FC<WarriorStoryModalProps> = ({ story, ope
                 <Separator />
                 <div>
                   <h3 className="flex items-center gap-2 font-semibold mb-3">
-                    <Target className="h-5 w-5 text-orange-500" />
+                    <Target className="h-5 w-5 text-warning" />
                     Obstacles Overcome
                   </h3>
                   <ul className="space-y-2">
                     {story.obstacles.map((obstacle, idx) => (
                       <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <span className="text-orange-500 mt-1">•</span>
+                        <span className="text-warning mt-1">•</span>
                         {obstacle}
                       </li>
                     ))}
@@ -190,13 +190,13 @@ export const WarriorStoryModal: React.FC<WarriorStoryModalProps> = ({ story, ope
                 <Separator />
                 <div>
                   <h3 className="flex items-center gap-2 font-semibold mb-3">
-                    <Heart className="h-5 w-5 text-red-500" />
+                    <Heart className="h-5 w-5 text-brand-red" />
                     Triumphs & Victories
                   </h3>
                   <ul className="space-y-2">
                     {story.triumphs.map((triumph, idx) => (
                       <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
-                        <span className="text-green-500 mt-1">✓</span>
+                        <span className="text-success mt-1">✓</span>
                         {triumph}
                       </li>
                     ))}

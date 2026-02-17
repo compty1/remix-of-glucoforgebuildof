@@ -20,11 +20,11 @@ interface EntryModalProps {
 }
 
 const categoryLabels: Record<string, { label: string; emoji: string; color: string }> = {
-  good: { label: 'Good Experience', emoji: '😊', color: 'bg-green-100 text-green-700' },
-  bad: { label: 'Bad Experience', emoji: '😔', color: 'bg-red-100 text-red-700' },
-  daily_tasks: { label: 'Daily Task', emoji: '📋', color: 'bg-blue-100 text-blue-700' },
-  fears: { label: 'Fear & Worry', emoji: '😰', color: 'bg-purple-100 text-purple-700' },
-  embarrassing_lows: { label: 'Embarrassing Low', emoji: '😅', color: 'bg-orange-100 text-orange-700' },
+  good: { label: 'Good Experience', emoji: '😊', color: 'bg-success/10 text-success' },
+  bad: { label: 'Bad Experience', emoji: '😔', color: 'bg-destructive/10 text-destructive' },
+  daily_tasks: { label: 'Daily Task', emoji: '📋', color: 'bg-primary/10 text-primary' },
+  fears: { label: 'Fear & Worry', emoji: '😰', color: 'bg-accent text-accent-foreground' },
+  embarrassing_lows: { label: 'Embarrassing Low', emoji: '😅', color: 'bg-warning/10 text-warning' },
 };
 
 export function EntryModal({ submission, open, onOpenChange }: EntryModalProps) {
