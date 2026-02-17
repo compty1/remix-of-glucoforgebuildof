@@ -67,11 +67,11 @@ interface ContributingFactor {
 }
 
 const verdictConfig = {
-  true: { icon: <Check className="h-5 w-5" />, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-900/20' },
-  false: { icon: <X className="h-5 w-5" />, color: 'text-red-600', bg: 'bg-red-50 dark:bg-red-900/20' },
-  partially_true: { icon: <HelpCircle className="h-5 w-5" />, color: 'text-yellow-600', bg: 'bg-yellow-50 dark:bg-yellow-900/20' },
-  unproven: { icon: <HelpCircle className="h-5 w-5" />, color: 'text-gray-600', bg: 'bg-gray-50 dark:bg-gray-900/20' },
-  requires_investigation: { icon: <Beaker className="h-5 w-5" />, color: 'text-blue-600', bg: 'bg-blue-50 dark:bg-blue-900/20' }
+  true: { icon: <Check className="h-5 w-5" />, color: 'text-success', bg: 'bg-success/5 dark:bg-success/10' },
+  false: { icon: <X className="h-5 w-5" />, color: 'text-destructive', bg: 'bg-destructive/5 dark:bg-destructive/10' },
+  partially_true: { icon: <HelpCircle className="h-5 w-5" />, color: 'text-warning', bg: 'bg-warning/5 dark:bg-warning/10' },
+  unproven: { icon: <HelpCircle className="h-5 w-5" />, color: 'text-muted-foreground', bg: 'bg-muted' },
+  requires_investigation: { icon: <Beaker className="h-5 w-5" />, color: 'text-primary', bg: 'bg-primary/5 dark:bg-primary/10' }
 };
 
 // Comprehensive contributing factors with research citations

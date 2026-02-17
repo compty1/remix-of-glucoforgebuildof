@@ -32,7 +32,7 @@ export function QuickStatCard({
               <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
             )}
             {trend && trendValue && (
-              <div className={`flex items-center gap-1 mt-1 text-xs ${trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
+              <div className={`flex items-center gap-1 mt-1 text-xs ${trend === 'up' ? 'text-success' : 'text-destructive'}`}>
                 {trend === 'up' ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                 {trendValue}
               </div>

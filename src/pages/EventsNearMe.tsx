@@ -48,7 +48,7 @@ export default function EventsNearMe() {
       case 'support_group': return 'bg-highlight/10 text-highlight border-highlight/20';
       case 'camp': return 'bg-warning/10 text-warning border-warning/20';
       case 'virtual': return 'bg-accent/10 text-accent border-accent/20';
-      case 'educational': return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
+      case 'educational': return 'bg-primary/10 text-primary border-primary/20';
       default: return 'bg-muted text-muted-foreground';
     }
   };

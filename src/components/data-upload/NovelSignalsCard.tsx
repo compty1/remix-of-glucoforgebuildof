@@ -47,10 +47,10 @@ const NovelSignalsCard: React.FC<NovelSignalsCardProps> = ({ novelSignals }) => 
   };
 
   const getMealTimingScoreLabel = (score: number) => {
-    if (score < 20) return { label: 'Excellent Timing', color: 'text-green-600' };
-    if (score < 40) return { label: 'Good Timing', color: 'text-blue-600' };
-    if (score < 60) return { label: 'Needs Improvement', color: 'text-yellow-600' };
-    return { label: 'Poor Timing', color: 'text-red-600' };
+    if (score < 20) return { label: 'Excellent Timing', color: 'text-success' };
+    if (score < 40) return { label: 'Good Timing', color: 'text-primary' };
+    if (score < 60) return { label: 'Needs Improvement', color: 'text-warning' };
+    return { label: 'Poor Timing', color: 'text-destructive' };
   };
 
   const timingInfo = getMealTimingScoreLabel(mealTimingScore);

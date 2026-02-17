@@ -28,7 +28,7 @@ const topics: Topic[] = [
     label: 'Glucose Lows',
     icon: <TrendingDown className="h-6 w-6" />,
     keywords: 'low hypo crash dropping',
-    color: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+    color: 'bg-primary/10 text-primary border-primary/20',
     description: 'Managing hypoglycemia',
   },
   {
@@ -36,7 +36,7 @@ const topics: Topic[] = [
     label: 'Glucose Highs',
     icon: <TrendingUp className="h-6 w-6" />,
     keywords: 'high spike stubborn correction',
-    color: 'bg-red-500/10 text-red-600 border-red-500/20',
+    color: 'bg-destructive/10 text-destructive border-destructive/20',
     description: 'Handling hyperglycemia',
   },
   {
@@ -44,7 +44,7 @@ const topics: Topic[] = [
     label: 'CGM & Sensors',
     icon: <Activity className="h-6 w-6" />,
     keywords: 'sensor cgm dexcom libre accuracy',
-    color: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+    color: 'bg-accent text-accent-foreground border-border',
     description: 'Continuous glucose monitoring',
   },
   {
@@ -52,7 +52,7 @@ const topics: Topic[] = [
     label: 'Insulin Pumps',
     icon: <Syringe className="h-6 w-6" />,
     keywords: 'pump omnipod tandem site infusion',
-    color: 'bg-green-500/10 text-green-600 border-green-500/20',
+    color: 'bg-success/10 text-success border-success/20',
     description: 'Pump tips & troubleshooting',
   },
   {
@@ -60,7 +60,7 @@ const topics: Topic[] = [
     label: 'Exercise',
     icon: <Dumbbell className="h-6 w-6" />,
     keywords: 'exercise workout gym running sport',
-    color: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+    color: 'bg-warning/10 text-warning border-warning/20',
     description: 'Staying active with T1D',
   },
   {
@@ -68,7 +68,7 @@ const topics: Topic[] = [
     label: 'Food & Carbs',
     icon: <Utensils className="h-6 w-6" />,
     keywords: 'carb food meal pizza bolus',
-    color: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
+    color: 'bg-chart-3/10 text-chart-3 border-chart-3/20',
     description: 'Diet and carb counting',
   },
   {
@@ -76,7 +76,7 @@ const topics: Topic[] = [
     label: 'Travel',
     icon: <Plane className="h-6 w-6" />,
     keywords: 'travel fly airport tsa supplies',
-    color: 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20',
+    color: 'bg-chart-1/10 text-chart-1 border-chart-1/20',
     description: 'Traveling with diabetes',
   },
   {

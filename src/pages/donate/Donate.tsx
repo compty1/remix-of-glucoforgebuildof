@@ -222,15 +222,15 @@ export default function Donate() {
 
                 <div className="text-xs text-muted-foreground space-y-1">
                   <p className="flex items-center gap-1">
-                    <Check className="h-3 w-3 text-green-600" />
+                    <Check className="h-3 w-3 text-success" />
                     Secure payment processing by Stripe
                   </p>
                   <p className="flex items-center gap-1">
-                    <Check className="h-3 w-3 text-green-600" />
+                    <Check className="h-3 w-3 text-success" />
                     Tax-deductible as allowed by law
                   </p>
                   <p className="flex items-center gap-1">
-                    <Check className="h-3 w-3 text-green-600" />
+                    <Check className="h-3 w-3 text-success" />
                     100% goes to research and operations
                   </p>
                 </div>

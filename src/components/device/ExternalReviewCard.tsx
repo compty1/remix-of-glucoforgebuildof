@@ -106,12 +106,12 @@ export const ExternalReviewCard: React.FC<ExternalReviewCardProps> = ({ review }
   const getSourceBadge = () => {
     const source = review.source.toLowerCase();
     const sourceColors: Record<string, string> = {
-      'reddit': 'bg-orange-500/10 text-orange-600 border-orange-500/20',
-      'google': 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-      'amazon': 'bg-amber-500/10 text-amber-600 border-amber-500/20',
-      'trustpilot': 'bg-green-500/10 text-green-600 border-green-500/20',
-      'drugs.com': 'bg-purple-500/10 text-purple-600 border-purple-500/20',
-      'webmd': 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20',
+      'reddit': 'bg-warning/10 text-warning border-warning/20',
+      'google': 'bg-primary/10 text-primary border-primary/20',
+      'amazon': 'bg-chart-3/10 text-chart-3 border-chart-3/20',
+      'trustpilot': 'bg-success/10 text-success border-success/20',
+      'drugs.com': 'bg-accent text-accent-foreground border-border',
+      'webmd': 'bg-chart-1/10 text-chart-1 border-chart-1/20',
     };
     return sourceColors[source] || 'bg-muted text-muted-foreground';
   };

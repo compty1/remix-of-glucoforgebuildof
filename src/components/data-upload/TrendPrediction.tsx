@@ -149,10 +149,10 @@ const TrendPrediction = ({ patterns, hourlyStats }: TrendPredictionProps) => {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'high': return 'bg-red-500/10 border-red-500/30 text-red-600';
-      case 'low': return 'bg-blue-500/10 border-blue-500/30 text-blue-600';
-      case 'stable': return 'bg-green-500/10 border-green-500/30 text-green-600';
-      case 'variable': return 'bg-amber-500/10 border-amber-500/30 text-amber-600';
+      case 'high': return 'bg-destructive/10 border-destructive/30 text-destructive';
+      case 'low': return 'bg-primary/10 border-primary/30 text-primary';
+      case 'stable': return 'bg-success/10 border-success/30 text-success';
+      case 'variable': return 'bg-warning/10 border-warning/30 text-warning';
       default: return 'bg-muted border-muted-foreground/30';
     }
   };
