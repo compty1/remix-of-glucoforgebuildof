@@ -105,7 +105,7 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
                 .from('user_preferences')
                 .select('device_brands, cgm_device_id')
                 .eq('user_id', user.id)
-                .single();
+                .maybeSingle();
               
               setData({
                 cgmConnected: !!prefs?.cgm_device_id,

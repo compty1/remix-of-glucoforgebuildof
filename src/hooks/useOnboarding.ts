@@ -33,7 +33,7 @@ export const useOnboarding = () => {
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       // If no profile exists, this is a new user
       if (!profile) {

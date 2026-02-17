@@ -78,7 +78,7 @@ function NotificationItem({
   );
 }
 
-export function NotificationCenter() {
+export function NotificationCenter({ className }: { className?: string }) {
   const navigate = useNavigate();
   const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead } = useNotifications();
   const [open, setOpen] = useState(false);
@@ -91,7 +91,7 @@ export function NotificationCenter() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className={cn("relative", className)}>
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge 

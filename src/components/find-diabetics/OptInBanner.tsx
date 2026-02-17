@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +41,20 @@ export const OptInBanner: React.FC<Props> = ({ myProfile, onSave, isSaving }) =>
   const [bio, setBio] = useState(myProfile?.bio_snippet || '');
   const [lookingFor, setLookingFor] = useState<string[]>(myProfile?.looking_for || []);
   const [isVisible, setIsVisible] = useState(myProfile?.is_visible ?? true);
+
+  // Sync form fields when myProfile changes (e.g. after save)
+  useEffect(() => {
+    if (myProfile) {
+      setDisplayName(myProfile.display_name || '');
+      setCity(myProfile.city || '');
+      setState(myProfile.state || '');
+      setDiagnosisYear(myProfile.diagnosis_year?.toString() || '');
+      setDeviceSetup(myProfile.device_setup || '');
+      setBio(myProfile.bio_snippet || '');
+      setLookingFor(myProfile.looking_for || []);
+      setIsVisible(myProfile.is_visible ?? true);
+    }
+  }, [myProfile]);
 
   if (!user) return null;
 

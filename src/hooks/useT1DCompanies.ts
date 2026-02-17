@@ -174,7 +174,7 @@ export function useCompanyById(id: string | undefined) {
           .from('t1d_companies')
           .select('*')
           .eq('id', id)
-          .single();
+          .maybeSingle();
 
         if (fetchError) throw fetchError;
         setCompany(data as unknown as T1DCompany);

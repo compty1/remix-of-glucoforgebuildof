@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -14,7 +14,6 @@ import { NotificationCenter } from '@/components/notifications/NotificationCente
 import { SmartOnboarding } from '@/components/onboarding/SmartOnboarding';
 import { AchievementUnlockModal } from '@/components/achievements/AchievementUnlockModal';
 import { useAchievements } from '@/hooks/useAchievements';
-import { useStreaks } from '@/hooks/useStreaks';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 
 interface LayoutProps {
@@ -30,20 +29,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   
   // Achievements and streaks
   const { recentlyUnlocked, dismissUnlocked } = useAchievements();
-  const { recordVisit } = useStreaks();
   
   // User preferences for smart onboarding
   const { preferences, isLoading: prefsLoading } = useUserPreferences();
   const [showSmartOnboarding, setShowSmartOnboarding] = useState(false);
-
-  // Record daily visit for streak tracking - only once per session
-  const hasRecordedVisit = React.useRef(false);
-  useEffect(() => {
-    if (user && !hasRecordedVisit.current) {
-      hasRecordedVisit.current = true;
-      recordVisit();
-    }
-  }, [user, recordVisit]);
 
   // Show smart onboarding if user hasn't completed it
   useEffect(() => {
@@ -105,7 +94,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </Button>
               
               {/* Notification Center */}
-              <NotificationCenter />
+              <NotificationCenter className="text-white hover:bg-white/10" />
               
               <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="text-white hover:bg-white/10">
                 <User className="h-4 w-4" />
@@ -183,7 +172,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
               </div>
               <div className="mt-8 pt-8 border-t border-white/20 text-center text-sm text-white/60">
-                <p>&copy; 2024 GlucoForge. An emerging 501(c)(3) nonprofit organization.</p>
+                <p>&copy; {new Date().getFullYear()} GlucoForge. An emerging 501(c)(3) nonprofit organization.</p>
               </div>
             </div>
           </footer>

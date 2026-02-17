@@ -90,10 +90,10 @@ export function useChatSessions(contextType?: ContextType, contextId?: string) {
       .from('chat_sessions')
       .select('*')
       .eq('id', sessionId)
-      .single();
+      .maybeSingle();
 
-    if (error) {
-      console.error('Error fetching session:', error);
+    if (error || !data) {
+      if (error) console.error('Error fetching session:', error);
       return null;
     }
 

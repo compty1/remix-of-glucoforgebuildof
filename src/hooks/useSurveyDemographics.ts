@@ -48,9 +48,9 @@ export const useSurveyDemographics = (): UseSurveyDemographicsResult => {
         .from('survey_demographics')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
+      if (fetchError) {
         throw new Error(`Failed to fetch demographics: ${fetchError.message}`);
       }
 

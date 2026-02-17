@@ -62,7 +62,11 @@ const FindDiabeticNearMe: React.FC = () => {
   const pendingIncomingCount = myRequests.filter(r => r.to_user_id === user?.id && r.status === 'pending').length;
   const { data: directory = [], isLoading: dirLoading } = useCommunityDirectory(stateFilter, orgTypeFilter || undefined);
 
-  const sentRequestUserIds = myRequests.filter(r => r.from_user_id === user?.id).map(r => r.to_user_id);
+  const connectedOrRequestedUserIds = new Set(
+    myRequests
+      .filter(r => r.status !== 'declined')
+      .flatMap(r => [r.from_user_id, r.to_user_id])
+  );
 
   const generateRedditSearchUrl = (location: string) => {
     const encoded = encodeURIComponent(`meetup ${location}`);
@@ -97,7 +101,7 @@ const FindDiabeticNearMe: React.FC = () => {
                 className="pl-9"
               />
             </div>
-            <Select value={stateFilter} onValueChange={setStateFilter}>
+            <Select value={stateFilter} onValueChange={(v) => setStateFilter(v === 'all' ? '' : v)}>
               <SelectTrigger className="w-full sm:w-32">
                 <SelectValue placeholder="All States" />
               </SelectTrigger>
@@ -178,7 +182,7 @@ const FindDiabeticNearMe: React.FC = () => {
                     key={profile.id}
                     profile={profile}
                     onConnect={(userId) => setConnectUserId(userId)}
-                    alreadyRequested={sentRequestUserIds.includes(profile.user_id)}
+                    alreadyRequested={connectedOrRequestedUserIds.has(profile.user_id)}
                     isOwnProfile={profile.user_id === user?.id}
                   />
                 ))}
@@ -193,7 +197,7 @@ const FindDiabeticNearMe: React.FC = () => {
                 <Building2 className="h-5 w-5 text-primary" />
                 Local T1D Communities & Organizations
               </h2>
-              <Select value={orgTypeFilter} onValueChange={setOrgTypeFilter}>
+              <Select value={orgTypeFilter} onValueChange={(v) => setOrgTypeFilter(v === 'all' ? '' : v)}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="All Types" />
                 </SelectTrigger>

@@ -114,13 +114,12 @@ export const useMedicationReviews = () => {
 
   const toggleHelpful = useMutation({
     mutationFn: async ({ reviewId, medicationId }: { reviewId: string; medicationId: string }) => {
-      // In a full implementation, this would track which users found which reviews helpful
-      // For now, just increment the count
+      // Read current count then increment (race-tolerant for low traffic)
       const { data, error } = await supabase
         .from("medication_reviews")
         .select("helpful_count")
         .eq("id", reviewId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
 

@@ -177,9 +177,10 @@ export const useProjectDetail = (slug: string) => {
         .select('*')
         .eq('slug', slug)
         .eq('status', 'published')
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) return null;
 
       // Increment view count
       await supabase

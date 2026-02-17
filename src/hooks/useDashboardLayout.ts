@@ -110,10 +110,9 @@ export const useDashboardLayout = (): UseDashboardLayoutResult => {
         .from('user_dashboards')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (fetchError && fetchError.code !== 'PGRST116') {
-        // PGRST116 is "not found" which is okay, we'll use defaults
+      if (fetchError) {
         throw new Error(`Failed to fetch dashboard layout: ${fetchError.message}`);
       }
 

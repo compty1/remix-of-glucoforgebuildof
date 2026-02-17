@@ -165,9 +165,9 @@ const Settings = () => {
         .from('profiles')
         .select('display_name, bio')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error loading profile:', error);
         return;
       }

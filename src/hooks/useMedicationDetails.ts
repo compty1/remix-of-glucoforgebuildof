@@ -57,7 +57,7 @@ export const useMedicationDetails = (medicationId: string | undefined) => {
         .from("medications")
         .select("*")
         .eq("id", medicationId)
-        .single();
+        .maybeSingle();
 
       if (medError) {
         console.error("Error fetching medication:", medError);
@@ -155,7 +155,7 @@ export const useMedicationByName = (name: string | undefined) => {
         .from("medications")
         .select("*")
         .ilike("name", name)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching medication by name:", error);
