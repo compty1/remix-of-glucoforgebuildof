@@ -20,8 +20,10 @@ import {
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import type { AdultPost } from '@/hooks/useAdultContentSearch';
+import { useAdultPostComments } from '@/hooks/useAdultContentSearch';
 
 interface AdultPostCardProps {
   post: AdultPost;
@@ -37,6 +39,19 @@ const postTypeConfig: Record<string, { icon: React.ReactNode; label: string }> =
 export const AdultPostCard: React.FC<AdultPostCardProps> = ({ post }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [commentLimit, setCommentLimit] = useState(5);
+
+  const { data: commentsResult, isLoading: commentsLoading } = useAdultPostComments(
+    showComments ? post.id : null,
+    commentLimit
+  );
+
+  const comments = commentsResult?.comments || [];
+  const totalCommentCount = commentsResult?.totalCount || 0;
+  const hasMoreComments = commentsResult?.hasMore || false;
+
+  const [expandedComments, setExpandedComments] = useState<Set<string>>(new Set());
 
   const getSentimentIcon = () => {
     switch (post.sentiment) {
@@ -57,6 +72,15 @@ export const AdultPostCard: React.FC<AdultPostCardProps> = ({ post }) => {
       toast.success('Copied to clipboard');
       setTimeout(() => setIsCopied(false), 2000);
     } catch { toast.error('Failed to copy'); }
+  };
+
+  const toggleCommentExpanded = (commentId: string) => {
+    setExpandedComments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(commentId)) newSet.delete(commentId);
+      else newSet.add(commentId);
+      return newSet;
+    });
   };
 
   const typeConfig = postTypeConfig[post.post_type || 'post'] || postTypeConfig.post;
@@ -94,10 +118,13 @@ export const AdultPostCard: React.FC<AdultPostCardProps> = ({ post }) => {
               <ThumbsUp className="h-3.5 w-3.5" />
               {post.upvotes || 0}
             </span>
-            <span className="flex items-center gap-1">
+            <button
+              onClick={() => setShowComments(!showComments)}
+              className="flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer"
+            >
               <MessageSquare className="h-3.5 w-3.5" />
               {post.comments_count || 0}
-            </span>
+            </button>
           </div>
         </div>
       </CardHeader>
@@ -151,6 +178,78 @@ export const AdultPostCard: React.FC<AdultPostCardProps> = ({ post }) => {
                 {tag.replace(/_/g, ' ')}
               </Badge>
             ))}
+          </div>
+        )}
+
+        {/* Comments Section */}
+        {showComments && (
+          <div className="space-y-3 pt-3 border-t">
+            {commentsLoading ? (
+              <>
+                {[1, 2].map((i) => (
+                  <div key={i} className="pl-4 border-l-2 border-muted">
+                    <Skeleton className="h-4 w-20 mb-2" />
+                    <Skeleton className="h-12 w-full" />
+                  </div>
+                ))}
+              </>
+            ) : comments.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No comments available</p>
+            ) : (
+              <>
+                <span className="text-xs font-medium text-muted-foreground">
+                  {totalCommentCount} {totalCommentCount === 1 ? 'Comment' : 'Comments'}
+                </span>
+                {comments.map((comment) => {
+                  const isCommentExpanded = expandedComments.has(comment.id);
+                  const shouldTruncate = comment.content && comment.content.length > 200;
+                  const displayContent = isCommentExpanded || !shouldTruncate
+                    ? comment.content
+                    : comment.content.substring(0, 200) + '...';
+
+                  return (
+                    <div key={comment.id} className="pl-4 border-l-2 border-muted space-y-1">
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <ThumbsUp className="h-3 w-3" />
+                          {comment.score || 0}
+                        </span>
+                        {comment.author_anonymous && (
+                          <span>• {comment.author_anonymous}</span>
+                        )}
+                      </div>
+                      <p className="text-sm text-foreground leading-relaxed">
+                        {displayContent}
+                      </p>
+                      {shouldTruncate && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleCommentExpanded(comment.id)}
+                          className="h-6 px-2 text-xs"
+                        >
+                          {isCommentExpanded ? (
+                            <><ChevronUp className="h-3 w-3 mr-1" />Less</>
+                          ) : (
+                            <><ChevronDown className="h-3 w-3 mr-1" />More</>
+                          )}
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })}
+                {hasMoreComments && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setCommentLimit(prev => prev + 10)}
+                    className="h-7 px-2 text-xs text-primary"
+                  >
+                    Load more comments ({totalCommentCount - comments.length} remaining)
+                  </Button>
+                )}
+              </>
+            )}
           </div>
         )}
 

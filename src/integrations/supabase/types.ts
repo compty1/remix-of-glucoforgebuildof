@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      adult_content_comments: {
+        Row: {
+          author_anonymous: string | null
+          content: string
+          created_at: string
+          id: string
+          parent_comment_id: string | null
+          post_id: string
+          score: number | null
+        }
+        Insert: {
+          author_anonymous?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          parent_comment_id?: string | null
+          post_id: string
+          score?: number | null
+        }
+        Update: {
+          author_anonymous?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          parent_comment_id?: string | null
+          post_id?: string
+          score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "adult_content_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "adult_content_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "adult_content_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "adult_content_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       adult_content_posts: {
         Row: {
           author_username: string | null
