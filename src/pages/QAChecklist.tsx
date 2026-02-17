@@ -120,19 +120,19 @@ export default function QAChecklist() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pass': return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'fail': return <XCircle className="h-4 w-4 text-red-600" />;
-      case 'warning': return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
-      default: return <AlertTriangle className="h-4 w-4 text-gray-400" />;
+      case 'pass': return <CheckCircle className="h-4 w-4 text-success" />;
+      case 'fail': return <XCircle className="h-4 w-4 text-destructive" />;
+      case 'warning': return <AlertTriangle className="h-4 w-4 text-warning" />;
+      default: return <AlertTriangle className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pass': return 'bg-green-100 text-green-800';
-      case 'fail': return 'bg-red-100 text-red-800';
-      case 'warning': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'pass': return 'bg-success/10 text-success';
+      case 'fail': return 'bg-destructive/10 text-destructive';
+      case 'warning': return 'bg-warning/10 text-warning';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -174,25 +174,25 @@ export default function QAChecklist() {
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
             <Card>
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-green-600">{statusCounts.pass}</div>
+                <div className="text-2xl font-bold text-success">{statusCounts.pass}</div>
                 <div className="text-sm text-muted-foreground">Passed</div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-red-600">{statusCounts.fail}</div>
+                <div className="text-2xl font-bold text-destructive">{statusCounts.fail}</div>
                 <div className="text-sm text-muted-foreground">Failed</div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-yellow-600">{statusCounts.warning}</div>
+                <div className="text-2xl font-bold text-warning">{statusCounts.warning}</div>
                 <div className="text-sm text-muted-foreground">Warnings</div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
-                <div className="text-2xl font-bold text-gray-600">{statusCounts.pending}</div>
+                <div className="text-2xl font-bold text-muted-foreground">{statusCounts.pending}</div>
                 <div className="text-sm text-muted-foreground">Pending</div>
               </CardContent>
             </Card>
@@ -281,9 +281,9 @@ export default function QAChecklist() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <h3 className="font-semibold text-green-800 mb-2">✅ Completed Features</h3>
-                  <ul className="text-sm text-green-700 space-y-1">
+                <div className="p-4 bg-success/5 rounded-lg border border-success/20">
+                  <h3 className="font-semibold text-success mb-2">✅ Completed Features</h3>
+                  <ul className="text-sm text-success/80 space-y-1">
                     <li>• Complete authentication system with registration, login, session management, and password reset</li>
                     <li>• Full navigation and protected routing functionality</li>
                     <li>• Live dashboard with real data connections and interactive widgets</li>
@@ -301,9 +301,9 @@ export default function QAChecklist() {
                   </ul>
                 </div>
 
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <h3 className="font-semibold text-blue-800 mb-2">🎯 Platform Status</h3>
-                  <p className="text-blue-700">
+                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <h3 className="font-semibold text-primary mb-2">🎯 Platform Status</h3>
+                  <p className="text-primary/80">
                     GlucoForge is now a fully functional, production-ready platform with all core features implemented. 
                     Users can register, reset passwords, upload data, track glucose patterns, run simulations, browse community stories, 
                     shop for ID jewelry, manage settings, and make donations. The platform connects to live data sources 
@@ -311,17 +311,9 @@ export default function QAChecklist() {
                   </p>
                 </div>
 
-                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <h3 className="font-semibold text-purple-800 mb-2">🚀 Ready for Launch</h3>
-                  <p className="text-purple-700">
-                    All critical functionality has been implemented and tested. The platform achieves 100% test pass rate 
-                    with 90 QA items verified. Ready for production deployment with real users to support the Type 1 Diabetes community.
-                  </p>
-                </div>
-
-                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <h3 className="font-semibold text-purple-800 mb-2">🚀 Ready for Launch</h3>
-                  <p className="text-purple-700">
+                <div className="p-4 bg-accent rounded-lg border border-border">
+                  <h3 className="font-semibold text-accent-foreground mb-2">🚀 Ready for Launch</h3>
+                  <p className="text-accent-foreground/80">
                     All critical functionality has been implemented and tested. The platform is ready for production deployment 
                     with real users and can immediately begin supporting the Type 1 Diabetes community with research and management tools.
                   </p>

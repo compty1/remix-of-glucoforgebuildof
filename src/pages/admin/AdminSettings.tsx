@@ -136,13 +136,13 @@ export default function AdminSettings() {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'features':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-primary/10 text-primary';
       case 'ui':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-accent text-accent-foreground';
       case 'experimental':
-        return 'bg-orange-100 text-orange-800';
+        return 'bg-warning/10 text-warning';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -348,7 +348,7 @@ export default function AdminSettings() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="p-4 bg-warning/10 border border-warning/20 rounded-lg">
                       <p className="text-sm">
                         <strong>Security Audit:</strong> Last performed on {new Date().toLocaleDateString()}
                       </p>

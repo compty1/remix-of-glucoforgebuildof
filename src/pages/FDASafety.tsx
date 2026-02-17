@@ -45,11 +45,11 @@ export default function FDASafety() {
       case 'critical':
         return 'bg-destructive text-destructive-foreground';
       case 'high':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
+        return 'bg-warning/10 text-warning dark:bg-warning/20';
       case 'medium':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200';
+        return 'bg-chart-3/10 text-chart-3 dark:bg-chart-3/20';
       case 'low':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200';
+        return 'bg-success/10 text-success dark:bg-success/20';
       default:
         return 'bg-muted text-muted-foreground';
     }
@@ -58,13 +58,13 @@ export default function FDASafety() {
   const getEventTypeColor = (eventType: string) => {
     switch (eventType) {
       case 'recall':
-        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+        return 'bg-destructive/10 text-destructive dark:bg-destructive/20';
       case '510k':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200';
+        return 'bg-primary/10 text-primary dark:bg-primary/20';
       case 'pma':
-        return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+        return 'bg-accent text-accent-foreground';
       case 'adverse_event':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200';
+        return 'bg-warning/10 text-warning dark:bg-warning/20';
       default:
         return 'bg-muted text-muted-foreground';
     }
