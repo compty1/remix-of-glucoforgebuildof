@@ -71,7 +71,7 @@ export function useT1DCompanies(filters?: CompanyFilters) {
         .eq('is_active', true)
         .order('total_funding_usd', { ascending: false, nullsFirst: false });
 
-      if (filters?.companyType) {
+      if (filters?.companyType && filters.companyType !== 'all') {
         query = query.eq('company_type', filters.companyType);
       }
 

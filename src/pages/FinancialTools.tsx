@@ -159,7 +159,7 @@ const FinancialTools = () => {
       });
       return;
     }
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const categories = ['All', ...Array.from(new Set(resources.map(r => r.category)))];
@@ -348,14 +348,14 @@ const FinancialTools = () => {
                               </div>
                             )}
                             {item.source_url && (
-                              <Button
-                                variant="link"
-                                size="sm"
-                                onClick={() => window.open(item.source_url!, '_blank')}
-                                className="p-0 h-auto mt-2"
+                              <a
+                                href={item.source_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-sm text-primary hover:underline mt-2"
                               >
-                                View CMS Documentation <ExternalLink className="h-3 w-3 ml-1" />
-                              </Button>
+                                View CMS Documentation <ExternalLink className="h-3 w-3" />
+                              </a>
                             )}
                           </div>
                         ))}
