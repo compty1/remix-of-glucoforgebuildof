@@ -89,19 +89,29 @@ export const useMedicalResearchPapers = (options?: UseMedicalResearchPapersOptio
       }
 
       // Then fetch fresh data from the edge function in the background
-      const { data: freshData, error: functionError } = await supabase.functions.invoke('medical-research-aggregator');
+      const { error: functionError } = await supabase.functions.invoke('medical-research-aggregator');
 
       if (functionError) {
         console.error('Medical research aggregator error:', functionError);
         if (!existingData || existingData.length === 0) {
           throw new Error(`Failed to fetch research papers: ${functionError.message}`);
         }
-      } else if (freshData?.data) {
-        // Filter fresh data for T1D if needed
-        const filteredData = type1Only 
-          ? freshData.data.filter((p: MedicalResearchPaper) => p.is_type1_relevant)
-          : freshData.data;
-        setData(filteredData);
+      } else {
+        // Re-query DB to get canonical data after edge function updates
+        let refreshQuery = supabase
+          .from('medical_research_papers')
+          .select('*')
+          .order('publication_date', { ascending: false });
+        if (minRelevanceScore) {
+          refreshQuery = refreshQuery.gte('diabetes_relevance_score', minRelevanceScore);
+        }
+        if (type1Only) {
+          refreshQuery = refreshQuery.eq('is_type1_relevant', true);
+        }
+        const { data: refreshedData } = await refreshQuery.limit(100);
+        if (refreshedData && refreshedData.length > 0) {
+          setData(refreshedData as MedicalResearchPaper[]);
+        }
       }
 
     } catch (err) {
