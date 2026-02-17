@@ -35,13 +35,14 @@ export function ExerciseCorrelationCard({ data }: ExerciseCorrelationCardProps) 
       <CardContent className="space-y-4">
         {/* Key finding */}
         {improvement > 0 && (
-          <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-            <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
+          <div className="p-3 rounded-lg bg-success/10 border border-success/20">
+            <div className="flex items-center gap-2 text-success">
               <TrendingUp className="h-4 w-4" />
               <span className="text-sm font-medium">
                 Most active users show +{improvement.toFixed(1)}% higher TIR
               </span>
             </div>
+            <p className="text-xs text-muted-foreground mt-1 italic">⚠️ Simulated data — exercise tracking is not yet available in the dataset</p>
           </div>
         )}
 

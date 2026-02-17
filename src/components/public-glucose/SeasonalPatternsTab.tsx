@@ -22,10 +22,10 @@ const MONTHLY_DATA = [
 ];
 
 const SEASONAL_SUMMARY = [
-  { season: 'Winter', avgGlucose: 158, tir: 60, cv: 38, icon: Snowflake, color: 'text-blue-500' },
-  { season: 'Spring', avgGlucose: 145, tir: 67, cv: 34, icon: Leaf, color: 'text-green-500' },
-  { season: 'Summer', avgGlucose: 137, tir: 71, cv: 32, icon: Sun, color: 'text-yellow-500' },
-  { season: 'Autumn', avgGlucose: 146, tir: 66, cv: 35, icon: Cloud, color: 'text-orange-500' },
+  { season: 'Winter', avgGlucose: 158, tir: 60, cv: 38, icon: Snowflake, color: 'text-primary' },
+  { season: 'Spring', avgGlucose: 145, tir: 67, cv: 34, icon: Leaf, color: 'text-success' },
+  { season: 'Summer', avgGlucose: 137, tir: 71, cv: 32, icon: Sun, color: 'text-warning' },
+  { season: 'Autumn', avgGlucose: 146, tir: 66, cv: 35, icon: Cloud, color: 'text-muted-foreground' },
 ];
 
 const RADAR_DATA = [

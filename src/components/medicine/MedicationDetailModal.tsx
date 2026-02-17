@@ -46,6 +46,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
             <Pill className="h-5 w-5" />
             {medication?.name || 'Loading...'}
           </DialogTitle>
+          <p className="text-sm text-muted-foreground">{medication?.generic_name ? `Generic: ${medication.generic_name}` : medication?.category || 'Medication details'}</p>
         </DialogHeader>
 
         {isLoading ? (
@@ -106,13 +107,13 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                   {medication.pros && medication.pros.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="font-medium flex items-center gap-2">
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        <CheckCircle2 className="h-4 w-4 text-success" />
                         Pros
                       </h4>
                       <ul className="space-y-1">
                         {medication.pros.map((pro, i) => (
                           <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                            <span className="text-emerald-500">•</span>
+                            <span className="text-success">•</span>
                             {pro}
                           </li>
                         ))}

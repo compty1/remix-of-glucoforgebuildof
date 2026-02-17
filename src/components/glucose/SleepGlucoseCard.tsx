@@ -89,9 +89,9 @@ export function SleepGlucoseCard({ data }: SleepGlucoseCardProps) {
 
         {/* Key findings */}
         <div className="grid grid-cols-2 gap-3">
-          <div className="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+          <div className="p-3 rounded-lg bg-primary/10">
             <div className="flex items-center gap-2 mb-1">
-              <Moon className="h-4 w-4 text-blue-600" />
+              <Moon className="h-4 w-4 text-primary" />
               <span className="text-sm font-medium">Optimal Sleep</span>
             </div>
             <p className="text-lg font-bold">7-8 hours</p>
@@ -101,9 +101,9 @@ export function SleepGlucoseCard({ data }: SleepGlucoseCardProps) {
           </div>
           
           {dawnDiff > 0 && (
-            <div className="p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20">
+            <div className="p-3 rounded-lg bg-warning/10">
               <div className="flex items-center gap-2 mb-1">
-                <AlertTriangle className="h-4 w-4 text-amber-600" />
+                <AlertTriangle className="h-4 w-4 text-warning" />
                 <span className="text-sm font-medium">Short Sleep Impact</span>
               </div>
               <p className="text-lg font-bold">+{dawnDiff.toFixed(0)} mg/dL</p>
@@ -121,6 +121,7 @@ export function SleepGlucoseCard({ data }: SleepGlucoseCardProps) {
             Sleep deprivation affects insulin sensitivity and cortisol levels, contributing to higher 
             morning glucose. Studies recommend 7-9 hours of sleep for optimal metabolic health.
           </p>
+          <p className="mt-1 italic">⚠️ Simulated data — sleep tracking is not yet available in the dataset</p>
         </div>
       </CardContent>
     </Card>
