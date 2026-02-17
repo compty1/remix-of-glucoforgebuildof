@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Mail, Phone, MapPin, Clock } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -17,12 +18,31 @@ export default function Contact() {
     category: '',
     message: ''
   });
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In real implementation, send to API
-    toast.success('Message sent successfully! We\'ll get back to you within 24 hours.');
-    setFormData({ name: '', email: '', subject: '', category: '', message: '' });
+    setSubmitting(true);
+    try {
+      const { error } = await supabase
+        .from('contact_submissions')
+        .insert({
+          name: formData.name,
+          email: formData.email,
+          subject: formData.subject,
+          category: formData.category || null,
+          message: formData.message,
+        });
+
+      if (error) throw error;
+      toast.success('Message sent successfully! We\'ll get back to you within 24 hours.');
+      setFormData({ name: '', email: '', subject: '', category: '', message: '' });
+    } catch (error) {
+      console.error('Error submitting contact form:', error);
+      toast.error('Failed to send message. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleChange = (field: string, value: string) => {
@@ -168,8 +188,8 @@ export default function Contact() {
                       />
                     </div>
 
-                    <Button type="submit" className="w-full">
-                      Send Message
+                    <Button type="submit" className="w-full" disabled={submitting}>
+                      {submitting ? 'Sending...' : 'Send Message'}
                     </Button>
                     
                     <p className="text-sm text-muted-foreground">
@@ -197,7 +217,7 @@ export default function Contact() {
                 <div>
                   <h4 className="font-semibold mb-2">Is my health data secure?</h4>
                   <p className="text-sm text-muted-foreground mb-4">
-                    Yes, we use industry-standard encryption and are HIPAA compliant. Your data is never shared without your explicit consent.
+                    Yes, we use industry-standard encryption and follow healthcare data security best practices. Your data is never shared without your explicit consent.
                   </p>
                 </div>
                 <div>

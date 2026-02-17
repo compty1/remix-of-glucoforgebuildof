@@ -6,23 +6,34 @@ import { ResponsiveContainer, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
-// Simulated GMI vs Lab A1C scatter data
+// Deterministic pseudo-random number generator (mulberry32)
+function seededRandom(seed: number) {
+  let t = seed + 0x6D2B79F5;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+// Deterministic GMI vs Lab A1C scatter data
 const GMI_VS_LAB = Array.from({ length: 60 }, (_, i) => {
-  const labA1c = 5.5 + Math.random() * 4.5;
-  const gmi = labA1c + (Math.random() - 0.5) * 1.2;
-  return { labA1c: parseFloat(labA1c.toFixed(1)), gmi: parseFloat(gmi.toFixed(1)), tir: Math.round(100 - (labA1c - 5) * 12 + (Math.random() - 0.5) * 10) };
+  const r1 = seededRandom(i * 3 + 1);
+  const r2 = seededRandom(i * 3 + 2);
+  const r3 = seededRandom(i * 3 + 3);
+  const labA1c = 5.5 + r1 * 4.5;
+  const gmi = labA1c + (r2 - 0.5) * 1.2;
+  return { labA1c: parseFloat(labA1c.toFixed(1)), gmi: parseFloat(gmi.toFixed(1)), tir: Math.round(100 - (labA1c - 5) * 12 + (r3 - 0.5) * 10) };
 });
 
-// TIR vs estimated A1C curve
+// TIR vs estimated A1C curve (deterministic)
 const TIR_A1C_CURVE = Array.from({ length: 11 }, (_, i) => {
   const tir = 30 + i * 6;
   const estimatedA1c = 12 - (tir * 0.07);
-  return { tir, estimatedA1c: parseFloat(estimatedA1c.toFixed(1)), users: Math.round(20 + Math.random() * 80) };
+  return { tir, estimatedA1c: parseFloat(estimatedA1c.toFixed(1)), users: Math.round(20 + seededRandom(i + 100) * 80) };
 });
 
-// Model comparison
+// Model comparison — accuracy values are estimates based on published CGM literature
 const MODEL_COMPARISON = [
-  { model: 'GMI Formula', accuracy: 82, rmse: 0.52, bias: 0.08, method: 'Linear regression on mean glucose' },
+  { model: 'GMI Formula', accuracy: 82, rmse: 0.52, bias: 0.08, method: 'Linear regression on mean glucose (Bergenstal 2018)' },
   { model: 'TIR-Based', accuracy: 78, rmse: 0.61, bias: -0.12, method: 'Weighted TIR distribution model' },
   { model: 'Multi-feature ML', accuracy: 89, rmse: 0.38, bias: 0.03, method: 'Random forest with CV, TIR, mean, SD' },
   { model: 'Variability-Adj', accuracy: 85, rmse: 0.45, bias: 0.05, method: 'GMI adjusted for glucose variability (CV)' },
@@ -85,7 +96,7 @@ export function A1CPredictionTab({ currentGMI, avgGlucose, tir, cv }: A1CPredict
               <p className="text-sm text-muted-foreground mb-1">{pred.label}</p>
               <p className="text-3xl font-bold">{pred.value}%</p>
               <Badge variant="outline" className="text-xs mt-2">
-                {pred.accuracy}% accurate
+                ~{pred.accuracy}% est. accuracy
               </Badge>
               <p className="text-xs text-muted-foreground mt-1">{pred.desc}</p>
             </CardContent>
@@ -119,7 +130,7 @@ export function A1CPredictionTab({ currentGMI, avgGlucose, tir, cv }: A1CPredict
             </ScatterChart>
           </ResponsiveContainer>
           <p className="text-xs text-muted-foreground text-center mt-2">
-            Dashed line = perfect agreement. Points above the line: GMI overestimates. Below: GMI underestimates.
+            Simulated data using deterministic models. Dashed line = perfect agreement.
           </p>
         </CardContent>
       </Card>
@@ -132,6 +143,7 @@ export function A1CPredictionTab({ currentGMI, avgGlucose, tir, cv }: A1CPredict
               <Target className="h-5 w-5" />
               Model Accuracy Comparison
             </CardTitle>
+            <CardDescription>Estimated accuracy based on published CGM literature</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={240}>
@@ -194,7 +206,7 @@ export function A1CPredictionTab({ currentGMI, avgGlucose, tir, cv }: A1CPredict
                   <tr key={model.model} className="border-b last:border-0">
                     <td className="py-2.5 pr-4 font-medium">{model.model}</td>
                     <td className="py-2.5 pr-4">
-                      <Badge variant={model.accuracy >= 85 ? 'default' : 'secondary'} className="text-xs">{model.accuracy}%</Badge>
+                      <Badge variant={model.accuracy >= 85 ? 'default' : 'secondary'} className="text-xs">~{model.accuracy}%</Badge>
                     </td>
                     <td className="py-2.5 pr-4">{model.rmse}</td>
                     <td className="py-2.5 pr-4">{model.bias > 0 ? '+' : ''}{model.bias}</td>
@@ -216,8 +228,8 @@ export function A1CPredictionTab({ currentGMI, avgGlucose, tir, cv }: A1CPredict
             <p className="text-muted-foreground">
               GMI and lab A1C can differ by up to 0.8% due to red blood cell turnover rates, hemoglobin variants, 
               and other biological factors. Multi-feature models incorporating CV, TIR, and glucose patterns show 
-              improved prediction accuracy. These models are validated against data from T1D Exchange, JAEB, and 
-              UK Biobank cohorts. Always rely on lab A1C for clinical decisions.
+              improved prediction accuracy. Accuracy estimates are based on published validation studies from T1D Exchange, 
+              JAEB, and UK Biobank cohorts. Always rely on lab A1C for clinical decisions.
             </p>
           </div>
         </CardContent>

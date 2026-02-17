@@ -28,11 +28,11 @@ const userActivityData = [
 ];
 
 const platformUsageData = [
-  { name: 'Dashboard', value: 35, color: '#8884d8' },
-  { name: 'Data Upload', value: 25, color: '#82ca9d' },
-  { name: 'Research Hub', value: 20, color: '#ffc658' },
-  { name: 'Surveys', value: 15, color: '#ff7300' },
-  { name: 'Other', value: 5, color: '#d084d0' }
+  { name: 'Dashboard', value: 35, color: 'hsl(var(--chart-1))' },
+  { name: 'Data Upload', value: 25, color: 'hsl(var(--chart-2))' },
+  { name: 'Research Hub', value: 20, color: 'hsl(var(--chart-3))' },
+  { name: 'Surveys', value: 15, color: 'hsl(var(--chart-4))' },
+  { name: 'Other', value: 5, color: 'hsl(var(--chart-5))' }
 ];
 
 export default function AdminDashboard() {
@@ -69,13 +69,21 @@ export default function AdminDashboard() {
         .from('bounties')
         .select('*', { count: 'exact', head: true });
 
+      // Fetch actual active users (users with shifts in last 30 days)
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const { count: activeCount } = await supabase
+        .from('shifts')
+        .select('user_id', { count: 'exact', head: true })
+        .gte('created_at', thirtyDaysAgo.toISOString());
+
       setStats({
         totalUsers: profileCount || 0,
-        activeUsers: Math.floor((profileCount || 0) * 0.7), // Simulate 70% active
+        activeUsers: activeCount || 0,
         totalShifts: shiftsCount || 0,
         totalSurveys: surveysCount || 0,
         totalBounties: bountiesCount || 0,
-        totalDonations: 15420 // Simulated
+        totalDonations: 0 // Will show actual data when donation tracking is implemented
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -99,10 +107,10 @@ export default function AdminDashboard() {
       <Layout>
         <div className="container mx-auto px-6 py-8">
           <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-8 bg-muted rounded w-1/4"></div>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {[1, 2, 3, 4].map(i => (
-                <div key={i} className="h-32 bg-gray-200 rounded"></div>
+                <div key={i} className="h-32 bg-muted rounded"></div>
               ))}
             </div>
           </div>
@@ -129,7 +137,7 @@ export default function AdminDashboard() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <Users className="h-8 w-8 text-blue-600" />
+                  <Users className="h-8 w-8 text-primary" />
                   <div>
                     <p className="text-2xl font-bold">{stats.totalUsers}</p>
                     <p className="text-sm text-muted-foreground">Total Users</p>
@@ -141,7 +149,7 @@ export default function AdminDashboard() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <Activity className="h-8 w-8 text-green-600" />
+                  <Activity className="h-8 w-8 text-chart-2" />
                   <div>
                     <p className="text-2xl font-bold">{stats.activeUsers}</p>
                     <p className="text-sm text-muted-foreground">Active Users</p>
@@ -153,7 +161,7 @@ export default function AdminDashboard() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <TrendingUp className="h-8 w-8 text-purple-600" />
+                  <TrendingUp className="h-8 w-8 text-chart-3" />
                   <div>
                     <p className="text-2xl font-bold">{stats.totalShifts}</p>
                     <p className="text-sm text-muted-foreground">Journal Entries</p>
@@ -165,7 +173,7 @@ export default function AdminDashboard() {
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <DollarSign className="h-8 w-8 text-orange-600" />
+                  <DollarSign className="h-8 w-8 text-chart-4" />
                   <div>
                     <p className="text-2xl font-bold">${stats.totalDonations.toLocaleString()}</p>
                     <p className="text-sm text-muted-foreground">Total Donations</p>
@@ -189,8 +197,8 @@ export default function AdminDashboard() {
                       <XAxis dataKey="month" />
                       <YAxis />
                       <Tooltip />
-                      <Line type="monotone" dataKey="users" stroke="#8884d8" strokeWidth={2} name="Total Users" />
-                      <Line type="monotone" dataKey="active" stroke="#82ca9d" strokeWidth={2} name="Active Users" />
+                      <Line type="monotone" dataKey="users" stroke="hsl(var(--chart-1))" strokeWidth={2} name="Total Users" />
+                      <Line type="monotone" dataKey="active" stroke="hsl(var(--chart-2))" strokeWidth={2} name="Active Users" />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -235,28 +243,28 @@ export default function AdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-primary/5 rounded-lg">
                   <div>
                     <p className="font-medium">Database</p>
                     <p className="text-sm text-muted-foreground">All systems operational</p>
                   </div>
-                  <Badge className="bg-green-100 text-green-800">Operational</Badge>
+                  <Badge variant="secondary">Operational</Badge>
                 </div>
                 
-                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-primary/5 rounded-lg">
                   <div>
                     <p className="font-medium">Edge Functions</p>
                     <p className="text-sm text-muted-foreground">4/4 functions running</p>
                   </div>
-                  <Badge className="bg-green-100 text-green-800">Operational</Badge>
+                  <Badge variant="secondary">Operational</Badge>
                 </div>
                 
-                <div className="flex items-center justify-between p-4 bg-green-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-primary/5 rounded-lg">
                   <div>
                     <p className="font-medium">Authentication</p>
                     <p className="text-sm text-muted-foreground">Service healthy</p>
                   </div>
-                  <Badge className="bg-green-100 text-green-800">Operational</Badge>
+                  <Badge variant="secondary">Operational</Badge>
                 </div>
               </div>
             </CardContent>
