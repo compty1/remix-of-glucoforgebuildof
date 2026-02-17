@@ -163,3 +163,93 @@ verify_jwt = false
 
 [functions.ai-center-predictions]
 verify_jwt = false
+
+[functions.admin-users]
+verify_jwt = false
+
+[functions.ai-connection-analyzer]
+verify_jwt = false
+
+[functions.ai-discovery-analyzer]
+verify_jwt = false
+
+[functions.analyze-glucose-ai]
+verify_jwt = false
+
+[functions.analyze-glucose]
+verify_jwt = false
+
+[functions.create-donation]
+verify_jwt = false
+
+[functions.daily-briefing]
+verify_jwt = false
+
+[functions.discovery-synthesizer]
+verify_jwt = false
+
+[functions.fetch-t1d-news]
+verify_jwt = false
+
+[functions.initial-data-loader]
+verify_jwt = false
+
+[functions.scheduled-maintenance]
+verify_jwt = false
+
+[functions.seed-burnout-posts]
+verify_jwt = false
+
+[functions.seed-community-comments]
+verify_jwt = false
+
+[functions.seed-community-posts]
+verify_jwt = false
+
+[functions.seed-device-fixes]
+verify_jwt = false
+
+[functions.seed-device-reviews-extended]
+verify_jwt = false
+
+[functions.seed-diabetic-directory]
+verify_jwt = false
+
+[functions.seed-emergence-data]
+verify_jwt = false
+
+[functions.seed-health-projects]
+verify_jwt = false
+
+[functions.seed-medication-feedback]
+verify_jwt = false
+
+[functions.seed-medication-interactions]
+verify_jwt = false
+
+[functions.seed-medications]
+verify_jwt = false
+
+[functions.seed-patents]
+verify_jwt = false
+
+[functions.seed-qol-resources]
+verify_jwt = false
+
+[functions.seed-state-forms]
+verify_jwt = false
+
+[functions.seed-t1d-companies]
+verify_jwt = false
+
+[functions.send-trending-alerts]
+verify_jwt = false
+
+[functions.snapshot-generator]
+verify_jwt = false
+
+[functions.t1d-companion-chat]
+verify_jwt = false
+
+[functions.verify-external-links]
+verify_jwt = false
