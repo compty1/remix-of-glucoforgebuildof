@@ -92,7 +92,7 @@ export default function T1DCompanion() {
 
         {/* Main Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsList className={`grid w-full mb-6 ${user ? 'grid-cols-4' : 'grid-cols-3'}`}>
             <TabsTrigger value="explore" className="gap-2">
               <Compass className="h-4 w-4" />
               <span className="hidden sm:inline">Explore</span>

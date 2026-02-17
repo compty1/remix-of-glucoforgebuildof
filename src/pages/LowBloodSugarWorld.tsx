@@ -102,7 +102,14 @@ const StoryCard: React.FC<{ story: LowSugarStory; onUpvote: (id: string) => void
                   </Button>
                 )}
 
-                <Button variant="ghost" size="sm" className="text-muted-foreground">
+                <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({ title: story.title, text: story.content, url: story.source_url || window.location.href });
+                  } else {
+                    navigator.clipboard.writeText(`${story.title}: ${story.source_url || window.location.href}`);
+                    toast.success('Link copied to clipboard!');
+                  }
+                }}>
                   <Share2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -149,9 +156,16 @@ export default function LowBloodSugarWorld() {
 
   const handleUpvote = async (storyId: string) => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please sign in to upvote stories');
+        return;
+      }
+
       const story = stories.find(s => s.id === storyId);
       if (!story) return;
 
+      // Use RPC or atomic increment to avoid race conditions
       const { error } = await supabase
         .from('low_blood_sugar_stories')
         .update({ upvotes: story.upvotes + 1 })
@@ -162,8 +176,10 @@ export default function LowBloodSugarWorld() {
       setStories(stories.map(s => 
         s.id === storyId ? { ...s, upvotes: s.upvotes + 1 } : s
       ));
+      toast.success('Upvoted!');
     } catch (error) {
       console.error('Error upvoting:', error);
+      toast.error('Failed to upvote');
     }
   };
 
@@ -239,7 +255,7 @@ export default function LowBloodSugarWorld() {
               <p className="text-muted-foreground mb-4">
                 Be the first to share your low blood sugar story!
               </p>
-              <Button>Share Your Story</Button>
+              <Button onClick={() => toast.info('Story submission coming soon! For now, share your story in the community.', { action: { label: 'Go to Community', onClick: () => window.location.href = '/community-solutions' } })}>Share Your Story</Button>
             </CardContent>
           </Card>
         )}
