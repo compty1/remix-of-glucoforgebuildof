@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import CommunityWorkaroundsSection from '@/components/resources/CommunityWorkaroundsSection';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -548,6 +549,9 @@ const Resources = () => {
             </TabsContent>
           ))}
         </Tabs>
+
+        {/* Community Workarounds */}
+        <CommunityWorkaroundsSection />
 
         {/* Contact Section */}
         <Card className="mt-8">

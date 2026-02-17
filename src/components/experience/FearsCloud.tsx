@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Cloud, Zap, CloudLightning } from 'lucide-react';
+import { Cloud, Zap, CloudLightning, ThumbsUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useExperienceSubmissions, ExperienceSubmission } from '@/hooks/useExperienceSubmissions';
 import { EntryModal } from './EntryModal';
 
@@ -10,10 +11,7 @@ export function FearsCloud() {
   const { data: submissions = [] } = useExperienceSubmissions('fears');
   const [selectedSubmission, setSelectedSubmission] = useState<ExperienceSubmission | null>(null);
 
-  // Extract keywords from submissions for the word cloud effect
-  const extractKeywords = (content: string) => {
-    return content.split(' ').slice(0, 3).join(' ');
-  };
+  const sortedSubmissions = [...submissions].sort((a, b) => b.upvotes - a.upvotes);
 
   return (
     <>
@@ -33,27 +31,17 @@ export function FearsCloud() {
           </p>
         </CardHeader>
         <CardContent className="p-6">
-          {/* Storm Cloud Animation */}
-          <div className="relative h-72 bg-gradient-to-b from-slate-800 via-purple-900 to-slate-900 rounded-xl overflow-hidden">
+          {/* Storm Cloud Animation - Compact */}
+          <div className="relative h-48 bg-gradient-to-b from-slate-800 via-purple-900 to-slate-900 rounded-xl overflow-hidden mb-6">
             {/* Cloud Layer */}
             <div className="absolute inset-0">
               {[0, 1, 2].map((i) => (
                 <motion.div
                   key={i}
                   className="absolute"
-                  style={{
-                    left: `${20 + i * 25}%`,
-                    top: `${10 + i * 5}%`,
-                  }}
-                  animate={{
-                    x: [0, 10, 0],
-                    opacity: [0.6, 0.8, 0.6],
-                  }}
-                  transition={{
-                    duration: 4 + i,
-                    repeat: Infinity,
-                    delay: i * 0.5,
-                  }}
+                  style={{ left: `${20 + i * 25}%`, top: `${10 + i * 5}%` }}
+                  animate={{ x: [0, 10, 0], opacity: [0.6, 0.8, 0.6] }}
+                  transition={{ duration: 4 + i, repeat: Infinity, delay: i * 0.5 }}
                 >
                   <Cloud className="h-16 w-16 text-slate-500/50 fill-slate-600/30" />
                 </motion.div>
@@ -66,63 +54,67 @@ export function FearsCloud() {
                 <motion.div
                   key={i}
                   className="absolute"
-                  style={{
-                    left: `${30 + i * 40}%`,
-                    top: '20%',
-                  }}
+                  style={{ left: `${30 + i * 40}%`, top: '20%' }}
                   initial={{ opacity: 0 }}
-                  animate={{
-                    opacity: [0, 1, 0, 0, 0, 1, 0],
-                  }}
-                  transition={{
-                    duration: 5,
-                    repeat: Infinity,
-                    delay: i * 2.5,
-                  }}
+                  animate={{ opacity: [0, 1, 0, 0, 0, 1, 0] }}
+                  transition={{ duration: 5, repeat: Infinity, delay: i * 2.5 }}
                 >
                   <Zap className="h-8 w-8 text-yellow-300" />
                 </motion.div>
               ))}
             </AnimatePresence>
 
-            {/* Floating Fear Words */}
-            <div className="absolute inset-0 flex flex-wrap items-center justify-center gap-2 p-4">
-              <AnimatePresence>
-                {submissions.slice(0, 12).map((submission, index) => (
-                  <motion.button
-                    key={submission.id}
-                    initial={{ opacity: 0, scale: 0 }}
-                    animate={{
-                      opacity: [0.5, 0.8, 0.5],
-                      scale: 1,
-                      y: [0, -5, 0],
-                    }}
-                    transition={{
-                      opacity: { duration: 3, repeat: Infinity, delay: index * 0.2 },
-                      y: { duration: 2 + Math.random() * 2, repeat: Infinity, delay: index * 0.1 },
-                      scale: { duration: 0.3 },
-                    }}
-                    whileHover={{ scale: 1.1, opacity: 1 }}
-                    onClick={() => setSelectedSubmission(submission)}
-                    className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-sm text-white/80 text-sm font-medium hover:bg-white/20 transition-colors cursor-pointer border border-white/10"
-                  >
-                    {extractKeywords(submission.content)}...
-                  </motion.button>
-                ))}
-              </AnimatePresence>
-            </div>
-
             {/* Storm Pulse Effect */}
             <motion.div
               className="absolute inset-0 bg-purple-500/5"
-              animate={{
-                opacity: [0, 0.1, 0],
-              }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-              }}
+              animate={{ opacity: [0, 0.1, 0] }}
+              transition={{ duration: 4, repeat: Infinity }}
             />
+          </div>
+
+          {/* Story List - Same pattern as EmbarrassingLowsJar */}
+          <div className="space-y-3 max-h-80 overflow-y-auto">
+            <AnimatePresence>
+              {sortedSubmissions.map((submission, index) => (
+                <motion.div
+                  key={submission.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="group"
+                >
+                  <div
+                    onClick={() => setSelectedSubmission(submission)}
+                    className="p-4 rounded-lg bg-gradient-to-r from-slate-500/5 to-purple-500/5 dark:from-slate-500/10 dark:to-purple-500/10 border border-purple-500/20 dark:border-purple-500/15 hover:shadow-md cursor-pointer transition-all"
+                  >
+                    <div className="flex items-start gap-3">
+                      <CloudLightning className="h-5 w-5 text-purple-500 shrink-0 mt-0.5" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm line-clamp-2">{submission.content}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-muted-foreground hover:text-purple-500"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                          >
+                            <ThumbsUp className="h-3 w-3 mr-1" />
+                            {submission.upvotes}
+                          </Button>
+                          {index === 0 && submission.upvotes > 0 && (
+                            <Badge className="bg-purple-500/10 text-purple-500 text-xs">
+                              🌩️ Most Shared Fear
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
 
           {submissions.length === 0 && (

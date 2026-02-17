@@ -22,7 +22,8 @@ import {
   AlertTriangle,
   Calendar,
   ShieldCheck,
-  Zap
+  Zap,
+  Heart
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 
@@ -40,6 +41,7 @@ import ConfidenceScoreBadge from './ConfidenceScoreBadge';
 import NovelSignalsCard from './NovelSignalsCard';
 import DataQualityPanel from './DataQualityPanel';
 import ExecutiveSummary from './ExecutiveSummary';
+import HealthComparisonPanel from './HealthComparisonPanel';
 import type { 
   ConfidenceBand, 
   ValidationFlag, 
@@ -307,7 +309,7 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="max-w-5xl h-[90vh] flex flex-col p-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-2">
           <div className="flex items-center justify-between">
             <DialogTitle className="flex items-center gap-2">
@@ -348,7 +350,7 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
         )}
 
         {hasDetailedData ? (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
             <div className="px-6 border-b">
               <TabsList className="h-10 flex-wrap">
                 <TabsTrigger value="overview" className="gap-1.5">
@@ -387,10 +389,14 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
                   <Lightbulb className="h-4 w-4" />
                   Insights
                 </TabsTrigger>
+                <TabsTrigger value="health" className="gap-1.5">
+                  <Heart className="h-4 w-4" />
+                  Health
+                </TabsTrigger>
               </TabsList>
             </div>
 
-            <ScrollArea className="flex-1 max-h-[calc(90vh-140px)]">
+            <ScrollArea className="flex-1">
               <div className="p-6">
                 <TabsContent value="overview" className="mt-0 space-y-6">
                   {/* Executive Summary - Enhanced */}
@@ -566,6 +572,10 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
                       </div>
                     ))}
                   </div>
+                </TabsContent>
+
+                <TabsContent value="health" className="mt-0">
+                  <HealthComparisonPanel detailedAnalysis={detailedAnalysis} />
                 </TabsContent>
               </div>
             </ScrollArea>

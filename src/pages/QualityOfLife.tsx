@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQualityOfLifeResources } from "@/hooks/useQualityOfLifeResources";
 import { BackButton } from "@/components/ui/back-button";
 import RealExperiencesSection from "@/components/quality-of-life/RealExperiencesSection";
+import QoLComparisonSection from "@/components/quality-of-life/QoLComparisonSection";
 import { QoLDetailModal } from "@/components/quality-of-life/QoLDetailModal";
 import { 
   Sparkles, 
@@ -143,6 +144,9 @@ export default function QualityOfLife() {
             )}
           </div>
         </section>
+
+        {/* T1D vs Healthy Comparison */}
+        <QoLComparisonSection />
 
         {/* Real Experiences Section */}
         <RealExperiencesSection />
