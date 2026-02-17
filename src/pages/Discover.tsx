@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Search, Filter, SortDesc, Loader2, Sparkles, TrendingUp, FlaskConical, Cpu, Users, Pill, Database, FileText, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,8 +38,6 @@ const CATEGORIES = [
 ];
 
 const Discover = () => {
-  const [insights, setInsights] = useState<DiscoveryCardData[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCredibility, setSelectedCredibility] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -57,13 +55,10 @@ const Discover = () => {
     }
   });
 
-  useEffect(() => {
-    fetchInsights();
-  }, [searchTerm, selectedCredibility, selectedCategory]);
-
-  const fetchInsights = async () => {
-    try {
-      setLoading(true);
+  // Fetch insights using React Query
+  const { data: insights = [], isLoading: loading } = useQuery({
+    queryKey: ['discover-insights', searchTerm, selectedCredibility, selectedCategory],
+    queryFn: async () => {
       let query = supabase
         .from('discovery_cards')
         .select('*')
@@ -82,20 +77,13 @@ const Discover = () => {
       const { data, error } = await query;
       if (error) throw error;
 
-      const typedData = (data || []).map(item => ({
+      return (data || []).map(item => ({
         ...item,
         credibility: item.credibility as 'High' | 'Medium' | 'Low',
         sources: Array.isArray(item.sources) ? item.sources as Array<{ title: string; url: string }> : []
       }));
-
-      setInsights(typedData);
-    } catch (error) {
-      console.error('Error fetching insights:', error);
-      setInsights([]);
-    } finally {
-      setLoading(false);
     }
-  };
+  });
 
   const credibilityFilters = ['High', 'Medium', 'Low'];
 
@@ -117,9 +105,9 @@ const Discover = () => {
         {/* Live Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <QuickStatCard title="Research Papers" value={stats?.research || 0} icon={FileText} colorClass="bg-primary/10 text-primary" />
-          <QuickStatCard title="Clinical Trials" value={stats?.trials || 0} icon={FlaskConical} colorClass="bg-green-100 text-green-600 dark:bg-green-900/30" />
-          <QuickStatCard title="Devices Tracked" value={stats?.devices || 0} icon={Cpu} colorClass="bg-blue-100 text-blue-600 dark:bg-blue-900/30" />
-          <QuickStatCard title="Data Sources" value="6+" icon={Database} colorClass="bg-purple-100 text-purple-600 dark:bg-purple-900/30" />
+          <QuickStatCard title="Clinical Trials" value={stats?.trials || 0} icon={FlaskConical} colorClass="bg-success/10 text-success" />
+          <QuickStatCard title="Devices Tracked" value={stats?.devices || 0} icon={Cpu} colorClass="bg-info/10 text-info" />
+          <QuickStatCard title="Data Sources" value="6+" icon={Database} colorClass="bg-accent text-accent-foreground" />
         </div>
 
         {/* Data Sources Badge */}
