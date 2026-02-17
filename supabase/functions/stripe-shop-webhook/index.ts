@@ -58,7 +58,7 @@ serve(async (req) => {
           .from("shop_orders")
           .select("*")
           .eq("stripe_session_id", session.id)
-          .single();
+          .maybeSingle();
 
         if (findError || !order) {
           console.error("Order not found for session:", session.id);

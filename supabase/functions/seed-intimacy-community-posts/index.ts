@@ -987,7 +987,7 @@ Deno.serve(async (req) => {
           url: post.url,
         })
         .select('id, post_id')
-        .single();
+        .maybeSingle();
 
       if (postError) {
         console.error(`Error inserting post ${post.post_id}:`, postError);

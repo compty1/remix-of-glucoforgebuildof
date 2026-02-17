@@ -58,7 +58,7 @@ serve(async (req) => {
           .from('user_preferences')
           .select('content_interests')
           .eq('user_id', userId)
-          .single();
+          .maybeSingle();
 
         if (prefs?.content_interests?.includes('research')) {
           await supabase
@@ -90,7 +90,7 @@ serve(async (req) => {
           .from('user_preferences')
           .select('device_brands')
           .eq('user_id', userId)
-          .single();
+          .maybeSingle();
 
         if (prefs?.device_brands?.length) {
           await supabase
@@ -123,7 +123,7 @@ serve(async (req) => {
           .from('user_preferences')
           .select('content_interests')
           .eq('user_id', userId)
-          .single();
+          .maybeSingle();
 
         if (prefs?.content_interests?.includes('community')) {
           await supabase

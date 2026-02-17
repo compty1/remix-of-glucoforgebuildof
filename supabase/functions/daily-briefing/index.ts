@@ -49,7 +49,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from('onboarding_tips')
       .select('*')
       .eq('day_number', dayNumber || 1)
-      .single();
+      .maybeSingle();
 
     if (tipsError) {
       console.error('Error fetching tips:', tipsError);
@@ -63,7 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
-        .single();
+        .maybeSingle();
       
       userProfile = profile;
     }

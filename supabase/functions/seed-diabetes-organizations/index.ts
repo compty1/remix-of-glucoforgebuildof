@@ -390,7 +390,7 @@ serve(async (req) => {
         .from('diabetes_organizations')
         .select('id')
         .eq('name', org.name)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         // Update existing

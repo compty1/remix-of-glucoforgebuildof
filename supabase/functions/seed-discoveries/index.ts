@@ -251,7 +251,7 @@ serve(async (req) => {
     console.log(`✅ Successfully inserted ${data?.length || 0} discoveries`);
 
     // Get stats
-    const stats = await supabase.from('discovery_stats').select('*').single();
+    const stats = await supabase.from('discovery_stats').select('*').maybeSingle();
 
     return new Response(
       JSON.stringify({

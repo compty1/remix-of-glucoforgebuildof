@@ -198,7 +198,7 @@ serve(async (req) => {
             .from('medical_research_papers')
             .select('id, source_database')
             .eq('doi', paper.externalIds.DOI)
-            .single();
+            .maybeSingle();
           existingPaper = data;
         }
 
@@ -207,7 +207,7 @@ serve(async (req) => {
             .from('medical_research_papers')
             .select('id, source_database')
             .eq('paper_id', `s2:${paper.paperId}`)
-            .single();
+            .maybeSingle();
           existingPaper = data;
         }
 
