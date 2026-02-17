@@ -182,11 +182,11 @@ export default function CureProgress() {
 
   const getPhaseColor = (phase: string) => {
     switch (phase) {
-      case 'Phase 1': return 'bg-blue-100 text-blue-800';
-      case 'Phase 2': return 'bg-yellow-100 text-yellow-800';
-      case 'Phase 3': return 'bg-orange-100 text-orange-800';
-      case 'Approved': return 'bg-green-100 text-green-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Phase 1': return 'bg-primary/10 text-primary dark:bg-primary/20';
+      case 'Phase 2': return 'bg-warning/10 text-warning dark:bg-warning/20';
+      case 'Phase 3': return 'bg-chart-3/10 text-chart-3 dark:bg-chart-3/20';
+      case 'Approved': return 'bg-success/10 text-success dark:bg-success/20';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 

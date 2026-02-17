@@ -63,10 +63,10 @@ export default function Fixes() {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'Easy': return 'bg-green-100 text-green-800';
-      case 'Medium': return 'bg-yellow-100 text-yellow-800';
-      case 'Hard': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'Easy': return 'bg-success/10 text-success dark:bg-success/20';
+      case 'Medium': return 'bg-warning/10 text-warning dark:bg-warning/20';
+      case 'Hard': return 'bg-destructive/10 text-destructive dark:bg-destructive/20';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -78,8 +78,8 @@ export default function Fixes() {
             {[1, 2, 3].map(i => (
               <Card key={i} className="animate-pulse">
                 <CardContent className="p-6">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                  <div className="h-3 bg-muted rounded w-1/2"></div>
                 </CardContent>
               </Card>
             ))}

@@ -43,25 +43,25 @@ export function CureProgressWidget() {
   const getPhaseColor = (phase: string | null) => {
     switch (phase?.toLowerCase()) {
       case 'phase 3':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+        return 'bg-success/10 text-success dark:bg-success/20';
       case 'phase 2':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300';
+        return 'bg-primary/10 text-primary dark:bg-primary/20';
       case 'phase 1':
-        return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300';
+        return 'bg-warning/10 text-warning dark:bg-warning/20';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
   return (
-    <Card className="border-purple-200 dark:border-purple-800 bg-purple-50/30 dark:bg-purple-900/10">
+    <Card className="border-primary/20 dark:border-primary/30 bg-primary/5 dark:bg-primary/5">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <Heart className="h-5 w-5 text-purple-600" />
+            <Heart className="h-5 w-5 text-primary" />
             Cure Progress
           </CardTitle>
-          <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300">
+          <Badge className="bg-primary/10 text-primary dark:bg-primary/20">
             <Sparkles className="h-3 w-3 mr-1" />
             Featured
           </Badge>
