@@ -49,69 +49,48 @@ export const useClinicalTrialsDetailed = (phase?: string): UseClinicalTrialsDeta
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchClinicalTrials = useCallback(async () => {
+  const fetchFromDB = useCallback(async () => {
+    let query = supabase
+      .from('clinical_trials_detailed')
+      .select('*')
+      .order('start_date', { ascending: false });
+
+    if (phase) {
+      query = query.eq('phase', phase);
+    }
+
+    const { data: dbData, error: dbError } = await query.limit(100);
+
+    if (dbError) {
+      throw new Error(`Database error: ${dbError.message}`);
+    }
+
+    if (dbData) {
+      setData(dbData as ClinicalTrialDetailed[]);
+    }
+    return dbData;
+  }, [phase]);
+
+  const refreshData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // First, get existing data from the database
-      let query = supabase
-        .from('clinical_trials_detailed')
-        .select('*')
-        .order('start_date', { ascending: false });
-
-      if (phase) {
-        query = query.eq('phase', phase);
-      }
-
-      const { data: existingData, error: dbError } = await query.limit(100);
-
-      if (dbError) {
-        throw new Error(`Database error: ${dbError.message}`);
-      }
-
-      if (existingData && existingData.length > 0) {
-        setData(existingData as ClinicalTrialDetailed[]);
-        setLoading(false);
-      }
-
-      // Then fetch fresh data from the edge function in the background
       const { error: functionError } = await supabase.functions.invoke('clinical-trials-enhanced');
 
       if (functionError) {
         console.error('Clinical trials enhanced error:', functionError);
-        if (!existingData || existingData.length === 0) {
-          throw new Error(`Failed to fetch clinical trials: ${functionError.message}`);
-        }
-      } else {
-        // Re-query the database to get canonical data (Issue 47)
-        let refreshQuery = supabase
-          .from('clinical_trials_detailed')
-          .select('*')
-          .order('start_date', { ascending: false });
-
-        if (phase) {
-          refreshQuery = refreshQuery.eq('phase', phase);
-        }
-
-        const { data: refreshedData } = await refreshQuery.limit(100);
-        if (refreshedData && refreshedData.length > 0) {
-          setData(refreshedData as ClinicalTrialDetailed[]);
-        }
+        throw new Error(`Failed to refresh clinical trials: ${functionError.message}`);
       }
 
+      await fetchFromDB();
     } catch (err) {
-      console.error('Error fetching clinical trials:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch clinical trials data');
+      console.error('Error refreshing clinical trials:', err);
+      setError(err instanceof Error ? err.message : 'Failed to refresh clinical trials data');
     } finally {
       setLoading(false);
     }
-  }, [phase]);
-
-  const refreshData = useCallback(async () => {
-    setLoading(true);
-    await fetchClinicalTrials();
-  }, [fetchClinicalTrials]);
+  }, [fetchFromDB]);
 
   const getByPhase = useCallback((targetPhase: string) => {
     return data.filter(trial => trial.phase === targetPhase);
@@ -130,8 +109,20 @@ export const useClinicalTrialsDetailed = (phase?: string): UseClinicalTrialsDeta
   }, [data]);
 
   useEffect(() => {
-    fetchClinicalTrials();
-  }, [fetchClinicalTrials]);
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        await fetchFromDB();
+      } catch (err) {
+        console.error('Error fetching clinical trials:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch clinical trials data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [fetchFromDB]);
 
   return {
     data,
