@@ -31,56 +31,49 @@ export const useFDAData = (eventType?: string): UseFDADataResult => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchFDAData = useCallback(async () => {
+  const fetchFromDB = useCallback(async () => {
+    let query = supabase
+      .from('fda_device_events')
+      .select('*')
+      .order('event_date', { ascending: false });
+
+    if (eventType) {
+      query = query.eq('event_type', eventType);
+    }
+
+    const { data: dbData, error: dbError } = await query.limit(100);
+
+    if (dbError) {
+      throw new Error(`Database error: ${dbError.message}`);
+    }
+
+    if (dbData) {
+      setData(dbData as FDADeviceEvent[]);
+    }
+    return dbData;
+  }, [eventType]);
+
+  const refreshData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // First, get existing data from the database
-      let query = supabase
-        .from('fda_device_events')
-        .select('*')
-        .order('event_date', { ascending: false });
-
-      if (eventType) {
-        query = query.eq('event_type', eventType);
-      }
-
-      const { data: existingData, error: dbError } = await query.limit(100);
-
-      if (dbError) {
-        throw new Error(`Database error: ${dbError.message}`);
-      }
-
-      if (existingData && existingData.length > 0) {
-        setData(existingData as FDADeviceEvent[]);
-        setLoading(false);
-      }
-
-      // Then fetch fresh data from the edge function in the background
-      const { data: freshData, error: functionError } = await supabase.functions.invoke('fda-data-feed');
+      const { error: functionError } = await supabase.functions.invoke('fda-data-feed');
 
       if (functionError) {
         console.error('FDA data feed error:', functionError);
-        if (!existingData || existingData.length === 0) {
-          throw new Error(`Failed to fetch FDA data: ${functionError.message}`);
-        }
-      } else if (freshData?.data) {
-        setData(freshData.data);
+        throw new Error(`Failed to refresh FDA data: ${functionError.message}`);
       }
 
+      // Re-query DB after refresh
+      await fetchFromDB();
     } catch (err) {
-      console.error('Error fetching FDA data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch FDA data');
+      console.error('Error refreshing FDA data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to refresh FDA data');
     } finally {
       setLoading(false);
     }
-  }, [eventType]);
-
-  const refreshData = useCallback(async () => {
-    setLoading(true);
-    await fetchFDAData();
-  }, [fetchFDAData]);
+  }, [fetchFromDB]);
 
   const getByEventType = useCallback((type: string) => {
     return data.filter(event => event.event_type === type);
@@ -93,8 +86,20 @@ export const useFDAData = (eventType?: string): UseFDADataResult => {
   }, [data]);
 
   useEffect(() => {
-    fetchFDAData();
-  }, [fetchFDAData]);
+    const load = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        await fetchFromDB();
+      } catch (err) {
+        console.error('Error fetching FDA data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch FDA data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [fetchFromDB]);
 
   return {
     data,

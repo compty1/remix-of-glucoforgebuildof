@@ -108,15 +108,10 @@ export const useT1DNews = (): UseT1DNewsResult => {
       setLoading(true);
       await fetchNewsFromDB();
       setLoading(false);
-
-      // If no articles, try to fetch new ones
-      if (allArticles.length === 0) {
-        await refreshNews();
-      }
     };
 
     loadNews();
-  }, []);
+  }, [fetchNewsFromDB]);
 
   const filteredArticles = allArticles.filter(article => {
     const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;

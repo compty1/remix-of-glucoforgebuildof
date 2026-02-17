@@ -37,7 +37,7 @@ export default function Donate() {
     
     try {
       const { data, error } = await supabase.functions.invoke('create-donation', {
-        body: { amount: Math.round(currentAmount * 100) } // Convert to cents
+        body: { amount: currentAmount } // Send dollars - edge function converts to cents
       });
 
       if (error) throw error;
