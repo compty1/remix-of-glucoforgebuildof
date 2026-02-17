@@ -9,7 +9,7 @@ const corsHeaders = {
 // OpenAlex API - Free, no API key required
 // Adding mailto parameter for faster response (polite pool)
 const OPENALEX_BASE_URL = 'https://api.openalex.org/works';
-const MAILTO_EMAIL = 'glucoforge@research.app';
+const MAILTO_EMAIL = Deno.env.get('OPENALEX_CONTACT_EMAIL') || 'contact@glucoforge.app';
 
 // Comprehensive diabetes and cure-focused search queries
 const OPENALEX_QUERIES = [

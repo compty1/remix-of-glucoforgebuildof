@@ -266,28 +266,22 @@ export const useRefreshCommunityData = () => {
     setRefreshError(null);
 
     try {
-      // First try to fetch live data from Reddit
+      // Fetch live data from community sources
       const { data, error } = await supabase.functions.invoke('community-feed');
       
-      // Check if we got any posts
-      const insertedCount = data?.inserted || 0;
-      
-      // If Reddit fetch failed or returned no posts, seed with curated data
-      if (error || insertedCount === 0) {
-        console.log('Reddit fetch failed or empty, seeding curated data...');
-        const { data: seedData, error: seedError } = await supabase.functions.invoke('seed-community-posts');
-        
-        if (seedError) throw seedError;
+      if (error) {
+        console.error('Community feed error:', error);
+        // Only seed if the table is nearly empty
+        const { count } = await supabase
+          .from('community_posts')
+          .select('*', { count: 'exact', head: true });
+
+        if ((count || 0) < 10) {
+          console.log('Table nearly empty, seeding curated data...');
+          await supabase.functions.invoke('seed-community-posts');
+          await supabase.functions.invoke('seed-community-comments');
+        }
       }
-      
-      // Seed comments for any new posts
-      console.log('Seeding comments for new posts...');
-      await supabase.functions.invoke('seed-community-comments');
-      
-      // Verify links in background (non-blocking)
-      supabase.functions.invoke('verify-external-links', { 
-        body: { mode: 'fix' } 
-      }).catch(err => console.error('Link verification error:', err));
       
       return data || { success: true };
     } catch (err) {

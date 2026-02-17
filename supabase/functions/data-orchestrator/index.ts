@@ -54,8 +54,8 @@ serve(async (req) => {
       { name: 'fetch-medication-reviews', source: 'Drugs.com Medication Reviews' }
     ];
 
-    // Call each function sequentially with error handling
-    for (const func of dataFunctions) {
+    // Helper to call a single function with error handling
+    const callFunction = async (func: { name: string; source: string }) => {
       const fnStartTime = Date.now();
       console.log(`📡 Calling ${func.name} (${func.source})...`);
 
@@ -77,46 +77,55 @@ serve(async (req) => {
         if (response.ok) {
           const data = await response.json().catch(() => ({}));
           const recordCount = data.count || data.inserted || data.items?.length || 0;
-
-          results.push({
+          const result: AggregationResult = {
             function_name: func.name,
             status: 'success',
             records_fetched: recordCount,
             execution_time_ms: executionTime,
             source: func.source,
-          });
-
+          };
           console.log(`✅ ${func.name}: ${recordCount} records from ${func.source} (${executionTime}ms)`);
+          return result;
         } else {
           const errorText = await response.text();
-          results.push({
+          console.error(`❌ ${func.name} failed: ${errorText}`);
+          return {
             function_name: func.name,
-            status: 'error',
+            status: 'error' as const,
             records_fetched: 0,
             error: errorText,
             execution_time_ms: executionTime,
             source: func.source,
-          });
-
-          console.error(`❌ ${func.name} failed: ${errorText}`);
+          };
         }
       } catch (error) {
         const executionTime = Date.now() - fnStartTime;
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        results.push({
+        console.error(`❌ ${func.name} exception:`, error);
+        return {
           function_name: func.name,
-          status: 'error',
+          status: 'error' as const,
           records_fetched: 0,
           error: errorMessage,
           execution_time_ms: executionTime,
           source: func.source,
-        });
-
-        console.error(`❌ ${func.name} exception:`, error);
+        };
       }
+    };
 
-      // Small delay between calls to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 1500));
+    // Run functions in batches of 3-4 to avoid timeout (Issue 32)
+    const batches = [
+      dataFunctions.slice(0, 4),   // research-feed, medical-research-aggregator, clinical-trials-enhanced, openalex
+      dataFunctions.slice(4, 8),   // semantic-scholar, community-feed, fda-data-feed, patent-innovation
+      dataFunctions.slice(8, 11),  // funding-research, medicare-data, financial-market
+      dataFunctions.slice(11),     // preprint-research, fetch-reddit-reviews, fetch-medication-reviews
+    ];
+
+    for (const batch of batches) {
+      const batchResults = await Promise.all(batch.map(callFunction));
+      results.push(...batchResults);
+      // Small delay between batches
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
 
     // Get counts and freshness from all tables
