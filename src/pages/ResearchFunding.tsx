@@ -126,7 +126,7 @@ const ResearchFunding = () => {
                           </div>
                           {project.funding_amount && (
                             <div className="text-right">
-                              <div className="font-bold text-xl text-green-600">
+                              <div className="font-bold text-xl text-success">
                                 ${(project.funding_amount / 1000000).toFixed(2)}M
                               </div>
                               <div className="text-xs text-muted-foreground">Total Award</div>
@@ -226,7 +226,7 @@ const ResearchFunding = () => {
                     <span className="font-bold text-xl">${(totalFunding / 1000000).toFixed(1)}M</span>
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-green-500" style={{ width: '100%' }}></div>
+                    <div className="h-full bg-success" style={{ width: '100%' }}></div>
                   </div>
                 </div>
 

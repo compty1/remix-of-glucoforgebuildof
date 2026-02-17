@@ -213,7 +213,7 @@ const ContentModeration: React.FC = () => {
                   <p className="text-sm text-muted-foreground">Dead Links</p>
                   <p className="text-2xl font-bold text-destructive">{statsLoading ? '...' : linkStats?.dead || 0}</p>
                 </div>
-                <XCircle className="h-8 w-8 text-red-600" />
+                <XCircle className="h-8 w-8 text-destructive" />
               </div>
             </CardContent>
           </Card>
@@ -222,9 +222,9 @@ const ContentModeration: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Unchecked</p>
-                  <p className="text-2xl font-bold text-yellow-600">{statsLoading ? '...' : linkStats?.unchecked || 0}</p>
+                  <p className="text-2xl font-bold text-warning">{statsLoading ? '...' : linkStats?.unchecked || 0}</p>
                 </div>
-                <AlertTriangle className="h-8 w-8 text-yellow-600" />
+                <AlertTriangle className="h-8 w-8 text-warning" />
               </div>
             </CardContent>
           </Card>

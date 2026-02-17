@@ -172,9 +172,9 @@ export function PeerComparisonPanel({ compact = false }: PeerComparisonPanelProp
 
           {/* Strengths & Improvements */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="border-green-200 dark:border-green-800">
+            <Card className="border-success/30">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2 text-green-700 dark:text-green-400">
+                <CardTitle className="text-base flex items-center gap-2 text-success">
                   <CheckCircle2 className="h-5 w-5" /> Your Strengths
                 </CardTitle>
               </CardHeader>
@@ -183,7 +183,7 @@ export function PeerComparisonPanel({ compact = false }: PeerComparisonPanelProp
                   <ul className="space-y-2">
                     {comparison.strengths.map((s, i) => (
                       <li key={i} className="text-sm flex items-start gap-2">
-                        <Award className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                        <Award className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
                         {s}
                       </li>
                     ))}
@@ -194,9 +194,9 @@ export function PeerComparisonPanel({ compact = false }: PeerComparisonPanelProp
               </CardContent>
             </Card>
 
-            <Card className="border-amber-200 dark:border-amber-800">
+            <Card className="border-warning/30">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2 text-amber-700 dark:text-amber-400">
+                <CardTitle className="text-base flex items-center gap-2 text-warning">
                   <AlertTriangle className="h-5 w-5" /> Areas for Improvement
                 </CardTitle>
               </CardHeader>
@@ -205,7 +205,7 @@ export function PeerComparisonPanel({ compact = false }: PeerComparisonPanelProp
                   <ul className="space-y-2">
                     {comparison.improvements.map((s, i) => (
                       <li key={i} className="text-sm flex items-start gap-2">
-                        <Target className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <Target className="h-4 w-4 text-warning flex-shrink-0 mt-0.5" />
                         {s}
                       </li>
                     ))}

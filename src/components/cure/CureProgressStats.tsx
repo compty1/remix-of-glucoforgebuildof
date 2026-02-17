@@ -102,7 +102,7 @@ export function CureProgressStats({
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="flex items-center gap-2">
-                <Badge className="bg-blue-500">Beta Cell</Badge>
+                <Badge className="bg-primary">Beta Cell</Badge>
                 Stem Cell & Islet Transplant
               </span>
               <span className="font-medium">45%</span>
@@ -113,7 +113,7 @@ export function CureProgressStats({
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="flex items-center gap-2">
-                <Badge className="bg-purple-500">Immune</Badge>
+                <Badge className="bg-accent">Immune</Badge>
                 Immunotherapy
               </span>
               <span className="font-medium">30%</span>
@@ -124,7 +124,7 @@ export function CureProgressStats({
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="flex items-center gap-2">
-                <Badge className="bg-green-500">Gene</Badge>
+                <Badge className="bg-success">Gene</Badge>
                 Gene Therapy
               </span>
               <span className="font-medium">15%</span>
@@ -135,7 +135,7 @@ export function CureProgressStats({
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
               <span className="flex items-center gap-2">
-                <Badge className="bg-amber-500">Other</Badge>
+                <Badge className="bg-warning">Other</Badge>
                 Novel Approaches
               </span>
               <span className="font-medium">10%</span>

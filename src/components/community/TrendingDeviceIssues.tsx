@@ -61,7 +61,7 @@ export const TrendingDeviceIssues: React.FC<TrendingDeviceIssuesProps> = ({
       case 'open':
         return 'bg-destructive/10 text-destructive border-destructive/20';
       case 'investigating':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+        return 'bg-warning/10 text-warning border-warning/20';
       case 'resolved':
         return 'bg-primary/10 text-primary border-primary/20';
       default:

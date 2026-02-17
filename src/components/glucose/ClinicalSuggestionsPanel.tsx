@@ -232,7 +232,7 @@ export const ClinicalSuggestionsPanel: React.FC<ClinicalSuggestionsPanelProps> =
         description: `Afternoon average of ${afternoonBlock.avg} mg/dL suggests post-meal spikes.`,
         explanation: 'Post-meal glucose spikes (postprandial hyperglycemia) typically occur 1-2 hours after eating. While some rise is normal, sustained highs indicate that meal insulin is not matching carbohydrate intake in timing or amount.',
         action: 'Consider pre-bolusing 15-20 minutes before meals, reviewing carb counting accuracy, and checking insulin-to-carb ratios. Low-glycemic foods and adding protein/fat can help flatten post-meal curves.',
-        icon: <Clock className="h-5 w-5 text-orange-400" />,
+        icon: <Clock className="h-5 w-5 text-warning" />,
         research: 'PMID: 28506000 - Pre-bolus Timing Impact on Postprandial Glucose'
       });
     }
@@ -246,7 +246,7 @@ export const ClinicalSuggestionsPanel: React.FC<ClinicalSuggestionsPanelProps> =
         description: `Morning CV of ${morningBlock.cv.toFixed(1)}% indicates inconsistent patterns.`,
         explanation: 'High morning variability often reflects inconsistent breakfast timing, varying carbohydrate content, or the interaction between dawn phenomenon and morning routine. This can make insulin dosing challenging.',
         action: 'Try to maintain consistent breakfast timing and composition. Consider whether coffee, morning exercise, or stress affect your patterns. Pre-bolusing for breakfast can help with morning spikes.',
-        icon: <Sun className="h-5 w-5 text-amber-400" />,
+        icon: <Sun className="h-5 w-5 text-warning" />,
         research: 'PMID: 29358469 - Lifestyle Factors and Glucose Variability'
       });
     }
@@ -261,11 +261,11 @@ export const ClinicalSuggestionsPanel: React.FC<ClinicalSuggestionsPanelProps> =
       case 'critical':
         return <Badge variant="destructive">Critical</Badge>;
       case 'high':
-        return <Badge className="bg-orange-500 hover:bg-orange-600">High Priority</Badge>;
+        return <Badge className="bg-warning hover:bg-warning/90">High Priority</Badge>;
       case 'medium':
-        return <Badge className="bg-amber-500 hover:bg-amber-600">Medium</Badge>;
+        return <Badge className="bg-warning/70 hover:bg-warning/60">Medium</Badge>;
       case 'low':
-        return <Badge className="bg-green-500 hover:bg-green-600">Optimization</Badge>;
+        return <Badge className="bg-success hover:bg-success/90">Optimization</Badge>;
       default:
         return <Badge variant="secondary">Info</Badge>;
     }
@@ -342,9 +342,9 @@ export const ClinicalSuggestionsPanel: React.FC<ClinicalSuggestionsPanelProps> =
               {highSuggestions.length > 0 && (
                 <div className="space-y-4">
                   {criticalSuggestions.length > 0 && <Separator />}
-                  <h3 className="font-semibold text-orange-600 dark:text-orange-400">High Priority Recommendations</h3>
+                  <h3 className="font-semibold text-warning">High Priority Recommendations</h3>
                   {highSuggestions.map(suggestion => (
-                    <Card key={suggestion.id} className="border-orange-200 dark:border-orange-800/50 bg-orange-50/50 dark:bg-orange-950/20">
+                    <Card key={suggestion.id} className="border-warning/20 bg-warning/5">
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           {suggestion.icon}
@@ -379,9 +379,9 @@ export const ClinicalSuggestionsPanel: React.FC<ClinicalSuggestionsPanelProps> =
               {mediumSuggestions.length > 0 && (
                 <div className="space-y-4">
                   {(criticalSuggestions.length > 0 || highSuggestions.length > 0) && <Separator />}
-                  <h3 className="font-semibold text-amber-600 dark:text-amber-400">Pattern-Based Insights</h3>
+                  <h3 className="font-semibold text-warning/80">Pattern-Based Insights</h3>
                   {mediumSuggestions.map(suggestion => (
-                    <Card key={suggestion.id} className="border-amber-200 dark:border-amber-800/50 bg-amber-50/30 dark:bg-amber-950/10">
+                    <Card key={suggestion.id} className="border-warning/10 bg-warning/5">
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           {suggestion.icon}
@@ -423,9 +423,9 @@ export const ClinicalSuggestionsPanel: React.FC<ClinicalSuggestionsPanelProps> =
               {lowSuggestions.length > 0 && (
                 <div className="space-y-4">
                   {(criticalSuggestions.length > 0 || highSuggestions.length > 0 || mediumSuggestions.length > 0) && <Separator />}
-                  <h3 className="font-semibold text-green-600 dark:text-green-400">Positive Patterns & Optimization</h3>
+                  <h3 className="font-semibold text-success">Positive Patterns & Optimization</h3>
                   {lowSuggestions.map(suggestion => (
-                    <Card key={suggestion.id} className="border-green-200 dark:border-green-800/50 bg-green-50/30 dark:bg-green-950/10">
+                    <Card key={suggestion.id} className="border-success/20 bg-success/5">
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           {suggestion.icon}

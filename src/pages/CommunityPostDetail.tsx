@@ -63,11 +63,11 @@ const CommunityPostDetail: React.FC = () => {
     if (!post) return null;
     switch (post.sentiment) {
       case 'positive':
-        return <Smile className="h-5 w-5 text-green-500" />;
+        return <Smile className="h-5 w-5 text-success" />;
       case 'negative':
-        return <Frown className="h-5 w-5 text-red-500" />;
+        return <Frown className="h-5 w-5 text-destructive" />;
       default:
-        return <Meh className="h-5 w-5 text-yellow-500" />;
+        return <Meh className="h-5 w-5 text-warning" />;
     }
   };
 
@@ -232,7 +232,7 @@ const CommunityPostDetail: React.FC = () => {
                 </Badge>
               )}
             {post.is_solution && (
-              <Badge className="text-sm bg-green-600 hover:bg-green-700">
+              <Badge className="text-sm bg-success hover:bg-success/90">
                 Solution
               </Badge>
             )}
@@ -241,9 +241,9 @@ const CommunityPostDetail: React.FC = () => {
               <Badge 
                 variant="outline" 
                 className={`text-sm ${
-                  post.confidence_score >= 0.7 ? 'border-green-500 text-green-700' : 
-                  post.confidence_score >= 0.4 ? 'border-yellow-500 text-yellow-700' : 
-                  'border-red-500 text-red-700'
+                  post.confidence_score >= 0.7 ? 'border-success text-success' : 
+                  post.confidence_score >= 0.4 ? 'border-warning text-warning' : 
+                  'border-destructive text-destructive'
                 }`}
               >
                 {post.confidence_score >= 0.7 ? 'High' : post.confidence_score >= 0.4 ? 'Medium' : 'Low'} confidence
@@ -380,10 +380,10 @@ const CommunityPostDetail: React.FC = () => {
                     {/* Link Status Dot */}
                     <span className={`inline-block w-2 h-2 rounded-full mr-1 ${
                       post.link_status?.status === 'ok' || post.link_status?.status === 'ok_fallback'
-                        ? 'bg-green-500' 
+                        ? 'bg-success' 
                         : post.link_status?.status === 'dead' 
-                          ? 'bg-red-500' 
-                          : 'bg-yellow-500'
+                          ? 'bg-destructive' 
+                          : 'bg-warning'
                     }`} />
                     <ExternalLink className="h-4 w-4 mr-2" />
                     Find Similar Discussion

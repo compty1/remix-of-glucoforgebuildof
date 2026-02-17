@@ -28,18 +28,18 @@ interface ConnectionCardProps {
 }
 
 const typeConfig: Record<ConnectionType, { icon: React.ElementType; label: string; color: string }> = {
-  food: { icon: Apple, label: 'Food Connection', color: 'text-green-500 bg-green-500/10 border-green-500/20' },
-  biology: { icon: Dna, label: 'Biology Connection', color: 'text-purple-500 bg-purple-500/10 border-purple-500/20' },
-  device: { icon: Smartphone, label: 'Device Connection', color: 'text-blue-500 bg-blue-500/10 border-blue-500/20' },
-  chemical: { icon: FlaskConical, label: 'Chemical Connection', color: 'text-orange-500 bg-orange-500/10 border-orange-500/20' },
-  environmental: { icon: TreePine, label: 'Environmental Connection', color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20' },
-  symptom: { icon: HeartPulse, label: 'Symptom Connection', color: 'text-red-500 bg-red-500/10 border-red-500/20' },
-  treatment: { icon: Pill, label: 'Treatment Connection', color: 'text-cyan-500 bg-cyan-500/10 border-cyan-500/20' },
+  food: { icon: Apple, label: 'Food Connection', color: 'text-success bg-success/10 border-success/20' },
+  biology: { icon: Dna, label: 'Biology Connection', color: 'text-accent-foreground bg-accent/10 border-accent/20' },
+  device: { icon: Smartphone, label: 'Device Connection', color: 'text-primary bg-primary/10 border-primary/20' },
+  chemical: { icon: FlaskConical, label: 'Chemical Connection', color: 'text-warning bg-warning/10 border-warning/20' },
+  environmental: { icon: TreePine, label: 'Environmental Connection', color: 'text-brand-teal bg-brand-teal/10 border-brand-teal/20' },
+  symptom: { icon: HeartPulse, label: 'Symptom Connection', color: 'text-destructive bg-destructive/10 border-destructive/20' },
+  treatment: { icon: Pill, label: 'Treatment Connection', color: 'text-info bg-info/10 border-info/20' },
 };
 
 const validationConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
-  confirmed: { label: 'Confirmed', color: 'bg-green-500/10 text-green-500 border-green-500/20', icon: CheckCircle2 },
-  emerging: { label: 'Emerging', color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20', icon: AlertCircle },
+  confirmed: { label: 'Confirmed', color: 'bg-success/10 text-success border-success/20', icon: CheckCircle2 },
+  emerging: { label: 'Emerging', color: 'bg-warning/10 text-warning border-warning/20', icon: AlertCircle },
   hypothesis: { label: 'Hypothesis', color: 'bg-muted text-muted-foreground border-border', icon: Lightbulb },
 };
 
@@ -93,28 +93,28 @@ export const ConnectionCard: React.FC<ConnectionCardProps> = ({ connection }) =>
         <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-lg">
           {connection.source_papers.length > 0 && (
             <div className="flex items-center gap-1.5 text-sm">
-              <FileText className="h-4 w-4 text-blue-500" />
+              <FileText className="h-4 w-4 text-primary" />
               <span className="font-medium">{connection.source_papers.length}</span>
               <span className="text-muted-foreground">Papers</span>
             </div>
           )}
           {connection.source_posts.length > 0 && (
             <div className="flex items-center gap-1.5 text-sm">
-              <MessageSquare className="h-4 w-4 text-green-500" />
+              <MessageSquare className="h-4 w-4 text-success" />
               <span className="font-medium">{connection.source_posts.length}</span>
               <span className="text-muted-foreground">Community</span>
             </div>
           )}
           {connection.source_trials.length > 0 && (
             <div className="flex items-center gap-1.5 text-sm">
-              <TestTube className="h-4 w-4 text-purple-500" />
+              <TestTube className="h-4 w-4 text-accent-foreground" />
               <span className="font-medium">{connection.source_trials.length}</span>
               <span className="text-muted-foreground">Trials</span>
             </div>
           )}
           {connection.cross_validation_count > 0 && (
             <div className="flex items-center gap-1.5 text-sm ml-auto">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-4 w-4 text-success" />
               <span className="text-muted-foreground">Cross-validated</span>
             </div>
           )}

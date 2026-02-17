@@ -42,11 +42,11 @@ export function WeekdayAnalysisChart({ data }: WeekdayAnalysisChartProps) {
         {/* Summary badges */}
         <div className="flex flex-wrap gap-2">
           <Badge variant="outline" className="flex items-center gap-1">
-            <TrendingUp className="h-3 w-3 text-green-500" />
+            <TrendingUp className="h-3 w-3 text-success" />
             Best: {bestDay.fullDay} ({bestDay.tir}% TIR)
           </Badge>
           <Badge variant="outline" className="flex items-center gap-1">
-            <TrendingDown className="h-3 w-3 text-red-500" />
+            <TrendingDown className="h-3 w-3 text-destructive" />
             Challenging: {worstDay.fullDay} ({worstDay.tir}% TIR)
           </Badge>
           <Badge variant={weekendDiff > 0 ? 'default' : 'secondary'}>

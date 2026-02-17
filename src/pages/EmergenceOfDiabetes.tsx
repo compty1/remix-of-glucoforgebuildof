@@ -410,9 +410,9 @@ const ContributingFactorCard: React.FC<{ factor: ContributingFactor }> = ({ fact
   const [expanded, setExpanded] = useState(false);
 
   const evidenceColors = {
-    strong: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-    moderate: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-    emerging: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300'
+    strong: 'bg-success/10 text-success',
+    moderate: 'bg-warning/10 text-warning',
+    emerging: 'bg-primary/10 text-primary'
   };
 
   return (
@@ -637,7 +637,7 @@ export default function EmergenceOfDiabetes() {
             </Card>
 
             {/* Data Sources */}
-            <Card className="command-center-widget border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10">
+            <Card className="command-center-widget border-primary/20 bg-primary/5">
               <CardContent className="p-4">
                 <h4 className="font-medium mb-2 flex items-center gap-2">
                   <FileText className="h-4 w-4" />
@@ -654,10 +654,10 @@ export default function EmergenceOfDiabetes() {
 
           <TabsContent value="concurrent" className="space-y-6">
             {/* Explanation Card */}
-            <Card className="command-center-widget border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10">
+            <Card className="command-center-widget border-warning/20 bg-warning/5">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <AlertCircle className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
                   <div>
                     <h4 className="font-medium mb-1">Correlation ≠ Causation</h4>
                     <p className="text-sm text-muted-foreground">
@@ -893,37 +893,37 @@ export default function EmergenceOfDiabetes() {
                     <tbody>
                       <tr className="border-b">
                         <td className="py-2 px-3">Vitamin D Deficiency</td>
-                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-red-500 inline" /> Rising</td>
+                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-destructive inline" /> Rising</td>
                         <td className="text-center py-2 px-3"><Badge variant="default">Strong</Badge></td>
                         <td className="py-2 px-3 text-muted-foreground">TEDDY Study, DAISY Cohort</td>
                       </tr>
                       <tr className="border-b">
                         <td className="py-2 px-3">Gut Microbiome Disruption</td>
-                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-red-500 inline" /> Rising</td>
+                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-destructive inline" /> Rising</td>
                         <td className="text-center py-2 px-3"><Badge variant="default">Strong</Badge></td>
                         <td className="py-2 px-3 text-muted-foreground">DIABIMMUNE, TEDDY</td>
                       </tr>
                       <tr className="border-b">
                         <td className="py-2 px-3">C-Section Births</td>
-                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-orange-500 inline" /> Increased</td>
+                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-warning inline" /> Increased</td>
                         <td className="text-center py-2 px-3"><Badge variant="secondary">Moderate</Badge></td>
                         <td className="py-2 px-3 text-muted-foreground">Meta-analysis (Cardwell 2008)</td>
                       </tr>
                       <tr className="border-b">
                         <td className="py-2 px-3">Ultra-Processed Foods</td>
-                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-red-500 inline" /> Rising</td>
+                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-destructive inline" /> Rising</td>
                         <td className="text-center py-2 px-3"><Badge variant="outline">Emerging</Badge></td>
                         <td className="py-2 px-3 text-muted-foreground">NHANES longitudinal</td>
                       </tr>
                       <tr className="border-b">
                         <td className="py-2 px-3">Outdoor Play / Sun Exposure</td>
-                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-green-500 inline rotate-180" /> Declining</td>
+                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-success inline rotate-180" /> Declining</td>
                         <td className="text-center py-2 px-3"><Badge variant="secondary">Moderate</Badge></td>
                         <td className="py-2 px-3 text-muted-foreground">Hygiene hypothesis studies</td>
                       </tr>
                       <tr>
                         <td className="py-2 px-3">Exclusive Breastfeeding</td>
-                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-green-500 inline rotate-180" /> Was declining</td>
+                        <td className="text-center py-2 px-3"><TrendingUp className="h-4 w-4 text-success inline rotate-180" /> Was declining</td>
                         <td className="text-center py-2 px-3"><Badge variant="secondary">Moderate</Badge></td>
                         <td className="py-2 px-3 text-muted-foreground">BABYDIAB, EURODIAB</td>
                       </tr>

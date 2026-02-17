@@ -209,7 +209,7 @@ const AdminShop = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'paid':
-        return <Badge className="bg-green-500"><CheckCircle2 className="h-3 w-3 mr-1" />Paid</Badge>;
+        return <Badge className="bg-success"><CheckCircle2 className="h-3 w-3 mr-1" />Paid</Badge>;
       case 'pending':
         return <Badge variant="secondary"><Clock className="h-3 w-3 mr-1" />Pending</Badge>;
       case 'failed':
@@ -273,7 +273,7 @@ const AdminShop = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <Eye className="h-8 w-8 text-green-500" />
+                <Eye className="h-8 w-8 text-success" />
                 <div>
                   <p className="text-2xl font-bold">{products.filter(p => p.is_active).length}</p>
                   <p className="text-sm text-muted-foreground">Active Products</p>
@@ -295,7 +295,7 @@ const AdminShop = () => {
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
-                <TrendingUp className="h-8 w-8 text-blue-500" />
+                <TrendingUp className="h-8 w-8 text-primary" />
                 <div>
                   <p className="text-2xl font-bold">{paidOrders}</p>
                   <p className="text-sm text-muted-foreground">Completed Orders</p>

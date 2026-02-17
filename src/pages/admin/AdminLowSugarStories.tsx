@@ -157,9 +157,9 @@ export default function AdminLowSugarStories() {
 
   const getCategoryColor = (category: string | null) => {
     switch (category) {
-      case 'funny': return 'bg-green-500/20 text-green-600';
-      case 'scary': return 'bg-red-500/20 text-red-600';
-      case 'educational': return 'bg-blue-500/20 text-blue-600';
+      case 'funny': return 'bg-success/20 text-success';
+      case 'scary': return 'bg-destructive/20 text-destructive';
+      case 'educational': return 'bg-primary/20 text-primary';
       default: return 'bg-muted';
     }
   };

@@ -31,8 +31,8 @@ export function ComparisonWidget({ groups, groupLabel }: ComparisonWidgetProps) 
     if (Math.abs(diff) < 2) return <Minus className="h-4 w-4 text-muted-foreground" />;
     const isPositive = higherIsBetter ? diff > 0 : diff < 0;
     return isPositive 
-      ? <TrendingUp className="h-4 w-4 text-green-500" />
-      : <TrendingDown className="h-4 w-4 text-red-500" />;
+      ? <TrendingUp className="h-4 w-4 text-success" />
+      : <TrendingDown className="h-4 w-4 text-destructive" />;
   };
 
   const getComparisonBadge = (val1: number, val2: number, higherIsBetter = true, unit = '%') => {

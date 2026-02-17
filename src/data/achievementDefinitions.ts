@@ -212,10 +212,10 @@ export const ACHIEVEMENTS: Record<string, AchievementDefinition> = {
 };
 
 export const ACHIEVEMENT_CATEGORIES = {
-  data: { name: 'Data & Analytics', icon: '📊', color: 'bg-blue-500' },
-  community: { name: 'Community', icon: '👥', color: 'bg-green-500' },
-  research: { name: 'Research', icon: '🔬', color: 'bg-purple-500' },
-  engagement: { name: 'Engagement', icon: '⭐', color: 'bg-amber-500' },
+  data: { name: 'Data & Analytics', icon: '📊', color: 'bg-primary' },
+  community: { name: 'Community', icon: '👥', color: 'bg-success' },
+  research: { name: 'Research', icon: '🔬', color: 'bg-accent' },
+  engagement: { name: 'Engagement', icon: '⭐', color: 'bg-warning' },
 };
 
 export const getAchievementsByCategory = (category: string): AchievementDefinition[] => {

@@ -29,11 +29,11 @@ const iconMap = {
 };
 
 const categoryColors = {
-  device: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-  demographics: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-  pattern: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  safety: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-  correlation: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
+  device: 'bg-warning/10 text-warning',
+  demographics: 'bg-accent/10 text-accent-foreground',
+  pattern: 'bg-primary/10 text-primary',
+  safety: 'bg-destructive/10 text-destructive',
+  correlation: 'bg-brand-red/10 text-brand-red',
 };
 
 export function GlucoseInsightCard({ insight }: GlucoseInsightCardProps) {
