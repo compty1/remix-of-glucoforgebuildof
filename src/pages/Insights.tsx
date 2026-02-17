@@ -30,8 +30,8 @@ export default function Insights() {
     summary: post.content || 'No summary available',
     source: post.source,
     date: new Date(post.published_at).toISOString().split('T')[0],
-    link: `https://reddit.com/r/diabetes/comments/${post.post_id}`,
-    category: post.device_mentioned ? 'Technology' : 'Management',
+    link: post.url || `https://www.reddit.com/search/?q=${encodeURIComponent(post.title)}`,
+    category: post.device_mentioned ? 'Technology' : (post.sentiment === 'negative' ? 'Mental Health' : (post.topic_tags?.some((t: string) => t.toLowerCase().includes('research')) ? 'Research' : 'Management')),
     engagement: post.score + post.num_comments
   }));
 
@@ -44,15 +44,15 @@ export default function Insights() {
   const getCategoryColor = (category: string) => {
     switch (category) {
       case 'Research':
-        return 'bg-purple-100 text-purple-800';
+        return 'bg-primary/10 text-primary dark:bg-primary/20';
       case 'Management':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-accent/10 text-accent-foreground dark:bg-accent/20';
       case 'Technology':
-        return 'bg-green-100 text-green-800';
+        return 'bg-success/10 text-success dark:bg-success/20';
       case 'Mental Health':
-        return 'bg-pink-100 text-pink-800';
+        return 'bg-highlight/10 text-highlight dark:bg-highlight/20';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-muted text-muted-foreground';
     }
   };
 
@@ -106,7 +106,7 @@ export default function Insights() {
             <Card>
               <CardContent className="p-4 text-center">
                 <Users className="h-8 w-8 text-primary mx-auto mb-2" />
-                <p className="text-2xl font-bold">4</p>
+                <p className="text-2xl font-bold">{new Set(posts.map(p => p.source)).size}</p>
                 <p className="text-sm text-muted-foreground">Sources</p>
               </CardContent>
             </Card>
@@ -120,8 +120,10 @@ export default function Insights() {
             <Card>
               <CardContent className="p-4 text-center">
                 <Heart className="h-8 w-8 text-primary mx-auto mb-2" />
-                <p className="text-2xl font-bold">98%</p>
-                <p className="text-sm text-muted-foreground">Positive Sentiment</p>
+                <p className="text-2xl font-bold">
+                  {posts.length > 0 ? `${Math.round(posts.filter(p => p.engagement > 0).length / posts.length * 100)}%` : '—'}
+                </p>
+                <p className="text-sm text-muted-foreground">Engaged Posts</p>
               </CardContent>
             </Card>
           </div>
@@ -229,7 +231,7 @@ export default function Insights() {
           </Card>
 
           {/* Call to Action */}
-          <Card className="mt-8 bg-gradient-to-r from-primary/10 to-purple-100">
+          <Card className="mt-8 bg-gradient-to-r from-primary/10 to-accent/10">
             <CardContent className="p-8 text-center">
               <h2 className="text-2xl font-semibold mb-4">Join the Conversation</h2>
               <p className="text-muted-foreground mb-6">

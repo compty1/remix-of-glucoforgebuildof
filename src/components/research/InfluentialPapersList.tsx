@@ -77,17 +77,15 @@ export const InfluentialPapersList: React.FC<InfluentialPapersListProps> = ({
                       )}
                     </div>
                     {url && (
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(url, '_blank', 'noopener,noreferrer');
-                        }}
+                      <a 
+                        href={url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center justify-center rounded-md hover:bg-accent"
+                        onClick={(e) => e.stopPropagation()}
                       >
                         <ExternalLink className="h-4 w-4" />
-                      </Button>
+                      </a>
                     )}
                   </div>
                   

@@ -185,14 +185,11 @@ export const ExternalReviewCard: React.FC<ExternalReviewCardProps> = ({ review }
           </div>
 
           {hasValidUrl && review.source_url && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-xs"
-              onClick={() => window.open(review.source_url!, '_blank')}
-            >
-              <ExternalLink className="h-3 w-3 mr-1" />
-              View Original
+            <Button variant="ghost" size="sm" className="text-xs" asChild>
+              <a href={review.source_url} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-3 w-3 mr-1" />
+                View Original
+              </a>
             </Button>
           )}
         </div>
