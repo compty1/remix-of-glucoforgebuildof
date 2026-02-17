@@ -47,7 +47,7 @@ export const useResearchFeed = (): UseResearchFeedResult => {
       }
 
       // Then fetch fresh data from the edge function in the background
-      const { data: freshData, error: functionError } = await supabase.functions.invoke('research-feed');
+      const { error: functionError } = await supabase.functions.invoke('research-feed');
 
       if (functionError) {
         console.error('Edge function error:', functionError);
@@ -55,8 +55,16 @@ export const useResearchFeed = (): UseResearchFeedResult => {
         if (!existingData || existingData.length === 0) {
           throw new Error(`Failed to fetch research feed: ${functionError.message}`);
         }
-      } else if (freshData?.data) {
-        setData(freshData.data);
+      } else {
+        // Re-query DB to get canonical data after edge function updates
+        const { data: refreshedData } = await supabase
+          .from('research_items')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(50);
+        if (refreshedData && refreshedData.length > 0) {
+          setData(refreshedData);
+        }
       }
 
     } catch (err) {
