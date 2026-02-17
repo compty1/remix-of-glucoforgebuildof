@@ -1,52 +1,47 @@
 
 
-# Add More Community Workarounds
+# Add Drop Logo Next to GlucoForge Text in Sidebar
 
-Expand the `community_workarounds` table with ~20 additional real, verified entries across all four categories.
+## Problem
+In the expanded sidebar state (line 339-344), only the "GlucoForge" text is shown -- no drop icon. The collapsed state already shows the drop icon with the `logo-animated-drop` animation, but when expanded, the icon disappears.
 
----
+## Solution
+Add the drop icon image to the left of the "GlucoForge" text in the expanded sidebar view, with proper sizing and spacing, and include the existing drop/splash entrance animation.
 
-## New Entries by Category
+## Technical Changes
 
-### Devices (5 new)
-- **Dexcom Bridge Program** - For patients losing insurance coverage, Dexcom offers a temporary bridge supply (up to 3 months). Source: dexcom.com/patient-assistance
-- **Medtronic Financial Assistance** - Medtronic offers copay cards and patient assistance for Guardian sensors and insulin pumps. Source: medtronic.com
-- **Tandem t:slim Copay Card** - Up to $100/month off Tandem pump supplies for commercially insured patients. Source: tandemdiabetes.com
-- **InPen Savings Program** - Medtronic's InPen smart insulin pen with savings card reducing copay to as low as $0. Source: inpen.com
-- **Eversense Bridge Program** - Senseonics offers a patient bridge program for Eversense CGM for those losing coverage. Source: eversensediabetes.com
+### File: `src/components/AppSidebar.tsx` (lines 339-344)
 
-### Medications (5 new)
-- **Novo Nordisk Immediate Supply** - Emergency 90-day free insulin supply for patients who cannot afford. Call 1-866-310-7549. Source: novocare.com
-- **Lilly Cares Foundation** - Full free insulin supply for uninsured patients under 400% FPL. Separate from $35 program. Source: lillycares.com
-- **Sanofi Insulins Valyou Savings** - Cash-pay program: Lantus $99/month, Admelog $99/month, no insurance needed. Source: insulinsvalyou.com
-- **GetInsulin.org** - Mutual aid organization that ships donated insulin to people in need, free of charge. Source: getinsulin.org
-- **Civica Rx Insulin** - Biosimilar insulins (glargine, lispro, aspart) at $30/vial or $55 for 5 KwikPens. Source: civicarx.org
+**Current code:**
+```tsx
+<div className="flex items-center gap-2.5 w-full px-2">
+    <span className="text-xl font-bold bg-gradient-to-r from-brand-purple-dark to-brand-purple-light bg-clip-text text-transparent">
+      GlucoForge
+    </span>
+</div>
+```
 
-### Insurance (5 new)
-- **External Review Rights** - After exhausting internal appeals, federal law guarantees an independent external review. Free process. Source: healthcare.gov
-- **ADA Legal Advocacy** - ADA provides free legal help for insurance discrimination cases related to diabetes supplies. Source: diabetes.org/legal
-- **State Insurance Commissioner Complaints** - Filing a complaint with your state insurance department can force coverage decisions. Source: naic.org
-- **Medical Necessity Letter Template** - Community-shared template for doctors to write compelling medical necessity letters for CGMs/pumps. Source: community forums
-- **Prior Authorization Appeal Timeline** - Step-by-step guide with federal deadline requirements insurers must follow (30 days standard, 72 hours urgent). Source: CMS.gov
+**Updated code:**
+```tsx
+<div className="flex items-center gap-2 w-full px-2">
+    <img 
+      src={dropIcon} 
+      alt="GF" 
+      className="h-7 w-7 flex-shrink-0 logo-animated-drop object-contain" 
+    />
+    <span className="text-xl font-bold bg-gradient-to-r from-brand-purple-dark to-brand-purple-light bg-clip-text text-transparent">
+      GlucoForge
+    </span>
+</div>
+```
 
-### Financial (5 new)
-- **JDRF Financial Assistance Resources** - JDRF maintains a database of financial assistance programs and can connect patients with local resources. Source: jdrf.org
-- **NeedyMeds** - Nonprofit database of patient assistance programs, discount drug cards, and copay assistance across all diabetes meds. Source: needymeds.org
-- **Patient Advocate Foundation** - Free case managers who help navigate insurance denials, copay assistance, and financial aid. Source: patientadvocate.org
-- **211 Helpline for Diabetes Supplies** - Dialing 211 connects to local United Way resources that often include emergency diabetes supply funds. Source: 211.org
-- **Diabetes Supply Donation Programs** - Organizations like Insulin for Life USA accept and redistribute unexpired supplies. Source: insulinforlife.org
+Key details:
+- Uses the already-imported `dropIcon` (the SVG blood drop logo)
+- `h-7 w-7` sizing keeps it proportional next to the text without overwhelming it
+- `flex-shrink-0` prevents the icon from shrinking
+- `object-contain` ensures proper aspect ratio
+- `logo-animated-drop` class applies the existing `bloodDropFall` entrance animation plus the bounce and pulse effects (already defined in `index.css`)
+- `gap-2` tightens the spacing between icon and text slightly
 
----
-
-## Technical Details
-
-### Implementation
-- Single database migration with INSERT statements for all 20 new workarounds
-- Each entry includes: title, description, detailed instructions, category, source_url, source_platform, is_verified (true), last_verified_at (current date), is_active (true), relevant tags, and initial upvotes
-- No code file changes needed -- the existing `CommunityWorkaroundsSection.tsx` component already queries all active workarounds dynamically
-
-### No changes to
-- Any existing component files
-- Existing workaround entries
-- RLS policies or table schema
+No other files need changes -- the animation CSS and icon import are already in place.
 
