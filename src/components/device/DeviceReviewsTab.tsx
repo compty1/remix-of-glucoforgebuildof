@@ -97,20 +97,20 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
 
   const getSourceBadge = (source: string) => {
     const colors: Record<string, string> = {
-      'reddit': 'bg-orange-500/10 text-orange-600 border-orange-500/20',
-      'twitter': 'bg-blue-400/10 text-blue-500 border-blue-400/20',
-      'facebook': 'bg-blue-600/10 text-blue-700 border-blue-600/20',
-      'google': 'bg-green-500/10 text-green-600 border-green-500/20',
-      'omnipod': 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-      'dexcom': 'bg-teal-500/10 text-teal-600 border-teal-500/20',
-      'tandem': 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20',
-      'dom-pubs': 'bg-purple-500/10 text-purple-600 border-purple-500/20',
-      'shericolberg': 'bg-pink-500/10 text-pink-600 border-pink-500/20',
-      'type1support': 'bg-green-500/10 text-green-600 border-green-500/20',
-      'childrenwithdiabetes': 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
-      'embs': 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20',
+      'reddit': 'bg-warning/10 text-warning border-warning/20',
+      'twitter': 'bg-chart-1/10 text-chart-1 border-chart-1/20',
+      'facebook': 'bg-primary/10 text-primary border-primary/20',
+      'google': 'bg-success/10 text-success border-success/20',
+      'omnipod': 'bg-primary/10 text-primary border-primary/20',
+      'dexcom': 'bg-chart-2/10 text-chart-2 border-chart-2/20',
+      'tandem': 'bg-accent text-accent-foreground border-border',
+      'dom-pubs': 'bg-chart-5/10 text-chart-5 border-chart-5/20',
+      'shericolberg': 'bg-chart-4/10 text-chart-4 border-chart-4/20',
+      'type1support': 'bg-success/10 text-success border-success/20',
+      'childrenwithdiabetes': 'bg-chart-3/10 text-chart-3 border-chart-3/20',
+      'embs': 'bg-chart-1/10 text-chart-1 border-chart-1/20',
     };
-    return colors[source.toLowerCase()] || 'bg-slate-500/10 text-slate-600 border-slate-500/20';
+    return colors[source.toLowerCase()] || 'bg-muted text-muted-foreground border-border';
   };
 
   const getSourceDisplayName = (source: string): string => {

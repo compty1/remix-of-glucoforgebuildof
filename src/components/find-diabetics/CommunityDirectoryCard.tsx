@@ -15,12 +15,12 @@ const typeLabels: Record<string, string> = {
 };
 
 const typeColors: Record<string, string> = {
-  jdrf_chapter: 'bg-blue-500/10 text-blue-600',
-  ada_office: 'bg-red-500/10 text-red-600',
-  campus_chapter: 'bg-green-500/10 text-green-600',
-  camp: 'bg-amber-500/10 text-amber-600',
-  online_community: 'bg-purple-500/10 text-purple-600',
-  support_group: 'bg-pink-500/10 text-pink-600',
+  jdrf_chapter: 'bg-primary/10 text-primary',
+  ada_office: 'bg-destructive/10 text-destructive',
+  campus_chapter: 'bg-success/10 text-success',
+  camp: 'bg-warning/10 text-warning',
+  online_community: 'bg-accent text-accent-foreground',
+  support_group: 'bg-chart-5/10 text-chart-5',
 };
 
 interface Props {

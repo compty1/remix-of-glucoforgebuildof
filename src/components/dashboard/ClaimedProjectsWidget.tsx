@@ -15,11 +15,11 @@ import {
 } from 'lucide-react';
 
 const statusColors: Record<string, string> = {
-  'claimed': 'bg-blue-500/10 text-blue-600',
-  'in_progress': 'bg-amber-500/10 text-amber-600',
-  'submitted': 'bg-purple-500/10 text-purple-600',
-  'completed': 'bg-green-500/10 text-green-600',
-  'abandoned': 'bg-gray-500/10 text-gray-600'
+  'claimed': 'bg-primary/10 text-primary',
+  'in_progress': 'bg-warning/10 text-warning',
+  'submitted': 'bg-accent text-accent-foreground',
+  'completed': 'bg-success/10 text-success',
+  'abandoned': 'bg-muted text-muted-foreground'
 };
 
 const statusLabels: Record<string, string> = {
