@@ -131,7 +131,9 @@ const SurveyCard: React.FC<SurveyCardProps> = ({ survey, onTakeSurvey }) => {
 
   const estimatedTime = survey.estimated_time_minutes || Math.max(1, Math.ceil(getQuestionCount() / 2));
   const targetResponses = survey.target_responses || 100;
-  const progressPercent = Math.min(100, Math.random() * 60 + 10); // Simulated progress
+  // Deterministic progress based on survey ID hash
+  const hashCode = survey.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const progressPercent = Math.min(95, (hashCode % 60) + 15);
 
   const CategoryIcon = categoryConfig[survey.research_category || survey.category]?.icon || FileText;
 

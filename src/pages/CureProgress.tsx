@@ -399,13 +399,11 @@ export default function CureProgress() {
                               <span className="text-xs text-muted-foreground">
                                 NCT ID: {trial.nct_id}
                               </span>
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => window.open(trial.study_url || `https://clinicaltrials.gov/study/${trial.nct_id}`, '_blank')}
-                              >
-                                <ExternalLink className="h-3 w-3 mr-1" />
-                                View
+                              <Button variant="outline" size="sm" asChild>
+                                <a href={trial.study_url || `https://clinicaltrials.gov/study/${trial.nct_id}`} target="_blank" rel="noopener noreferrer">
+                                  <ExternalLink className="h-3 w-3 mr-1" />
+                                  View
+                                </a>
                               </Button>
                             </div>
                           </div>

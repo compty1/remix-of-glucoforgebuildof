@@ -312,9 +312,11 @@ const MentalHealthHub = () => {
                           ))}
                         </div>
                         
-                        <Button className="w-full">
-                          Read Article
-                          <FileText className="h-4 w-4 ml-2" />
+                        <Button className="w-full" asChild>
+                          <a href={resource.id === 'diabetes-burnout-guide' ? '/diabetes-burnout' : resource.id === 'peer-support-stories' ? '/warrior-spotlight' : '/resources'}>
+                            {resource.type === 'video' ? 'Watch Now' : 'Read Article'}
+                            <FileText className="h-4 w-4 ml-2" />
+                          </a>
                         </Button>
                       </div>
                     </CardContent>
@@ -398,11 +400,24 @@ const MentalHealthHub = () => {
                         <Button 
                           className="w-full" 
                           variant="outline"
-                          onClick={() => setActiveStrategy(strategy)}
+                          onClick={() => setActiveStrategy(activeStrategy?.id === strategy.id ? null : strategy)}
                         >
-                          View Full Strategy
+                          {activeStrategy?.id === strategy.id ? 'Hide Steps' : 'View Full Strategy'}
                           <Lightbulb className="h-4 w-4 ml-2" />
                         </Button>
+                        {activeStrategy?.id === strategy.id && (
+                          <div className="mt-4 p-4 bg-muted/50 rounded-lg space-y-2">
+                            <h4 className="text-sm font-medium">All Steps:</h4>
+                            <ol className="space-y-1">
+                              {strategy.steps.map((step, idx) => (
+                                <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
+                                  <span className="text-primary font-medium">{idx + 1}.</span>
+                                  <span>{step}</span>
+                                </li>
+                              ))}
+                            </ol>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -434,9 +449,11 @@ const MentalHealthHub = () => {
                     <p className="text-sm text-muted-foreground mb-6">
                       Join facilitated support groups with other T1D warriors facing similar challenges.
                     </p>
-                    <Button className="w-full">
-                      Find Groups
-                      <Users className="h-4 w-4 ml-2" />
+                    <Button className="w-full" asChild>
+                      <a href="/find-diabetic-near-me">
+                        Find Groups
+                        <Users className="h-4 w-4 ml-2" />
+                      </a>
                     </Button>
                   </CardContent>
                 </Card>
@@ -452,9 +469,11 @@ const MentalHealthHub = () => {
                     <p className="text-sm text-muted-foreground mb-6">
                       Connect with therapists and counselors who specialize in chronic illness.
                     </p>
-                    <Button className="w-full" variant="outline">
-                      Find Therapists
-                      <Brain className="h-4 w-4 ml-2" />
+                    <Button className="w-full" variant="outline" asChild>
+                      <a href="/healthcare-providers">
+                        Find Therapists
+                        <Brain className="h-4 w-4 ml-2" />
+                      </a>
                     </Button>
                   </CardContent>
                 </Card>
@@ -470,9 +489,11 @@ const MentalHealthHub = () => {
                     <p className="text-sm text-muted-foreground mb-6">
                       Inspire others by sharing your journey and mental health insights.
                     </p>
-                    <Button className="w-full" variant="outline">
-                      Share Story
-                      <Plus className="h-4 w-4 ml-2" />
+                    <Button className="w-full" variant="outline" asChild>
+                      <a href="/warrior-spotlight">
+                        Share Story
+                        <Plus className="h-4 w-4 ml-2" />
+                      </a>
                     </Button>
                   </CardContent>
                 </Card>

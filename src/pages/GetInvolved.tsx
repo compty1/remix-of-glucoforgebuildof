@@ -157,10 +157,10 @@ export default function GetInvolved() {
           
           <div className="flex justify-center mb-8">
             <Button size="lg" variant="outline" asChild>
-              <a href="/presentation.pdf" target="_blank" rel="noopener noreferrer">
-                <Download className="mr-2 h-5 w-5" />
-                Download Our Presentation
-              </a>
+              <Link to="/journey">
+                <ArrowRight className="mr-2 h-5 w-5" />
+                View Our Roadmap & Mission
+              </Link>
             </Button>
           </div>
 

@@ -112,12 +112,10 @@ const ResearchCard: React.FC<ResearchCardProps> = ({ item, onAnalyze }) => {
               <FileText className="h-4 w-4 mr-2" />
               Read Analysis
             </Button>
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={() => window.open(item.link || 'https://pubmed.ncbi.nlm.nih.gov', '_blank', 'noopener,noreferrer')}
-            >
-              <ExternalLink className="h-4 w-4" />
+            <Button size="sm" variant="outline" asChild>
+              <a href={item.link || 'https://pubmed.ncbi.nlm.nih.gov'} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4" />
+              </a>
             </Button>
             <Button size="sm" variant="outline" onClick={async () => {
               if (!user) {

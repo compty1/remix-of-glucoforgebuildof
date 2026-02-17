@@ -14,6 +14,8 @@ export interface CommunityPost {
   sentiment: 'positive' | 'neutral' | 'negative' | null;
   published_at: string;
   fetched_at: string;
+  url: string | null;
+  topic_tags: string[] | null;
 }
 
 export const useCommunityPosts = (deviceName?: string) => {

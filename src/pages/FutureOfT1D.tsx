@@ -60,8 +60,8 @@ const predictions: TimelinePrediction[] = [
     description: 'Insulin icodec (Awiqli) and similar ultra-long-acting insulins become standard care, reducing injection burden by 85%.',
     probability: 95,
     category: 'treatment',
-    milestones: ['FDA approval (expected 2024-2025)', 'Insurance coverage expansion', 'T1D-specific trials completion'],
-    currentStatus: 'Insulin icodec approved in EU, FDA submission pending',
+    milestones: ['FDA approval (achieved 2024)', 'Insurance coverage expansion ongoing', 'T1D-specific trials completion'],
+    currentStatus: 'Insulin icodec (Awiqli) FDA-approved in 2024; insurance coverage expanding in 2026',
     keyPlayers: ['Novo Nordisk', 'Eli Lilly']
   },
   {

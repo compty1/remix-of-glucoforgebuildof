@@ -429,15 +429,19 @@ const DeviceAnalytics = () => {
                         <p className="text-xs text-muted-foreground line-clamp-3 mb-3">
                           {event.event_description || 'No description available'}
                         </p>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="w-full"
-                          onClick={() => window.open(event.source_url, '_blank')}
-                        >
-                          <ExternalLink className="h-3 w-3 mr-2" />
-                          View FDA Report
-                        </Button>
+                        {event.source_url ? (
+                          <Button variant="outline" size="sm" className="w-full" asChild>
+                            <a href={event.source_url} target="_blank" rel="noopener noreferrer">
+                              <ExternalLink className="h-3 w-3 mr-2" />
+                              View FDA Report
+                            </a>
+                          </Button>
+                        ) : (
+                          <Button variant="outline" size="sm" className="w-full" disabled>
+                            <ExternalLink className="h-3 w-3 mr-2" />
+                            No Report Link
+                          </Button>
+                        )}
                       </CardContent>
                     </Card>
                   ))
