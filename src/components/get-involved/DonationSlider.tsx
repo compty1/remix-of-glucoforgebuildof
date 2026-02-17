@@ -19,8 +19,7 @@ export function DonationSlider() {
   };
 
   const handleDonate = () => {
-    // This would integrate with Stripe or donation system
-    window.open(`/donate?amount=${amount}&type=${donationType}`, '_blank');
+    window.location.href = `/donate?amount=${amount}&type=${donationType}`;
   };
 
   return (

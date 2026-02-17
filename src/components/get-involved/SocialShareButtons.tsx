@@ -13,7 +13,7 @@ export function SocialShareButtons() {
   };
 
   const handleShare = (platform: keyof typeof shareLinks) => {
-    window.open(shareLinks[platform], '_blank', 'width=600,height=400');
+    window.open(shareLinks[platform], '_blank', 'noopener,noreferrer,width=600,height=400');
   };
 
   return (
