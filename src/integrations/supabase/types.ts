@@ -1101,6 +1101,57 @@ export type Database = {
         }
         Relationships: []
       }
+      community_workarounds: {
+        Row: {
+          category: string
+          comments: Json | null
+          created_at: string
+          description: string
+          id: string
+          instructions: string | null
+          is_active: boolean | null
+          is_verified: boolean | null
+          last_verified_at: string | null
+          source_platform: string | null
+          source_url: string | null
+          tags: string[] | null
+          title: string
+          upvotes: number | null
+        }
+        Insert: {
+          category: string
+          comments?: Json | null
+          created_at?: string
+          description: string
+          id?: string
+          instructions?: string | null
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          last_verified_at?: string | null
+          source_platform?: string | null
+          source_url?: string | null
+          tags?: string[] | null
+          title: string
+          upvotes?: number | null
+        }
+        Update: {
+          category?: string
+          comments?: Json | null
+          created_at?: string
+          description?: string
+          id?: string
+          instructions?: string | null
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          last_verified_at?: string | null
+          source_platform?: string | null
+          source_url?: string | null
+          tags?: string[] | null
+          title?: string
+          upvotes?: number | null
+        }
+        Relationships: []
+      }
       connection_requests: {
         Row: {
           created_at: string

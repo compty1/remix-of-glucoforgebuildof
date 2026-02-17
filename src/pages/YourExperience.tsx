@@ -103,32 +103,29 @@ export default function YourExperience() {
               </div>
             </motion.div>
 
-            {/* Two Column Layout for Other Jars */}
-            <div className="grid lg:grid-cols-2 gap-8">
-              {/* Daily Tasks */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <DailyTasksJar />
-                <div className="mt-4">
-                  <InlineSubmissionForm category="daily_tasks" />
-                </div>
-              </motion.div>
+            {/* Daily Tasks - Full Width */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <DailyTasksJar />
+              <div className="mt-4">
+                <InlineSubmissionForm category="daily_tasks" />
+              </div>
+            </motion.div>
 
-              {/* Fears Cloud */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-              >
-                <FearsCloud />
-                <div className="mt-4">
-                  <InlineSubmissionForm category="fears" />
-                </div>
-              </motion.div>
-            </div>
+            {/* Fears Cloud - Full Width */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <FearsCloud />
+              <div className="mt-4">
+                <InlineSubmissionForm category="fears" />
+              </div>
+            </motion.div>
 
             {/* Embarrassing Lows */}
             <motion.div
