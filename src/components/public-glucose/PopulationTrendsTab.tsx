@@ -19,7 +19,7 @@ const YEARLY_TRENDS = [
 
 // Study comparisons
 const STUDY_COMPARISON = [
-  { study: 'This Dataset', tir: 68, cv: 34, avgGlucose: 145, a1c: 7.0, n: 750, year: 2024 },
+  { study: 'This Dataset', tir: 68, cv: 34, avgGlucose: 145, a1c: 7.0, n: 750, year: 2024, isDynamic: true },
   { study: 'T1D Exchange 2023', tir: 59, cv: 38, avgGlucose: 162, a1c: 7.5, n: 25000, year: 2023 },
   { study: 'JAEB T1D Exchange', tir: 62, cv: 36, avgGlucose: 155, a1c: 7.3, n: 14000, year: 2023 },
   { study: 'UK Biobank T1D', tir: 56, cv: 40, avgGlucose: 170, a1c: 7.8, n: 3200, year: 2022 },
@@ -55,6 +55,10 @@ interface PopulationTrendsTabProps {
 }
 
 export function PopulationTrendsTab({ currentTIR, currentCV, currentAvgGlucose }: PopulationTrendsTabProps) {
+  const currentGMI = parseFloat((3.31 + 0.02392 * currentAvgGlucose).toFixed(1));
+  const dynamicStudyComparison = STUDY_COMPARISON.map(s => 
+    (s as any).isDynamic ? { ...s, tir: Math.round(currentTIR), cv: Math.round(currentCV), avgGlucose: Math.round(currentAvgGlucose), a1c: currentGMI } : s
+  );
   const tirImprovement = YEARLY_TRENDS[YEARLY_TRENDS.length - 1].overallTIR - YEARLY_TRENDS[0].overallTIR;
 
   return (
@@ -80,14 +84,14 @@ export function PopulationTrendsTab({ currentTIR, currentCV, currentAvgGlucose }
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <TrendingUp className="h-6 w-6 text-green-600 mx-auto mb-2" />
-            <p className="text-2xl font-bold text-green-600">+{tirImprovement}%</p>
+            <TrendingUp className="h-6 w-6 text-success mx-auto mb-2" />
+            <p className="text-2xl font-bold text-success">+{tirImprovement}%</p>
             <p className="text-sm text-muted-foreground">TIR Improvement (2018-2024)</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <Users className="h-6 w-6 text-blue-600 mx-auto mb-2" />
+            <Users className="h-6 w-6 text-primary mx-auto mb-2" />
             <p className="text-2xl font-bold">{STUDY_COMPARISON.reduce((s, d) => s + d.n, 0).toLocaleString()}</p>
             <p className="text-sm text-muted-foreground">Total Study Participants</p>
           </CardContent>
@@ -101,7 +105,7 @@ export function PopulationTrendsTab({ currentTIR, currentCV, currentAvgGlucose }
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <ArrowUp className="h-6 w-6 text-emerald-600 mx-auto mb-2" />
+            <ArrowUp className="h-6 w-6 text-success mx-auto mb-2" />
             <p className="text-2xl font-bold">78%</p>
             <p className="text-sm text-muted-foreground">CGM Adoption (2024)</p>
           </CardContent>
@@ -162,7 +166,7 @@ export function PopulationTrendsTab({ currentTIR, currentCV, currentAvgGlucose }
                 </tr>
               </thead>
               <tbody>
-                {STUDY_COMPARISON.map((study) => (
+                {dynamicStudyComparison.map((study) => (
                   <tr key={study.study} className={`border-b last:border-0 ${study.study === 'This Dataset' ? 'bg-primary/5 font-medium' : ''}`}>
                     <td className="py-2.5 pr-4">
                       {study.study}
@@ -170,7 +174,7 @@ export function PopulationTrendsTab({ currentTIR, currentCV, currentAvgGlucose }
                       {study.study === 'ATTD Consensus' && <Badge variant="outline" className="ml-2 text-xs">Target</Badge>}
                     </td>
                     <td className="py-2.5 pr-4">
-                      <span className={study.tir >= 70 ? 'text-green-600' : study.tir >= 60 ? 'text-yellow-600' : 'text-red-600'}>
+                      <span className={study.tir >= 70 ? 'text-success' : study.tir >= 60 ? 'text-warning' : 'text-destructive'}>
                         {study.tir}%
                       </span>
                     </td>

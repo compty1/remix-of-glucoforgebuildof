@@ -391,12 +391,12 @@ export default function PublicGlucoseData() {
         </div>
 
         {/* Data Notice */}
-        <Card className="mb-6 border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10">
+        <Card className="mb-6 border-primary/20 bg-primary/5">
           <CardContent className="p-4 flex items-start gap-3">
-            <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
             <div className="text-sm">
-              <p className="font-medium text-blue-900 dark:text-blue-100">About This Data</p>
-              <p className="text-blue-800 dark:text-blue-200">
+              <p className="font-medium">About This Data</p>
+              <p className="text-muted-foreground">
                 This data is aggregated from {filterOptions?.datasets?.length || 11} public sources including OpenAPS, Nightscout, 
                 Tidepool, OpenHumans, T1D Exchange, JAEB T1D Exchange, UK Biobank, TEDDY Study, Glooko, Clarity, and LibreView. It includes {summaryData?.totalRecords?.toLocaleString() || '31,000+'} readings from {summaryData?.uniqueUsers?.toLocaleString() || '750+'} anonymized users 
                 with demographic and device information. All data is fully anonymized for privacy.
@@ -514,8 +514,8 @@ export default function PublicGlucoseData() {
               </Card>
               <Card>
                 <CardContent className="p-4 flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                    <TrendingUp className="h-6 w-6 text-green-600" />
+                  <div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center">
+                    <TrendingUp className="h-6 w-6 text-success" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{overallStats.avgTIR}%</p>
@@ -525,8 +525,8 @@ export default function PublicGlucoseData() {
               </Card>
               <Card>
                 <CardContent className="p-4 flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                    <Users className="h-6 w-6 text-blue-600" />
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Users className="h-6 w-6 text-primary" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{overallStats.uniqueUsers.toLocaleString()}</p>
@@ -536,8 +536,8 @@ export default function PublicGlucoseData() {
               </Card>
               <Card>
                 <CardContent className="p-4 flex items-center gap-4">
-                  <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                    <Heart className="h-6 w-6 text-purple-600" />
+                  <div className="h-12 w-12 rounded-full bg-accent/50 flex items-center justify-center">
+                    <Heart className="h-6 w-6 text-accent-foreground" />
                   </div>
                   <div>
                     <p className="text-2xl font-bold">{overallStats.estimatedA1C}%</p>
@@ -606,7 +606,7 @@ export default function PublicGlucoseData() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Lightbulb className="h-5 w-5 text-yellow-500" />
+                      <Lightbulb className="h-5 w-5 text-warning" />
                       AI-Discovered Patterns & Correlations
                     </CardTitle>
                     <CardDescription>
@@ -766,11 +766,11 @@ export default function PublicGlucoseData() {
                     </ResponsiveContainer>
                     <div className="flex flex-wrap gap-4 mt-4 text-sm text-muted-foreground">
                       <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-orange-500" />
+                        <AlertTriangle className="h-4 w-4 text-warning" />
                         <span>Dawn phenomenon typically visible 4-7 AM</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-red-500" />
+                        <TrendingUp className="h-4 w-4 text-destructive" />
                         <span>Post-meal spikes visible after 8 AM, 12 PM, 6 PM</span>
                       </div>
                     </div>
@@ -1035,8 +1035,8 @@ export default function PublicGlucoseData() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <Card>
                         <CardContent className="p-4 flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                            <BarChart3 className="h-6 w-6 text-blue-600" />
+                          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                            <BarChart3 className="h-6 w-6 text-primary" />
                           </div>
                           <div>
                             <p className="text-2xl font-bold">{variabilityAnalysis.overallCV}%</p>
@@ -1046,8 +1046,8 @@ export default function PublicGlucoseData() {
                       </Card>
                       <Card>
                         <CardContent className="p-4 flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-900/20 flex items-center justify-center">
-                            <TrendingUp className="h-6 w-6 text-purple-600" />
+                          <div className="h-12 w-12 rounded-full bg-accent/50 flex items-center justify-center">
+                            <TrendingUp className="h-6 w-6 text-accent-foreground" />
                           </div>
                           <div>
                             <p className="text-2xl font-bold">±{variabilityAnalysis.stdDev} mg/dL</p>
@@ -1057,8 +1057,8 @@ export default function PublicGlucoseData() {
                       </Card>
                       <Card>
                         <CardContent className="p-4 flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                            <Activity className="h-6 w-6 text-green-600" />
+                          <div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center">
+                            <Activity className="h-6 w-6 text-success" />
                           </div>
                           <div>
                             <p className="text-2xl font-bold">{variabilityAnalysis.mean} mg/dL</p>
@@ -1098,13 +1098,13 @@ export default function PublicGlucoseData() {
                     </Card>
 
                     {/* Clinical Interpretation */}
-                    <Card className={variabilityAnalysis.overallCV < 36 ? 'border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/10' : 'border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10'}>
+                    <Card className={variabilityAnalysis.overallCV < 36 ? 'border-success/20 bg-success/5' : 'border-warning/20 bg-warning/5'}>
                       <CardContent className="p-4">
                         <div className="flex items-start gap-3">
                           {variabilityAnalysis.overallCV < 36 ? (
-                            <TrendingUp className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                            <TrendingUp className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
                           ) : (
-                            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                            <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
                           )}
                           <div className="text-sm">
                             <p className="font-medium">Clinical Interpretation</p>
@@ -1225,8 +1225,8 @@ export default function PublicGlucoseData() {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       <Card>
                         <CardContent className="p-4 flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
-                            <Syringe className="h-6 w-6 text-orange-600" />
+                          <div className="h-12 w-12 rounded-full bg-warning/10 flex items-center justify-center">
+                             <Syringe className="h-6 w-6 text-warning" />
                           </div>
                           <div>
                             <p className="text-2xl font-bold">{insulinDosingAnalysis.totalInsulinEvents.toLocaleString()}</p>
@@ -1236,8 +1236,8 @@ export default function PublicGlucoseData() {
                       </Card>
                       <Card>
                         <CardContent className="p-4 flex items-center gap-4">
-                          <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-                            <Activity className="h-6 w-6 text-blue-600" />
+                          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Activity className="h-6 w-6 text-primary" />
                           </div>
                           <div>
                             <p className="text-2xl font-bold">{insulinDosingAnalysis.hasBasalData ? 'Yes' : 'Limited'}</p>
@@ -1303,12 +1303,12 @@ export default function PublicGlucoseData() {
                     )}
 
                     {/* Disclaimer */}
-                    <Card className="border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10">
+                    <Card className="border-warning/20 bg-warning/5">
                       <CardContent className="p-4 flex items-start gap-3">
-                        <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
                         <div className="text-sm">
-                          <p className="font-medium text-amber-900 dark:text-amber-100">Important Medical Disclaimer</p>
-                          <p className="text-amber-800 dark:text-amber-200">
+                          <p className="font-medium">Important Medical Disclaimer</p>
+                          <p className="text-muted-foreground">
                             Insulin dosing is highly individual and depends on insulin sensitivity, body weight, activity level, stress, 
                             illness, and many other factors. These population-level patterns show statistical correlations, not causation. 
                             Never adjust your insulin doses, basal rates, or insulin-to-carb ratios without consulting your endocrinologist 
@@ -1359,7 +1359,7 @@ export default function PublicGlucoseData() {
                       </div>
                       <div className="text-center p-4 bg-background rounded-lg">
                         <p className="text-sm text-muted-foreground mb-1">ADA/ATTD Target</p>
-                        <p className="text-3xl font-bold text-green-600">70%+</p>
+                        <p className="text-3xl font-bold text-success">70%+</p>
                         <p className="text-xs text-muted-foreground">Recommended TIR</p>
                       </div>
                       <div className="text-center p-4 bg-background rounded-lg">
