@@ -75,10 +75,15 @@ export default function TrialMatching() {
                     <div className="relative">
                       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
-                        placeholder="Enter ZIP code..."
+                        placeholder="Enter ZIP code (e.g. 10001)..."
                         value={zipCode}
-                        onChange={(e) => setZipCode(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 5);
+                          setZipCode(val);
+                        }}
                         className="pl-9"
+                        maxLength={5}
+                        inputMode="numeric"
                       />
                     </div>
                   </div>

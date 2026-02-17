@@ -39,10 +39,10 @@ const BurnoutQuiz = () => {
   const score = answers.filter(Boolean).length;
 
   const getResult = () => {
-    if (score <= 2) return { level: "Low", color: "text-green-600", bg: "bg-green-50 border-green-200", message: "You're managing well. Keep checking in with yourself regularly." };
-    if (score <= 5) return { level: "Moderate", color: "text-yellow-600", bg: "bg-yellow-50 border-yellow-200", message: "You're showing signs of diabetes fatigue. Consider the recovery plans below and talk to your care team." };
-    if (score <= 8) return { level: "High", color: "text-orange-600", bg: "bg-orange-50 border-orange-200", message: "You're experiencing significant burnout. Please reach out to a diabetes-specialized therapist and review the 'Minimum Viable Diabetes' plan below." };
-    return { level: "Severe", color: "text-red-600", bg: "bg-red-50 border-red-200", message: "You're in crisis-level burnout. Please use the safety checklist below and contact your care team or the 988 Suicide & Crisis Lifeline immediately if needed." };
+    if (score <= 2) return { level: "Low", color: "text-success", bg: "bg-success/10 border-success/30", message: "You're managing well. Keep checking in with yourself regularly." };
+    if (score <= 5) return { level: "Moderate", color: "text-warning", bg: "bg-warning/10 border-warning/30", message: "You're showing signs of diabetes fatigue. Consider the recovery plans below and talk to your care team." };
+    if (score <= 8) return { level: "High", color: "text-highlight", bg: "bg-highlight/10 border-highlight/30", message: "You're experiencing significant burnout. Please reach out to a diabetes-specialized therapist and review the 'Minimum Viable Diabetes' plan below." };
+    return { level: "Severe", color: "text-destructive", bg: "bg-destructive/10 border-destructive/30", message: "You're in crisis-level burnout. Please use the safety checklist below and contact your care team or the 988 Suicide & Crisis Lifeline immediately if needed." };
   };
 
   return (
@@ -83,11 +83,11 @@ const BurnoutPostCard = ({ post }: { post: BurnoutPost }) => {
   const { data: comments } = useBurnoutComments(showComments ? post.id : null);
 
   const categoryColors: Record<string, string> = {
-    "Taking a Break": "bg-blue-100 text-blue-800",
-    "Automation Saved Me": "bg-purple-100 text-purple-800",
-    "Therapy That Worked": "bg-green-100 text-green-800",
-    "Simplifying Management": "bg-orange-100 text-orange-800",
-    "CGM Burnout": "bg-red-100 text-red-800",
+    "Taking a Break": "bg-accent/20 text-accent-foreground",
+    "Automation Saved Me": "bg-primary/10 text-primary",
+    "Therapy That Worked": "bg-success/10 text-success",
+    "Simplifying Management": "bg-warning/10 text-warning",
+    "CGM Burnout": "bg-destructive/10 text-destructive",
   };
 
   return (

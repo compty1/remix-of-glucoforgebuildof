@@ -75,23 +75,17 @@ export const FDAIssueStats: React.FC<FDAIssueStatsProps> = ({
 
       {/* Action Buttons */}
       <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="text-xs"
-          onClick={() => window.open('https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfmaude/search.cfm', '_blank')}
-        >
-          <FileText className="h-3 w-3 mr-1" />
-          Search FDA MAUDE
+        <Button variant="outline" size="sm" className="text-xs" asChild>
+          <a href="https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfmaude/search.cfm" target="_blank" rel="noopener noreferrer">
+            <FileText className="h-3 w-3 mr-1" />
+            Search FDA MAUDE
+          </a>
         </Button>
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="text-xs"
-          onClick={() => window.open('https://www.accessdata.fda.gov/scripts/medwatch/index.cfm?action=reporting.home', '_blank')}
-        >
-          <ExternalLink className="h-3 w-3 mr-1" />
-          Report to MedWatch
+        <Button variant="outline" size="sm" className="text-xs" asChild>
+          <a href="https://www.accessdata.fda.gov/scripts/medwatch/index.cfm?action=reporting.home" target="_blank" rel="noopener noreferrer">
+            <ExternalLink className="h-3 w-3 mr-1" />
+            Report to MedWatch
+          </a>
         </Button>
       </div>
 

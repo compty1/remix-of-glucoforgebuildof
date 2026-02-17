@@ -248,27 +248,29 @@ export const DeviceSpecsCard: React.FC<DeviceSpecsCardProps> = ({ device }) => {
               {device.fda_510k_number && (
                 <div className="p-3 bg-muted/50 rounded-lg">
                   <p className="text-xs text-muted-foreground">510(k) Number</p>
-                  <Button
-                    variant="link"
-                    className="p-0 h-auto font-medium"
-                    onClick={() => window.open(`https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfPMN/pmn.cfm?ID=${device.fda_510k_number}`, '_blank')}
+                  <a
+                    href={`https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfPMN/pmn.cfm?ID=${device.fda_510k_number}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline font-medium inline-flex items-center gap-1"
                   >
                     {device.fda_510k_number}
-                    <ExternalLink className="h-3 w-3 ml-1" />
-                  </Button>
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
                 </div>
               )}
               {device.fda_pma_number && (
                 <div className="p-3 bg-muted/50 rounded-lg">
                   <p className="text-xs text-muted-foreground">PMA Number</p>
-                  <Button
-                    variant="link"
-                    className="p-0 h-auto font-medium"
-                    onClick={() => window.open(`https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfPMA/pma.cfm?ID=${device.fda_pma_number}`, '_blank')}
+                  <a
+                    href={`https://www.accessdata.fda.gov/scripts/cdrh/cfdocs/cfPMA/pma.cfm?ID=${device.fda_pma_number}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline font-medium inline-flex items-center gap-1"
                   >
                     {device.fda_pma_number}
-                    <ExternalLink className="h-3 w-3 ml-1" />
-                  </Button>
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
                 </div>
               )}
               {device.regulatory_class && (

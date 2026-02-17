@@ -1,4 +1,5 @@
 import Layout from '@/components/Layout';
+import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Users, Target, Heart } from 'lucide-react';
@@ -7,6 +8,7 @@ export default function Journey() {
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">
+        <BackButton />
         <div className="max-w-4xl mx-auto">
           <h1 className="text-4xl font-heading font-bold text-foreground mb-6">
             Journey to a Cure
