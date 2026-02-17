@@ -1,158 +1,109 @@
 
 
-# Comprehensive Bug Fixes and Polish Plan (Final Complete - Extended to 36)
+# Data Sources Audit and Enhancement Plan (Extended - Issues 46-52)
 
-This plan adds 6 newly discovered bugs (31-36) to the existing 30-item list. Nothing unrelated will be changed or removed.
-
----
-
-## Previously Identified Issues (Bugs 1-30)
-
-All previously identified bugs remain unchanged. See prior plan versions for full details on Bugs 1-30 covering:
-- `.single()` to `.maybeSingle()` fixes (Bugs 1, 14-17, 19, 21-22, 25)
-- Filter value fixes (Bugs 2-3)
-- OptInBanner stale form (Bug 4)
-- Connection request logic (Bugs 5, 8-9, 12)
-- Double recordVisit (Bug 6)
-- NotificationCenter styling (Bug 7)
-- DM notification debounce (Bug 10)
-- ConnectionRequestModal reset (Bug 11)
-- Realtime subscriptions for unread counts and notifications (Bugs 13, 24)
-- DirectMessagePanel scroll fix (Bug 18)
-- Copyright year (Bug 20)
-- recordVisit unstable ref (Bug 23)
-- Race conditions in toggleHelpful and upvote (Bugs 26, 29)
-- useSavedPosts auth pattern (Bug 27)
-- useChatSessions getSession (Bug 28)
-- useStreaks stale closure (Bug 30)
+This extends the previously approved plan (Issues 1-45 + UI 1-6) with 7 newly discovered issues. Nothing unrelated will be changed or removed.
 
 ---
 
-## Newly Identified Issues (Bugs 31-36)
+## Previously Identified Issues (Issues 1-45, UI 1-6)
 
-### Bug 31: `useExperienceCounts` Makes 5 Sequential DB Queries Instead of 1
-**File**: `src/hooks/useExperienceSubmissions.ts` (lines 41-68)
-**Problem**: The `useExperienceCounts` hook runs a `for` loop over 5 categories, issuing 5 sequential `SELECT COUNT(*)` queries one after the other. This is slow and wasteful -- all 5 could be done in parallel with `Promise.all`, or better yet, replaced with a single query that groups by category.
-**Fix**: Replace the sequential `for` loop with a single query:
+All remain unchanged. See prior plan versions for full details.
+
+---
+
+## Newly Identified Issues (Issues 46-52)
+
+### Issue 46: `fetch-reddit-reviews` and `fetch-medication-reviews` Are Orphaned Edge Functions (Never Called)
+**Files**: `supabase/functions/fetch-reddit-reviews/index.ts` (382 lines), `supabase/functions/fetch-medication-reviews/index.ts` (350 lines)
+**Problem**: Both functions are registered in `config.toml` and deployed, but neither is invoked from anywhere in the frontend (`src/`) or from the `data-orchestrator`. A search for `fetch-reddit-reviews` and `fetch-medication-reviews` across the entire `src/` directory returns zero matches. These functions use Firecrawl credits (scraping Drugs.com, Reddit) but are never triggered -- their data never reaches any table or UI. They represent ~730 lines of dead code consuming deployment resources.
+**Fix**: Either:
+1. Add them to the `data-orchestrator`'s `dataFunctions` array so they run during the daily cron and their data reaches the database, OR
+2. Remove them if their functionality is already covered by `community-feed` (which also scrapes Reddit)
+
+The recommended approach is option 1 -- add to orchestrator -- since `fetch-medication-reviews` scrapes Drugs.com reviews (unique data not available from `community-feed`) and `fetch-reddit-reviews` targets device-specific Reddit threads with structured review extraction.
+
+### Issue 47: `useClinicalTrialsDetailed` Returns `freshData.data` Instead of Re-querying DB
+**File**: `src/hooks/useClinicalTrialsDetailed.ts` (line 87)
+**Problem**: After invoking the `clinical-trials-enhanced` edge function, the hook sets state to `freshData.data` -- the raw response from the edge function. But the edge function returns its own summary object, not necessarily the same shape as what the DB query returns. All the other hooks (e.g., `useMarketData`, `useMedicareData`, `usePatentData`) correctly re-query the database after the edge function completes to get the canonical data. `useClinicalTrialsDetailed` skips the re-query and uses the edge function response directly, which may have a different shape or subset of data.
+**Fix**: After the edge function completes, re-query the `clinical_trials_detailed` table (same pattern as the other hooks) instead of using `freshData.data` directly.
+
+### Issue 48: `useDeviceAnalytics` Invokes `community-feed` as a Refresh but Ignores Result
+**File**: `src/hooks/useDeviceAnalytics.ts` (lines 132-148)
+**Problem**: The `refreshCommunityFeed` function calls `supabase.functions.invoke('community-feed')`, which triggers fetching from 60+ subreddits (Issue 16). But the function only logs the result and returns a success/fail object -- it never re-fetches the device analytics data from the database. The user clicks "Refresh" and nothing visibly changes because the hook doesn't refetch after the community feed completes.
+**Fix**: After the community-feed invoke succeeds, re-run the device analytics data fetch from the database so the UI updates with new community posts.
+
+### Issue 49: `admin-users` Has No Admin Role Verification (Security Issue)
+**File**: `supabase/functions/admin-users/index.ts` (lines 57-75)
+**Problem**: The function checks for an `Authorization` header and calls `getUser()` to verify the token is valid, but it does NOT check if the user has an admin role. Any authenticated user can list all users, reset passwords, deactivate accounts, invite users, and change roles. This is a critical security vulnerability -- the function name implies admin-only access but enforces none.
+**Fix**: After `getUser()`, check the user's role from the `diabetic_profiles` table (or user metadata). If the role is not `admin`, return a 403 Forbidden response. For example:
 ```
-supabase.from('experience_submissions')
-  .select('category', { count: 'exact', head: false })
-  .eq('is_approved', true)
+const { data: profile } = await supabaseClient
+  .from('diabetic_profiles')
+  .select('role')
+  .eq('user_id', user.id)
+  .maybeSingle();
+
+if (profile?.role !== 'admin') {
+  return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: corsHeaders });
+}
 ```
-Then group client-side. Alternatively, use `Promise.all` for the 5 parallel count queries.
 
-### Bug 32: `useMedicationDetails` Uses `.single()` for Medication Lookup
-**File**: `src/hooks/useMedicationDetails.ts` (line 60)
-**Problem**: Fetches medication by ID with `.single()`. If the medication ID in the URL is invalid or has been deleted, this throws a 406 error instead of showing a "not found" state. The `useMedicationByName` (line 158) has the same issue -- `.single()` with `ilike` could match zero rows or multiple rows, both causing errors.
-**Fix**: Change both to `.maybeSingle()`. For `useMedicationByName`, `.maybeSingle()` also handles the case where `ilike` matches multiple medications gracefully (returns the first or null).
+### Issue 50: Issue 17 Overcounts Missing config.toml Entries -- Actual Count is 30, Not 31
+**Problem**: The previous plan (Issue 17) listed functions missing from `config.toml`. After a full audit of the actual `config.toml` contents, the correct list of 30 missing functions is confirmed. However, the previous plan also included `seed-community-comments` and `seed-community-posts` which ARE missing, and listed `seed-burnout-posts` which IS missing. The count and list in Issue 17 are substantively correct. No change needed -- this is a validation note.
+**Status**: No fix needed. Issue 17 is accurate.
 
-### Bug 33: `ArticleDetail` View Count Has Read-Then-Write Race Condition
-**File**: `src/pages/ArticleDetail.tsx` (lines 62-66)
-**Problem**: After fetching an article with `.single()`, the view count is incremented using `data.views + 1`. This is the same read-then-write pattern as Bugs 26/29. Two simultaneous visitors will read the same `views` value and both write `views + 1`, losing one increment. Additionally, the `.single()` on line 56 should be `.maybeSingle()` for graceful 404 handling.
-**Fix**: The view count increment is cosmetic so the race is low-impact, but change the fetch to `.maybeSingle()` and show a proper "article not found" UI instead of an error toast + redirect.
+### Issue 51: `data-orchestrator` Does NOT Log Results to `data_refresh_logs` Table
+**File**: `supabase/functions/data-orchestrator/index.ts` (entire file)
+**Problem**: The `data_refresh_logs` table exists in the database schema (confirmed in `types.ts`), but the orchestrator never writes to it. It constructs a detailed `summary` object with execution times, record counts, success/failure status, and freshness data -- then returns it as a JSON response and discards it. This means:
+1. There is no historical record of orchestrator runs
+2. The `DataSourcesBadge` cannot show real freshness status (UI Fix 3) because there's no persistent log to query
+3. Debugging data pipeline failures requires checking edge function logs manually
+**Fix**: After building the summary, insert a row into `data_refresh_logs`:
+```typescript
+await supabase.from('data_refresh_logs').insert({
+  started_at: new Date(startTime).toISOString(),
+  completed_at: new Date().toISOString(),
+  functions_called: dataFunctions.length,
+  functions_succeeded: successCount,
+  functions_failed: dataFunctions.length - successCount,
+  total_records: totalRecordsFetched,
+  execution_time_ms: totalExecutionTime,
+  results: results,
+  freshness_data: freshnessData,
+  status: successCount > 0 ? 'completed' : 'failed'
+});
+```
+This enables UI Fix 3 (DataSourcesBadge live status) to query `data_refresh_logs` for real freshness data.
 
-### Bug 34: `useProjects` View Count Has Same Read-Then-Write Race
-**File**: `src/hooks/useProjects.ts` (lines 180-188)
-**Problem**: Identical pattern to Bug 33: fetches project with `.single()`, reads `data.view_count`, writes `view_count + 1`. Also, using `.single()` means an invalid slug will throw a 406 instead of returning null.
-**Fix**: Change to `.maybeSingle()` and handle null. The view count race is cosmetic but should ideally use an atomic increment.
-
-### Bug 35: `useT1DCompanies.useCompanyById` Uses `.single()` Without 404 Handling
-**File**: `src/hooks/useT1DCompanies.ts` (line 177)
-**Problem**: Fetches company by ID with `.single()`. If someone navigates to `/companies/invalid-uuid`, this throws a 406 error. The `CompanyDetail` page shows an error message via the `error` state, but the browser console still logs a 406 network error.
-**Fix**: Change to `.maybeSingle()`. The existing error handling in `CompanyDetail.tsx` already shows a "Company not found" message, so this just cleans up the console error.
-
-### Bug 36: `ShopSuccess` Uses `.single()` for Order Lookup by Stripe Session ID
-**File**: `src/pages/shop/ShopSuccess.tsx` (line 42)
-**Problem**: Fetches order by `stripe_session_id` with `.single()`. If the Stripe webhook hasn't created the order yet (race condition on redirect), or if the session ID is invalid, this throws a 406 error. The page has no retry logic or loading state that accounts for webhook delay.
-**Fix**: Change to `.maybeSingle()`. If `orderData` is null, show a "Your order is being processed..." message with a retry button or automatic polling (e.g., retry every 3 seconds for up to 30 seconds) to handle the webhook delay gracefully.
+### Issue 52: `useDrugPricing` Invokes `medicare-data-feed` Which Produces ZERO Rows (Circular Failure)
+**File**: `src/hooks/useDrugPricing.ts` (line 41)
+**Problem**: The hook invokes `medicare-data-feed` to refresh drug pricing data. But as identified in Issue 9, the `drug_pricing_data` table has 0 rows. The `medicare-data-feed` function upserts fake data with `onConflict: 'ndc_code'` (line 138), which requires a unique constraint on `ndc_code`. If this constraint doesn't exist, the upsert silently fails or creates duplicates. Combined with Issue 3 (fake data), this means users see an empty drug pricing page every time -- the hook fetches 0 rows from DB, invokes the edge function (which fails silently), then re-fetches 0 rows again.
+**Fix**: This is a compound issue requiring:
+1. Verify/add unique constraint on `drug_pricing_data.ndc_code` (Issue 9)
+2. Replace fake data with real CMS data (Issue 3)
+3. Only then will the hook start working correctly
 
 ---
 
 ## Technical Details
 
-### Database Migration (unchanged from prior plan)
-```sql
--- Bug 8: Prevent self-requests
-ALTER TABLE connection_requests
-  ADD CONSTRAINT chk_no_self_request CHECK (from_user_id <> to_user_id);
+### Complete File Changes Summary (Issues 46-52)
 
--- Bug 9: Prevent duplicate pending requests
-CREATE UNIQUE INDEX IF NOT EXISTS idx_unique_pending_request
-  ON connection_requests(from_user_id, to_user_id) WHERE status = 'pending';
+| Issue | File | Change |
+|-------|------|--------|
+| 46 | `data-orchestrator/index.ts` | Add `fetch-reddit-reviews` and `fetch-medication-reviews` to `dataFunctions` array |
+| 47 | `src/hooks/useClinicalTrialsDetailed.ts` | Re-query DB after edge function instead of using `freshData.data` |
+| 48 | `src/hooks/useDeviceAnalytics.ts` | Re-fetch device data after community-feed refresh completes |
+| 49 | `supabase/functions/admin-users/index.ts` | Add admin role verification after `getUser()` |
+| 50 | No change needed | Validation of Issue 17 |
+| 51 | `data-orchestrator/index.ts` | Insert orchestrator run results into `data_refresh_logs` table |
+| 52 | Covered by Issues 3 + 9 | Compound issue -- fixed by prerequisite issues |
 
--- Bug 10: Debounce DM notifications
-CREATE OR REPLACE FUNCTION public.notify_direct_message()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
-SET search_path = public AS $$
-DECLARE
-  sender_name TEXT;
-  recent_exists BOOLEAN;
-BEGIN
-  SELECT EXISTS(
-    SELECT 1 FROM public.notifications
-    WHERE user_id = NEW.receiver_id
-      AND type = 'direct_message'
-      AND is_read = false
-      AND created_at > NOW() - INTERVAL '5 minutes'
-  ) INTO recent_exists;
+### Grand Total
 
-  IF NOT recent_exists THEN
-    SELECT display_name INTO sender_name
-    FROM public.diabetic_profiles
-    WHERE user_id = NEW.sender_id LIMIT 1;
-
-    INSERT INTO public.notifications (user_id, type, title, message, link)
-    VALUES (
-      NEW.receiver_id, 'direct_message',
-      'New message from ' || COALESCE(sender_name, 'a connection'),
-      LEFT(NEW.content, 100),
-      '/find-diabetics'
-    );
-  END IF;
-  RETURN NEW;
-END;
-$$;
-```
-
-### Complete File Changes Summary
-
-| Bug | File | Change |
-|-----|------|--------|
-| 1 | `DashboardWidgets.tsx` | `.single()` to `.maybeSingle()` |
-| 1 | `useDashboardLayout.ts` | `.single()` to `.maybeSingle()`, remove PGRST116 |
-| 2-3 | `FindDiabeticNearMe.tsx` | Fix filter `onValueChange` for "all" to `""` |
-| 4 | `OptInBanner.tsx` | Add `useEffect` to sync form from `myProfile` |
-| 5 | `FindDiabeticNearMe.tsx` | Comprehensive connected/requested user ID set |
-| 6 | `Layout.tsx` | Remove duplicate `recordVisit`, `useStreaks`, `useRef` |
-| 7 | `NotificationCenter.tsx` + `Layout.tsx` | Accept and pass `className` prop |
-| 8-10 | Database migration | Constraints, index, trigger debounce |
-| 11 | `ConnectionRequestModal.tsx` | Reset message on open |
-| 12 | `useDiabeticProfiles.ts` | Add user ID filter to delete |
-| 13 | `useDirectMessages.ts` | Add realtime subscription to `useUnreadCounts` |
-| 14 | `useOnboarding.ts` | `.single()` to `.maybeSingle()` |
-| 15 | `useSurveySubmission.ts` | `.single()` to `.maybeSingle()` |
-| 16 | `useSurveyDemographics.ts` | `.single()` to `.maybeSingle()` |
-| 17 | `usePushNotifications.ts` | `.single()` to `.maybeSingle()` |
-| 18 | `DirectMessagePanel.tsx` | Fix scroll with sentinel element |
-| 19 | `withAdmin.tsx` | `.single()` to `.maybeSingle()` |
-| 20 | `Layout.tsx` | Dynamic copyright year |
-| 21 | `Settings.tsx` | `.single()` to `.maybeSingle()` |
-| 22 | `DemographicsForm.tsx` | `.single()` to `.maybeSingle()` |
-| 23 | `useStreaks.ts` | Stabilize `recordVisit` callback reference |
-| 24 | `useNotifications.ts` | Add realtime subscription for live updates |
-| 25 | `useDeviceDetails.ts` | `.single()` to `.maybeSingle()` for device_metrics |
-| 26 | `useMedicationReviews.ts` | Fix race condition in toggleHelpful, add double-click guard |
-| 27 | `useSavedPosts.ts` | Replace `supabase.auth.getUser()` with `useAuthStore`, add user ID to query key |
-| 28 | `useChatSessions.ts` | `.single()` to `.maybeSingle()`, add user ID filter |
-| 29 | `useExperienceSubmissions.ts` | Fix race condition in upvote, add double-click guard |
-| 30 | `useStreaks.ts` | Query DB inside mutation instead of stale closure |
-| 31 | `useExperienceSubmissions.ts` | Replace sequential count loop with `Promise.all` or single grouped query |
-| 32 | `useMedicationDetails.ts` | `.single()` to `.maybeSingle()` for both medication lookups |
-| 33 | `ArticleDetail.tsx` | `.single()` to `.maybeSingle()`, proper 404 UI |
-| 34 | `useProjects.ts` | `.single()` to `.maybeSingle()`, handle null project |
-| 35 | `useT1DCompanies.ts` | `.single()` to `.maybeSingle()` in `useCompanyById` |
-| 36 | `ShopSuccess.tsx` | `.single()` to `.maybeSingle()`, add retry/polling for webhook delay |
+This brings the complete data sources plan to **52 issues + 6 UI fixes + 3 new data sources**, across ~58 files, covering broken payment processing, fake data, API abuse patterns, missing secrets, deprecated APIs, orphaned functions, security vulnerabilities, and performance problems.
 
 ### Unchanged
-All existing pages, routes, sidebar navigation, dashboard widgets, diabetes burnout, peer comparison, research hub, devices, shop checkout flow, and all other features remain completely untouched. Only targeted fixes to the 36 items listed above.
+All existing pages, routes, sidebar navigation, authentication, dashboard, find diabetics, messaging, streaks, shop UI, and all other features remain completely untouched. Only data pipeline, edge function, and data presentation fixes as listed above.
 
