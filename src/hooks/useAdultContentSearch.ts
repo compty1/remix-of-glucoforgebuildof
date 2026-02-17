@@ -190,3 +190,39 @@ export const useTrendingAdultTopics = () => {
     staleTime: 5 * 60 * 1000,
   });
 };
+
+export interface AdultComment {
+  id: string;
+  post_id: string;
+  parent_comment_id: string | null;
+  author_anonymous: string | null;
+  content: string;
+  score: number | null;
+  created_at: string;
+}
+
+export const useAdultPostComments = (postId: string | null, limit: number = 5) => {
+  return useQuery({
+    queryKey: ['adult-content-comments', postId, limit],
+    queryFn: async () => {
+      if (!postId) return { comments: [], totalCount: 0, hasMore: false };
+
+      const { data, error, count } = await supabase
+        .from('adult_content_comments')
+        .select('*', { count: 'exact' })
+        .eq('post_id', postId)
+        .order('score', { ascending: false, nullsFirst: false })
+        .limit(limit);
+
+      if (error) throw error;
+
+      return {
+        comments: (data || []) as AdultComment[],
+        totalCount: count || 0,
+        hasMore: (count || 0) > limit,
+      };
+    },
+    enabled: !!postId,
+    staleTime: 5 * 60 * 1000,
+  });
+};

@@ -708,9 +708,10 @@ Deno.serve(async (req) => {
     ];
 
     // Insert all posts
-    const { data, error } = await supabase
+    const { data: insertedPosts, error } = await supabase
       .from("adult_content_posts")
-      .insert(posts);
+      .insert(posts)
+      .select("id, title");
 
     if (error) {
       console.error("Insert error:", error);
@@ -720,8 +721,77 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Clear existing comments
+    await supabase.from("adult_content_comments").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+
+    // Seed comments for each post
+    const commentPool = [
+      { author: "t1d_warrior_23", content: "This is exactly my experience — I run a temp basal of -20% before dates and it works perfectly. Took me years to figure this out.", score: 127 },
+      { author: "dx_at_five", content: "My endo literally never mentioned this. Thank you for sharing. I'm bringing this up at my next appointment.", score: 98 },
+      { author: "pump_life_2019", content: "I've been T1D for 18 years and this is the first time I've seen someone articulate what I've been feeling. You're not alone.", score: 145 },
+      { author: "looping_queen", content: "The closed-loop system changed everything for me in these situations. Before that I was constantly anxious about lows.", score: 89 },
+      { author: "cgm_convert", content: "Switched my sensor to back of arm after reading a similar post. Game changer. Zero issues since.", score: 112 },
+      { author: "newly_diagnosed_22", content: "I was just diagnosed 6 months ago and this is SO helpful. Nobody talks about this stuff in the hospital.", score: 76 },
+      { author: "endo_nurse_t1d", content: "As a nurse with T1D, I can confirm everything here. We need more open discussions like this in clinical settings.", score: 134 },
+      { author: "partner_of_t1d", content: "I'm the partner of someone with T1D. This thread helped me understand so much. Thank you all for being so open.", score: 156 },
+      { author: "teen_diabetic", content: "I'm 17 and terrified about all of this. Reading that it's manageable makes me feel a lot better.", score: 67 },
+      { author: "a1c_warrior", content: "Got my A1C from 9.2 to 6.4 and the difference is night and day. Everything this post says about control is true.", score: 103 },
+      { author: "camp_counselor_t1d", content: "I work at a diabetes camp and we're starting to address these topics for older teens. Posts like this help us know what to cover.", score: 88 },
+      { author: "dexcom_devotee", content: "My Dexcom has alarmed at the worst possible moments 😂 but honestly it's kept me safe. Worth the awkwardness.", score: 94 },
+      { author: "insulin_rebel", content: "I used to hide my pump from partners. Now I show it off. The confidence shift was everything.", score: 121 },
+      { author: "low_fighter", content: "Post-activity lows hit me HARD about 45 min after. I always keep Skittles on the nightstand now. Pro tip.", score: 78 },
+      { author: "type_one_mom", content: "As a mom with T1D, the pregnancy section resonates so much. First trimester lows were terrifying.", score: 91 },
+      { author: "research_nerd_t1d", content: "The Diabeloop study findings align with what I've experienced. Great to see actual data backing community knowledge.", score: 65 },
+      { author: "dating_app_diabetic", content: "I put 'Type 1 Diabetic' in my dating profile now. Filters out anyone who'd be weird about it. Saves time.", score: 143 },
+      { author: "omnipod_user_99", content: "Omnipod on the arm is the way to go. Had it on my stomach once and it got knocked off. Expensive lesson.", score: 82 },
+      { author: "midnight_snacker", content: "The delayed low thing is SO real. I've woken up at 3am drenched in sweat after an active evening. Always eat carbs after.", score: 97 },
+      { author: "libre_fan", content: "Libre 3 is small enough that most people don't even notice it. Game changer for body confidence.", score: 71 },
+      { author: "diabetes_therapist", content: "I'm a therapist specializing in chronic illness. The mental health aspect of this is hugely underaddressed. Great discussion.", score: 108 },
+      { author: "college_t1d", content: "Freshman year was rough trying to figure all this out. Wish I had found this community sooner.", score: 59 },
+      { author: "honeymoon_phase", content: "Still in my honeymoon phase so things are unpredictable. This gives me hope that it gets more manageable.", score: 44 },
+      { author: "thirty_year_veteran", content: "30 years with T1D. The technology now vs. when I was diagnosed is incredible. These conversations wouldn't have happened back then.", score: 132 },
+      { author: "basal_tweaker", content: "I have 6 different basal profiles for different situations. It sounds extreme but it works. Your body, your rules.", score: 85 },
+      { author: "juice_box_hero", content: "My partner calls the nightstand juice boxes our 'emergency kit.' They're incredibly supportive. Communication is key.", score: 116 },
+      { author: "sensor_warrior", content: "SkinTac + Tegaderm combo has saved me hundreds of dollars in lost sensors. Can't recommend enough.", score: 73 },
+      { author: "endo_appointment_tips", content: "Print this thread and bring it to your endo. Seriously. They need to hear what patients actually deal with.", score: 99 },
+      { author: "night_owl_diabetic", content: "The adrenaline masking lows thing is real and scary. I always set a CGM alarm for 80 now instead of the default 70.", score: 87 },
+      { author: "gluten_free_t1d", content: "Dealing with celiac + T1D + all of this is next level. But we manage. One day at a time.", score: 54 },
+    ];
+
+    const allComments: Array<{ post_id: string; author_anonymous: string; content: string; score: number }> = [];
+
+    if (insertedPosts) {
+      for (const post of insertedPosts) {
+        // 8-15 comments per post
+        const numComments = 8 + Math.floor(Math.random() * 8);
+        const shuffled = [...commentPool].sort(() => Math.random() - 0.5);
+        for (let i = 0; i < numComments && i < shuffled.length; i++) {
+          allComments.push({
+            post_id: post.id,
+            author_anonymous: shuffled[i].author,
+            content: shuffled[i].content,
+            score: shuffled[i].score + Math.floor(Math.random() * 20) - 10,
+          });
+        }
+      }
+    }
+
+    let commentsInserted = 0;
+    if (allComments.length > 0) {
+      // Insert in batches of 100
+      for (let i = 0; i < allComments.length; i += 100) {
+        const batch = allComments.slice(i, i + 100);
+        const { error: commentError } = await supabase.from("adult_content_comments").insert(batch);
+        if (commentError) {
+          console.error("Comment insert error:", commentError);
+        } else {
+          commentsInserted += batch.length;
+        }
+      }
+    }
+
     return new Response(
-      JSON.stringify({ success: true, inserted: posts.length }),
+      JSON.stringify({ success: true, postsInserted: posts.length, commentsInserted }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
