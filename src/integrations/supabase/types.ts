@@ -1128,6 +1128,39 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_submissions: {
+        Row: {
+          category: string | null
+          created_at: string
+          email: string
+          id: string
+          message: string
+          name: string
+          status: string
+          subject: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          message: string
+          name: string
+          status?: string
+          subject: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          status?: string
+          subject?: string
+        }
+        Relationships: []
+      }
       cure_milestones: {
         Row: {
           completed_date: string | null
@@ -5994,6 +6027,18 @@ export type Database = {
           p_region?: string
         }
         Returns: Json
+      }
+      increment_device_review_helpful: {
+        Args: { review_id: string }
+        Returns: undefined
+      }
+      increment_review_helpful: {
+        Args: { review_id: string }
+        Returns: undefined
+      }
+      increment_story_upvotes: {
+        Args: { story_id: string }
+        Returns: undefined
       }
       is_admin: { Args: { check_user_id: string }; Returns: boolean }
       update_trends: { Args: never; Returns: undefined }

@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { BackButton } from '@/components/ui/back-button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   Laugh, 
   AlertTriangle, 
@@ -15,7 +17,9 @@ import {
   ExternalLink,
   Droplet,
   Share2,
-  Sparkles
+  Sparkles,
+  Search,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -32,7 +36,7 @@ interface LowSugarStory {
   created_at: string;
 }
 
-const categoryIcons = {
+const categoryIcons: Record<string, React.ReactNode> = {
   funny: <Laugh className="h-5 w-5" />,
   scary: <AlertTriangle className="h-5 w-5" />,
   educational: <BookOpen className="h-5 w-5" />,
@@ -60,14 +64,17 @@ const StoryCard: React.FC<{ story: LowSugarStory; onUpvote: (id: string) => void
                 src={story.illustration_url} 
                 alt={story.title}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).style.display = 'none';
+                }}
               />
             </div>
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2 mb-2">
               <h3 className="font-semibold text-lg line-clamp-2">{story.title}</h3>
-              <Badge className={categoryColors[story.category]}>
-                {categoryIcons[story.category]}
+              <Badge className={categoryColors[story.category] || categoryColors.other}>
+                {categoryIcons[story.category] || categoryIcons.other}
                 <span className="ml-1 capitalize">{story.category}</span>
               </Badge>
             </div>
@@ -102,14 +109,20 @@ const StoryCard: React.FC<{ story: LowSugarStory; onUpvote: (id: string) => void
                   </Button>
                 )}
 
-                <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={() => {
-                  if (navigator.share) {
-                    navigator.share({ title: story.title, text: story.content, url: story.source_url || window.location.href });
-                  } else {
-                    navigator.clipboard.writeText(`${story.title}: ${story.source_url || window.location.href}`);
-                    toast.success('Link copied to clipboard!');
-                  }
-                }}>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-muted-foreground" 
+                  aria-label="Share story"
+                  onClick={() => {
+                    if (navigator.share) {
+                      navigator.share({ title: story.title, text: story.content, url: story.source_url || window.location.href });
+                    } else {
+                      navigator.clipboard.writeText(`${story.title}: ${story.source_url || window.location.href}`);
+                      toast.success('Link copied to clipboard!');
+                    }
+                  }}
+                >
                   <Share2 className="h-4 w-4" />
                 </Button>
               </div>
@@ -128,16 +141,13 @@ const StoryCard: React.FC<{ story: LowSugarStory; onUpvote: (id: string) => void
 };
 
 export default function LowBloodSugarWorld() {
-  const [stories, setStories] = useState<LowSugarStory[]>([]);
-  const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    fetchStories();
-  }, []);
-
-  const fetchStories = async () => {
-    try {
+  const { data: stories = [], isLoading: loading } = useQuery({
+    queryKey: ['low-blood-sugar-stories'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('low_blood_sugar_stories')
         .select('*')
@@ -145,14 +155,9 @@ export default function LowBloodSugarWorld() {
         .order('upvotes', { ascending: false });
 
       if (error) throw error;
-      setStories(data || []);
-    } catch (error) {
-      console.error('Error fetching stories:', error);
-      toast.error('Failed to load stories');
-    } finally {
-      setLoading(false);
-    }
-  };
+      return (data || []) as LowSugarStory[];
+    },
+  });
 
   const handleUpvote = async (storyId: string) => {
     try {
@@ -162,20 +167,10 @@ export default function LowBloodSugarWorld() {
         return;
       }
 
-      const story = stories.find(s => s.id === storyId);
-      if (!story) return;
-
-      // Use RPC or atomic increment to avoid race conditions
-      const { error } = await supabase
-        .from('low_blood_sugar_stories')
-        .update({ upvotes: story.upvotes + 1 })
-        .eq('id', storyId);
-
+      const { error } = await supabase.rpc('increment_story_upvotes', { story_id: storyId });
       if (error) throw error;
 
-      setStories(stories.map(s => 
-        s.id === storyId ? { ...s, upvotes: s.upvotes + 1 } : s
-      ));
+      queryClient.invalidateQueries({ queryKey: ['low-blood-sugar-stories'] });
       toast.success('Upvoted!');
     } catch (error) {
       console.error('Error upvoting:', error);
@@ -183,9 +178,18 @@ export default function LowBloodSugarWorld() {
     }
   };
 
-  const filteredStories = activeCategory === 'all' 
-    ? stories 
-    : stories.filter(s => s.category === activeCategory);
+  const searchLower = searchTerm.toLowerCase();
+  const filteredStories = stories
+    .filter(s => activeCategory === 'all' || s.category === activeCategory)
+    .filter(s => {
+      if (!searchTerm) return true;
+      return (
+        s.title.toLowerCase().includes(searchLower) ||
+        s.content.toLowerCase().includes(searchLower) ||
+        (s.author_username?.toLowerCase().includes(searchLower)) ||
+        (s.source_platform?.toLowerCase().includes(searchLower))
+      );
+    });
 
   return (
     <Layout>
@@ -209,9 +213,30 @@ export default function LowBloodSugarWorld() {
             </p>
           </div>
           
-          {/* Decorative floating drops */}
           <div className="absolute top-10 right-10 w-20 h-20 bg-white/10 rounded-full blur-xl animate-float" />
           <div className="absolute bottom-10 right-20 w-16 h-16 bg-white/10 rounded-full blur-lg animate-float-delayed" />
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative mb-6">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+          <Input
+            type="text"
+            placeholder="Search stories by title, content, author, or platform..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="h-12 pl-10 text-lg"
+          />
+          {searchTerm && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-2 top-1/2 -translate-y-1/2"
+              onClick={() => setSearchTerm('')}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
 
         {/* Category Tabs */}
@@ -247,6 +272,17 @@ export default function LowBloodSugarWorld() {
               />
             ))}
           </div>
+        ) : searchTerm ? (
+          <Card className="command-center-widget">
+            <CardContent className="p-12 text-center">
+              <Search className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">No Stories Match Your Search</h3>
+              <p className="text-muted-foreground mb-4">
+                Try different keywords or clear the search to see all stories.
+              </p>
+              <Button variant="outline" onClick={() => setSearchTerm('')}>Clear Search</Button>
+            </CardContent>
+          </Card>
         ) : (
           <Card className="command-center-widget">
             <CardContent className="p-12 text-center">
