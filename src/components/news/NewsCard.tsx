@@ -10,11 +10,11 @@ interface NewsCardProps {
 }
 
 const categoryColors: Record<string, string> = {
-  research: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
-  technology: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
-  treatment: 'bg-green-500/10 text-green-600 border-green-500/20',
-  lifestyle: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
-  advocacy: 'bg-pink-500/10 text-pink-600 border-pink-500/20',
+  research: 'bg-chart-5/10 text-chart-5 border-chart-5/20',
+  technology: 'bg-primary/10 text-primary border-primary/20',
+  treatment: 'bg-success/10 text-success border-success/20',
+  lifestyle: 'bg-warning/10 text-warning border-warning/20',
+  advocacy: 'bg-chart-4/10 text-chart-4 border-chart-4/20',
   general: 'bg-muted text-muted-foreground border-border',
 };
 

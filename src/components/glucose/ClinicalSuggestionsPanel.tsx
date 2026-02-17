@@ -91,7 +91,7 @@ export const ClinicalSuggestionsPanel: React.FC<ClinicalSuggestionsPanelProps> =
           description: `Average glucose rises ${Math.round(earlyMorningAvg - nightAvg)} mg/dL between midnight and early morning.`,
           explanation: 'The Dawn Phenomenon is a natural rise in blood glucose that occurs in the early morning hours (typically 4-8 AM) due to hormonal changes. Growth hormone, cortisol, and glucagon levels increase to prepare your body for waking, which can cause the liver to release glucose.',
           action: 'Consider discussing basal rate adjustments, extended-release insulin timing, or protein-rich evening snacks with your endocrinologist. AID systems may need custom settings for this time window.',
-          icon: <Sun className="h-5 w-5 text-amber-500" />,
+          icon: <Sun className="h-5 w-5 text-warning" />,
           research: 'PMID: 31006812 - Circadian Regulation of Glucose Metabolism'
         });
       }
@@ -113,7 +113,7 @@ export const ClinicalSuggestionsPanel: React.FC<ClinicalSuggestionsPanelProps> =
           description: `Nighttime glucose control shows ${nightBlock.tir}% time in range with elevated low glucose events.`,
           explanation: 'Nocturnal hypoglycemia is particularly dangerous because symptoms may not wake you. This can lead to prolonged low glucose exposure, which affects cognitive function and increases cardiovascular risk. Warning signs include morning headaches, night sweats, and restless sleep.',
           action: 'Review evening insulin doses, consider bedtime snacks with complex carbohydrates and protein, and ensure CGM alerts are set appropriately. Discuss adjusting overnight basal rates with your care team.',
-          icon: <Moon className="h-5 w-5 text-blue-500" />,
+          icon: <Moon className="h-5 w-5 text-primary" />,
           research: 'PMID: 26628415 - Nocturnal Hypoglycemia and Cardiovascular Risk'
         });
       }
@@ -133,7 +133,7 @@ export const ClinicalSuggestionsPanel: React.FC<ClinicalSuggestionsPanelProps> =
         description: `${totalLow.toFixed(1)}% of readings are below 70 mg/dL (target: <4%).`,
         explanation: 'Time Below Range (TBR) above 4% indicates frequent hypoglycemic episodes. The international consensus recommends keeping TBR under 4%, with less than 1% below 54 mg/dL. Frequent lows increase the risk of hypoglycemia unawareness and can impair cognitive function.',
         action: 'Prioritize reducing hypoglycemia before optimizing Time in Range. Consider reducing insulin doses, reviewing carb ratios, and adjusting targets in automated insulin delivery systems.',
-        icon: <TrendingDown className="h-5 w-5 text-red-500" />,
+        icon: <TrendingDown className="h-5 w-5 text-destructive" />,
         research: 'PMID: 31628595 - International Consensus on TIR Targets'
       });
     }
@@ -152,7 +152,7 @@ export const ClinicalSuggestionsPanel: React.FC<ClinicalSuggestionsPanelProps> =
         description: `${totalHigh.toFixed(1)}% of readings are above 180 mg/dL (target: <25%).`,
         explanation: 'Time Above Range (TAR) reflects periods of hyperglycemia that contribute to long-term complications. The international consensus recommends keeping TAR below 25% for adults. Sustained hyperglycemia is associated with microvascular complications including retinopathy, nephropathy, and neuropathy.',
         action: 'Focus on post-meal management, pre-bolus timing, and reviewing carb counting accuracy. Consider whether insulin-to-carb ratios or correction factors need adjustment.',
-        icon: <TrendingUp className="h-5 w-5 text-orange-500" />,
+        icon: <TrendingUp className="h-5 w-5 text-warning" />,
         research: 'PMID: 31628595 - International Consensus on TIR Targets'
       });
     }
@@ -169,7 +169,7 @@ export const ClinicalSuggestionsPanel: React.FC<ClinicalSuggestionsPanelProps> =
         description: `CV of ${variability.cv.toFixed(1)}% exceeds the recommended target of <36%.`,
         explanation: 'Coefficient of Variation (CV) measures glucose variability relative to your average. A CV above 36% indicates unstable glucose levels with frequent swings. High variability is an independent risk factor for hypoglycemia and is associated with oxidative stress that may accelerate complications.',
         action: 'Focus on consistent meal timing and composition, regular physical activity patterns, and stress management. Consider whether insulin timing or dosing patterns are contributing to swings.',
-        icon: <Activity className="h-5 w-5 text-purple-500" />,
+        icon: <Activity className="h-5 w-5 text-chart-5" />,
         research: 'PMID: 28774944 - Glycemic Variability as Risk Factor'
       });
     } else if (variability.cv <= 36 && variability.cv > 0) {
@@ -181,7 +181,7 @@ export const ClinicalSuggestionsPanel: React.FC<ClinicalSuggestionsPanelProps> =
         description: `CV of ${variability.cv.toFixed(1)}% is within the recommended target of <36%.`,
         explanation: 'Your glucose variability is well-controlled, indicating stable patterns. This reduces hypoglycemia risk and suggests your current management approach is effective for minimizing glucose swings.',
         action: 'Continue current strategies for consistent glucose patterns. Focus on maintaining Time in Range while preserving this stability.',
-        icon: <CheckCircle2 className="h-5 w-5 text-green-500" />,
+        icon: <CheckCircle2 className="h-5 w-5 text-success" />,
         research: 'PMID: 31628595 - International Consensus on TIR Targets'
       });
     }
@@ -200,7 +200,7 @@ export const ClinicalSuggestionsPanel: React.FC<ClinicalSuggestionsPanelProps> =
         description: `${tir.toFixed(1)}% Time in Range meets or exceeds the 70% target.`,
         explanation: 'Achieving 70%+ Time in Range (70-180 mg/dL) is the primary glycemic goal for most adults with Type 1 diabetes. This level is associated with reduced risk of microvascular complications and is equivalent to approximately 7% HbA1c.',
         action: 'Maintain current management strategies. Consider whether tighter targets (like time in tight range 70-140 mg/dL) are appropriate for your goals without increasing hypoglycemia.',
-        icon: <Target className="h-5 w-5 text-green-500" />,
+        icon: <Target className="h-5 w-5 text-success" />,
         research: 'PMID: 31628595 - International Consensus on TIR Targets'
       });
     } else if (tir >= 50 && tir < 70) {
@@ -212,7 +212,7 @@ export const ClinicalSuggestionsPanel: React.FC<ClinicalSuggestionsPanelProps> =
         description: `${tir.toFixed(1)}% TIR is below the 70% target but shows good foundation.`,
         explanation: 'Time in Range between 50-70% indicates room for improvement. Each 5% increase in TIR corresponds to meaningful clinical benefits. Focus on identifying specific patterns or times of day where glucose tends to go out of range.',
         action: 'Use pattern analysis to identify specific times or situations where glucose leaves range. Address one problem area at a time, such as post-breakfast spikes or overnight drift.',
-        icon: <Target className="h-5 w-5 text-amber-500" />,
+        icon: <Target className="h-5 w-5 text-warning" />,
         research: 'PMID: 31628595 - International Consensus on TIR Targets'
       });
     }

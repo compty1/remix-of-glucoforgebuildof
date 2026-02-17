@@ -535,7 +535,7 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
                       <ul className="space-y-2">
                         {aiInsights.priorityActions.map((action, index) => (
                           <li key={index} className="text-sm flex items-start gap-2">
-                            <span className="text-amber-500">{index + 1}.</span>
+                            <span className="text-warning">{index + 1}.</span>
                             <span>{action}</span>
                           </li>
                         ))}

@@ -83,8 +83,8 @@ export function AchievementsWidget() {
             </div>
             <p className="text-xs text-muted-foreground">Points</p>
           </div>
-          <div className="text-center p-3 bg-orange-500/10 rounded-lg">
-            <div className="text-2xl font-bold text-orange-600 flex items-center justify-center gap-1">
+          <div className="text-center p-3 bg-warning/10 rounded-lg">
+            <div className="text-2xl font-bold text-warning flex items-center justify-center gap-1">
               <Flame className="h-4 w-4" />
               {visitStreak}
             </div>

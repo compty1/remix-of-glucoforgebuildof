@@ -103,7 +103,7 @@ export function FundingDetailModal({ project, open, onOpenChange }: FundingDetai
           <div className="space-y-6">
             {/* Funding Amount */}
             {project.funding_amount && (
-              <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <div className="p-4 bg-success/5 dark:bg-success/10 rounded-lg border border-success/20">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Total Award Amount</span>
                   <span className="text-3xl font-bold text-green-600">

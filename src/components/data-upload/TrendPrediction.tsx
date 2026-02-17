@@ -158,8 +158,8 @@ const TrendPrediction = ({ patterns, hourlyStats }: TrendPredictionProps) => {
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 75) return 'bg-green-500';
-    if (confidence >= 50) return 'bg-amber-500';
+    if (confidence >= 75) return 'bg-success';
+    if (confidence >= 50) return 'bg-warning';
     return 'bg-muted-foreground';
   };
 

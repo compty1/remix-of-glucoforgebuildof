@@ -74,18 +74,18 @@ export const DeviceSolutionsTab: React.FC<DeviceSolutionsTabProps> = ({ deviceId
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case 'fix': return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
-      case 'post': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-      case 'issue': return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+      case 'fix': return 'bg-success/10 text-success border-success/20';
+      case 'post': return 'bg-primary/10 text-primary border-primary/20';
+      case 'issue': return 'bg-warning/10 text-warning border-warning/20';
       default: return 'bg-muted text-muted-foreground';
     }
   };
 
   const getDifficultyColor = (difficulty?: string) => {
     switch (difficulty?.toLowerCase()) {
-      case 'easy': return 'bg-emerald-500/10 text-emerald-500';
-      case 'medium': return 'bg-amber-500/10 text-amber-500';
-      case 'hard': return 'bg-red-500/10 text-red-500';
+      case 'easy': return 'bg-success/10 text-success';
+      case 'medium': return 'bg-warning/10 text-warning';
+      case 'hard': return 'bg-destructive/10 text-destructive';
       default: return 'bg-muted text-muted-foreground';
     }
   };
@@ -245,8 +245,8 @@ export const DeviceSolutionsTab: React.FC<DeviceSolutionsTabProps> = ({ deviceId
 
                 {/* Warnings */}
                 {solution.warnings && solution.warnings.length > 0 && (
-                  <div className="bg-red-500/5 border border-red-500/20 rounded-lg p-3">
-                    <p className="text-sm font-medium text-red-600 dark:text-red-400 mb-1">⚠️ Warnings</p>
+                  <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3">
+                    <p className="text-sm font-medium text-destructive mb-1">⚠️ Warnings</p>
                     <ul className="text-sm space-y-1">
                       {solution.warnings.map((warning, idx) => (
                         <li key={idx} className="text-muted-foreground">{warning}</li>

@@ -293,11 +293,11 @@ const sources: Source[] = [
 const getImpactColor = (level: string) => {
   switch (level) {
     case 'extreme':
-      return 'bg-red-500/10 text-red-600 border-red-500/20';
+      return 'bg-destructive/10 text-destructive border-destructive/20';
     case 'high':
-      return 'bg-orange-500/10 text-orange-600 border-orange-500/20';
+      return 'bg-warning/10 text-warning border-warning/20';
     case 'significant':
-      return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
+      return 'bg-chart-3/10 text-chart-3 border-chart-3/20';
     default:
       return 'bg-muted text-muted-foreground';
   }
@@ -580,10 +580,10 @@ Learn more: glucoforge.app/mental-health`;
                         </div>
 
                         {/* General Population Side */}
-                        <div className="p-4 rounded-lg bg-green-500/5 border border-green-500/20">
+                        <div className="p-4 rounded-lg bg-success/5 border border-success/20">
                           <div className="flex items-center gap-2 mb-2">
-                            <Heart className="w-4 h-4 text-green-600" />
-                            <span className="font-semibold text-green-600">General Population</span>
+                            <Heart className="w-4 h-4 text-success" />
+                            <span className="font-semibold text-success">General Population</span>
                           </div>
                           <div className="text-2xl font-bold text-foreground mb-1">
                             {category.generalData.metric}

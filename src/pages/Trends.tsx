@@ -100,8 +100,8 @@ const Trends = () => {
 
   const getTrendIcon = (direction: string) => {
     switch (direction) {
-      case 'up': return <TrendingUp className="h-4 w-4 text-red-500" />;
-      case 'down': return <TrendingDown className="h-4 w-4 text-green-500" />;
+      case 'up': return <TrendingUp className="h-4 w-4 text-destructive" />;
+      case 'down': return <TrendingDown className="h-4 w-4 text-success" />;
       default: return <BarChart3 className="h-4 w-4 text-muted-foreground" />;
     }
   };
@@ -292,12 +292,12 @@ const Trends = () => {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-red-500" />
+                  <TrendingUp className="h-4 w-4 text-destructive" />
                   <span className="text-sm">Increasing mentions (heating up)</span>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <TrendingDown className="h-4 w-4 text-green-500" />
+                  <TrendingDown className="h-4 w-4 text-success" />
                   <span className="text-sm">Decreasing mentions (cooling down)</span>
                 </div>
                 
