@@ -49,7 +49,9 @@ serve(async (req) => {
       { name: 'funding-research-feed', source: 'NIH RePORTER API' },
       { name: 'medicare-data-feed', source: 'CMS Data APIs' },
       { name: 'financial-market-feed', source: 'Market Data' },
-      { name: 'preprint-research-feed', source: 'bioRxiv + medRxiv + arXiv' }
+      { name: 'preprint-research-feed', source: 'bioRxiv + medRxiv + arXiv' },
+      { name: 'fetch-reddit-reviews', source: 'Reddit Device Reviews' },
+      { name: 'fetch-medication-reviews', source: 'Drugs.com Medication Reviews' }
     ];
 
     // Call each function sequentially with error handling
@@ -196,6 +198,22 @@ serve(async (req) => {
     };
 
     console.log('📊 Orchestration Summary:', JSON.stringify(summary, null, 2));
+
+    // Persist orchestration results to data_refresh_logs (Issue 51)
+    try {
+      await supabase.from('data_refresh_logs').insert({
+        refresh_type: 'orchestrator',
+        started_at: new Date(startTime).toISOString(),
+        completed_at: new Date().toISOString(),
+        status: successCount > 0 ? 'completed' : 'failed',
+        functions_succeeded: successCount,
+        functions_failed: dataFunctions.length - successCount,
+        records_fetched: totalRecordsFetched,
+        summary: summary as any,
+      });
+    } catch (logErr) {
+      console.error('Failed to log orchestration results:', logErr);
+    }
 
     return new Response(JSON.stringify(summary), {
       status: 200,

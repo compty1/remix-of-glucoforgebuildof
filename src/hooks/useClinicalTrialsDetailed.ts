@@ -76,15 +76,28 @@ export const useClinicalTrialsDetailed = (phase?: string): UseClinicalTrialsDeta
       }
 
       // Then fetch fresh data from the edge function in the background
-      const { data: freshData, error: functionError } = await supabase.functions.invoke('clinical-trials-enhanced');
+      const { error: functionError } = await supabase.functions.invoke('clinical-trials-enhanced');
 
       if (functionError) {
         console.error('Clinical trials enhanced error:', functionError);
         if (!existingData || existingData.length === 0) {
           throw new Error(`Failed to fetch clinical trials: ${functionError.message}`);
         }
-      } else if (freshData?.data) {
-        setData(freshData.data);
+      } else {
+        // Re-query the database to get canonical data (Issue 47)
+        let refreshQuery = supabase
+          .from('clinical_trials_detailed')
+          .select('*')
+          .order('start_date', { ascending: false });
+
+        if (phase) {
+          refreshQuery = refreshQuery.eq('phase', phase);
+        }
+
+        const { data: refreshedData } = await refreshQuery.limit(100);
+        if (refreshedData && refreshedData.length > 0) {
+          setData(refreshedData as ClinicalTrialDetailed[]);
+        }
       }
 
     } catch (err) {
