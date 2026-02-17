@@ -19,7 +19,7 @@ interface DirectMessagePanelProps {
 export function DirectMessagePanel({ open, onClose, otherUserId, otherUserName }: DirectMessagePanelProps) {
   const { user } = useAuthStore();
   const [draft, setDraft] = useState('');
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const { data: messages = [], isLoading } = useConversation(open ? otherUserId : null);
   const sendMessage = useSendMessage();
   const markAsRead = useMarkAsRead();
@@ -31,11 +31,9 @@ export function DirectMessagePanel({ open, onClose, otherUserId, otherUserName }
     }
   }, [open, otherUserId, messages.length]);
 
-  // Auto-scroll to bottom
+  // Auto-scroll to bottom using sentinel element
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const handleSend = () => {
@@ -58,7 +56,7 @@ export function DirectMessagePanel({ open, onClose, otherUserId, otherUserName }
           <SheetTitle className="text-base">Chat with {otherUserName}</SheetTitle>
         </SheetHeader>
 
-        <ScrollArea className="flex-1 px-4 py-2" ref={scrollRef as any}>
+        <ScrollArea className="flex-1 px-4 py-2">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -94,6 +92,7 @@ export function DirectMessagePanel({ open, onClose, otherUserId, otherUserName }
                   </div>
                 );
               })}
+              <div ref={messagesEndRef} />
             </div>
           )}
         </ScrollArea>

@@ -1,6 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 
 interface SavedPost {
@@ -13,13 +14,13 @@ interface SavedPost {
 }
 
 export const useSavedPosts = () => {
+  const { user } = useAuthStore();
   const queryClient = useQueryClient();
 
   // Fetch all saved posts for current user
   const { data: savedPosts = [], isLoading, error } = useQuery({
-    queryKey: ['saved-posts'],
+    queryKey: ['saved-posts', user?.id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) return [];
 
       const { data, error } = await supabase
@@ -32,12 +33,12 @@ export const useSavedPosts = () => {
       return data as SavedPost[];
     },
     staleTime: 2 * 60 * 1000,
+    enabled: !!user,
   });
 
   // Save a post
   const saveMutation = useMutation({
     mutationFn: async ({ postId, communityPostId, notes }: { postId: string; communityPostId: string; notes?: string }) => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Must be logged in to save posts');
 
       const { data, error } = await supabase
@@ -70,7 +71,6 @@ export const useSavedPosts = () => {
   // Unsave a post
   const unsaveMutation = useMutation({
     mutationFn: async (postId: string) => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Must be logged in');
 
       const { error } = await supabase
@@ -93,7 +93,6 @@ export const useSavedPosts = () => {
   // Update notes on a saved post
   const updateNotesMutation = useMutation({
     mutationFn: async ({ postId, notes }: { postId: string; notes: string | null }) => {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Must be logged in');
 
       const { error } = await supabase

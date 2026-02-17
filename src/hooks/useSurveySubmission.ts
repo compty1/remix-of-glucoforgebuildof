@@ -26,9 +26,9 @@ export const useSurveySubmission = (): UseSurveySubmissionResult => {
         .select('*')
         .eq('survey_id', surveyId)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         throw error;
       }
 

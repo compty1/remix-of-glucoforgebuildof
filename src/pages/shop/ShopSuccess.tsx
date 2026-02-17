@@ -39,7 +39,7 @@ const ShopSuccess = () => {
           .from('shop_orders')
           .select('id, status, total_cents, created_at, products')
           .eq('stripe_session_id', sessionId)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
 

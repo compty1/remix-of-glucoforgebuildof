@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
+import { useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
 
@@ -60,13 +60,22 @@ export function useStreaks() {
     enabled: !!user?.id,
   });
 
-  // Update streak
+  // Update streak - fetches fresh data inside mutation to avoid stale closure (Bug 30)
   const updateStreak = useMutation({
     mutationFn: async (streakType: StreakType) => {
       if (!user?.id) throw new Error('Not authenticated');
 
       const today = new Date().toISOString().split('T')[0];
-      const existing = streaks.find(s => s.streak_type === streakType);
+
+      // Fetch fresh streak data inside mutation to avoid stale closure
+      const { data: freshStreaks } = await supabase
+        .from('user_streaks')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('streak_type', streakType)
+        .maybeSingle();
+
+      const existing = freshStreaks as UserStreak | null;
 
       let newCurrentStreak = 1;
       let newLongestStreak = 1;
@@ -144,15 +153,18 @@ export function useStreaks() {
     return streaks.reduce((sum, s) => sum + s.current_streak, 0);
   };
 
-  // Record a platform visit (convenience method) - memoized to prevent infinite loops
+  // Record a platform visit - stable ref using useRef (Bug 23)
+  const updateStreakRef = useRef(updateStreak);
+  updateStreakRef.current = updateStreak;
+
   const recordVisit = useCallback(async () => {
     try {
-      await updateStreak.mutateAsync('platform_visit');
+      await updateStreakRef.current.mutateAsync('platform_visit');
     } catch (error) {
       // Silently fail for visit tracking
       console.log('Visit tracking:', error);
     }
-  }, [updateStreak]);
+  }, []);
 
   return {
     streaks,

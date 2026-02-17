@@ -178,7 +178,8 @@ export function useDiabeticProfiles(stateFilter?: string, searchQuery?: string) 
       const { error } = await supabase
         .from('connection_requests')
         .delete()
-        .eq('id', requestId);
+        .eq('id', requestId)
+        .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`);
       if (error) throw error;
     },
     onSuccess: () => {

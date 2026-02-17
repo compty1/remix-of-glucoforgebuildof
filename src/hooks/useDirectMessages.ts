@@ -111,6 +111,32 @@ export function useMarkAsRead() {
 
 export function useUnreadCounts() {
   const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+
+  // Realtime subscription for unread count updates (Bug 13)
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel(`dm-unread-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'direct_messages',
+          filter: `receiver_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ['dm-unread-counts'] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   return useQuery({
     queryKey: ['dm-unread-counts'],

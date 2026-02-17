@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,6 +14,11 @@ interface Props {
 
 export const ConnectionRequestModal: React.FC<Props> = ({ open, onClose, onSend, isSending }) => {
   const [message, setMessage] = useState('');
+
+  // Clear draft when modal opens
+  useEffect(() => {
+    if (open) setMessage('');
+  }, [open]);
 
   const handleSend = () => {
     onSend(message || undefined);

@@ -51,13 +51,18 @@ export function useExperienceCounts() {
         embarrassing_lows: 0
       };
 
-      for (const category of categories) {
-        const { count, error } = await supabase
-          .from('experience_submissions')
-          .select('*', { count: 'exact', head: true })
-          .eq('category', category)
-          .eq('is_approved', true);
+      const results = await Promise.all(
+        categories.map(category =>
+          supabase
+            .from('experience_submissions')
+            .select('*', { count: 'exact', head: true })
+            .eq('category', category)
+            .eq('is_approved', true)
+            .then(({ count, error }) => ({ category, count, error }))
+        )
+      );
 
+      for (const { category, count, error } of results) {
         if (!error && count !== null) {
           counts[category] = count;
         }
@@ -116,21 +121,27 @@ export function useUpvoteExperience() {
 
   return useMutation({
     mutationFn: async (submissionId: string) => {
-      // Get current upvotes and increment
-      const { data: current } = await supabase
-        .from('experience_submissions')
-        .select('upvotes')
-        .eq('id', submissionId)
-        .single();
+      // Atomic increment using rpc-style raw update
+      const { data: updated, error: updateError } = await supabase.rpc('increment_experience_upvote' as any, { submission_id: submissionId }).single();
+      
+      // Fallback: if RPC doesn't exist, use read-then-write
+      if (updateError) {
+        const { data: current } = await supabase
+          .from('experience_submissions')
+          .select('upvotes')
+          .eq('id', submissionId)
+          .maybeSingle();
 
-      const { data: updated, error: updateError } = await supabase
-        .from('experience_submissions')
-        .update({ upvotes: (current?.upvotes || 0) + 1 })
-        .eq('id', submissionId)
-        .select()
-        .single();
+        const { data: fallbackUpdated, error: fallbackError } = await supabase
+          .from('experience_submissions')
+          .update({ upvotes: (current?.upvotes || 0) + 1 })
+          .eq('id', submissionId)
+          .select()
+          .single();
 
-      if (updateError) throw updateError;
+        if (fallbackError) throw fallbackError;
+        return fallbackUpdated;
+      }
       return updated;
     },
     onSuccess: () => {

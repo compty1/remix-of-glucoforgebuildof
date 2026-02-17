@@ -53,9 +53,14 @@ export default function ArticleDetail() {
         .select('*')
         .eq('slug', slug)
         .eq('is_published', true)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        toast.error('Article not found');
+        navigate('/articles');
+        return;
+      }
       setArticle(data);
 
       // Increment view count

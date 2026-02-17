@@ -54,7 +54,7 @@ export const usePushNotifications = () => {
             .from('notification_preferences')
             .select('push_enabled')
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
           
           setState(prev => ({ ...prev, isSubscribed: data?.push_enabled === true }));
         } else {

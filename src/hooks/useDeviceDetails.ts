@@ -145,7 +145,7 @@ export const useDeviceDetails = (deviceId: string | undefined) => {
           .from('device_metrics')
           .select('*')
           .eq('device_id', deviceId)
-          .single();
+          .maybeSingle();
 
         // Fetch device issues
         const { data: issuesData } = await supabase
