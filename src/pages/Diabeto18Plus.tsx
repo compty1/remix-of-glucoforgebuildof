@@ -1,193 +1,107 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Layout from '@/components/Layout';
 import { BackButton } from '@/components/ui/back-button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { useAdultContentSearch } from '@/hooks/useAdultContentSearch';
+import { AdultSearchBar } from '@/components/adult-content/AdultSearchBar';
+import { AdultFilterBar } from '@/components/adult-content/AdultFilterBar';
+import { AdultPostCard } from '@/components/adult-content/AdultPostCard';
+import { FeaturedResources } from '@/components/adult-content/FeaturedResources';
+import { TrendingAdultTopics } from '@/components/adult-content/TrendingAdultTopics';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuthStore } from '@/store/authStore';
-import { 
-  Wine, 
-  Heart, 
-  Pill, 
-  MessageSquare,
-  ExternalLink,
-  ThumbsUp,
-  AlertTriangle,
-  Lightbulb,
+import {
   Shield,
-  Lock
+  Lock,
+  AlertTriangle,
+  RefreshCw,
+  Heart,
+  Wine,
+  Pill,
+  FlaskConical,
+  Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface AdultPost {
-  id: string;
-  title: string;
-  content: string;
-  category: string;
-  source_url: string | null;
-  source_platform: string | null;
-  author_username: string | null;
-  comments_count: number;
-  upvotes: number;
-  tips: string[] | null;
-  warnings: string[] | null;
-  created_at: string;
-}
-
-const categoryConfig = {
-  drug_effects: {
-    icon: <Pill className="h-5 w-5" />,
-    label: 'Substances & Blood Sugar',
-    color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
-  },
-  intimacy: {
-    icon: <Heart className="h-5 w-5" />,
-    label: 'Intimacy & CGMs',
-    color: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200'
-  },
-  alcohol: {
-    icon: <Wine className="h-5 w-5" />,
-    label: 'Alcohol Management',
-    color: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200'
-  },
-  other: {
-    icon: <MessageSquare className="h-5 w-5" />,
-    label: 'Other Topics',
-    color: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-  }
-};
-
-const AdultPostCard: React.FC<{ post: AdultPost }> = ({ post }) => {
-  const config = categoryConfig[post.category as keyof typeof categoryConfig] || categoryConfig.other;
-
-  return (
-    <Card className="command-center-widget">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <Badge className={config.color}>
-                {config.icon}
-                <span className="ml-1">{config.label}</span>
-              </Badge>
-              {post.source_platform && (
-                <Badge variant="outline">{post.source_platform}</Badge>
-              )}
-            </div>
-            <h3 className="text-lg font-semibold mb-2">{post.title}</h3>
-          </div>
-        </div>
-
-        <p className="text-muted-foreground mb-4">{post.content}</p>
-
-        {/* Tips Section */}
-        {post.tips && post.tips.length > 0 && (
-          <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Lightbulb className="h-4 w-4 text-green-600" />
-              <span className="font-medium text-green-800 dark:text-green-200">Community Tips</span>
-            </div>
-            <ul className="space-y-1">
-              {post.tips.map((tip, i) => (
-                <li key={i} className="text-sm text-green-700 dark:text-green-300">• {tip}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {/* Warnings Section */}
-        {post.warnings && post.warnings.length > 0 && (
-          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
-              <span className="font-medium text-red-800 dark:text-red-200">Warnings</span>
-            </div>
-            <ul className="space-y-1">
-              {post.warnings.map((warning, i) => (
-                <li key={i} className="text-sm text-red-700 dark:text-red-300">• {warning}</li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <div className="flex items-center justify-between pt-4 border-t">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" className="text-muted-foreground">
-              <ThumbsUp className="h-4 w-4 mr-1" />
-              {post.upvotes}
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              {post.comments_count} comments
-            </span>
-          </div>
-          {post.source_url && (
-            <Button variant="outline" size="sm" asChild>
-              <a href={post.source_url} target="_blank" rel="noopener noreferrer">
-                <ExternalLink className="h-4 w-4 mr-1" />
-                View Original
-              </a>
-            </Button>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
 export default function Diabeto18Plus() {
-  const { user } = useAuthStore();
-  const [posts, setPosts] = useState<AdultPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState<string>('all');
   const [ageVerified, setAgeVerified] = useState(false);
   const [showAgeVerification, setShowAgeVerification] = useState(true);
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  const {
+    posts,
+    totalCount,
+    hasMore,
+    isLoading,
+    isLoadingMore,
+    error,
+    filters,
+    updateFilters,
+    loadMore,
+    resetFilters,
+    refetch,
+  } = useAdultContentSearch();
+
+  // Infinite scroll
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Check if user has already verified age
     const verified = localStorage.getItem('diabeto_age_verified');
     if (verified === 'true') {
       setAgeVerified(true);
       setShowAgeVerification(false);
-      fetchPosts();
     }
   }, []);
 
-  const fetchPosts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('adult_content_posts')
-        .select('*')
-        .eq('is_published', true)
-        .order('upvotes', { ascending: false });
-
-      if (error) throw error;
-      setPosts(data || []);
-    } catch (error) {
-      console.error('Error fetching posts:', error);
-      toast.error('Failed to load content');
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoading && !isLoadingMore) {
+          loadMore();
+        }
+      },
+      { threshold: 0.1, rootMargin: '100px' }
+    );
+    if (loadMoreRef.current) observer.observe(loadMoreRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, isLoading, isLoadingMore, loadMore]);
 
   const handleAgeVerification = (verified: boolean) => {
     if (verified) {
       localStorage.setItem('diabeto_age_verified', 'true');
       setAgeVerified(true);
       setShowAgeVerification(false);
-      fetchPosts();
     } else {
       window.location.href = '/dashboard';
     }
   };
 
-  const filteredPosts = activeCategory === 'all'
-    ? posts
-    : posts.filter(p => p.category === activeCategory);
+  const handleSearchChange = useCallback((query: string) => {
+    updateFilters({ query });
+  }, [updateFilters]);
+
+  const handleTrendingClick = useCallback((post: any) => {
+    updateFilters({ query: post.title.split(' ').slice(0, 3).join(' ') });
+  }, [updateFilters]);
+
+  const handleSeedData = async () => {
+    setIsSeeding(true);
+    try {
+      const { error } = await supabase.functions.invoke('seed-adult-content-expanded');
+      if (error) throw error;
+      toast.success('Content loaded successfully!');
+      refetch();
+    } catch (err) {
+      toast.error('Failed to load content');
+      console.error(err);
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   if (showAgeVerification && !ageVerified) {
     return (
@@ -196,36 +110,34 @@ export default function Diabeto18Plus() {
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <Shield className="h-8 w-8 text-red-500" />
+                <Shield className="h-8 w-8 text-destructive" />
                 <DialogTitle className="text-xl">Age Verification Required</DialogTitle>
               </div>
               <DialogDescription className="text-base">
-                This section contains mature content about adult situations encountered 
-                by Type 1 diabetics, including discussions about alcohol, intimacy, 
+                This section contains mature content about adult situations encountered
+                by Type 1 diabetics, including discussions about alcohol, intimacy,
                 and recreational substances.
               </DialogDescription>
             </DialogHeader>
-            
             <div className="py-4">
               <p className="text-sm text-muted-foreground mb-4">
-                By entering, you confirm that you are at least 18 years old and 
+                By entering, you confirm that you are at least 18 years old and
                 understand that this content is for educational purposes only.
               </p>
               <div className="p-4 bg-muted rounded-lg">
                 <p className="text-sm font-medium">
-                  ⚠️ This content is not medical advice. Always consult your healthcare 
+                  ⚠️ This content is not medical advice. Always consult your healthcare
                   provider before making changes to your diabetes management.
                 </p>
               </div>
             </div>
-
             <DialogFooter className="gap-2">
               <Button variant="outline" onClick={() => handleAgeVerification(false)}>
-                I'm Under 18 - Exit
+                I'm Under 18 — Exit
               </Button>
               <Button onClick={() => handleAgeVerification(true)}>
                 <Lock className="h-4 w-4 mr-2" />
-                I'm 18+ - Enter
+                I'm 18+ — Enter
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -236,99 +148,176 @@ export default function Diabeto18Plus() {
 
   return (
     <Layout>
-      <div className="container mx-auto px-6 py-8">
-        <BackButton />
-
-        {/* Hero Section */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-red-500 p-8 md:p-12 mb-8 text-white">
-          <div className="absolute inset-0 bg-black/20" />
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-4">
-              <Shield className="h-10 w-10" />
-              <Badge variant="secondary" className="bg-white/20 text-white">18+</Badge>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-heading font-bold mb-4">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <BackButton />
+            <h1 className="text-3xl font-bold flex items-center gap-3 mt-2">
+              <Shield className="h-8 w-8 text-primary" />
               Diabeto 18+
+              <Badge variant="secondary">18+</Badge>
             </h1>
-            <p className="text-xl text-white/90 max-w-2xl">
-              Real talk about adult situations and diabetes. Manage your blood sugar 
-              during life's more... interesting moments.
+            <p className="text-muted-foreground mt-1">
+              Real talk about adult situations and diabetes from the T1D community
             </p>
           </div>
+          <Button
+            variant="outline"
+            onClick={handleSeedData}
+            disabled={isSeeding}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isSeeding ? 'animate-spin' : ''}`} />
+            {isSeeding ? 'Loading...' : 'Refresh Content'}
+          </Button>
         </div>
 
-        {/* Category Tabs */}
-        <Tabs value={activeCategory} onValueChange={setActiveCategory} className="mb-6">
-          <TabsList className="w-full max-w-2xl">
-            <TabsTrigger value="all">All Topics</TabsTrigger>
-            <TabsTrigger value="drug_effects" className="flex items-center gap-1">
-              <Pill className="h-4 w-4" /> Substances
-            </TabsTrigger>
-            <TabsTrigger value="intimacy" className="flex items-center gap-1">
-              <Heart className="h-4 w-4" /> Intimacy
-            </TabsTrigger>
-            <TabsTrigger value="alcohol" className="flex items-center gap-1">
-              <Wine className="h-4 w-4" /> Alcohol
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* Disclaimer */}
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Disclaimer:</strong> Content reflects real community experiences and is not medical advice.
+            Recreational substance use and excessive alcohol carry significant health risks, especially with diabetes.
+            Always prioritize your safety and consult your healthcare team.
+          </AlertDescription>
+        </Alert>
 
-        {/* Disclaimer Banner */}
-        <Card className="mb-6 border-amber-200 bg-amber-50 dark:bg-amber-900/20">
-          <CardContent className="p-4 flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-amber-800 dark:text-amber-200">
-              <p className="font-medium mb-1">Educational Content Disclaimer</p>
-              <p>
-                Content shared here reflects real community experiences and is not medical advice. 
-                Recreational drug use and excessive alcohol consumption carry significant health risks, 
-                especially with diabetes. Always prioritize your safety.
-              </p>
-            </div>
+        {/* Search */}
+        <Card>
+          <CardContent className="pt-6">
+            <AdultSearchBar value={filters.query} onChange={handleSearchChange} />
           </CardContent>
         </Card>
 
-        {/* Submit Button */}
-        {user && (
-          <div className="mb-6">
-            <Button>
-              <MessageSquare className="h-4 w-4 mr-2" />
-              Share Your Experience
-            </Button>
-          </div>
-        )}
+        {/* Quick Category Chips */}
+        <div className="flex flex-wrap gap-2">
+          <Badge
+            variant={filters.category === 'all' ? 'default' : 'outline'}
+            className="cursor-pointer px-3 py-1.5"
+            onClick={() => updateFilters({ category: 'all' })}
+          >
+            <Users className="h-3.5 w-3.5 mr-1" /> All Topics
+          </Badge>
+          <Badge
+            variant={filters.category === 'intimacy' ? 'default' : 'outline'}
+            className="cursor-pointer px-3 py-1.5"
+            onClick={() => updateFilters({ category: 'intimacy' })}
+          >
+            <Heart className="h-3.5 w-3.5 mr-1" /> Intimacy & Sex
+          </Badge>
+          <Badge
+            variant={filters.category === 'alcohol' ? 'default' : 'outline'}
+            className="cursor-pointer px-3 py-1.5"
+            onClick={() => updateFilters({ category: 'alcohol' })}
+          >
+            <Wine className="h-3.5 w-3.5 mr-1" /> Alcohol
+          </Badge>
+          <Badge
+            variant={filters.category === 'drug_effects' ? 'default' : 'outline'}
+            className="cursor-pointer px-3 py-1.5"
+            onClick={() => updateFilters({ category: 'drug_effects' })}
+          >
+            <Pill className="h-3.5 w-3.5 mr-1" /> Substances
+          </Badge>
+          <Badge
+            variant={filters.postType === 'research' ? 'default' : 'outline'}
+            className="cursor-pointer px-3 py-1.5"
+            onClick={() => updateFilters({ postType: filters.postType === 'research' ? 'all' : 'research' })}
+          >
+            <FlaskConical className="h-3.5 w-3.5 mr-1" /> Research
+          </Badge>
+        </div>
 
-        {/* Posts */}
-        {loading ? (
-          <div className="space-y-4">
-            {[1, 2, 3].map(i => (
-              <Skeleton key={i} className="h-64 w-full rounded-lg" />
-            ))}
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Results Column */}
+          <div className="lg:col-span-3 space-y-4">
+            <AdultFilterBar
+              filters={filters}
+              onFilterChange={updateFilters}
+              onReset={resetFilters}
+            />
+
+            {!isLoading && (
+              <div className="text-sm text-muted-foreground">
+                Found <strong>{totalCount}</strong> posts
+                {filters.query && ` matching "${filters.query}"`}
+              </div>
+            )}
+
+            {isLoading && posts.length === 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Card key={i}>
+                    <CardContent className="p-6 space-y-4">
+                      <div className="flex gap-2">
+                        <Skeleton className="h-5 w-16" />
+                        <Skeleton className="h-5 w-20" />
+                      </div>
+                      <Skeleton className="h-6 w-3/4" />
+                      <Skeleton className="h-20 w-full" />
+                      <Skeleton className="h-16 w-full" />
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : error ? (
+              <Alert variant="destructive">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : posts.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium mb-2">No posts yet</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Click "Refresh Content" to load community discussions and research articles.
+                  </p>
+                  <Button onClick={handleSeedData} disabled={isSeeding}>
+                    {isSeeding ? 'Loading...' : 'Load Content'}
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {posts.map((post) => (
+                    <AdultPostCard key={post.id} post={post} />
+                  ))}
+                </div>
+
+                <div ref={loadMoreRef} className="py-4">
+                  {isLoadingMore && (
+                    <div className="flex justify-center">
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                        <span>Loading more...</span>
+                      </div>
+                    </div>
+                  )}
+                  {hasMore && !isLoadingMore && (
+                    <div className="flex justify-center">
+                      <Button variant="outline" onClick={loadMore}>
+                        Load More ({posts.length} of {totalCount})
+                      </Button>
+                    </div>
+                  )}
+                  {!hasMore && posts.length > 0 && (
+                    <div className="text-center text-muted-foreground text-sm">
+                      Showing all {posts.length} posts
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
-        ) : filteredPosts.length > 0 ? (
-          <div className="space-y-4">
-            {filteredPosts.map(post => (
-              <AdultPostCard key={post.id} post={post} />
-            ))}
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            <TrendingAdultTopics onPostClick={handleTrendingClick} />
+            <FeaturedResources />
           </div>
-        ) : (
-          <Card className="command-center-widget">
-            <CardContent className="p-12 text-center">
-              <MessageSquare className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">No Posts Yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Be the first to share your experience!
-              </p>
-              {user ? (
-                <Button>Share Your Story</Button>
-              ) : (
-                <Button asChild>
-                  <a href="/auth">Sign In to Share</a>
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        )}
+        </div>
       </div>
     </Layout>
   );
