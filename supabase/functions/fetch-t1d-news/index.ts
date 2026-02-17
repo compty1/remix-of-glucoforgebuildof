@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
               source_name: extractDomain(result.url),
               source_url: new URL(result.url).origin,
               author: result.metadata?.author || null,
-              published_at: result.metadata?.publishedTime || new Date().toISOString(),
+              published_at: result.metadata?.publishedTime || null,
               category: categorizeArticle(title, description),
               relevance_score: calculateRelevanceScore(title, description),
               is_featured: false,

@@ -146,7 +146,7 @@ async function synthesizeFromResearchItems(supabase: any) {
       .from('discoveries')
       .select('id')
       .eq('title', item.title)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       console.log(`Skipping duplicate: ${item.title}`);
@@ -240,7 +240,7 @@ async function synthesizeFromClinicalTrials(supabase: any) {
       .from('discoveries')
       .select('id')
       .eq('title', trial.title)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       console.log(`Skipping duplicate trial: ${trial.title}`);

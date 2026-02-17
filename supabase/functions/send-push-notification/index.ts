@@ -30,7 +30,7 @@ serve(async (req) => {
       .from('notification_preferences')
       .select('push_enabled')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     if (!prefs?.push_enabled) {
       console.log('Push notifications not enabled for user');

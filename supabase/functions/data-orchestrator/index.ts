@@ -157,7 +157,7 @@ serve(async (req) => {
         .select('updated_at, created_at')
         .order('updated_at', { ascending: false, nullsFirst: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       const lastUpdated = latest?.updated_at || latest?.created_at || null;
       
