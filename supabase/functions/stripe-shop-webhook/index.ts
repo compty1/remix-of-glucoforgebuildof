@@ -43,7 +43,8 @@ serve(async (req) => {
         );
       }
     } else {
-      // For development/testing without webhook secret
+      // No webhook secret configured — reject unverified events in production
+      console.warn("STRIPE_WEBHOOK_SECRET not configured — accepting unverified event for development only");
       event = JSON.parse(body);
     }
 

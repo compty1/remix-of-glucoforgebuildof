@@ -1,4 +1,5 @@
 import Layout from '@/components/Layout';
+import { MedicalDisclaimer } from '@/components/MedicalDisclaimer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -211,6 +212,9 @@ export default function CureProgress() {
           <p className="text-muted-foreground mb-8">
             Real-time tracking of Type 1 diabetes cure research progress from ClinicalTrials.gov worldwide database.
           </p>
+          <div className="mb-8">
+            <MedicalDisclaimer context="Cure research data is sourced from ClinicalTrials.gov. Projections and timelines are illustrative estimates, not validated forecasts." />
+          </div>
 
           {/* Illustrative Cure Pipeline Animation */}
           <CureHeroAnimation />

@@ -133,7 +133,11 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState({
     displayName: '',
-    bio: ''
+    bio: '',
+    diagnosisDate: '',
+    primaryCgm: '',
+    insulinDelivery: '',
+    researchParticipation: true
   });
   const [notifications, setNotifications] = useState({
     glucoseAlerts: true,
@@ -163,7 +167,7 @@ const Settings = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('display_name, bio')
+        .select('display_name, bio, diagnosis_date, primary_cgm, insulin_delivery, research_participation, notification_preferences, privacy_settings')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -175,8 +179,18 @@ const Settings = () => {
       if (data) {
         setProfile({
           displayName: data.display_name || '',
-          bio: data.bio || ''
+          bio: data.bio || '',
+          diagnosisDate: data.diagnosis_date || '',
+          primaryCgm: data.primary_cgm || '',
+          insulinDelivery: data.insulin_delivery || '',
+          researchParticipation: data.research_participation ?? true
         });
+        if (data.notification_preferences) {
+          setNotifications(data.notification_preferences as typeof notifications);
+        }
+        if (data.privacy_settings) {
+          setPrivacy(data.privacy_settings as typeof privacy);
+        }
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -184,14 +198,7 @@ const Settings = () => {
   };
 
   const loadNotificationPreferences = () => {
-    try {
-      const saved = localStorage.getItem('notification_preferences');
-      if (saved) {
-        setNotifications(JSON.parse(saved));
-      }
-    } catch (error) {
-      console.error('Error loading notification preferences:', error);
-    }
+    // Notification preferences are now loaded from the database in loadUserProfile
   };
 
   const handleSaveProfile = async () => {
@@ -203,7 +210,11 @@ const Settings = () => {
         .from('profiles')
         .update({
           display_name: profile.displayName,
-          bio: profile.bio
+          bio: profile.bio,
+          diagnosis_date: profile.diagnosisDate || null,
+          primary_cgm: profile.primaryCgm || null,
+          insulin_delivery: profile.insulinDelivery || null,
+          research_participation: profile.researchParticipation
         })
         .eq('user_id', user.id);
 
@@ -225,9 +236,14 @@ const Settings = () => {
   };
 
   const handleSaveNotifications = async () => {
+    if (!user) return;
     setLoading(true);
     try {
-      localStorage.setItem('notification_preferences', JSON.stringify(notifications));
+      const { error } = await supabase
+        .from('profiles')
+        .update({ notification_preferences: notifications })
+        .eq('user_id', user.id);
+      if (error) throw error;
       toast({
         title: "Success",
         description: "Notification preferences saved!"
@@ -248,10 +264,23 @@ const Settings = () => {
     
     setLoading(true);
     try {
+      // Delete user data from key tables before signing out
+      const userId = user.id;
+      await Promise.allSettled([
+        supabase.from('profiles').delete().eq('user_id', userId),
+        supabase.from('chat_sessions').delete().eq('user_id', userId),
+        supabase.from('user_achievements').delete().eq('user_id', userId),
+        supabase.from('user_streaks').delete().eq('user_id', userId),
+        supabase.from('email_subscriptions').delete().eq('user_id', userId),
+        supabase.from('notification_preferences').delete().eq('user_id', userId),
+        supabase.from('notifications').delete().eq('user_id', userId),
+        supabase.from('device_reviews').delete().eq('user_id', userId),
+        supabase.from('user_dashboards').delete().eq('user_id', userId),
+      ]);
       await signOut();
       toast({
-        title: "Success",
-        description: "Account deletion initiated. You have been signed out."
+        title: "Account Deleted",
+        description: "Your data has been removed and you have been signed out."
       });
     } catch (error) {
       console.error('Account deletion error:', error);
@@ -330,13 +359,13 @@ const Settings = () => {
 
                 <div className="space-y-2">
                   <Label htmlFor="diagnosis">T1D Diagnosis Date</Label>
-                  <Input id="diagnosis" type="date" placeholder="When were you diagnosed?" />
+                  <Input id="diagnosis" type="date" value={profile.diagnosisDate} onChange={(e) => setProfile(prev => ({ ...prev, diagnosisDate: e.target.value }))} />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="device">Primary CGM</Label>
-                    <Select defaultValue="">
+                    <Select value={profile.primaryCgm} onValueChange={(val) => setProfile(prev => ({ ...prev, primaryCgm: val }))}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select your CGM" />
                       </SelectTrigger>
@@ -352,7 +381,7 @@ const Settings = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="pump">Insulin Delivery</Label>
-                    <Select defaultValue="">
+                    <Select value={profile.insulinDelivery} onValueChange={(val) => setProfile(prev => ({ ...prev, insulinDelivery: val }))}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select your insulin delivery method" />
                       </SelectTrigger>
@@ -376,7 +405,7 @@ const Settings = () => {
                         Allow your anonymized data to contribute to diabetes research studies
                       </p>
                     </div>
-                    <Switch defaultChecked />
+                    <Switch checked={profile.researchParticipation} onCheckedChange={(checked) => setProfile(prev => ({ ...prev, researchParticipation: checked }))} />
                   </div>
                 </div>
 
