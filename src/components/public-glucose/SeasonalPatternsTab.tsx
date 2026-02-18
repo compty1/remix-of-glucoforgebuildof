@@ -44,9 +44,9 @@ export function SeasonalPatternsTab() {
         <CardContent className="p-4 flex items-start gap-3">
           <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
           <div className="text-sm">
-            <p className="font-medium mb-1">About Seasonal Patterns</p>
+            <p className="font-medium mb-1">About Seasonal Patterns (Reference Data)</p>
             <p className="text-muted-foreground">
-              Seasonal glucose patterns are analyzed by aggregating CGM data across calendar months and grouping into 
+              The seasonal data below is illustrative, based on published CGM research literature, and does not represent this platform's dataset.{' '}
               meteorological seasons (Winter: Dec–Feb, Spring: Mar–May, Summer: Jun–Aug, Autumn: Sep–Nov). Research from 
               the DCCT/EDIC trial and population-level CGM studies consistently show that glucose control varies seasonally 
               due to changes in physical activity, dietary patterns, daylight exposure affecting circadian rhythms, and 

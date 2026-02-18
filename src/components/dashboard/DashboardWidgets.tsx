@@ -142,7 +142,7 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
             }
             
             setData({
-              activeMembers: 2847 + (count || 0),
+              activeMembers: count || 0,
               postsToday: count || 0,
               userContributions
             });
@@ -252,6 +252,13 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
+                {data?.isDemo && (
+                  <Badge variant="outline" className="text-[10px] text-muted-foreground">Sample Data</Badge>
+                )}
+                {!data?.hasData && !data?.isDemo ? (
+                  <p className="text-sm text-muted-foreground">Upload CGM data to see your glucose trends.</p>
+                ) : (
+                <>
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-2xl font-bold text-foreground">{data?.currentBG} mg/dL</p>
@@ -273,6 +280,8 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
                     <p className="text-xs text-muted-foreground">CV%</p>
                   </div>
                 </div>
+                </>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -291,18 +300,14 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Wifi className="h-4 w-4 text-success" />
-                    <span className="text-sm">CGM Connected</span>
+                    <Wifi className={`h-4 w-4 ${data?.cgmConnected ? 'text-success' : 'text-muted-foreground'}`} />
+                    <span className="text-sm">{data?.cgmConnected ? 'CGM Connected' : 'No CGM linked'}</span>
                   </div>
-                  <CheckCircle className="h-4 w-4 text-success" />
+                  {data?.cgmConnected ? <CheckCircle className="h-4 w-4 text-success" /> : <Badge variant="outline" className="text-[10px]">Setup</Badge>}
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Battery className="h-4 w-4 text-warning" />
-                    <span className="text-sm">Sensor: 3 days left</span>
-                  </div>
-                  <Badge variant="outline">OK</Badge>
-                </div>
+                {data?.cgmConnected && (
+                  <p className="text-xs text-muted-foreground">Device status details require CGM integration.</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -400,20 +405,27 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
               </CardTitle>
             </CardHeader>
             <CardContent>
+              {data?.isDemo && (
+                <Badge variant="outline" className="text-[10px] text-muted-foreground mb-2">Sample Data</Badge>
+              )}
+              {!data?.hasData && !data?.isDemo ? (
+                <p className="text-sm text-muted-foreground">Upload CGM data to see your health metrics.</p>
+              ) : (
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
-                  <p className="text-xl font-bold text-foreground">78%</p>
+                  <p className="text-xl font-bold text-foreground">{data?.timeInRange}%</p>
                   <p className="text-xs text-muted-foreground">Time in Range</p>
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-foreground">6.8%</p>
+                  <p className="text-xl font-bold text-foreground">{data?.estA1C}%</p>
                   <p className="text-xs text-muted-foreground">Est. A1C</p>
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-foreground">24</p>
+                  <p className="text-xl font-bold text-foreground">{data?.cv}</p>
                   <p className="text-xs text-muted-foreground">CV%</p>
                 </div>
               </div>
+              )}
             </CardContent>
           </Card>
         );

@@ -55,6 +55,7 @@ export default function AdminAnalytics() {
     },
   });
 
+  // Note: Feature usage data is illustrative until event tracking is implemented
   const featureUsageData = [
     { name: 'Dashboard', value: 35 },
     { name: 'Data Upload', value: 25 },
@@ -173,7 +174,7 @@ export default function AdminAnalytics() {
               </Alert>
               <Card>
                 <CardHeader>
-                  <CardTitle>Feature Usage Distribution (Sample)</CardTitle>
+                  <CardTitle>Feature Usage Distribution (Illustrative — requires event tracking)</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-80">

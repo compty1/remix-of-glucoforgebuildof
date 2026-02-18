@@ -486,7 +486,7 @@ const Settings = () => {
                       <Mail className="h-5 w-5 text-primary" />
                       <div>
                         <p className="font-medium">Email</p>
-                        <p className="text-sm text-muted-foreground">alex@example.com</p>
+                        <p className="text-sm text-muted-foreground">{user?.email || 'Not set'}</p>
                       </div>
                       <Switch defaultChecked />
                     </div>

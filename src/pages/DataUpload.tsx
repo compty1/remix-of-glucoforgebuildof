@@ -162,7 +162,7 @@ const DataUpload = () => {
   const processFile = async (file: File) => {
     if (!user) return;
 
-    const tempId = Date.now().toString();
+    const tempId = crypto.randomUUID();
     const newFile: UploadedFile = {
       id: tempId,
       name: file.name,
@@ -409,8 +409,10 @@ const DataUpload = () => {
                         
                         {file.status === 'processing' && (
                           <div className="mt-2">
-                            <Progress value={65} className="h-2" />
-                            <p className="text-xs text-muted-foreground mt-1">Processing...</p>
+                            <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                              <div className="h-full bg-primary rounded-full animate-pulse" style={{ width: '100%', opacity: 0.6 }} />
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">Analyzing...</p>
                           </div>
                         )}
                       </div>
@@ -472,19 +474,19 @@ const DataUpload = () => {
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Total Files</span>
-                  <span className="font-semibold">12</span>
+                  <span className="font-semibold">{uploadedFiles.length}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Data Points</span>
-                  <span className="font-semibold">47,382</span>
+                  <span className="font-semibold">{uploadedFiles.reduce((sum, f) => sum + (f.readingsCount || 0), 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Insights Found</span>
-                  <span className="font-semibold">156</span>
+                  <span className="font-semibold">{uploadedFiles.reduce((sum, f) => sum + (f.insights?.length || 0), 0)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Last Upload</span>
-                  <span className="font-semibold">2 days ago</span>
+                  <span className="font-semibold">{uploadedFiles.length > 0 ? new Date(uploadedFiles[0].uploadDate).toLocaleDateString() : 'No uploads yet'}</span>
                 </div>
               </CardContent>
             </Card>
@@ -495,21 +497,25 @@ const DataUpload = () => {
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button className="w-full justify-start" variant="outline">
+                <Button className="w-full justify-start" variant="outline" disabled>
                   <Smartphone className="h-4 w-4 mr-2" />
                   Connect CGM App
+                  <Badge variant="outline" className="ml-auto text-[10px]">Soon</Badge>
                 </Button>
-                <Button className="w-full justify-start" variant="outline">
+                <Button className="w-full justify-start" variant="outline" disabled>
                   <Calendar className="h-4 w-4 mr-2" />
                   Schedule Auto-Upload
+                  <Badge variant="outline" className="ml-auto text-[10px]">Soon</Badge>
                 </Button>
-                <Button className="w-full justify-start" variant="outline">
+                <Button className="w-full justify-start" variant="outline" disabled>
                   <Share2 className="h-4 w-4 mr-2" />
                   Share with Doctor
+                  <Badge variant="outline" className="ml-auto text-[10px]">Soon</Badge>
                 </Button>
-                <Button className="w-full justify-start" variant="outline">
+                <Button className="w-full justify-start" variant="outline" disabled>
                   <Download className="h-4 w-4 mr-2" />
                   Export Analysis
+                  <Badge variant="outline" className="ml-auto text-[10px]">Soon</Badge>
                 </Button>
               </CardContent>
             </Card>
