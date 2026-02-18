@@ -14,8 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-// Initialize Stripe with publishable key
-const stripePromise = loadStripe("pk_test_51QSwq6Ajs5pMqINcBgQzbnzw1qSWX1iFPhBW4RxVMQ9j0Lf6Y4sPP8MLxPIyQfvKKM1JDbhqKrKYqNJPo0xfaY3A00jYksEMhx");
+// Initialize Stripe with publishable key from environment
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
 
 interface DonationModalProps {
   open: boolean;
@@ -27,16 +27,25 @@ export const DonationModal = ({ open, onOpenChange }: DonationModalProps) => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const predefinedAmounts = [10, 25, 50, 100];
+  const predefinedAmounts = [5, 25, 50, 100];
 
   const handleDonation = async () => {
     const donationAmount = parseFloat(amount);
     
-    if (!donationAmount || donationAmount < 1) {
+    if (!donationAmount || donationAmount < 5) {
       toast({
         variant: "destructive",
         title: "Invalid amount",
-        description: "Please enter a valid donation amount of at least $1.",
+        description: "Please enter a valid donation amount of at least $5.",
+      });
+      return;
+    }
+
+    if (donationAmount > 100000) {
+      toast({
+        variant: "destructive",
+        title: "Invalid amount",
+        description: "Maximum donation amount is $100,000.",
       });
       return;
     }

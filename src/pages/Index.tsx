@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Activity, Search, TrendingUp, Users, Database, Heart, ArrowRight, Zap, Shield, Globe, Beaker, Brain, Hammer, Code, Palette, PieChart, Server, FileText, Clock, Smartphone, Quote } from 'lucide-react';
-import dropIcon from '@/assets/glucoforge-logo.svg';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -361,20 +361,19 @@ const Index = () => {
               </Button>
             </div>
             
-            {/* Emma's Story Repeat (Real Impact) */}
             <Card className="command-center-widget border-l-4 border-l-success">
               <CardContent className="p-8">
                 <h4 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                   <Shield className="h-5 w-5 text-success" />
-                  Real Impact
+                  Evidence-Based Approach
                 </h4>
                 <p className="text-muted-foreground mb-4 leading-relaxed">
-                  When 16-year-old Emma's Dexcom sensor kept failing during her soccer games, she felt defeated. 
-                  Through GlucoForge's AI-powered community insights, Emma discovered a sports-specific adhesive 
-                  technique shared by other T1D athletes. Within days, she was back on the field with confidence.
+                  Our platform aggregates insights from clinical trials, peer-reviewed research, and real-world community 
+                  experience. Every recommendation is backed by data, giving T1D warriors the confidence to make informed 
+                  decisions about their care.
                 </p>
                 <blockquote className="text-primary font-medium italic">
-                  "GlucoForge didn't just solve my technical problem—it gave me back my dreams."
+                  "Knowledge is the most powerful tool in managing Type 1 diabetes."
                 </blockquote>
               </CardContent>
             </Card>
@@ -433,7 +432,7 @@ const Index = () => {
               Latest Evidence-Based Discoveries
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              AI-discovered insights from analyzing real-time conversations across 50,000+ posts in verified T1D communities
+              AI-discovered insights from analyzing real-time conversations across verified T1D communities
             </p>
           </div>
           
