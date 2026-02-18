@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
+import { MedicalDisclaimer } from "@/components/MedicalDisclaimer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -213,7 +214,8 @@ const ScenarioLab = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-2">Scenario Lab</h1>
-          <p className="text-muted-foreground">Predict how different events might affect your glucose levels</p>
+          <p className="text-muted-foreground mb-4">Explore how different events might affect glucose levels using simplified simulations</p>
+          <MedicalDisclaimer context="These are simplified mathematical simulations, not AI-powered predictions. Results are illustrative and should not guide treatment decisions." />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -48,8 +48,8 @@ const platformStats = [
   { label: 'Development Projects', value: '27+', icon: Code },
   { label: 'Research Sources', value: '10+', icon: Database },
   { label: 'Devices Tracked', value: '30+', icon: Smartphone },
-  { label: 'Medications Profiled', value: '100+', icon: Pill },
-  { label: 'Clinical Trials', value: 'Real-time', icon: Beaker },
+  { label: 'Medications Listed', value: '100+', icon: Pill },
+  { label: 'Clinical Trials', value: 'Tracked', icon: Beaker },
 ];
 
 // Feature categories

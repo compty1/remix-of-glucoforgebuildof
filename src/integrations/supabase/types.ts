@@ -3869,8 +3869,14 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          diagnosis_date: string | null
           display_name: string | null
           id: string
+          insulin_delivery: string | null
+          notification_preferences: Json | null
+          primary_cgm: string | null
+          privacy_settings: Json | null
+          research_participation: boolean | null
           updated_at: string
           user_id: string
         }
@@ -3880,8 +3886,14 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          diagnosis_date?: string | null
           display_name?: string | null
           id?: string
+          insulin_delivery?: string | null
+          notification_preferences?: Json | null
+          primary_cgm?: string | null
+          privacy_settings?: Json | null
+          research_participation?: boolean | null
           updated_at?: string
           user_id: string
         }
@@ -3891,8 +3903,14 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          diagnosis_date?: string | null
           display_name?: string | null
           id?: string
+          insulin_delivery?: string | null
+          notification_preferences?: Json | null
+          primary_cgm?: string | null
+          privacy_settings?: Json | null
+          research_participation?: boolean | null
           updated_at?: string
           user_id?: string
         }

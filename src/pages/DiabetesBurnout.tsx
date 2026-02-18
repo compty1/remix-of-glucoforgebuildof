@@ -256,11 +256,11 @@ const DiabetesBurnout = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Card className="bg-muted/50"><CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-primary">36-45%</div>
-              <p className="text-xs text-muted-foreground">of T1D adults experience burnout (Diabetes Care)</p>
+              <p className="text-xs text-muted-foreground">of T1D adults experience burnout (Diabetes Care, 2016)</p>
             </CardContent></Card>
             <Card className="bg-muted/50"><CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-primary">100+</div>
-              <p className="text-xs text-muted-foreground">health decisions T1D patients make daily</p>
+              <p className="text-xs text-muted-foreground">estimated health decisions T1D patients make daily</p>
             </CardContent></Card>
             <Card className="bg-muted/50"><CardContent className="p-4 text-center">
               <div className="text-2xl font-bold text-primary">Treatable</div>

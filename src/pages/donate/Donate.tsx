@@ -74,29 +74,29 @@ export default function Donate() {
             <Card>
               <CardContent className="p-4 text-center">
                 <Users className="h-8 w-8 text-primary mx-auto mb-2" />
-                <p className="text-2xl font-bold">10,000+</p>
-                <p className="text-sm text-muted-foreground">Active Participants</p>
+                <p className="text-2xl font-bold">Growing</p>
+                <p className="text-sm text-muted-foreground">Community Members</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
                 <Target className="h-8 w-8 text-primary mx-auto mb-2" />
-                <p className="text-2xl font-bold">25</p>
-                <p className="text-sm text-muted-foreground">Active Trials</p>
+                <p className="text-2xl font-bold">Active</p>
+                <p className="text-sm text-muted-foreground">Clinical Trial Tracking</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
                 <TrendingUp className="h-8 w-8 text-primary mx-auto mb-2" />
-                <p className="text-2xl font-bold">$500K</p>
-                <p className="text-sm text-muted-foreground">Research Funded</p>
+                <p className="text-2xl font-bold">Open</p>
+                <p className="text-sm text-muted-foreground">Funding Transparency</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
                 <Heart className="h-8 w-8 text-primary mx-auto mb-2" />
-                <p className="text-2xl font-bold">501(c)(3)</p>
-                <p className="text-sm text-muted-foreground">Tax Deductible</p>
+                <p className="text-2xl font-bold">Pending</p>
+                <p className="text-sm text-muted-foreground">501(c)(3) Status</p>
               </CardContent>
             </Card>
           </div>

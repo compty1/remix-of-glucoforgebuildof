@@ -18,9 +18,9 @@ export default function Privacy() {
             <Card>
               <CardContent className="p-6">
                 <Shield className="h-8 w-8 text-primary mb-4" />
-                <h3 className="font-semibold mb-2">HIPAA Compliant</h3>
+                <h3 className="font-semibold mb-2">Security-First Design</h3>
                 <p className="text-sm text-muted-foreground">
-                  All health data is protected under HIPAA standards.
+                  Health data is protected with industry-standard security practices. Full HIPAA compliance is a goal we are actively working toward.
                 </p>
               </CardContent>
             </Card>
