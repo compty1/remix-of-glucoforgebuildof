@@ -362,9 +362,9 @@ const ScenarioLab = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             <InfoRail
-              whatThisShows="AI-powered predictions of how different activities and events might affect your glucose levels."
-              whyItMatters="Understanding potential glucose responses helps you prepare and make informed decisions about activities."
-              nextSteps="Use predictions to plan timing of activities, meals, and insulin adjustments. Always verify with your healthcare team."
+              whatThisShows="Simulated glucose curves based on general physiological models — not personalized AI predictions. Results are illustrative only."
+              whyItMatters="Visualizing potential glucose responses can help you think through scenarios, but these are simplified simulations, not medical predictions."
+              nextSteps="Use these as discussion starters with your healthcare team. Never adjust insulin or treatment based solely on these simulations."
             />
           </div>
         </div>

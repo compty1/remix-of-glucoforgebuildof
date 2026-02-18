@@ -6,7 +6,8 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 
 const COLORS = ['hsl(var(--chart-1))', 'hsl(var(--chart-2))', 'hsl(var(--chart-3))', 'hsl(var(--chart-4))', 'hsl(var(--chart-5))'];
 
-// Multi-year TIR trends
+// REFERENCE DATA from published research — not computed from this platform's database.
+// Sources: T1D Exchange, JAEB, UK Biobank, TEDDY, JDRF CREATE, IDF Diabetes Atlas.
 const YEARLY_TRENDS = [
   { year: '2018', overallTIR: 52, aidTIR: 62, mdiTIR: 48, cgmAdoption: 35 },
   { year: '2019', overallTIR: 55, aidTIR: 65, mdiTIR: 49, cgmAdoption: 42 },
@@ -68,13 +69,13 @@ export function PopulationTrendsTab({ currentTIR, currentCV, currentAvgGlucose }
         <CardContent className="p-4 flex items-start gap-3">
           <Info className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
           <div className="text-sm">
-            <p className="font-medium mb-1">About Population-Level Trends</p>
+            <p className="font-medium mb-1">About Population-Level Trends — Reference Data</p>
             <p className="text-muted-foreground">
-              This tab compares glycemic outcomes across major T1D research cohorts and tracks multi-year trends in 
-              technology adoption and glycemic control. Data is sourced from published studies (JAEB T1D Exchange, UK Biobank, 
-              TEDDY, JDRF CREATE) and aggregated CGM datasets. The improvement in population TIR since 2018 is primarily 
-              attributed to increased CGM and AID adoption, with the ATTD consensus establishing 70% TIR as the recommended target. 
-              Regional disparities reflect differences in healthcare access, insurance coverage, and technology availability.
+              <strong>Note:</strong> The data in this tab is sourced from <em>published research literature</em> (T1D Exchange, UK Biobank, 
+              TEDDY, JDRF CREATE, IDF Diabetes Atlas) and does <strong>not</strong> represent live computations from this platform's database. 
+              Study-specific metrics (sample sizes, TIR, CV) are approximate values reported in the cited publications. 
+              "This Dataset" row reflects your uploaded data if available. Regional and adoption figures are estimates 
+              and may not reflect the latest publications. The ATTD consensus establishes 70% TIR as the recommended clinical target.
             </p>
           </div>
         </CardContent>

@@ -142,12 +142,12 @@ function CureHeroAnimation() {
           transition={{ delay: 1.5 }}
           className="text-center text-xs text-muted-foreground mt-6"
         >
-          <span className="inline-flex items-center gap-1.5">
+         <span className="inline-flex items-center gap-1.5">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
             </span>
-            Live data from global clinical trial registries
+            Data sourced from ClinicalTrials.gov — may not reflect latest updates
           </span>
         </motion.p>
       </div>
@@ -505,8 +505,9 @@ export default function CureProgress() {
                     </ResponsiveContainer>
                   </div>
                   <p className="text-sm text-muted-foreground mt-4">
-                    Projection based on current clinical trial trajectories and historical breakthrough patterns.
-                    With successful cure research, disease burden could reduce dramatically by 2050.
+                    <strong>⚠ Illustrative projection only.</strong> This is a simplified model based on the number of trials in each phase, 
+                    not a validated epidemiological forecast. Actual timelines depend on regulatory approvals, manufacturing scale-up, 
+                    and healthcare policy — factors not captured here.
                   </p>
                 </CardContent>
               </Card>
@@ -517,18 +518,19 @@ export default function CureProgress() {
                   <CardTitle>Global T1D Cure Research Investment</CardTitle>
                 </CardHeader>
                 <CardContent>
+                  <p className="text-xs text-muted-foreground mb-3 italic">Estimates from published reports and IDF Diabetes Atlas. Figures are approximate.</p>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="text-center p-4 bg-muted/50 rounded-lg">
-                      <p className="text-3xl font-bold text-primary">$2.8B+</p>
-                      <p className="text-sm text-muted-foreground">Annual Research Funding</p>
+                      <p className="text-3xl font-bold text-primary">~$2.8B</p>
+                      <p className="text-sm text-muted-foreground">Est. Annual Research Funding</p>
                     </div>
                     <div className="text-center p-4 bg-muted/50 rounded-lg">
-                      <p className="text-3xl font-bold text-primary">150+</p>
-                      <p className="text-sm text-muted-foreground">Research Institutions</p>
+                      <p className="text-3xl font-bold text-primary">~150</p>
+                      <p className="text-sm text-muted-foreground">Est. Research Institutions</p>
                     </div>
                     <div className="text-center p-4 bg-muted/50 rounded-lg">
-                      <p className="text-3xl font-bold text-primary">50K+</p>
-                      <p className="text-sm text-muted-foreground">Researchers Worldwide</p>
+                      <p className="text-3xl font-bold text-primary">~50K</p>
+                      <p className="text-sm text-muted-foreground">Est. Researchers Worldwide</p>
                     </div>
                   </div>
                 </CardContent>

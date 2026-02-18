@@ -196,22 +196,22 @@ const valueProps = [
   { icon: Globe, title: 'Unified Platform', description: 'One place for everything T1D-related' },
 ];
 
-// Testimonials
+// Illustrative testimonials — these are representative scenarios, not verified user quotes.
 const testimonials = [
   {
     quote: "At 2 AM when my CGM failed, the community solutions helped me troubleshoot in minutes. This platform saved my night.",
-    author: "Sarah M.",
-    context: "Device troubleshooting"
+    author: "Community Member",
+    context: "Device troubleshooting (illustrative)"
   },
   {
     quote: "I discovered a clinical trial I qualified for through the research hub. I'm now part of a breakthrough study.",
-    author: "James K.",
-    context: "Research discovery"
+    author: "Community Member",
+    context: "Research discovery (illustrative)"
   },
   {
     quote: "The mental health resources helped me understand I wasn't alone. The community connection changed my perspective on living with T1D.",
-    author: "Alex T.",
-    context: "Community support"
+    author: "Community Member",
+    context: "Community support (illustrative)"
   }
 ];
 
@@ -219,11 +219,11 @@ const testimonials = [
 const faqs = [
   {
     question: "Is my donation tax-deductible?",
-    answer: "We are currently in the process of obtaining 501(c)(3) status. Once approved, donations will be tax-deductible retroactively. We'll notify all donors when this status is confirmed."
+    answer: "We are currently in the process of obtaining 501(c)(3) status. Donations are not tax-deductible at this time. We'll notify all donors if and when this status is confirmed."
   },
   {
     question: "How is my donation used?",
-    answer: "Your donation directly funds platform development (45%), research integrations (25%), community programs (15%), operations (10%), and reserves (5%). We publish quarterly transparency reports."
+    answer: "Your donation directly funds platform development (45%), research integrations (25%), community programs (15%), operations (10%), and reserves (5%). These are target allocations — transparency reporting is planned but not yet available."
   },
   {
     question: "Can I donate anonymously?",

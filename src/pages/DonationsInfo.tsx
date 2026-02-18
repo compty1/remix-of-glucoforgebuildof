@@ -34,7 +34,7 @@ import {
 } from 'recharts';
 import { EntityLogo } from '@/components/ui/entity-logo';
 
-// Comprehensive donations data based on public 990 forms and annual reports
+// Estimated donations data based on public 990 forms and annual reports (approximate, last reviewed 2024)
 const organizationsData = [
   {
     id: '1',
@@ -207,8 +207,11 @@ const DonationsInfo: React.FC = () => {
           </div>
           <h1 className="text-4xl font-bold mb-4">T1D Donations & Funding</h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            Comprehensive analysis of donations to Type 1 Diabetes organizations, research funding allocation, 
+            Estimated analysis of donations to Type 1 Diabetes organizations, research funding allocation, 
             and impact metrics. Data compiled from public 990 forms and annual reports.
+          </p>
+          <p className="text-sm text-muted-foreground mt-2 italic">
+            ⚠ All figures are approximate estimates last reviewed in 2024. Verify with each organization's official filings for current data.
           </p>
         </div>
 
