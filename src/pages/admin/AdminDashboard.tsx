@@ -18,6 +18,8 @@ interface AdminDashboardStats {
   totalDonations: number;
 }
 
+// PLACEHOLDER DATA — No analytics tracking system is implemented yet.
+// These charts show illustrative data only. Replace with real analytics queries when instrumentation is added.
 const userActivityData = [
   { month: 'Jan', users: 120, active: 85 },
   { month: 'Feb', users: 150, active: 102 },
