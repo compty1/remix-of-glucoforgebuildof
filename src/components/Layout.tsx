@@ -71,22 +71,23 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         
         <div className="flex flex-col flex-1">
           {/* Header with brand purple gradient */}
-          <header className="h-16 flex items-center justify-between px-6 hero-gradient sticky top-0 z-50">
+          <header className="h-16 flex items-center justify-between px-4 md:px-6 hero-gradient sticky top-0 z-50">
             <div className="flex items-center gap-4">
-              <SidebarTrigger className="text-white hover:bg-white/10">
+              <SidebarTrigger className="text-white hover:bg-white/10" aria-label="Toggle sidebar">
                 <Menu className="h-5 w-5" />
               </SidebarTrigger>
-              <div className="text-sm text-white/80 font-medium">
+              <div className="hidden md:block text-sm text-white/80 font-medium">
                 Where scientific rigor meets real-world experience
               </div>
             </div>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 md:gap-3">
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={() => setSearchOpen(true)} 
                 className="text-white hover:bg-white/10 gap-2"
+                aria-label="Search (Ctrl+K)"
               >
                 <Search className="h-4 w-4" />
                 <span className="hidden md:inline text-sm">Search</span>
@@ -106,11 +107,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </Button>
               <Button 
                 size="sm" 
-                className="bg-brand-red hover:bg-brand-red-dark text-white shadow-brand"
+                className="hidden sm:flex bg-brand-red hover:bg-brand-red-dark text-white shadow-brand"
                 onClick={() => setDonationModalOpen(true)}
+                aria-label="Make a donation"
               >
                 <Heart className="h-4 w-4 mr-2" />
                 Donate Now
+              </Button>
+              <Button 
+                size="icon" 
+                className="sm:hidden bg-brand-red hover:bg-brand-red-dark text-white shadow-brand"
+                onClick={() => setDonationModalOpen(true)}
+                aria-label="Make a donation"
+              >
+                <Heart className="h-4 w-4" />
               </Button>
             </div>
           </header>
@@ -123,7 +133,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           {/* Footer with brand purple */}
           <footer className="bg-brand-purple-dark py-8">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
                 <div className="space-y-4">
                   <h3 className="font-bold text-white text-lg">GlucoForge</h3>
                   <p className="text-sm text-white/70">

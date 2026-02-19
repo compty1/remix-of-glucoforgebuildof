@@ -299,8 +299,7 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
       
       pdf.save(`glucose-analysis-${fileName.replace(/\.[^/.]+$/, '')}.pdf`);
       toast.success('Report exported successfully');
-    } catch (error) {
-      console.error('Export error:', error);
+    } catch {
       toast.error('Failed to export report');
     } finally {
       setIsExporting(false);

@@ -148,8 +148,7 @@ const ResearchCard: React.FC<ResearchCardProps> = ({ item, onAnalyze }) => {
                     description: "Research paper saved to your reading list.",
                   });
                 }
-              } catch (error) {
-                console.error('Error bookmarking:', error);
+              } catch {
                 toast({
                   title: "Error",
                   description: "Failed to bookmark item. Please try again.",

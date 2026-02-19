@@ -149,8 +149,8 @@ export const SurveyModal: React.FC<SurveyModalProps> = ({
         setCurrentStep(0);
         onClose();
       }, 3000);
-    } catch (err) {
-      console.error('Failed to submit survey response:', err);
+    } catch {
+      // Survey submission error — non-critical
     }
   };
 

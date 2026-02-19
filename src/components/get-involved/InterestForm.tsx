@@ -60,8 +60,7 @@ export function InterestForm() {
         availability: '',
         portfolioUrl: ''
       });
-    } catch (error) {
-      console.error('Error submitting interest:', error);
+    } catch {
       toast.error('Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);

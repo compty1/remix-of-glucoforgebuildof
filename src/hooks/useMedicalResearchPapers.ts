@@ -92,7 +92,7 @@ export const useMedicalResearchPapers = (options?: UseMedicalResearchPapersOptio
       const { error: functionError } = await supabase.functions.invoke('medical-research-aggregator');
 
       if (functionError) {
-        console.error('Medical research aggregator error:', functionError);
+        // Edge function error — use cached data if available
         if (!existingData || existingData.length === 0) {
           throw new Error(`Failed to fetch research papers: ${functionError.message}`);
         }
@@ -115,7 +115,6 @@ export const useMedicalResearchPapers = (options?: UseMedicalResearchPapersOptio
       }
 
     } catch (err) {
-      console.error('Error fetching research papers:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch research papers');
     } finally {
       setLoading(false);

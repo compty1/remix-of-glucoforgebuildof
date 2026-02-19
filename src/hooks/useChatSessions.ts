@@ -93,7 +93,6 @@ export function useChatSessions(contextType?: ContextType, contextId?: string) {
       .maybeSingle();
 
     if (error || !data) {
-      if (error) console.error('Error fetching session:', error);
       return null;
     }
 
@@ -143,7 +142,7 @@ export function useChatSessions(contextType?: ContextType, contextId?: string) {
         description: 'Failed to create chat session',
         variant: 'destructive',
       });
-      console.error('Create session error:', error);
+      // Create session error handled by toast
     },
   });
 
@@ -174,7 +173,7 @@ export function useChatSessions(contextType?: ContextType, contextId?: string) {
       queryClient.invalidateQueries({ queryKey: ['chat-sessions'] });
     },
     onError: (error) => {
-      console.error('Update session error:', error);
+      // Update session error — non-critical
     },
   });
 
@@ -201,7 +200,7 @@ export function useChatSessions(contextType?: ContextType, contextId?: string) {
         description: 'Failed to delete chat session',
         variant: 'destructive',
       });
-      console.error('Delete session error:', error);
+      // Delete session error handled by toast
     },
   });
 
@@ -451,7 +450,7 @@ export function useActiveChat(
       }
 
     } catch (error) {
-      console.error('Chat error:', error);
+      // Chat error handled by toast below
       toast({
         title: 'Chat Error',
         description: error instanceof Error ? error.message : 'Failed to send message',

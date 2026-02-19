@@ -110,7 +110,6 @@ export const useCureMonitoring = () => {
         overallProgress: Math.round(overallProgress),
       });
     } catch (err) {
-      console.error('Error fetching cure monitoring data:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch data');
     } finally {
       setLoading(false);

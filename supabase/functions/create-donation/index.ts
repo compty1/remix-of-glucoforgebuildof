@@ -1,17 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, handleCors, errorResponse, jsonResponse, validateBodySize } from "../_shared/cors.ts";
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResp = handleCors(req);
+  if (corsResp) return corsResp;
 
   // Initialize Supabase client
   const supabaseClient = createClient(
@@ -20,19 +14,23 @@ serve(async (req) => {
   );
 
   try {
-    const { amount } = await req.json();
+    // Validate body size (Item 2085)
+    const sizeErr = await validateBodySize(req);
+    if (sizeErr) return sizeErr;
+
+    const { amount, isRecurring, recurringFrequency } = await req.json();
     
     // Strict input validation
     if (typeof amount !== 'number' || isNaN(amount) || !isFinite(amount)) {
-      throw new Error("Invalid donation amount: must be a valid number");
+      return errorResponse("Invalid donation amount: must be a valid number");
     }
     
     if (amount < 5) {
-      throw new Error("Minimum donation amount is $5");
+      return errorResponse("Minimum donation amount is $5");
     }
     
     if (amount > 100000) {
-      throw new Error("Maximum donation amount is $100,000");
+      return errorResponse("Maximum donation amount is $100,000");
     }
 
     // Get user info if authenticated
@@ -66,43 +64,49 @@ serve(async (req) => {
       }
     }
 
+    // Determine checkout mode based on recurring flag (Item 1801-1805)
+    const mode = isRecurring ? 'subscription' : 'payment';
+
+    // Build price data
+    const priceData: Record<string, unknown> = {
+      currency: 'usd',
+      product_data: {
+        name: isRecurring ? 'Recurring Donation to GlucoForge' : 'Donation to GlucoForge',
+        description: 'Support Type 1 Diabetes research and development',
+      },
+      unit_amount: Math.round(amount * 100),
+    };
+
+    // Add recurring interval for subscriptions
+    if (isRecurring) {
+      const interval = recurringFrequency === 'yearly' ? 'year' : 'month';
+      (priceData as any).recurring = { interval };
+    }
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : userEmail,
       line_items: [
         {
-          price_data: {
-            currency: 'usd',
-            product_data: {
-              name: 'Donation to GlucoForge',
-              description: 'Support Type 1 Diabetes research and development',
-            },
-            unit_amount: Math.round(amount * 100), // Convert to cents
-          },
+          price_data: priceData as any,
           quantity: 1,
         },
       ],
-      mode: 'payment',
+      mode,
       success_url: `${req.headers.get('origin')}/donation-result?donation=success`,
       cancel_url: `${req.headers.get('origin')}/donation-result?donation=cancelled`,
       metadata: {
         donation: 'true',
         amount: amount.toString(),
+        recurring: isRecurring ? 'true' : 'false',
+        frequency: recurringFrequency || 'one-time',
       },
     });
 
-    return new Response(JSON.stringify({ url: session.url, sessionId: session.id }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    });
+    return jsonResponse({ url: session.url, sessionId: session.id });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Donation error:', errorMessage);
-    
-    return new Response(JSON.stringify({ error: errorMessage }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 500,
-    });
+    return errorResponse(errorMessage, 500);
   }
 });

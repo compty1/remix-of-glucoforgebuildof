@@ -87,7 +87,6 @@ export const useExternalReviews = (deviceId: string | undefined) => {
         sources
       });
     } catch (err) {
-      console.error('Error fetching external reviews:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch reviews');
     } finally {
       setLoading(false);
