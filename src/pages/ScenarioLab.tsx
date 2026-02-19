@@ -120,27 +120,52 @@ const ScenarioLab = () => {
           break;
           
         case 'stress_event':
-          glucose = baseline + 25 + Math.sin(time * 0.1) * 15; // Elevated with variation
+          // Cortisol-driven spike: rapid rise over ~60 min, gradual recovery over 2-3h
+          if (time <= 60) {
+            glucose = baseline + (time / 60) * 35; // Rise to ~+35 mg/dL
+          } else {
+            glucose = baseline + 35 * Math.exp(-0.015 * (time - 60)); // Exponential decay
+          }
           break;
           
         case 'sleep_poor':
-          glucose = baseline + 15 + Math.sin(time * 0.05) * 10; // Elevated and unstable
+          // Dawn phenomenon exaggerated + elevated baseline from insulin resistance
+          if (time <= 120) {
+            glucose = baseline + 10 + (time / 120) * 15; // Gradual climb
+          } else {
+            glucose = baseline + 25 - ((time - 120) * 0.08); // Slow recovery
+          }
           break;
           
         case 'illness_cold':
-          glucose = baseline + 20 + Math.random() * 20; // Higher and more variable
+          // Sustained elevation from inflammation + counter-regulatory hormones
+          if (time <= 60) {
+            glucose = baseline + (time / 60) * 30; // Rise phase
+          } else if (time <= 180) {
+            glucose = baseline + 30 + Math.sin((time - 60) * 0.03) * 10; // Elevated plateau with variation
+          } else {
+            glucose = baseline + 30 - ((time - 180) * 0.2); // Slow recovery
+          }
           break;
           
         case 'medication_steroid':
-          glucose = baseline + 40 + (time * 0.1); // Continuous rise
+          // Steroid effect: delayed onset (~2h), peaks at 4-6h, here we show 4h window
+          if (time <= 60) {
+            glucose = baseline + (time / 60) * 10; // Mild early rise
+          } else if (time <= 180) {
+            glucose = baseline + 10 + ((time - 60) / 120) * 50; // Accelerating rise
+          } else {
+            glucose = baseline + 60 + ((time - 180) / 60) * 10; // Continued climb (plateau not yet reached in 4h)
+          }
           break;
           
         default:
           glucose = baseline + Math.random() * 10 - 5;
       }
       
-      // Add some natural variation
-      glucose += Math.random() * 8 - 4;
+      // Add deterministic physiological noise (seeded by time for reproducibility)
+      const noise = Math.sin(time * 0.7) * 3 + Math.cos(time * 1.3) * 2;
+      glucose += noise;
       
       // Keep realistic bounds
       glucose = Math.max(50, Math.min(400, glucose));

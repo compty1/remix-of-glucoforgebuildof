@@ -159,8 +159,24 @@ const DataUpload = () => {
     }
   }, [user]);
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB practical limit for edge functions
+  const ALLOWED_EXTENSIONS = ['.csv', '.txt', '.pdf', '.xlsx', '.xls', '.png', '.jpg', '.jpeg', '.webp'];
+
   const processFile = async (file: File) => {
     if (!user) return;
+
+    // File size validation (item 1354)
+    if (file.size > MAX_FILE_SIZE) {
+      toast.error(`File "${file.name}" exceeds the 10MB limit. Please use a smaller file.`);
+      return;
+    }
+
+    // MIME/extension validation (item 1355)
+    const ext = '.' + file.name.split('.').pop()?.toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      toast.error(`Unsupported file type "${ext}". Accepted: ${ALLOWED_EXTENSIONS.join(', ')}`);
+      return;
+    }
 
     const tempId = crypto.randomUUID();
     const newFile: UploadedFile = {
