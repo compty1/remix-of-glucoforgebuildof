@@ -14,7 +14,9 @@ import {
   FlaskConical,
   Users,
   X,
-  Command
+  Command,
+  MessageSquare,
+  Newspaper
 } from 'lucide-react';
 import { useGlobalSearch, SearchResult } from '@/hooks/useGlobalSearch';
 
@@ -30,6 +32,8 @@ const categoryIcons: Record<string, React.ReactNode> = {
   device: <Cpu className="h-4 w-4" />,
   company: <Building2 className="h-4 w-4" />,
   trial: <Users className="h-4 w-4" />,
+  community: <MessageSquare className="h-4 w-4" />,
+  article: <Newspaper className="h-4 w-4" />,
 };
 
 const categoryColors: Record<string, string> = {
@@ -39,6 +43,19 @@ const categoryColors: Record<string, string> = {
   device: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
   company: 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300',
   trial: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300',
+  community: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
+  article: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
+};
+
+const categoryLabels: Record<string, string> = {
+  project: 'Projects',
+  research: 'Research',
+  medication: 'Medications',
+  device: 'Devices',
+  company: 'Companies',
+  trial: 'Clinical Trials',
+  community: 'Community Posts',
+  article: 'Articles',
 };
 
 export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogProps) {
@@ -109,13 +126,14 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search projects, research, medications, devices..."
+            placeholder="Search devices, medications, research, community posts..."
             className="border-0 focus-visible:ring-0 text-lg placeholder:text-muted-foreground/70"
           />
           {query && (
             <button 
               onClick={() => setQuery('')}
               className="p-1 hover:bg-muted rounded"
+              aria-label="Clear search"
             >
               <X className="h-4 w-4 text-muted-foreground" />
             </button>
@@ -141,6 +159,9 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
               <Command className="h-8 w-8 mx-auto mb-3 opacity-50" />
               <p>Type at least 2 characters to search</p>
               <p className="text-sm mt-2">
+                Searches across devices, medications, research, trials, community posts, and articles
+              </p>
+              <p className="text-sm mt-2">
                 Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">↑</kbd>{' '}
                 <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">↓</kbd> to navigate,{' '}
                 <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs">Enter</kbd> to select
@@ -149,7 +170,7 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
           ) : results.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <Search className="h-8 w-8 mx-auto mb-3 opacity-50" />
-              <p>No results found for "{query}"</p>
+              <p>No results found for &ldquo;{query}&rdquo;</p>
               <p className="text-sm mt-2">Try different keywords or browse categories</p>
             </div>
           ) : (
@@ -158,9 +179,9 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
                 <div key={category} className="mb-4">
                   <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                     {categoryIcons[category]}
-                    {category}s ({items.length})
+                    {categoryLabels[category] || category} ({items.length})
                   </div>
-                  {items.map((result, idx) => {
+                  {items.map((result) => {
                     const globalIndex = results.indexOf(result);
                     const isSelected = globalIndex === selectedIndex;
                     
@@ -183,7 +204,7 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
                           </div>
                         </div>
                         <Badge variant="outline" className="text-xs shrink-0">
-                          {result.category}
+                          {categoryLabels[result.category] || result.category}
                         </Badge>
                       </button>
                     );

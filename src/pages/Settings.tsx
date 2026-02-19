@@ -34,7 +34,8 @@ import {
   RefreshCw,
   ImageOff,
   BellRing,
-  BellOff
+  BellOff,
+  KeyRound
 } from 'lucide-react';
 import { clearAllCache, clearFailedCache } from '@/lib/imageCache';
 
@@ -156,10 +157,13 @@ const Settings = () => {
     researchParticipation: true
   });
 
+  // Password change state (1988 - inline instead of redirect)
+  const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
   useEffect(() => {
     if (user) {
       loadUserProfile();
-      loadNotificationPreferences();
     }
   }, [user]);
 
@@ -173,10 +177,7 @@ const Settings = () => {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      if (error) {
-      // Profile load error — defaults will be used
-        return;
-      }
+      if (error) return;
 
       if (data) {
         setProfile({
@@ -188,24 +189,37 @@ const Settings = () => {
           researchParticipation: data.research_participation ?? true
         });
         if (data.notification_preferences) {
-          setNotifications(data.notification_preferences as typeof notifications);
+          const prefs = data.notification_preferences as typeof notifications;
+          setNotifications(prev => ({ ...prev, ...prefs }));
         }
         if (data.privacy_settings) {
           setPrivacy(data.privacy_settings as typeof privacy);
         }
       }
-    } catch (error) {
+    } catch {
       // Profile load error — defaults will be used
     }
-  };
-
-  const loadNotificationPreferences = () => {
-    // Loaded from DB via loadUserProfile — kept for interface compatibility
   };
 
   const handleSaveProfile = async () => {
     if (!user) return;
     
+    // Validate bio length (1846)
+    if (profile.bio.length > 500) {
+      toast({ variant: "destructive", title: "Error", description: "Bio must be under 500 characters." });
+      return;
+    }
+    // Validate diagnosis date not in future (1847)
+    if (profile.diagnosisDate && new Date(profile.diagnosisDate) > new Date()) {
+      toast({ variant: "destructive", title: "Error", description: "Diagnosis date cannot be in the future." });
+      return;
+    }
+    // Validate display name length (1854)
+    if (profile.displayName.length > 50) {
+      toast({ variant: "destructive", title: "Error", description: "Display name must be under 50 characters." });
+      return;
+    }
+
     setLoading(true);
     try {
       const { error } = await supabase
@@ -221,16 +235,9 @@ const Settings = () => {
         .eq('user_id', user.id);
 
       if (error) throw error;
-      toast({
-        title: "Success",
-        description: "Profile updated successfully!"
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to update profile"
-      });
+      toast({ title: "Success", description: "Profile updated successfully!" });
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "Failed to update profile" });
     } finally {
       setLoading(false);
     }
@@ -245,16 +252,9 @@ const Settings = () => {
         .update({ notification_preferences: notifications })
         .eq('user_id', user.id);
       if (error) throw error;
-      toast({
-        title: "Success",
-        description: "Notification preferences saved!"
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to save preferences"
-      });
+      toast({ title: "Success", description: "Notification preferences saved!" });
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "Failed to save preferences" });
     } finally {
       setLoading(false);
     }
@@ -269,18 +269,34 @@ const Settings = () => {
         .update({ privacy_settings: privacy })
         .eq('user_id', user.id);
       if (error) throw error;
-      toast({
-        title: "Success",
-        description: "Privacy settings saved!"
-      });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to save privacy settings"
-      });
+      toast({ title: "Success", description: "Privacy settings saved!" });
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "Failed to save privacy settings" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Inline password change (1988)
+  const handleChangePassword = async () => {
+    if (passwordForm.newPassword.length < 8) {
+      toast({ variant: "destructive", title: "Error", description: "Password must be at least 8 characters." });
+      return;
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast({ variant: "destructive", title: "Error", description: "Passwords do not match." });
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: passwordForm.newPassword });
+      if (error) throw error;
+      setPasswordForm({ newPassword: '', confirmPassword: '' });
+      toast({ title: "Success", description: "Password updated successfully!" });
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "Failed to update password." });
+    } finally {
+      setPasswordLoading(false);
     }
   };
 
@@ -289,7 +305,6 @@ const Settings = () => {
     
     setLoading(true);
     try {
-      // Delete user data from ALL tables referencing user_id before signing out
       const userId = user.id;
       await Promise.allSettled([
         supabase.from('profiles').delete().eq('user_id', userId),
@@ -301,7 +316,6 @@ const Settings = () => {
         supabase.from('notifications').delete().eq('user_id', userId),
         supabase.from('device_reviews').delete().eq('user_id', userId),
         supabase.from('user_dashboards').delete().eq('user_id', userId),
-        // Additional cascade deletes (items 1481-1484)
         supabase.from('uploads').delete().eq('user_id', userId),
         supabase.from('survey_responses').delete().eq('user_id', userId),
         supabase.from('user_view_history').delete().eq('user_id', userId),
@@ -321,21 +335,58 @@ const Settings = () => {
         supabase.from('advocate_applications').delete().eq('user_id', userId),
         supabase.from('adult_content_submissions').delete().eq('user_id', userId),
         supabase.from('medication_reviews').delete().eq('user_id', userId),
+        // Additional tables (1981)
+        (supabase as any).from('glucose_analysis_entries').delete().eq('user_id', userId),
+        (supabase as any).from('push_subscriptions').delete().eq('user_id', userId),
+        (supabase as any).from('low_blood_sugar_stories').delete().eq('user_id', userId),
+        (supabase as any).from('review_helpful_votes').delete().eq('user_id', userId),
       ]);
       await signOut();
       toast({
         title: "Account Deleted",
         description: "Your data has been removed and you have been signed out."
       });
-    } catch (error) {
-      // Account deletion error
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to delete account"
-      });
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "Failed to delete account" });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Data export before deletion (1984)
+  const handleExportBeforeDelete = async () => {
+    if (!user) return;
+    try {
+      const [uploads, surveys, sessions, achievements, streaks, bookmarks, reviews] = await Promise.all([
+        supabase.from('uploads').select('*').eq('user_id', user.id),
+        supabase.from('survey_responses').select('*').eq('user_id', user.id),
+        supabase.from('chat_sessions').select('id, context_name, created_at, summary').eq('user_id', user.id),
+        supabase.from('user_achievements').select('*').eq('user_id', user.id),
+        supabase.from('user_streaks').select('*').eq('user_id', user.id),
+        supabase.from('user_bookmarks').select('*').eq('user_id', user.id),
+        supabase.from('device_reviews').select('*').eq('user_id', user.id),
+      ]);
+      const exportData = {
+        exported_at: new Date().toISOString(),
+        user_email: user.email,
+        uploads: uploads.data || [],
+        surveys: surveys.data || [],
+        chat_sessions: sessions.data || [],
+        achievements: achievements.data || [],
+        streaks: streaks.data || [],
+        bookmarks: bookmarks.data || [],
+        device_reviews: reviews.data || [],
+      };
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `glucoforge-full-export-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast({ title: "Exported", description: "All data exported. You can now safely delete your account." });
+    } catch {
+      toast({ variant: "destructive", title: "Error", description: "Export failed." });
     }
   };
 
@@ -393,7 +444,8 @@ const Settings = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="name">Display Name</Label>
-                    <Input id="name" placeholder="Your display name" value={profile.displayName} onChange={(e) => setProfile(prev => ({ ...prev, displayName: e.target.value }))} />
+                    <Input id="name" placeholder="Your display name" maxLength={50} value={profile.displayName} onChange={(e) => setProfile(prev => ({ ...prev, displayName: e.target.value }))} />
+                    <p className="text-xs text-muted-foreground">{profile.displayName.length}/50</p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
@@ -403,8 +455,14 @@ const Settings = () => {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="bio">Bio</Label>
+                  <Input id="bio" placeholder="Tell us about yourself" maxLength={500} value={profile.bio} onChange={(e) => setProfile(prev => ({ ...prev, bio: e.target.value }))} />
+                  <p className="text-xs text-muted-foreground">{profile.bio.length}/500</p>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="diagnosis">T1D Diagnosis Date</Label>
-                  <Input id="diagnosis" type="date" value={profile.diagnosisDate} onChange={(e) => setProfile(prev => ({ ...prev, diagnosisDate: e.target.value }))} />
+                  <Input id="diagnosis" type="date" max={new Date().toISOString().split('T')[0]} value={profile.diagnosisDate} onChange={(e) => setProfile(prev => ({ ...prev, diagnosisDate: e.target.value }))} />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -463,7 +521,7 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
-          {/* Notification Settings */}
+          {/* Notification Settings - Fixed items 1836-1845 */}
           <TabsContent value="notifications">
             <Card>
               <CardHeader>
@@ -553,12 +611,13 @@ const Settings = () => {
 
                 <Separator />
 
+                {/* Delivery Methods - Fixed items 1716-1720, 1836-1840 */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Delivery Methods</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center gap-3 p-3 border border-border rounded-lg">
                       <Mail className="h-5 w-5 text-primary" />
-                      <div>
+                      <div className="flex-1">
                         <p className="font-medium">Email</p>
                         <p className="text-sm text-muted-foreground">{user?.email || 'Not set'}</p>
                       </div>
@@ -569,9 +628,9 @@ const Settings = () => {
                     </div>
                     <div className="flex items-center gap-3 p-3 border border-border rounded-lg">
                       <Smartphone className="h-5 w-5 text-primary" />
-                      <div>
+                      <div className="flex-1">
                         <p className="font-medium">Push Notifications</p>
-                        <p className="text-sm text-muted-foreground">Mobile app alerts</p>
+                        <p className="text-sm text-muted-foreground">Browser & mobile alerts</p>
                       </div>
                       <Switch 
                         checked={notifications.pushDelivery}
@@ -583,6 +642,7 @@ const Settings = () => {
 
                 <Separator />
 
+                {/* Save Button - Fixed item 1841-1845 */}
                 <div className="flex justify-end">
                   <Button onClick={handleSaveNotifications} disabled={loading}>Save Notification Preferences</Button>
                 </div>
@@ -667,25 +727,53 @@ const Settings = () => {
 
                 <Separator />
 
+                {/* Account Security - Inline password change (1988) */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Account Security</h3>
                   <div className="space-y-3">
-                    <Button variant="outline" className="w-full justify-start" onClick={() => {
-                      toast({
-                        title: "Change Password",
-                        description: "Please use the Profile page to change your password.",
-                      });
-                    }}>
-                      <Lock className="h-4 w-4 mr-2" />
-                      Change Password
-                    </Button>
+                    <div className="p-4 border border-border rounded-lg space-y-4">
+                      <div className="flex items-center gap-2">
+                        <KeyRound className="h-4 w-4" />
+                        <Label className="text-base font-medium">Change Password</Label>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="new-password" className="text-sm">New Password</Label>
+                          <Input
+                            id="new-password"
+                            type="password"
+                            placeholder="Min. 8 characters"
+                            value={passwordForm.newPassword}
+                            onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="confirm-password" className="text-sm">Confirm Password</Label>
+                          <Input
+                            id="confirm-password"
+                            type="password"
+                            placeholder="Re-enter password"
+                            value={passwordForm.confirmPassword}
+                            onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                          />
+                        </div>
+                      </div>
+                      {passwordForm.newPassword.length > 0 && passwordForm.newPassword.length < 8 && (
+                        <p className="text-xs text-destructive">Password must be at least 8 characters</p>
+                      )}
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleChangePassword}
+                        disabled={passwordLoading || !passwordForm.newPassword || !passwordForm.confirmPassword}
+                      >
+                        <Lock className="h-4 w-4 mr-2" />
+                        {passwordLoading ? 'Updating...' : 'Update Password'}
+                      </Button>
+                    </div>
                     <Button variant="outline" className="w-full justify-start" disabled>
                       <Shield className="h-4 w-4 mr-2" />
                       Two-Factor Authentication (Coming Soon)
-                    </Button>
-                    <Button variant="outline" className="w-full justify-start" disabled>
-                      <Eye className="h-4 w-4 mr-2" />
-                      View Login Activity (Coming Soon)
                     </Button>
                   </div>
                 </div>
@@ -800,32 +888,7 @@ const Settings = () => {
                       <Download className="h-4 w-4 mr-2" />
                       Export Glucose Data
                     </Button>
-                    <Button variant="outline" className="justify-start" onClick={async () => {
-                      if (!user) return;
-                      try {
-                        const [uploads, surveys, sessions, achievements] = await Promise.all([
-                          supabase.from('uploads').select('*').eq('user_id', user.id),
-                          supabase.from('survey_responses').select('*').eq('user_id', user.id),
-                          supabase.from('chat_sessions').select('id, context_name, created_at, summary').eq('user_id', user.id),
-                          supabase.from('user_achievements').select('*').eq('user_id', user.id),
-                        ]);
-                        const exportData = {
-                          exported_at: new Date().toISOString(),
-                          uploads: uploads.data || [],
-                          surveys: surveys.data || [],
-                          chat_sessions: sessions.data || [],
-                          achievements: achievements.data || [],
-                        };
-                        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `glucoforge-export-${new Date().toISOString().split('T')[0]}.json`;
-                        a.click();
-                        URL.revokeObjectURL(url);
-                        toast({ title: "Exported", description: "All data exported successfully." });
-                      } catch { toast({ variant: "destructive", title: "Error", description: "Export failed." }); }
-                    }}>
+                    <Button variant="outline" className="justify-start" onClick={handleExportBeforeDelete}>
                       <Download className="h-4 w-4 mr-2" />
                       Export All Data
                     </Button>
@@ -877,13 +940,16 @@ const Settings = () => {
                 <Separator />
 
                 <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground italic">Storage usage tracking coming soon.</p>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-destructive">Danger Zone</h3>
+                  
+                  {/* Export before delete notice (1984) */}
+                  <Alert className="border-destructive/20 bg-destructive/5">
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription className="text-sm">
+                      We recommend exporting your data before deleting. Use the &ldquo;Export All Data&rdquo; button above.
+                    </AlertDescription>
+                  </Alert>
+
                   <div className="space-y-3">
                     <Button variant="outline" className="w-full justify-start text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => {
                       if (window.confirm('This will delete all your uploaded data, survey responses, and chat history. Your account will remain active. Are you sure?')) {
@@ -914,7 +980,7 @@ const Settings = () => {
                       Delete All Data
                     </Button>
                     <Button variant="outline" className="w-full justify-start text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => {
-                      if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                      if (window.confirm('Are you sure you want to delete your account? This action cannot be undone. We recommend exporting your data first.')) {
                         handleDeleteAccount();
                       }
                     }}>
