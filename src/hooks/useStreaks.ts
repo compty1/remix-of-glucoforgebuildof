@@ -160,9 +160,8 @@ export function useStreaks() {
   const recordVisit = useCallback(async () => {
     try {
       await updateStreakRef.current.mutateAsync('platform_visit');
-    } catch (error) {
+    } catch {
       // Silently fail for visit tracking
-      console.log('Visit tracking:', error);
     }
   }, []);
 

@@ -37,8 +37,7 @@ export default function Contact() {
       if (error) throw error;
       toast.success('Message sent successfully! We\'ll get back to you within 24 hours.');
       setFormData({ name: '', email: '', subject: '', category: '', message: '' });
-    } catch (error) {
-      console.error('Error submitting contact form:', error);
+    } catch {
       toast.error('Failed to send message. Please try again.');
     } finally {
       setSubmitting(false);
@@ -120,7 +119,7 @@ export default function Contact() {
                   <CardTitle>Send us a Message</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                  <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="name">Name *</Label>
@@ -128,8 +127,9 @@ export default function Contact() {
                           id="name"
                           type="text"
                           value={formData.name}
-                          onChange={(e) => handleChange('name', e.target.value)}
+                          onChange={(e) => handleChange('name', e.target.value.slice(0, 100))}
                           required
+                          maxLength={100}
                           placeholder="Your full name"
                         />
                       </div>
@@ -141,6 +141,7 @@ export default function Contact() {
                           value={formData.email}
                           onChange={(e) => handleChange('email', e.target.value)}
                           required
+                          pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$"
                           placeholder="your.email@example.com"
                         />
                       </div>
@@ -170,8 +171,9 @@ export default function Contact() {
                         id="subject"
                         type="text"
                         value={formData.subject}
-                        onChange={(e) => handleChange('subject', e.target.value)}
+                        onChange={(e) => handleChange('subject', e.target.value.slice(0, 200))}
                         required
+                        maxLength={200}
                         placeholder="Brief description of your inquiry"
                       />
                     </div>
@@ -181,11 +183,13 @@ export default function Contact() {
                       <Textarea
                         id="message"
                         value={formData.message}
-                        onChange={(e) => handleChange('message', e.target.value)}
+                        onChange={(e) => handleChange('message', e.target.value.slice(0, 5000))}
                         required
+                        maxLength={5000}
                         placeholder="Please provide details about your inquiry..."
                         className="min-h-[150px]"
                       />
+                      <p className="text-xs text-muted-foreground text-right">{formData.message.length}/5000</p>
                     </div>
 
                     <Button type="submit" className="w-full" disabled={submitting}>

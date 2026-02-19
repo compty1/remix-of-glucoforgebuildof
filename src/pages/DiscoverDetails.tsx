@@ -47,7 +47,6 @@ export default function DiscoverDetails() {
           .maybeSingle();
 
         if (fetchError) {
-          console.error('Error fetching discovery:', fetchError);
           throw new Error('Failed to load discovery');
         }
 
@@ -61,7 +60,6 @@ export default function DiscoverDetails() {
           sources: Array.isArray(data.sources) ? data.sources as unknown as Source[] : []
         });
       } catch (err) {
-        console.error('Error fetching discovery:', err);
         setError(err instanceof Error ? err.message : 'Failed to load discovery');
       } finally {
         setLoading(false);

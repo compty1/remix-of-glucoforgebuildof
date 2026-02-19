@@ -51,8 +51,7 @@ export default function Fixes() {
         });
 
         setFixes(formattedData);
-      } catch (error) {
-        console.error('Error fetching fixes:', error);
+      } catch {
       } finally {
         setLoading(false);
       }

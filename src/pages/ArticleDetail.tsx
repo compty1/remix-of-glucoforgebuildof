@@ -70,8 +70,7 @@ export default function ArticleDetail() {
           .update({ views: data.views + 1 })
           .eq('id', data.id);
       }
-    } catch (error) {
-      console.error('Error fetching article:', error);
+    } catch {
       toast.error('Article not found');
       navigate('/articles');
     } finally {

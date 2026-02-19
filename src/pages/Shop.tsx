@@ -92,8 +92,7 @@ export default function Shop() {
       } else {
         throw new Error('No checkout URL returned');
       }
-    } catch (error) {
-      console.error('Checkout error:', error);
+    } catch {
       toast.error('Failed to start checkout. Please try again.');
     } finally {
       setCheckoutLoading(false);

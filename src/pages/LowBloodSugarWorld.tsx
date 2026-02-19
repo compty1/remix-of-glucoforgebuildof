@@ -172,8 +172,8 @@ export default function LowBloodSugarWorld() {
 
       queryClient.invalidateQueries({ queryKey: ['low-blood-sugar-stories'] });
       toast.success('Upvoted!');
-    } catch (error) {
-      console.error('Error upvoting:', error);
+    } catch {
+      // Upvote failed
       toast.error('Failed to upvote');
     }
   };

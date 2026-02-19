@@ -106,8 +106,7 @@ const FinancialTools = () => {
 
       if (error) throw error;
       setResources(data || []);
-    } catch (error) {
-      console.error('Error fetching financial resources:', error);
+    } catch {
       toast({
         title: "Error",
         description: "Failed to load financial resources",

@@ -30,8 +30,7 @@ export const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
           .maybeSingle();
 
         setIsAdmin(!!data);
-      } catch (error) {
-        console.error('Error checking admin status:', error);
+      } catch {
         setIsAdmin(false);
       } finally {
         setCheckingAdmin(false);

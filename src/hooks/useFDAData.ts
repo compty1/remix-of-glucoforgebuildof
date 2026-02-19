@@ -61,14 +61,12 @@ export const useFDAData = (eventType?: string): UseFDADataResult => {
       const { error: functionError } = await supabase.functions.invoke('fda-data-feed');
 
       if (functionError) {
-        console.error('FDA data feed error:', functionError);
         throw new Error(`Failed to refresh FDA data: ${functionError.message}`);
       }
 
       // Re-query DB after refresh
       await fetchFromDB();
     } catch (err) {
-      console.error('Error refreshing FDA data:', err);
       setError(err instanceof Error ? err.message : 'Failed to refresh FDA data');
     } finally {
       setLoading(false);
@@ -92,7 +90,6 @@ export const useFDAData = (eventType?: string): UseFDADataResult => {
         setError(null);
         await fetchFromDB();
       } catch (err) {
-        console.error('Error fetching FDA data:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch FDA data');
       } finally {
         setLoading(false);

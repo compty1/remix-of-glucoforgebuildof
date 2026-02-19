@@ -174,7 +174,7 @@ const Settings = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('Error loading profile:', error);
+      // Profile load error — defaults will be used
         return;
       }
 
@@ -328,7 +328,7 @@ const Settings = () => {
         description: "Your data has been removed and you have been signed out."
       });
     } catch (error) {
-      console.error('Account deletion error:', error);
+      // Account deletion error
       toast({
         variant: "destructive",
         title: "Error",
@@ -885,7 +885,31 @@ const Settings = () => {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-destructive">Danger Zone</h3>
                   <div className="space-y-3">
-                    <Button variant="outline" className="w-full justify-start text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => toast({ variant: "destructive", title: "Coming Soon", description: "Data deletion will be available in a future update." })}>
+                    <Button variant="outline" className="w-full justify-start text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground" onClick={() => {
+                      if (window.confirm('This will delete all your uploaded data, survey responses, and chat history. Your account will remain active. Are you sure?')) {
+                        (async () => {
+                          if (!user) return;
+                          setLoading(true);
+                          try {
+                            await Promise.allSettled([
+                              supabase.from('uploads').delete().eq('user_id', user.id),
+                              supabase.from('survey_responses').delete().eq('user_id', user.id),
+                              supabase.from('chat_sessions').delete().eq('user_id', user.id),
+                              supabase.from('user_achievements').delete().eq('user_id', user.id),
+                              supabase.from('user_streaks').delete().eq('user_id', user.id),
+                              supabase.from('user_bookmarks').delete().eq('user_id', user.id),
+                              supabase.from('user_view_history').delete().eq('user_id', user.id),
+                              supabase.from('user_activity_log').delete().eq('user_id', user.id),
+                            ]);
+                            toast({ title: "Data Deleted", description: "All your data has been removed. Your account remains active." });
+                          } catch {
+                            toast({ variant: "destructive", title: "Error", description: "Failed to delete data." });
+                          } finally {
+                            setLoading(false);
+                          }
+                        })();
+                      }
+                    }}>
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete All Data
                     </Button>

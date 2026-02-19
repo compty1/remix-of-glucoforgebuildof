@@ -53,8 +53,7 @@ export default function Discoveries() {
     try {
       await supabase.functions.invoke('seed-discoveries');
       window.location.reload();
-    } catch (error) {
-      console.error('Failed to seed data:', error);
+    } catch {
     }
   };
 

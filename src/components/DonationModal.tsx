@@ -14,8 +14,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Heart } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-// Initialize Stripe with publishable key from environment
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || "");
+// Initialize Stripe with publishable key from environment (Item 1812-1814)
+const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 interface DonationModalProps {
   open: boolean;
@@ -53,6 +54,15 @@ export const DonationModal = ({ open, onOpenChange }: DonationModalProps) => {
     setLoading(true);
 
     try {
+      if (!stripePromise) {
+        toast({
+          variant: "destructive",
+          title: "Payment Not Configured",
+          description: "Stripe is not configured yet. Please contact support.",
+        });
+        return;
+      }
+
       const stripe = await stripePromise;
       
       if (!stripe) {
@@ -80,7 +90,7 @@ export const DonationModal = ({ open, onOpenChange }: DonationModalProps) => {
         throw new Error("No checkout URL received");
       }
     } catch (error) {
-      console.error('Stripe error:', error);
+      // Stripe payment error — logged for debugging
       toast({
         variant: "destructive",
         title: "Payment failed",

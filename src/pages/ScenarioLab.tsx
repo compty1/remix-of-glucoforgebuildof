@@ -68,8 +68,7 @@ const ScenarioLab = () => {
 
       if (error) throw error;
       setSimulations(data || []);
-    } catch (error) {
-      console.error('Error fetching simulations:', error);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -206,8 +205,7 @@ const ScenarioLab = () => {
         title: "Simulation Complete",
         description: "Your glucose prediction has been generated",
       });
-    } catch (error) {
-      console.error('Error running simulation:', error);
+    } catch {
       toast({
         title: "Error",
         description: "Failed to run simulation",

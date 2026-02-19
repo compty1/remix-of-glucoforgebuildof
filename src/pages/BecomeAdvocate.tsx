@@ -125,8 +125,7 @@ export default function BecomeAdvocate() {
 
       toast.success('Application submitted successfully! We will be in touch soon.');
       setFormStep(4); // Success state
-    } catch (error) {
-      console.error('Error submitting application:', error);
+    } catch {
       toast.error('Failed to submit application. Please try again.');
     } finally {
       setIsSubmitting(false);

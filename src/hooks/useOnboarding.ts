@@ -43,8 +43,8 @@ export const useOnboarding = () => {
           showModal: true
         }));
       }
-    } catch (error) {
-      console.log('Onboarding check:', error);
+    } catch {
+      // Onboarding check failed — defaults will be used
     }
   };
 
@@ -74,8 +74,8 @@ export const useOnboarding = () => {
       if (role === 'newly_diagnosed') {
         await startFirst100Days();
       }
-    } catch (error) {
-      console.error('Error completing onboarding:', error);
+    } catch {
+      // Onboarding completion error
     }
   };
 
@@ -89,9 +89,9 @@ export const useOnboarding = () => {
         }
       });
 
-      console.log('Started First 100 Days program:', data);
-    } catch (error) {
-      console.error('Error starting First 100 Days:', error);
+      // First 100 Days program started
+    } catch {
+      // First 100 Days initialization failed — non-critical
     }
   };
 

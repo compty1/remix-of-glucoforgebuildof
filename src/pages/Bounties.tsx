@@ -46,8 +46,7 @@ const Bounties = () => {
 
       if (error) throw error;
       setBounties(data || []);
-    } catch (error) {
-      console.error('Error fetching bounties:', error);
+    } catch {
       toast({
         title: "Error",
         description: "Failed to load bounties",
@@ -81,8 +80,7 @@ const Bounties = () => {
       });
 
       fetchBounties();
-    } catch (error) {
-      console.error('Error claiming bounty:', error);
+    } catch {
       toast({
         title: "Error",
         description: "Failed to claim bounty. It may have been claimed by someone else.",

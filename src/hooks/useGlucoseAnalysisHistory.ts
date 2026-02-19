@@ -77,8 +77,7 @@ export const useGlucoseAnalysisHistory = () => {
 
       setHistory(entries);
       calculateStats(entries);
-    } catch (err) {
-      console.error('Error fetching glucose analysis history:', err);
+    } catch {
       setError('Failed to load analysis history');
     } finally {
       setLoading(false);
@@ -155,8 +154,7 @@ export const useGlucoseAnalysisHistory = () => {
 
       if (error) throw error;
       return data || [];
-    } catch (err) {
-      console.error('Error fetching auto-detected patterns:', err);
+    } catch {
       return [];
     }
   };
