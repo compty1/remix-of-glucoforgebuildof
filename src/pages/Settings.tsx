@@ -144,7 +144,9 @@ const Settings = () => {
     researchUpdates: false,
     communityPosts: true,
     deviceAlerts: true,
-    weeklyReports: true
+    weeklyReports: true,
+    emailDelivery: true,
+    pushDelivery: false
   });
 
   const [privacy, setPrivacy] = useState({
@@ -198,7 +200,7 @@ const Settings = () => {
   };
 
   const loadNotificationPreferences = () => {
-    // Notification preferences are now loaded from the database in loadUserProfile
+    // Loaded from DB via loadUserProfile — kept for interface compatibility
   };
 
   const handleSaveProfile = async () => {
@@ -562,7 +564,7 @@ const Settings = () => {
                         <p className="text-sm text-muted-foreground">{user?.email || 'Not set'}</p>
                       </div>
                       <Switch 
-                        checked={notifications.weeklyReports}
+                        checked={notifications.emailDelivery}
                         onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, emailDelivery: checked }))}
                       />
                     </div>
@@ -573,11 +575,17 @@ const Settings = () => {
                         <p className="text-sm text-muted-foreground">Mobile app alerts</p>
                       </div>
                       <Switch 
-                        checked={notifications.deviceAlerts}
+                        checked={notifications.pushDelivery}
                         onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, pushDelivery: checked }))}
                       />
                     </div>
                   </div>
+                </div>
+
+                <Separator />
+
+                <div className="flex justify-end">
+                  <Button onClick={handleSaveNotifications} disabled={loading}>Save Notification Preferences</Button>
                 </div>
               </CardContent>
             </Card>

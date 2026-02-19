@@ -172,27 +172,21 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
                 .order('completed_at', { ascending: false })
                 .limit(3);
               
-              const items: ActivityItem[] = [];
-              (activityData || []).forEach(u => {
-                items.push({
-                  type: 'upload',
-                  label: u.file_name || 'Data uploaded',
-                  time: u.uploaded_at ? formatDistanceToNow(new Date(u.uploaded_at), { addSuffix: true }) : 'recently'
-                });
-              });
-              (surveys || []).forEach(s => {
-                items.push({
-                  type: 'survey',
-                  label: 'Survey completed',
-                  time: s.completed_at ? formatDistanceToNow(new Date(s.completed_at), { addSuffix: true }) : 'recently'
-                });
-              });
-              // Sort by most recent
-              items.sort((a, b) => a.time.localeCompare(b.time));
+              
+              // Sort by most recent (reverse chronological by raw timestamp)
+              const allRaw = [
+                ...(activityData || []).map(u => ({ type: 'upload' as const, label: u.file_name || 'Data uploaded', raw: u.uploaded_at || '' })),
+                ...(surveys || []).map(s => ({ type: 'survey' as const, label: 'Survey completed', raw: s.completed_at || '' }))
+              ].sort((a, b) => new Date(b.raw).getTime() - new Date(a.raw).getTime());
+              const sortedItems: ActivityItem[] = allRaw.map(r => ({
+                type: r.type,
+                label: r.label,
+                time: r.raw ? formatDistanceToNow(new Date(r.raw), { addSuffix: true }) : 'recently'
+              }));
 
               setData({
-                items: items.slice(0, 5),
-                hasActivity: items.length > 0
+                items: sortedItems.slice(0, 5),
+                hasActivity: sortedItems.length > 0
               } as RecentActivityData);
             } else {
               setData({ items: [], hasActivity: false } as RecentActivityData);

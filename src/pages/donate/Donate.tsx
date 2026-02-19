@@ -37,7 +37,11 @@ export default function Donate() {
     
     try {
       const { data, error } = await supabase.functions.invoke('create-donation', {
-        body: { amount: currentAmount } // Send dollars - edge function converts to cents
+        body: { 
+          amount: currentAmount, // Send dollars - edge function converts to cents
+          recurring: isRecurring,
+          frequency: isRecurring ? recurringFrequency : undefined
+        }
       });
 
       if (error) throw error;

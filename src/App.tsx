@@ -175,7 +175,7 @@ const AppContent = () => {
         <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
         <Route path="/bounties" element={<ProtectedRoute><Bounties /></ProtectedRoute>} />
         <Route path="/financial-tools" element={<ProtectedRoute><FinancialTools /></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><AdminRoute><Admin /></AdminRoute></ProtectedRoute>} />
         <Route path="/admin/dashboard" element={<ProtectedRoute><AdminRoute><AdminDashboard /></AdminRoute></ProtectedRoute>} />
         <Route path="/admin/users" element={<ProtectedRoute><AdminRoute><AdminUsers /></AdminRoute></ProtectedRoute>} />
         <Route path="/admin/content" element={<ProtectedRoute><AdminRoute><AdminContent /></AdminRoute></ProtectedRoute>} />
@@ -213,6 +213,7 @@ const AppContent = () => {
         <Route path="/get-involved" element={<GetInvolved />} />
         <Route path="/trials" element={<TrialMatching />} />
         <Route path="/quality-of-life" element={<QualityOfLife />} />
+        {/* Redirect legacy route to canonical */}
         <Route path="/donation-result" element={<DonateSuccess />} />
         <Route path="/qa-checklist" element={<ProtectedRoute><AdminRoute><QAChecklist /></AdminRoute></ProtectedRoute>} />
         
@@ -246,11 +247,11 @@ const AppContent = () => {
         <Route path="/find-diabetics" element={<ProtectedRoute><FindDiabeticNearMe /></ProtectedRoute>} />
         
         {/* Admin Content Management Routes */}
-        <Route path="/admin/articles" element={<AdminRoute><AdminArticles /></AdminRoute>} />
-        <Route path="/admin/low-sugar-stories" element={<AdminRoute><AdminLowSugarStories /></AdminRoute>} />
-        <Route path="/admin/warriors" element={<AdminRoute><AdminWarriors /></AdminRoute>} />
-        <Route path="/admin/shop" element={<AdminRoute><AdminShop /></AdminRoute>} />
-        <Route path="/admin/content-moderation" element={<AdminRoute><ContentModeration /></AdminRoute>} />
+        <Route path="/admin/articles" element={<ProtectedRoute><AdminRoute><AdminArticles /></AdminRoute></ProtectedRoute>} />
+        <Route path="/admin/low-sugar-stories" element={<ProtectedRoute><AdminRoute><AdminLowSugarStories /></AdminRoute></ProtectedRoute>} />
+        <Route path="/admin/warriors" element={<ProtectedRoute><AdminRoute><AdminWarriors /></AdminRoute></ProtectedRoute>} />
+        <Route path="/admin/shop" element={<ProtectedRoute><AdminRoute><AdminShop /></AdminRoute></ProtectedRoute>} />
+        <Route path="/admin/content-moderation" element={<ProtectedRoute><AdminRoute><ContentModeration /></AdminRoute></ProtectedRoute>} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>
