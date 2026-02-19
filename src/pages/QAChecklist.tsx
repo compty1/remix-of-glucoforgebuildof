@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, XCircle, AlertTriangle, Download } from 'lucide-react';
+import { useState } from 'react';
 
 interface QAItem {
   id: string;
@@ -21,8 +21,7 @@ const qaItems: QAItem[] = [
   { id: 'auth-3', category: 'Authentication', item: 'User logout works', status: 'pass' },
   { id: 'auth-4', category: 'Authentication', item: 'Session persistence', status: 'pass' },
   { id: 'auth-5', category: 'Authentication', item: 'Profile creation on signup', status: 'pass' },
-  { id: 'auth-6', category: 'Authentication', item: 'Password reset flow (forgot password)', status: 'pass' },
-  { id: 'auth-7', category: 'Authentication', item: 'Token-based password update', status: 'pass' },
+  { id: 'auth-6', category: 'Authentication', item: 'Password reset flow', status: 'pass' },
   
   // Navigation & Routing
   { id: 'nav-1', category: 'Navigation', item: 'All header links work', status: 'pass' },
@@ -31,75 +30,52 @@ const qaItems: QAItem[] = [
   { id: 'nav-4', category: 'Navigation', item: 'Admin routes protected properly', status: 'pass' },
   
   // Dashboard & Widgets
-  { id: 'dash-1', category: 'Dashboard', item: 'Dashboard loads with live data', status: 'pass' },
-  { id: 'dash-2', category: 'Dashboard', item: 'Widgets display real data', status: 'pass' },
+  { id: 'dash-1', category: 'Dashboard', item: 'Dashboard loads', status: 'pass' },
+  { id: 'dash-2', category: 'Dashboard', item: 'Widgets show real data from uploads', status: 'warning', description: 'Requires user to have uploaded CGM data; shows empty state otherwise' },
   { id: 'dash-3', category: 'Dashboard', item: 'Dashboard customization works', status: 'pass' },
-  { id: 'dash-4', category: 'Dashboard', item: 'Widget interactions functional', status: 'pass' },
+  { id: 'dash-4', category: 'Dashboard', item: 'Device status shows accurate connection state', status: 'warning', description: 'No CGM API integration yet — shows linked/unlinked based on user_preferences' },
   
   // Data Features
   { id: 'data-1', category: 'Data Features', item: 'File upload works', status: 'pass' },
-  { id: 'data-2', category: 'Data Features', item: 'Upload progress displays', status: 'pass' },
-  { id: 'data-3', category: 'Data Features', item: 'File processing simulates correctly', status: 'pass' },
+  { id: 'data-2', category: 'Data Features', item: 'Upload progress displays', status: 'warning', description: 'Shows animated pulse bar, not real byte-level progress' },
+  { id: 'data-3', category: 'Data Features', item: 'File processing via edge function', status: 'pass' },
   { id: 'data-4', category: 'Data Features', item: 'Upload records saved to database', status: 'pass' },
+  { id: 'data-5', category: 'Data Features', item: 'File size enforcement', status: 'fail', description: 'No file size validation implemented despite claiming 50MB limit' },
+  
+  // Settings
+  { id: 'set-1', category: 'Settings', item: 'Profile settings save to DB', status: 'pass' },
+  { id: 'set-2', category: 'Settings', item: 'Notification preferences save to DB', status: 'pass' },
+  { id: 'set-3', category: 'Settings', item: 'Privacy settings save to DB', status: 'pass' },
+  { id: 'set-4', category: 'Settings', item: 'Theme switching works', status: 'pass' },
+  { id: 'set-5', category: 'Settings', item: '2FA available', status: 'pending', description: 'Coming soon — not yet implemented' },
+  { id: 'set-6', category: 'Settings', item: 'Data export functional', status: 'pending', description: 'Coming soon — not yet implemented' },
+  { id: 'set-7', category: 'Settings', item: 'Account deletion cascades all data', status: 'warning', description: 'Deletes from 9 tables but 15+ more may reference user_id' },
   
   // Interactive Features
-  { id: 'feat-1', category: 'Interactive Features', item: 'Glycemic journal functional', status: 'pass' },
-  { id: 'feat-2', category: 'Interactive Features', item: 'Journal entries save to database', status: 'pass' },
-  { id: 'feat-3', category: 'Interactive Features', item: 'Trigger report generates', status: 'pass' },
-  { id: 'feat-4', category: 'Interactive Features', item: 'Scenario lab simulations work', status: 'pass' },
-  { id: 'feat-5', category: 'Interactive Features', item: 'Glucose curves display correctly', status: 'pass' },
-  { id: 'feat-6', category: 'Interactive Features', item: 'Simulation history saves', status: 'pass' },
+  { id: 'feat-1', category: 'Interactive Features', item: 'Scenario lab simulations render', status: 'pass' },
+  { id: 'feat-2', category: 'Interactive Features', item: 'Scenario lab uses physiological model', status: 'fail', description: 'Uses Math.random() and simple sine waves, not a real glucose model' },
+  { id: 'feat-3', category: 'Interactive Features', item: 'Journal entries save to DB', status: 'pass' },
   
-  // Settings & Configuration
-  { id: 'set-1', category: 'Settings', item: 'Settings page loads', status: 'pass' },
-  { id: 'set-2', category: 'Settings', item: 'Profile settings functional', status: 'pass' },
-  { id: 'set-3', category: 'Settings', item: 'Notification preferences work', status: 'pass' },
-  { id: 'set-4', category: 'Settings', item: 'Privacy settings functional', status: 'pass' },
-  { id: 'set-5', category: 'Settings', item: 'Theme switching works', status: 'pass' },
-  
-  // Donations & Payments
+  // Payments
   { id: 'pay-1', category: 'Payments', item: 'Donation modal opens', status: 'pass' },
   { id: 'pay-2', category: 'Payments', item: 'Stripe checkout creates session', status: 'pass' },
-  { id: 'pay-3', category: 'Payments', item: 'Donation flow redirects properly', status: 'pass' },
-  { id: 'pay-4', category: 'Payments', item: 'Success/cancel pages work', status: 'pass' },
+  { id: 'pay-3', category: 'Payments', item: 'Shop checkout works', status: 'pass' },
+  { id: 'pay-4', category: 'Payments', item: 'Webhook signature verification', status: 'warning', description: 'Falls back to unverified parsing when STRIPE_WEBHOOK_SECRET not set' },
   
-  // Shop Features
-  { id: 'shop-1', category: 'Shop', item: 'Shop products display (10 products)', status: 'pass' },
-  { id: 'shop-2', category: 'Shop', item: 'Product cards with images/pricing', status: 'pass' },
-  { id: 'shop-3', category: 'Shop', item: 'Shopping cart functionality', status: 'pass' },
-  { id: 'shop-4', category: 'Shop', item: 'Stripe checkout for shop orders', status: 'pass' },
-  { id: 'shop-5', category: 'Shop', item: 'Order success/cancel pages', status: 'pass' },
+  // Content
+  { id: 'content-1', category: 'Content', item: 'Community posts display from DB', status: 'pass' },
+  { id: 'content-2', category: 'Content', item: 'Device issues display from DB', status: 'pass' },
+  { id: 'content-3', category: 'Content', item: 'Trend analysis has data pipeline', status: 'fail', description: 'trend_analysis_metrics table has no data ingestion process' },
+  { id: 'content-4', category: 'Content', item: 'Email digest sends on schedule', status: 'fail', description: 'Edge function exists but no cron trigger configured' },
   
-  // Content Hubs
-  { id: 'content-1', category: 'Content Hubs', item: 'Warrior Spotlight stories display (13 stories)', status: 'pass' },
-  { id: 'content-2', category: 'Content Hubs', item: 'Story detail modal with full content', status: 'pass' },
-  { id: 'content-3', category: 'Content Hubs', item: 'Community posts aggregated (220 posts)', status: 'pass' },
-  { id: 'content-4', category: 'Content Hubs', item: 'Device issues tracked (20 issues)', status: 'pass' },
-  
-  // Admin Features
+  // Admin
   { id: 'admin-1', category: 'Admin', item: 'Admin role detection works', status: 'pass' },
   { id: 'admin-2', category: 'Admin', item: 'Admin routes protected', status: 'pass' },
-  { id: 'admin-3', category: 'Admin', item: 'Admin sidebar shows for admins only', status: 'pass' },
-  { id: 'admin-4', category: 'Admin', item: 'Admin user management (list/roles)', status: 'pass' },
-  { id: 'admin-5', category: 'Admin', item: 'Admin shop product CRUD', status: 'pass' },
-  { id: 'admin-6', category: 'Admin', item: 'Admin content management', status: 'pass' },
-  
-  // Data Connections
-  { id: 'db-1', category: 'Database', item: 'All tables accessible', status: 'pass' },
-  { id: 'db-2', category: 'Database', item: 'RLS policies functional', status: 'pass' },
-  { id: 'db-3', category: 'Database', item: 'User data isolation works', status: 'pass' },
-  { id: 'db-4', category: 'Database', item: 'Edge functions operational', status: 'pass' },
-  { id: 'db-5', category: 'Database', item: 'Data seeding functions working', status: 'pass' },
-  
-  // Performance & UX
-  { id: 'perf-1', category: 'Performance', item: 'Pages load quickly', status: 'pass' },
-  { id: 'perf-2', category: 'Performance', item: 'Loading states display', status: 'pass' },
-  { id: 'perf-3', category: 'Performance', item: 'Error handling works', status: 'pass' },
-  { id: 'perf-4', category: 'Performance', item: 'Responsive design functional', status: 'pass' },
+  { id: 'admin-3', category: 'Admin', item: 'Admin dashboard charts use real data', status: 'fail', description: 'Uses fabricated monthly growth arrays' },
 ];
 
 export default function QAChecklist() {
-  const [items, setItems] = useState<QAItem[]>(qaItems);
+  const [items] = useState<QAItem[]>(qaItems);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
   const categories = ['All', ...Array.from(new Set(items.map(item => item.category)))];
@@ -139,13 +115,9 @@ export default function QAChecklist() {
   const generateReport = () => {
     const report = {
       timestamp: new Date().toISOString(),
-      summary: {
-        totalItems,
-        completionRate,
-        statusCounts
-      },
+      summary: { totalItems, completionRate, statusCounts },
       results: items,
-      conclusion: completionRate >= 95 ? 'PRODUCTION READY' : 'REQUIRES ATTENTION'
+      conclusion: statusCounts.fail === 0 ? 'ALL TESTS PASSING' : `${statusCounts.fail} ITEMS NEED ATTENTION`
     };
 
     const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
@@ -166,7 +138,7 @@ export default function QAChecklist() {
               QA Testing Checklist
             </h1>
             <p className="text-muted-foreground">
-              Comprehensive testing results for GlucoForge platform functionality
+              Internal testing status — admin access only
             </p>
           </div>
 
@@ -199,31 +171,29 @@ export default function QAChecklist() {
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="text-2xl font-bold text-primary">{completionRate}%</div>
-                <div className="text-sm text-muted-foreground">Complete</div>
+                <div className="text-sm text-muted-foreground">Pass Rate</div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Progress Bar */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Overall Progress
-                <Badge variant={completionRate >= 95 ? 'default' : 'secondary'} className="ml-2">
-                  {completionRate >= 95 ? 'PRODUCTION READY' : 'IN DEVELOPMENT'}
+                <Badge variant={statusCounts.fail === 0 ? 'default' : 'destructive'}>
+                  {statusCounts.fail === 0 ? 'ALL PASSING' : `${statusCounts.fail} FAILURES`}
                 </Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
               <Progress value={completionRate} className="h-3" />
               <p className="text-sm text-muted-foreground mt-2">
-                {statusCounts.pass} of {totalItems} tests passing
+                {statusCounts.pass} of {totalItems} tests passing · {statusCounts.warning} warnings · {statusCounts.pending} pending
               </p>
             </CardContent>
           </Card>
 
-          {/* Category Filter */}
-          <div className="flex gap-2 mb-6">
+          <div className="flex flex-wrap gap-2 mb-6">
             {categories.map((category) => (
               <Button
                 key={category}
@@ -236,7 +206,6 @@ export default function QAChecklist() {
             ))}
           </div>
 
-          {/* Test Results */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
@@ -270,54 +239,6 @@ export default function QAChecklist() {
                     </div>
                   </div>
                 ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Conclusion */}
-          <Card className="mt-8">
-            <CardHeader>
-              <CardTitle>QA Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-4 bg-success/5 rounded-lg border border-success/20">
-                  <h3 className="font-semibold text-success mb-2">✅ Completed Features</h3>
-                  <ul className="text-sm text-success/80 space-y-1">
-                    <li>• Complete authentication system with registration, login, session management, and password reset</li>
-                    <li>• Full navigation and protected routing functionality</li>
-                    <li>• Live dashboard with real data connections and interactive widgets</li>
-                    <li>• File upload system with progress tracking and database integration</li>
-                    <li>• Glycemic journal with database storage and trigger analysis</li>
-                    <li>• Scenario lab with glucose curve simulations and history</li>
-                    <li>• Settings management with profile, notifications, and preferences</li>
-                    <li>• Stripe donation integration with checkout flow</li>
-                    <li>• ID Jewelry Shop with 10 products, cart, and Stripe checkout</li>
-                    <li>• Warrior Spotlight with 13 community stories and detail modals</li>
-                    <li>• Device issues tracking with 20 community-reported problems</li>
-                    <li>• Admin functionality with role-based access, user management, and content CRUD</li>
-                    <li>• Comprehensive database setup with RLS policies and data seeding</li>
-                    <li>• 30+ Edge functions for payments, seeding, and data processing</li>
-                  </ul>
-                </div>
-
-                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                  <h3 className="font-semibold text-primary mb-2">🎯 Platform Status</h3>
-                  <p className="text-primary/80">
-                    GlucoForge is now a fully functional, production-ready platform with all core features implemented. 
-                    Users can register, reset passwords, upload data, track glucose patterns, run simulations, browse community stories, 
-                    shop for ID jewelry, manage settings, and make donations. The platform connects to live data sources 
-                    and provides a complete diabetes management experience with 220+ community posts and real seeded data.
-                  </p>
-                </div>
-
-                <div className="p-4 bg-accent rounded-lg border border-border">
-                  <h3 className="font-semibold text-accent-foreground mb-2">🚀 Ready for Launch</h3>
-                  <p className="text-accent-foreground/80">
-                    All critical functionality has been implemented and tested. The platform is ready for production deployment 
-                    with real users and can immediately begin supporting the Type 1 Diabetes community with research and management tools.
-                  </p>
-                </div>
               </div>
             </CardContent>
           </Card>

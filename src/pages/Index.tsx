@@ -90,22 +90,7 @@ const Index = () => {
             <Button
               size="lg"
               className="bg-brand-red hover:bg-brand-red-dark text-white text-xl px-12 py-4 h-auto font-bold shadow-brand hover:shadow-glow transition-all"
-              onClick={async () => {
-                try {
-                  const { data, error } = await supabase.functions.invoke('create-donation', {
-                    body: { amount: 25 }
-                  });
-
-                  if (error) throw error;
-
-                  if (data?.url) {
-                    window.open(data.url, '_blank', 'noopener,noreferrer');
-                  }
-                } catch (error) {
-                  console.error('Donation error:', error);
-                }
-              }}>
-
+              onClick={() => navigate('/donate')}>
               Donate Now
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -150,8 +135,8 @@ const Index = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
             <Card className="text-center command-center-widget">
               <CardContent className="pt-6">
-                <p className="text-4xl md:text-5xl font-bold text-primary mb-2">8.4M</p>
-                <p className="text-sm text-muted-foreground">People with Type 1 diabetes worldwide</p>
+                <p className="text-4xl md:text-5xl font-bold text-primary mb-2">~8.4M</p>
+                <p className="text-sm text-muted-foreground">People with T1D worldwide <span className="text-xs italic">(IDF Atlas, 2022 est.)</span></p>
               </CardContent>
             </Card>
             <Card className="text-center command-center-widget">
@@ -163,13 +148,13 @@ const Index = () => {
             <Card className="text-center command-center-widget">
               <CardContent className="pt-6">
                 <p className="text-4xl md:text-5xl font-bold text-primary mb-2">100+</p>
-                <p className="text-sm text-muted-foreground">Daily micro-decisions about health</p>
+                <p className="text-sm text-muted-foreground">Est. daily micro-decisions about health</p>
               </CardContent>
             </Card>
             <Card className="text-center command-center-widget">
               <CardContent className="pt-6">
                 <p className="text-4xl md:text-5xl font-bold text-primary mb-2">5+</p>
-                <p className="text-sm text-muted-foreground">Apps needed to manage T1D effectively</p>
+                <p className="text-sm text-muted-foreground">Apps often needed for T1D management</p>
               </CardContent>
             </Card>
           </div>
@@ -189,7 +174,7 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          {/* Emma's Story */}
+          {/* Community Vision */}
           <Card className="command-center-widget border-l-4 border-l-primary bg-primary/5">
             <CardContent className="p-8 md:p-12">
               <div className="flex flex-col md:flex-row gap-8 items-center">
@@ -200,16 +185,16 @@ const Index = () => {
                 </div>
                 <div>
                   <h4 className="text-xl font-semibold text-foreground mb-2">
-                    Your Impact in Action: Emma's Story
+                    What We're Building Toward
                   </h4>
                   <p className="text-muted-foreground mb-4 leading-relaxed">
-                    When 16-year-old Emma's Dexcom sensor kept failing during her soccer games, she felt defeated. 
-                    Through GlucoForge's AI-powered community insights, Emma discovered a sports-specific adhesive 
-                    technique shared by other T1D athletes. Within days, she was back on the field with confidence.
+                    Imagine a 16-year-old whose sensor keeps failing during soccer. Through community-sourced insights,
+                    she discovers a sports-specific adhesive technique shared by other T1D athletes — and gets back 
+                    on the field with confidence. That's the kind of small, life-changing fix we're building tools to surface.
                   </p>
-                  <blockquote className="text-lg font-medium text-primary italic border-l-2 border-primary pl-4">
-                    "GlucoForge didn't just solve my technical problem—it gave me back my dreams."
-                  </blockquote>
+                  <p className="text-xs text-muted-foreground italic">
+                    Illustrative scenario — not a real user testimonial.
+                  </p>
                 </div>
               </div>
               <div className="mt-8 text-center">
@@ -217,9 +202,8 @@ const Index = () => {
                   size="lg"
                   onClick={() => navigate("/get-involved")}
                   className="gap-2">
-
                   <Heart className="h-5 w-5" />
-                  Help Create More Stories
+                  Help Make This Real
                 </Button>
               </div>
             </CardContent>
@@ -247,7 +231,7 @@ const Index = () => {
             { icon: Globe, label: 'Global Data' },
             { icon: TrendingUp, label: 'New Findings' },
             { icon: Database, label: 'Clinical Data' },
-            { icon: Brain, label: 'Advanced AI Patterns' },
+            { icon: Brain, label: 'Community Patterns' },
             { icon: Users, label: 'Community Discussions' },
             { icon: PieChart, label: 'Impact Visualizer' }].
             map((item, i) =>
@@ -286,7 +270,7 @@ const Index = () => {
               </CardHeader>
               <CardContent className="text-center">
                 <p className="text-muted-foreground">
-                  Core infrastructure, volunteer system, and community outreach. File 501(c)(3) paperwork.
+                  Core infrastructure, volunteer system, and community outreach. Pursuing 501(c)(3) status.
                 </p>
                 <Badge className="mt-4">Current Phase</Badge>
               </CardContent>
@@ -374,6 +358,7 @@ const Index = () => {
                 </p>
                 <blockquote className="text-primary font-medium italic">
                   "Knowledge is the most powerful tool in managing Type 1 diabetes."
+                  <span className="text-xs text-muted-foreground not-italic block mt-1">— Adapted from diabetes education principles</span>
                 </blockquote>
               </CardContent>
             </Card>
