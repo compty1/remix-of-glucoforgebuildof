@@ -404,8 +404,7 @@ const PsychLoadComparisonSection: React.FC = () => {
       pdf.save('T1D-Psychological-Load-Comparison.pdf');
       
       toast.success('PDF downloaded successfully');
-    } catch (error) {
-      console.error('PDF generation error:', error);
+    } catch {
       toast.error('Failed to generate PDF');
     } finally {
       setIsGeneratingPdf(false);

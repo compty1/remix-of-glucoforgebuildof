@@ -99,6 +99,15 @@ export default function Fixes() {
             Real solutions from the T1D community for common challenges and device issues.
           </p>
           
+          {fixes.length === 0 ? (
+            <div className="text-center py-16">
+              <ThumbsUp className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">No Fixes Available Yet</h3>
+              <p className="text-muted-foreground max-w-md mx-auto">
+                Community fixes and workarounds for device issues will appear here as they are reported and verified.
+              </p>
+            </div>
+          ) : (
           <div className="space-y-6">
             {fixes.map((fix) => (
               <Card key={fix.id} className="hover:shadow-md transition-shadow">
@@ -140,6 +149,7 @@ export default function Fixes() {
               </Card>
             ))}
           </div>
+          )}
         </div>
       </div>
     </Layout>

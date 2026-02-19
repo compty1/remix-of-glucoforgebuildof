@@ -31,13 +31,11 @@ const withAdmin = <P extends object>(Component: ComponentType<P>) => {
             .maybeSingle();
 
           if (error) {
-            console.error('Error checking admin status:', error);
             setIsAdmin(false);
           } else {
             setIsAdmin(!!userRoles);
           }
-        } catch (error) {
-          console.error('Error checking admin status:', error);
+        } catch {
           setIsAdmin(false);
         } finally {
           setLoading(false);

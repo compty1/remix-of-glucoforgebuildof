@@ -62,7 +62,6 @@ export const useEmailSubscription = (): UseEmailSubscriptionResult => {
         setSubscription(null);
       }
     } catch (err) {
-      console.error('Error fetching subscription:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch subscription');
     } finally {
       setLoading(false);
@@ -97,7 +96,6 @@ export const useEmailSubscription = (): UseEmailSubscriptionResult => {
       });
       return true;
     } catch (err) {
-      console.error('Error subscribing:', err);
       setError(err instanceof Error ? err.message : 'Failed to subscribe');
       return false;
     }
@@ -118,7 +116,6 @@ export const useEmailSubscription = (): UseEmailSubscriptionResult => {
       setSubscription(prev => prev ? { ...prev, is_active: false } : null);
       return true;
     } catch (err) {
-      console.error('Error unsubscribing:', err);
       setError(err instanceof Error ? err.message : 'Failed to unsubscribe');
       return false;
     }
@@ -141,7 +138,6 @@ export const useEmailSubscription = (): UseEmailSubscriptionResult => {
       setSubscription(prev => prev ? { ...prev, preferences, is_active: true } : null);
       return true;
     } catch (err) {
-      console.error('Error updating preferences:', err);
       setError(err instanceof Error ? err.message : 'Failed to update preferences');
       return false;
     }

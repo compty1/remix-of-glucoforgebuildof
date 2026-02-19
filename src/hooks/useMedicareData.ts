@@ -37,13 +37,12 @@ export const useMedicareData = () => {
       const { error: functionError } = await supabase.functions.invoke('medicare-data-feed');
 
       if (functionError) {
-        console.error('Edge function error:', functionError);
+        // Edge function error — will use cached data
         throw functionError;
       }
 
       await fetchFromDB();
     } catch (err) {
-      console.error('Error refreshing Medicare data:', err);
       setError(err instanceof Error ? err.message : 'Failed to refresh Medicare data');
     } finally {
       setLoading(false);
@@ -57,7 +56,6 @@ export const useMedicareData = () => {
         setError(null);
         await fetchFromDB();
       } catch (err) {
-        console.error('Error fetching Medicare data:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch Medicare coverage data');
       } finally {
         setLoading(false);

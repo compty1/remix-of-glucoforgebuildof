@@ -101,8 +101,7 @@ export default function GlucoseUpload() {
         ));
 
         toast.success(`${file.name} analyzed successfully - ${analysisResult?.readingsCount || 0} readings processed`);
-      } catch (error) {
-        console.error('Upload error:', error);
+      } catch (err) {
         
         setUploadedFiles(prev => prev.map(f => 
           f.id === fileId
@@ -110,7 +109,7 @@ export default function GlucoseUpload() {
             : f
         ));
         
-        const errorMessage = error instanceof Error ? error.message : 'Failed to analyze file';
+        const errorMessage = err instanceof Error ? err.message : 'Failed to analyze file';
         toast.error(`${file.name}: ${errorMessage}`);
       }
     }

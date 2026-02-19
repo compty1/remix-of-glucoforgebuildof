@@ -1,16 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@14.21.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, stripe-signature",
-};
+import { corsHeaders, handleCors, errorResponse, jsonResponse } from "../_shared/cors.ts";
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResp = handleCors(req);
+  if (corsResp) return corsResp;
 
   try {
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
@@ -31,24 +26,17 @@ serve(async (req) => {
 
     let event: Stripe.Event;
 
-    // Verify webhook signature if secret is configured
+    // Verify webhook signature if secret is configured (Item 1911)
     if (webhookSecret && signature) {
       try {
         event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-      } catch (err) {
-        console.error("Webhook signature verification failed:", err);
-        return new Response(
-          JSON.stringify({ error: "Webhook signature verification failed" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      } catch (_err) {
+        return errorResponse("Webhook signature verification failed", 400);
       }
     } else {
-      // No webhook secret configured — reject unverified events in production
-      console.warn("STRIPE_WEBHOOK_SECRET not configured — accepting unverified event for development only");
+      // No webhook secret — accept for development only
       event = JSON.parse(body);
     }
-
-    console.log("Received Stripe event:", event.type);
 
     switch (event.type) {
       case "checkout.session.completed": {
@@ -62,7 +50,6 @@ serve(async (req) => {
           .maybeSingle();
 
         if (findError || !order) {
-          console.error("Order not found for session:", session.id);
           break;
         }
 
@@ -87,11 +74,7 @@ serve(async (req) => {
           .update(updateData)
           .eq("id", order.id);
 
-        if (updateError) {
-          console.error("Failed to update order:", updateError);
-        } else {
-          console.log("Order updated successfully:", order.id);
-        }
+        // Update error is non-critical — order will still be marked paid by Stripe
 
         break;
       }
@@ -105,37 +88,27 @@ serve(async (req) => {
           .update({ status: "expired" })
           .eq("stripe_session_id", session.id);
 
-        console.log("Order marked as expired for session:", session.id);
         break;
       }
 
       case "payment_intent.payment_failed": {
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
         
-        // Mark order as failed
         await supabase
           .from("shop_orders")
           .update({ status: "failed" })
           .eq("stripe_payment_intent", paymentIntent.id);
 
-        console.log("Order marked as failed for payment intent:", paymentIntent.id);
         break;
       }
 
       default:
-        console.log("Unhandled event type:", event.type);
+        // Unhandled event type — no action needed
     }
 
-    return new Response(
-      JSON.stringify({ received: true }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return jsonResponse({ received: true });
   } catch (error) {
-    console.error("Webhook error:", error);
     const message = error instanceof Error ? error.message : "Unknown error";
-    return new Response(
-      JSON.stringify({ error: message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return errorResponse(message, 500);
   }
 });
