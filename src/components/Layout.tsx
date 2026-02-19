@@ -98,10 +98,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               {/* Notification Center */}
               <NotificationCenter className="text-white hover:bg-white/10" />
               
-              <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="text-white hover:bg-white/10">
+              <Button variant="ghost" size="icon" onClick={() => navigate("/settings")} className="text-white hover:bg-white/10" aria-label="Settings">
                 <User className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={handleSignOut} className="text-white hover:bg-white/10">
+              <Button variant="ghost" size="icon" onClick={handleSignOut} className="text-white hover:bg-white/10" aria-label="Sign out">
                 <LogOut className="h-4 w-4" />
               </Button>
               <Button 

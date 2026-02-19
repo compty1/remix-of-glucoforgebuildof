@@ -150,9 +150,13 @@ export default function AdminSettings() {
     <Layout>
       <div className="container mx-auto px-6 py-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-heading font-bold text-foreground mb-8">
+          <h1 className="text-4xl font-heading font-bold text-foreground mb-2">
             System Settings
           </h1>
+          <p className="text-sm text-muted-foreground mb-8 flex items-center gap-2">
+            <Badge variant="outline" className="text-warning border-warning/30">Demo Mode</Badge>
+            Settings on this page are for demonstration only and are not persisted to the database.
+          </p>
 
           <Tabs defaultValue="features" className="space-y-6">
             <TabsList>

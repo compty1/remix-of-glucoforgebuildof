@@ -40,10 +40,8 @@ export function useEngagementTracking() {
         lastTrackedDate.current = today;
         hasTrackedToday.current = true;
         
-        console.log('Engagement tracked for', today);
-      } catch (error) {
+      } catch {
         // Silently fail - don't disrupt user experience
-        console.log('Engagement tracking error:', error);
       }
     };
 
@@ -53,7 +51,7 @@ export function useEngagementTracking() {
     return () => clearTimeout(timer);
   }, [user, recordVisit, checkTrigger]);
 
-  return null;
+  return;
 }
 
 /**

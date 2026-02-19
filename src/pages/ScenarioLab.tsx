@@ -89,7 +89,7 @@ const ScenarioLab = () => {
           } else if (time <= 60) {
             glucose = baseline - 15 + ((time - 30) * 0.3); // Recovery
           } else {
-            glucose = baseline - 6 + Math.random() * 5; // Stabilize lower
+            glucose = baseline - 6 + Math.sin(time * 0.4) * 2.5; // Stabilize lower with deterministic variation
           }
           break;
           
@@ -160,7 +160,7 @@ const ScenarioLab = () => {
           break;
           
         default:
-          glucose = baseline + Math.random() * 10 - 5;
+          glucose = baseline + Math.sin(time * 0.5) * 5; // Deterministic gentle variation
       }
       
       // Add deterministic physiological noise (seeded by time for reproducibility)
