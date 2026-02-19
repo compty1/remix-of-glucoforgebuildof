@@ -259,6 +259,30 @@ const Settings = () => {
     }
   };
 
+  const handleSavePrivacy = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ privacy_settings: privacy })
+        .eq('user_id', user.id);
+      if (error) throw error;
+      toast({
+        title: "Success",
+        description: "Privacy settings saved!"
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save privacy settings"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeleteAccount = async () => {
     if (!user) return;
     
@@ -517,7 +541,10 @@ const Settings = () => {
                         <p className="font-medium">Email</p>
                         <p className="text-sm text-muted-foreground">{user?.email || 'Not set'}</p>
                       </div>
-                      <Switch defaultChecked />
+                      <Switch 
+                        checked={notifications.weeklyReports}
+                        onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, emailDelivery: checked }))}
+                      />
                     </div>
                     <div className="flex items-center gap-3 p-3 border border-border rounded-lg">
                       <Smartphone className="h-5 w-5 text-primary" />
@@ -525,7 +552,10 @@ const Settings = () => {
                         <p className="font-medium">Push Notifications</p>
                         <p className="text-sm text-muted-foreground">Mobile app alerts</p>
                       </div>
-                      <Switch defaultChecked />
+                      <Switch 
+                        checked={notifications.deviceAlerts}
+                        onCheckedChange={(checked) => setNotifications(prev => ({ ...prev, pushDelivery: checked }))}
+                      />
                     </div>
                   </div>
                 </div>
@@ -600,6 +630,12 @@ const Settings = () => {
                       }
                     />
                   </div>
+                </div>
+
+                <Separator />
+
+                <div className="flex justify-end">
+                  <Button onClick={handleSavePrivacy} disabled={loading}>Save Privacy Settings</Button>
                 </div>
 
                 <Separator />

@@ -5,9 +5,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
-import { useAccessibilityAudit, usePerformanceMonitor } from "@/utils/qa-utils";
 import { useEngagementTracking } from "@/hooks/useEngagementTracking";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import Journey from "./pages/Journey";
 import About from "./pages/About";
@@ -132,10 +133,6 @@ const AppContent = () => {
   
   // Track user engagement (visits, streaks) - must be inside QueryClientProvider
   useEngagementTracking();
-  
-  // QA utilities for development
-  useAccessibilityAudit();
-  usePerformanceMonitor();
 
   useEffect(() => {
     const cleanup = initialize();
@@ -144,6 +141,7 @@ const AppContent = () => {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/journey" element={<Journey />} />
@@ -214,7 +212,7 @@ const AppContent = () => {
         <Route path="/trials" element={<TrialMatching />} />
         <Route path="/quality-of-life" element={<QualityOfLife />} />
         <Route path="/donation-result" element={<DonateSuccess />} />
-        <Route path="/qa-checklist" element={<QAChecklist />} />
+        <Route path="/qa-checklist" element={<ProtectedRoute><AdminRoute><QAChecklist /></AdminRoute></ProtectedRoute>} />
         
         {/* New Routes - Phases 3-24 */}
         <Route path="/low-blood-sugar-world" element={<LowBloodSugarWorld />} />
@@ -260,13 +258,15 @@ const AppContent = () => {
 
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <AppContent />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <AppContent />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

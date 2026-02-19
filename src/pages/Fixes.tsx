@@ -45,8 +45,8 @@ export default function Fixes() {
             category: issue.devices?.category || 'Device',
             difficulty: difficulty as 'Easy' | 'Medium' | 'Hard',
             votes: issue.community_reports || 0,
-            source: 'Community',
-            link: '#'
+            source: issue.source_url ? 'Community Report' : 'Platform Data',
+            link: issue.source_url || ''
           };
         });
 
@@ -126,12 +126,16 @@ export default function Fixes() {
                       </div>
                       <Badge variant="outline">{fix.source}</Badge>
                     </div>
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={fix.link} target="_blank" rel="noopener noreferrer">
-                        View Fix
-                        <ExternalLink className="h-4 w-4 ml-2" />
-                      </a>
-                    </Button>
+                    {fix.link ? (
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={fix.link} target="_blank" rel="noopener noreferrer">
+                          View Fix
+                          <ExternalLink className="h-4 w-4 ml-2" />
+                        </a>
+                      </Button>
+                    ) : (
+                      <Badge variant="outline" className="text-xs text-muted-foreground">Solution in description</Badge>
+                    )}
                   </div>
                 </CardContent>
               </Card>

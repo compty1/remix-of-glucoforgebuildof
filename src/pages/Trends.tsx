@@ -53,23 +53,18 @@ const Trends = () => {
   const refreshTrends = async () => {
     setRefreshing(true);
     try {
-      // Call the update_trends function
-      const { error } = await supabase.rpc('update_trends');
-      
-      if (error) throw error;
-      
-      // Refresh the data
+      // Re-fetch latest data from the table
       await fetchTrends();
       
       toast({
-        title: "Trends Updated",
-        description: "Latest community data has been analyzed",
+        title: "Data Refreshed",
+        description: "Showing latest available trend data",
       });
     } catch (error) {
       console.error('Error refreshing trends:', error);
       toast({
         title: "Error",
-        description: "Failed to refresh trend analysis",
+        description: "Failed to refresh trend data",
         variant: "destructive",
       });
     } finally {

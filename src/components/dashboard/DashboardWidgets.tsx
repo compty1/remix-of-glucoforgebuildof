@@ -2,34 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
+import { useNavigate } from 'react-router-dom';
+import { formatDistanceToNow } from 'date-fns';
 import { 
   TrendingUp, 
   Activity, 
   Users, 
   Heart, 
   Upload, 
-  BarChart3, 
   Calendar, 
-  Bookmark, 
   Zap,
   Wifi,
-  Battery,
-  AlertTriangle,
   CheckCircle,
   Clock,
-  MessageSquare,
-  Beaker,
-  ExternalLink,
   Droplets,
-  Smartphone,
-  Plus,
   ArrowUpRight,
-  TrendingDown
 } from 'lucide-react';
 
 interface DashboardWidgetsProps {
@@ -37,16 +27,53 @@ interface DashboardWidgetsProps {
   isEditing: boolean;
 }
 
-interface WidgetProps {
-  title: string;
-  onRemove?: () => void;
-  onSettings?: () => void;
+interface GlucoseData {
+  currentBG: number | null;
+  trend?: string;
+  timeInRange?: number;
+  estA1C?: string;
+  cv?: number;
+  hasData: boolean;
+  isDemo?: boolean;
+  lastUpdated?: string;
 }
 
-// Main component for the responsive dashboard
+interface DeviceData {
+  cgmConnected: boolean;
+  cgmModel?: string;
+}
+
+interface CommunityData {
+  activeMembers: number;
+  postsToday: number;
+  userContributions: number;
+}
+
+interface ActivityItem {
+  type: 'upload' | 'survey';
+  label: string;
+  time: string;
+}
+
+interface RecentActivityData {
+  items: ActivityItem[];
+  hasActivity: boolean;
+}
+
+interface HealthMetricsData {
+  timeInRange?: number;
+  estA1C?: string;
+  cv?: number;
+  hasData: boolean;
+  isDemo?: boolean;
+}
+
+type WidgetData = GlucoseData | DeviceData | CommunityData | RecentActivityData | HealthMetricsData | { loaded: boolean } | null;
+
 export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, isEditing }) => {
   const { user } = useAuthStore();
-  const [data, setData] = useState<any>(null);
+  const navigate = useNavigate();
+  const [data, setData] = useState<WidgetData>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -54,10 +81,8 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
       try {
         setLoading(true);
         
-        // Fetch data based on widget type
         switch (widgetId) {
           case 'glucose-trends':
-            // Try to get latest user glucose analysis
             if (user?.id) {
               const { data: uploads } = await supabase
                 .from('uploads')
@@ -67,39 +92,31 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
                 .limit(1);
               
               if (uploads && uploads.length > 0 && uploads[0].detailed_analysis) {
-                const analysis = uploads[0].detailed_analysis as any;
-                const metrics = analysis?.metrics || analysis?.rawMetrics || {};
+                const analysis = uploads[0].detailed_analysis as Record<string, unknown>;
+                const metrics = (analysis?.metrics || analysis?.rawMetrics || {}) as Record<string, number | undefined>;
+                const avgGlucose = analysis?.avgGlucose as number | undefined;
+                const tir = analysis?.timeInRange as number | undefined;
+                const estA1c = analysis?.estimatedA1C as number | undefined;
+                const cvVal = analysis?.cv as number | undefined;
+
                 setData({
-                  currentBG: metrics.currentBG || metrics.mean || Math.round(analysis?.avgGlucose || 127),
-                  trend: metrics.trend || (metrics.recentSlope > 0 ? 'rising' : metrics.recentSlope < 0 ? 'falling' : 'stable'),
-                  timeInRange: Math.round(metrics.timeInRange || analysis?.timeInRange || 78),
-                  estA1C: (metrics.gmi || metrics.estimatedA1c || analysis?.estimatedA1C || 6.8).toFixed(1),
-                  cv: Math.round(metrics.cv || metrics.coefficientOfVariation || analysis?.cv || 24),
-                  hasData: true
-                });
+                  currentBG: metrics.currentBG ?? metrics.mean ?? (avgGlucose ? Math.round(avgGlucose) : null),
+                  trend: metrics.trend ? String(metrics.trend) : undefined,
+                  timeInRange: metrics.timeInRange != null ? Math.round(metrics.timeInRange) : (tir != null ? Math.round(tir) : undefined),
+                  estA1C: (metrics.gmi ?? metrics.estimatedA1c ?? estA1c)?.toFixed(1),
+                  cv: metrics.cv != null ? Math.round(metrics.cv) : (cvVal != null ? Math.round(cvVal) : undefined),
+                  hasData: true,
+                  lastUpdated: uploads[0].uploaded_at
+                } as GlucoseData);
               } else {
-                // No user data - show prompt to upload
-                setData({
-                  currentBG: null,
-                  hasData: false
-                });
+                setData({ currentBG: null, hasData: false } as GlucoseData);
               }
             } else {
-              // Not logged in - show sample data
-              setData({
-                currentBG: 127,
-                trend: 'stable',
-                timeInRange: 78,
-                estA1C: 6.8,
-                cv: 24,
-                hasData: false,
-                isDemo: true
-              });
+              setData({ currentBG: null, hasData: false, isDemo: true } as GlucoseData);
             }
             break;
           
           case 'device-status':
-            // Get user's device preferences if available
             if (user?.id) {
               const { data: prefs } = await supabase
                 .from('user_preferences')
@@ -110,28 +127,18 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
               setData({
                 cgmConnected: !!prefs?.cgm_device_id,
                 cgmModel: prefs?.device_brands?.[0] || 'CGM',
-                sensorDaysLeft: 3,
-                batteryLevel: 85,
-                lastReading: '2 min ago'
-              });
+              } as DeviceData);
             } else {
-              setData({
-                cgmConnected: true,
-                sensorDaysLeft: 3,
-                batteryLevel: 85,
-                lastReading: '2 min ago'
-              });
+              setData({ cgmConnected: false } as DeviceData);
             }
             break;
           
-          case 'community-insights':
-            const { data: posts, count } = await supabase
+          case 'community-insights': {
+            const { count } = await supabase
               .from('community_posts')
-              .select('*', { count: 'exact' })
-              .gte('published_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-              .limit(50);
+              .select('*', { count: 'exact', head: true })
+              .gte('published_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
             
-            // Get user's contribution count if logged in
             let userContributions = 0;
             if (user?.id) {
               const { count: contribCount } = await supabase
@@ -145,8 +152,9 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
               activeMembers: count || 0,
               postsToday: count || 0,
               userContributions
-            });
+            } as CommunityData);
             break;
+          }
             
           case 'recent-activity':
             if (user?.id) {
@@ -164,18 +172,34 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
                 .order('completed_at', { ascending: false })
                 .limit(3);
               
-              setData({
-                uploads: activityData || [],
-                surveys: surveys || [],
-                hasActivity: (activityData?.length || 0) + (surveys?.length || 0) > 0
+              const items: ActivityItem[] = [];
+              (activityData || []).forEach(u => {
+                items.push({
+                  type: 'upload',
+                  label: u.file_name || 'Data uploaded',
+                  time: u.uploaded_at ? formatDistanceToNow(new Date(u.uploaded_at), { addSuffix: true }) : 'recently'
+                });
               });
+              (surveys || []).forEach(s => {
+                items.push({
+                  type: 'survey',
+                  label: 'Survey completed',
+                  time: s.completed_at ? formatDistanceToNow(new Date(s.completed_at), { addSuffix: true }) : 'recently'
+                });
+              });
+              // Sort by most recent
+              items.sort((a, b) => a.time.localeCompare(b.time));
+
+              setData({
+                items: items.slice(0, 5),
+                hasActivity: items.length > 0
+              } as RecentActivityData);
             } else {
-              setData({ uploads: [], surveys: [], hasActivity: false });
+              setData({ items: [], hasActivity: false } as RecentActivityData);
             }
             break;
             
           case 'health-metrics':
-            // Similar to glucose trends but with more detail
             if (user?.id) {
               const { data: uploads } = await supabase
                 .from('uploads')
@@ -185,25 +209,19 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
                 .limit(1);
               
               if (uploads && uploads.length > 0 && uploads[0].detailed_analysis) {
-                const analysis = uploads[0].detailed_analysis as any;
-                const metrics = analysis?.metrics || {};
+                const analysis = uploads[0].detailed_analysis as Record<string, unknown>;
+                const metrics = (analysis?.metrics || {}) as Record<string, number | undefined>;
                 setData({
-                  timeInRange: Math.round(metrics.timeInRange || 78),
-                  estA1C: (metrics.gmi || 6.8).toFixed(1),
-                  cv: Math.round(metrics.cv || 24),
+                  timeInRange: metrics.timeInRange != null ? Math.round(metrics.timeInRange) : undefined,
+                  estA1C: metrics.gmi?.toFixed(1),
+                  cv: metrics.cv != null ? Math.round(metrics.cv) : undefined,
                   hasData: true
-                });
+                } as HealthMetricsData);
               } else {
-                setData({ hasData: false });
+                setData({ hasData: false } as HealthMetricsData);
               }
             } else {
-              setData({
-                timeInRange: 78,
-                estA1C: 6.8,
-                cv: 24,
-                hasData: false,
-                isDemo: true
-              });
+              setData({ hasData: false, isDemo: true } as HealthMetricsData);
             }
             break;
             
@@ -212,11 +230,11 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
             break;
             
           default:
-            setData({});
+            setData(null);
         }
       } catch (error) {
         console.error('Error fetching widget data:', error);
-        setData({});
+        setData(null);
       } finally {
         setLoading(false);
       }
@@ -241,7 +259,9 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
 
   const renderWidget = () => {
     switch (widgetId) {
-      case 'glucose-trends':
+      case 'glucose-trends': {
+        const gd = data as GlucoseData | null;
+        const hasRealData = gd?.hasData && gd?.currentBG != null;
         return (
           <Card className="h-full">
             <CardHeader className="pb-2">
@@ -252,31 +272,45 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {data?.isDemo && (
-                  <Badge variant="outline" className="text-[10px] text-muted-foreground">Sample Data</Badge>
-                )}
-                {!data?.hasData && !data?.isDemo ? (
-                  <p className="text-sm text-muted-foreground">Upload CGM data to see your glucose trends.</p>
+                {!hasRealData ? (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">
+                      {gd?.isDemo ? 'Sign in and upload CGM data to see your glucose trends.' : 'Upload CGM data to see your glucose trends.'}
+                    </p>
+                    <Button variant="outline" size="sm" className="mt-2" onClick={() => navigate('/data-upload')}>
+                      <Upload className="h-4 w-4 mr-2" /> Upload Data
+                    </Button>
+                  </div>
                 ) : (
                 <>
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-2xl font-bold text-foreground">{data?.currentBG} mg/dL</p>
-                    <p className="text-sm text-muted-foreground">Current reading</p>
+                    <p className="text-2xl font-bold text-foreground">{gd?.currentBG} mg/dL</p>
+                    <p className="text-xs text-muted-foreground">
+                      From last upload{gd?.lastUpdated ? ` · ${formatDistanceToNow(new Date(gd.lastUpdated), { addSuffix: true })}` : ''}
+                    </p>
                   </div>
-                  <Badge className="bg-success text-success-foreground">In Range</Badge>
+                  {gd?.currentBG != null && gd.currentBG >= 70 && gd.currentBG <= 180 && (
+                    <Badge className="bg-success text-success-foreground">In Range</Badge>
+                  )}
+                  {gd?.currentBG != null && gd.currentBG > 180 && (
+                    <Badge variant="destructive">High</Badge>
+                  )}
+                  {gd?.currentBG != null && gd.currentBG < 70 && (
+                    <Badge variant="destructive">Low</Badge>
+                  )}
                 </div>
                 <div className="grid grid-cols-3 gap-4 text-center">
                   <div>
-                    <p className="text-lg font-semibold text-foreground">{data?.timeInRange}%</p>
+                    <p className="text-lg font-semibold text-foreground">{gd?.timeInRange != null ? `${gd.timeInRange}%` : '—'}</p>
                     <p className="text-xs text-muted-foreground">Time in Range</p>
                   </div>
                   <div>
-                    <p className="text-lg font-semibold text-foreground">{data?.estA1C}%</p>
+                    <p className="text-lg font-semibold text-foreground">{gd?.estA1C ? `${gd.estA1C}%` : '—'}</p>
                     <p className="text-xs text-muted-foreground">Est. A1C</p>
                   </div>
                   <div>
-                    <p className="text-lg font-semibold text-foreground">{data?.cv}</p>
+                    <p className="text-lg font-semibold text-foreground">{gd?.cv != null ? gd.cv : '—'}</p>
                     <p className="text-xs text-muted-foreground">CV%</p>
                   </div>
                 </div>
@@ -286,8 +320,10 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
             </CardContent>
           </Card>
         );
+      }
 
-      case 'device-status':
+      case 'device-status': {
+        const dd = data as DeviceData | null;
         return (
           <Card className="h-full">
             <CardHeader className="pb-2">
@@ -300,20 +336,24 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Wifi className={`h-4 w-4 ${data?.cgmConnected ? 'text-success' : 'text-muted-foreground'}`} />
-                    <span className="text-sm">{data?.cgmConnected ? 'CGM Connected' : 'No CGM linked'}</span>
+                    <Wifi className={`h-4 w-4 ${dd?.cgmConnected ? 'text-success' : 'text-muted-foreground'}`} />
+                    <span className="text-sm">{dd?.cgmConnected ? `${dd.cgmModel || 'CGM'} linked` : 'No CGM linked'}</span>
                   </div>
-                  {data?.cgmConnected ? <CheckCircle className="h-4 w-4 text-success" /> : <Badge variant="outline" className="text-[10px]">Setup</Badge>}
+                  {dd?.cgmConnected ? <CheckCircle className="h-4 w-4 text-success" /> : <Badge variant="outline" className="text-[10px]">Setup</Badge>}
                 </div>
-                {data?.cgmConnected && (
-                  <p className="text-xs text-muted-foreground">Device status details require CGM integration.</p>
-                )}
+                <p className="text-xs text-muted-foreground">
+                  {dd?.cgmConnected 
+                    ? 'Live device metrics require direct CGM API integration (not yet available).' 
+                    : 'Link your CGM in profile settings to track device status.'}
+                </p>
               </div>
             </CardContent>
           </Card>
         );
+      }
 
-      case 'community-insights':
+      case 'community-insights': {
+        const cd = data as CommunityData | null;
         return (
           <Card className="h-full">
             <CardHeader className="pb-2">
@@ -325,20 +365,16 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
             <CardContent>
               <div className="space-y-3">
                 <div className="text-center p-3 bg-gradient-to-r from-primary/10 to-primary-glow/10 rounded-lg">
-                  <p className="text-lg font-bold text-primary">{data?.activeMembers?.toLocaleString()}</p>
-                  <p className="text-xs text-muted-foreground">Active community members</p>
+                  <p className="text-lg font-bold text-primary">{cd?.activeMembers?.toLocaleString() ?? 0}</p>
+                  <p className="text-xs text-muted-foreground">Posts in last 24h</p>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Latest posts:</span>
-                    <span className="font-medium">{data?.postsToday} today</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Your contributions:</span>
-                    <span className="font-medium">{data?.userContributions} insights</span>
+                    <span className="font-medium">{cd?.userContributions ?? 0} insights</span>
                   </div>
                 </div>
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/community-solutions')}>
                   <ArrowUpRight className="h-3 w-3 mr-1" />
                   View Community
                 </Button>
@@ -346,6 +382,7 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
             </CardContent>
           </Card>
         );
+      }
 
       case 'quick-actions':
         return (
@@ -358,11 +395,11 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-2">
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/data-upload')}>
                   <Upload className="h-4 w-4 mr-2" />
                   Upload Data
                 </Button>
-                <Button variant="outline" size="sm" className="w-full">
+                <Button variant="outline" size="sm" className="w-full" onClick={() => navigate('/journal')}>
                   <Calendar className="h-4 w-4 mr-2" />
                   Log Event
                 </Button>
@@ -371,7 +408,8 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
           </Card>
         );
 
-      case 'recent-activity':
+      case 'recent-activity': {
+        const ra = data as RecentActivityData | null;
         return (
           <Card className="h-full">
             <CardHeader className="pb-2">
@@ -382,20 +420,25 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="text-sm">
-                  <p className="font-medium">Data uploaded</p>
-                  <p className="text-xs text-muted-foreground">2 hours ago</p>
-                </div>
-                <div className="text-sm">
-                  <p className="font-medium">Survey completed</p>
-                  <p className="text-xs text-muted-foreground">1 day ago</p>
-                </div>
+                {!ra?.hasActivity ? (
+                  <p className="text-sm text-muted-foreground text-center py-2">No recent activity yet. Upload data or complete a survey to get started.</p>
+                ) : (
+                  ra.items.map((item, i) => (
+                    <div key={i} className="text-sm">
+                      <p className="font-medium">{item.label}</p>
+                      <p className="text-xs text-muted-foreground">{item.time}</p>
+                    </div>
+                  ))
+                )}
               </div>
             </CardContent>
           </Card>
         );
+      }
 
-      case 'health-metrics':
+      case 'health-metrics': {
+        const hm = data as HealthMetricsData | null;
+        const hasMetrics = hm?.hasData && (hm?.timeInRange != null || hm?.estA1C || hm?.cv != null);
         return (
           <Card className="h-full">
             <CardHeader className="pb-2">
@@ -405,23 +448,20 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {data?.isDemo && (
-                <Badge variant="outline" className="text-[10px] text-muted-foreground mb-2">Sample Data</Badge>
-              )}
-              {!data?.hasData && !data?.isDemo ? (
+              {!hasMetrics ? (
                 <p className="text-sm text-muted-foreground">Upload CGM data to see your health metrics.</p>
               ) : (
               <div className="grid grid-cols-3 gap-4 text-center">
                 <div>
-                  <p className="text-xl font-bold text-foreground">{data?.timeInRange}%</p>
+                  <p className="text-xl font-bold text-foreground">{hm?.timeInRange != null ? `${hm.timeInRange}%` : '—'}</p>
                   <p className="text-xs text-muted-foreground">Time in Range</p>
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-foreground">{data?.estA1C}%</p>
+                  <p className="text-xl font-bold text-foreground">{hm?.estA1C ? `${hm.estA1C}%` : '—'}</p>
                   <p className="text-xs text-muted-foreground">Est. A1C</p>
                 </div>
                 <div>
-                  <p className="text-xl font-bold text-foreground">{data?.cv}</p>
+                  <p className="text-xl font-bold text-foreground">{hm?.cv != null ? hm.cv : '—'}</p>
                   <p className="text-xs text-muted-foreground">CV%</p>
                 </div>
               </div>
@@ -429,15 +469,16 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
             </CardContent>
           </Card>
         );
+      }
 
       default:
         return (
           <Card className="h-full">
             <CardHeader>
-              <CardTitle className="text-lg">Unknown Widget</CardTitle>
+              <CardTitle className="text-lg">Widget Not Found</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">Widget '{widgetId}' not found</p>
+              <p className="text-muted-foreground">Widget '{widgetId}' is not available.</p>
             </CardContent>
           </Card>
         );
