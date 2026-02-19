@@ -5,7 +5,7 @@ export interface SearchResult {
   id: string;
   title: string;
   description: string;
-  category: 'project' | 'research' | 'medication' | 'device' | 'company' | 'trial';
+  category: 'project' | 'research' | 'medication' | 'device' | 'company' | 'trial' | 'community' | 'article';
   url: string;
 }
 
@@ -23,37 +23,39 @@ export function useGlobalSearch() {
     const searchTerm = `%${query.toLowerCase()}%`;
 
     try {
-      // Run all searches in parallel
+      // Run all searches in parallel across actual DB tables (items 1971-1980)
       const [
         projectsRes,
         researchRes,
         medicationsRes,
         devicesRes,
         companiesRes,
-        trialsRes
+        trialsRes,
+        communityRes,
+        articlesRes
       ] = await Promise.all([
-        // Projects - using any to bypass strict typing
+        // Projects
         (supabase as any)
           .from('health_projects')
           .select('id, title, description, slug')
           .or(`title.ilike.${searchTerm},description.ilike.${searchTerm}`)
           .limit(5),
         
-        // Research Papers
+        // Research Papers (1974)
         (supabase as any)
           .from('medical_research_papers')
           .select('id, title, abstract, paper_id')
           .or(`title.ilike.${searchTerm},abstract.ilike.${searchTerm}`)
           .limit(5),
         
-        // Medications
+        // Medications (1973)
         (supabase as any)
           .from('medications')
           .select('id, name, description, generic_name')
           .or(`name.ilike.${searchTerm},generic_name.ilike.${searchTerm},description.ilike.${searchTerm}`)
           .limit(5),
         
-        // Devices
+        // Devices (1973)
         (supabase as any)
           .from('devices')
           .select('id, name, description, manufacturer')
@@ -72,6 +74,21 @@ export function useGlobalSearch() {
           .from('clinical_trials_detailed')
           .select('id, title, brief_summary, nct_id')
           .or(`title.ilike.${searchTerm},brief_summary.ilike.${searchTerm}`)
+          .limit(5),
+
+        // Community Posts (1972)
+        (supabase as any)
+          .from('community_posts')
+          .select('id, title, content, source, post_id')
+          .or(`title.ilike.${searchTerm},content.ilike.${searchTerm}`)
+          .limit(5),
+
+        // Articles (1974)
+        (supabase as any)
+          .from('articles')
+          .select('id, title, excerpt, slug')
+          .eq('is_published', true)
+          .or(`title.ilike.${searchTerm},excerpt.ilike.${searchTerm}`)
           .limit(5),
       ]);
 
@@ -151,6 +168,32 @@ export function useGlobalSearch() {
             description: t.brief_summary?.slice(0, 100) || t.nct_id || 'Clinical trial',
             category: 'trial',
             url: `/trials`,
+          });
+        });
+      }
+
+      // Process community posts (1972)
+      if (communityRes.data) {
+        (communityRes.data as any[]).forEach((p: any) => {
+          allResults.push({
+            id: p.id,
+            title: p.title,
+            description: p.content?.slice(0, 100) || 'Community discussion',
+            category: 'community',
+            url: `/community-solutions/${p.id}`,
+          });
+        });
+      }
+
+      // Process articles (1974)
+      if (articlesRes.data) {
+        (articlesRes.data as any[]).forEach((a: any) => {
+          allResults.push({
+            id: a.id,
+            title: a.title,
+            description: a.excerpt?.slice(0, 100) || 'Article',
+            category: 'article',
+            url: `/articles/${a.slug}`,
           });
         });
       }
