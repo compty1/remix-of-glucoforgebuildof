@@ -39,8 +39,7 @@ const PrepareForVisit = () => {
         title: "Snapshot Generated",
         description: "Your clinical visit snapshot is ready!",
       });
-    } catch (error) {
-      console.error('Error generating snapshot:', error);
+    } catch {
       toast({
         title: "Error",
         description: "Failed to generate clinical snapshot. Please try again.",

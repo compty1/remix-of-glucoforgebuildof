@@ -95,9 +95,8 @@ export default function Diabeto18Plus() {
       if (error) throw error;
       toast.success('Content loaded successfully!');
       refetch();
-    } catch (err) {
+    } catch {
       toast.error('Failed to load content');
-      console.error(err);
     } finally {
       setIsSeeding(false);
     }

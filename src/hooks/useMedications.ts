@@ -111,7 +111,6 @@ export const useMedications = (options: UseMedicationsOptions = {}) => {
       const { data, error } = await query;
 
       if (error) {
-        console.error("Error fetching medications:", error);
         throw error;
       }
 
@@ -130,7 +129,6 @@ export const useMedicationCategories = () => {
         .order("category");
 
       if (error) {
-        console.error("Error fetching categories:", error);
         throw error;
       }
 

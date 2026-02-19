@@ -75,7 +75,6 @@ export const MyContributions = () => {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching contributions:', error);
         setLoading(false);
         return;
       }
@@ -103,8 +102,8 @@ export const MyContributions = () => {
         categoriesContributed: Array.from(categories),
         impactScore: Math.min(100, typedData.length * 10 + categories.size * 5),
       });
-    } catch (err) {
-      console.error('Error:', err);
+    } catch {
+      // Contributions fetch error
     } finally {
       setLoading(false);
     }

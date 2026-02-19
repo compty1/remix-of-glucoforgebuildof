@@ -139,8 +139,7 @@ export default function HealthcareExperience() {
 
       setExperiences(expResult.data || []);
       setRecommendations(recResult.data || []);
-    } catch (error) {
-      console.error('Error fetching data:', error);
+    } catch {
       toast.error('Failed to load healthcare experiences');
     } finally {
       setLoading(false);

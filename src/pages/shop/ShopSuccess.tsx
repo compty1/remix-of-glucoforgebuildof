@@ -55,8 +55,8 @@ const ShopSuccess = () => {
             products,
           });
         }
-      } catch (err) {
-        console.error('Error fetching order:', err);
+      } catch {
+        // Order fetch failed — showing generic success message
       } finally {
         setLoading(false);
       }

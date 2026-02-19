@@ -87,7 +87,7 @@ const News = () => {
                 <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
                 {refreshing ? 'Refreshing...' : 'Refresh'}
               </Button>
-              <Button variant="outline" size="sm" className="gap-2" onClick={() => toast.success('Subscribe feature coming soon!')}>
+              <Button variant="outline" size="sm" className="gap-2" disabled title="Newsletter subscription coming in a future update">
                 <Rss className="h-4 w-4" />
                 Subscribe
               </Button>

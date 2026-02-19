@@ -128,8 +128,7 @@ export default function Articles() {
 
       if (error) throw error;
       setArticles(data || []);
-    } catch (error) {
-      console.error('Error fetching articles:', error);
+    } catch {
       toast.error('Failed to load articles');
     } finally {
       setLoading(false);

@@ -248,8 +248,8 @@ const StateFormsFinder = () => {
         if (data && !error) {
           setDbForms(data);
         }
-      } catch (err) {
-        console.error('Error fetching forms:', err);
+      } catch {
+        // State forms fetch failed — static forms still available
       }
     };
     

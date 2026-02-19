@@ -145,6 +145,7 @@ export const DonationImpactVisualization: React.FC<DonationImpactVisualizationPr
 
   return (
     <div className="space-y-4">
+      <p className="text-xs text-muted-foreground italic text-center">Impact estimates are illustrative and based on projected costs.</p>
       <Card className={cn(
         "p-6 bg-gradient-to-br text-white transition-all duration-300",
         currentTier.color

@@ -68,7 +68,7 @@ const Admin = () => {
         active_users_7d: activeUsersCount || 0
       });
     } catch (error) {
-      console.error('Error fetching admin stats:', error);
+      // Admin stats fetch error
       toast({
         title: "Error",
         description: "Failed to load admin statistics",
@@ -99,7 +99,7 @@ const Admin = () => {
         description: "Trends analysis has been updated",
       });
     } catch (error) {
-      console.error('Error updating trends:', error);
+      // Trends update error
       toast({
         title: "Error",
         description: "Failed to update trends analysis",

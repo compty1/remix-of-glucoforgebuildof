@@ -226,8 +226,8 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
           default:
             setData(null);
         }
-      } catch (error) {
-        console.error('Error fetching widget data:', error);
+      } catch {
+        // Widget data fetch failed — show empty state
         setData(null);
       } finally {
         setLoading(false);
