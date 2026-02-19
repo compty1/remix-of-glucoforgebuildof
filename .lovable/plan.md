@@ -1,575 +1,655 @@
 
 
-# Extended Build Audit: 400 Additional Hardcoded/Fake Data Issues (Items 801-1200)
+# Extended Audit: 500 Additional Bugs, Gaps, and Fake Data Issues (Items 1201-1700)
 
-This extends the existing 800-item audit with 400 newly discovered instances of hardcoded, fabricated, placeholder, or disconnected data throughout the codebase. Nothing from the existing plan (items 1-800) has been removed.
-
----
-
-## Category 13: Hardcoded Dashboard and Widget Data (Items 801-830)
-
-### 13.1 Dashboard Widgets Fake Values (10)
-801. DashboardWidgets.tsx:89-97 -- When not logged in, glucose widget shows hardcoded demo data: `currentBG: 127`, `timeInRange: 78`, `estA1C: 6.8`, `cv: 24` -- labeled `isDemo: true` but no visual indicator to user
-802. DashboardWidgets.tsx:113 -- `sensorDaysLeft: 3` hardcoded for device-status widget regardless of real sensor data
-803. DashboardWidgets.tsx:114 -- `batteryLevel: 85` hardcoded for device-status widget -- never reads actual device
-804. DashboardWidgets.tsx:115 -- `lastReading: '2 min ago'` hardcoded string -- never computed from real timestamp
-805. DashboardWidgets.tsx:118-123 -- Fallback device widget for non-logged-in users sets `cgmConnected: true` with all fake sensor data
-806. DashboardWidgets.tsx:145 -- `activeMembers: 2847 + (count || 0)` -- base number `2847` is fabricated to inflate community member count
-807. DashboardWidgets.tsx:191 -- Health metrics fallback values `timeInRange: 78`, `gmi: 6.8`, `cv: 24` used when no real data exists
-808. DashboardWidgets.tsx:200-205 -- Non-logged-in health metrics widget likely shows hardcoded fallback values
-809. No visual "demo data" badge/indicator shown to user when viewing fabricated widget values
-810. Widget data never refreshes in real-time -- all values are snapshot-on-load
-
-### 13.2 Admin Dashboard Hardcoded Charts (10)
-811. AdminDashboard.tsx:21-28 -- `userActivityData` array is entirely fabricated (Jan: 120 users, Feb: 150, etc.) -- never queries actual user activity
-812. AdminDashboard.tsx:30-36 -- `platformUsageData` pie chart data hardcoded (Dashboard: 35%, Data Upload: 25%, etc.) -- no analytics backing
-813. AdminAnalytics.tsx:58-64 -- `featureUsageData` hardcoded identically to AdminDashboard (Dashboard: 35, Data Upload: 25, etc.) -- duplicated fake data
-814. AdminAnalytics.tsx:176 -- Card title explicitly says "(Sample)" -- acknowledging the data is fake
-815. No actual analytics/tracking system exists to populate real usage data
-816. Admin dashboard user activity chart shows linear growth (120 to 420) that is clearly fabricated
-817. No page view tracking, session tracking, or feature usage instrumentation exists in the app
-818. Admin export function (AdminAnalytics.tsx:66-78) exports the fake stats as if they are real data
-819. No way for admins to see actual daily/weekly/monthly active user counts
-820. Admin dashboard "Active Users" stat derived from DB count but activity charts are still hardcoded
-
-### 13.3 QA Checklist False Claims (10)
-821. QAChecklist.tsx:42 -- Claims "Upload progress displays" status: 'pass' but progress bar is hardcoded at 65%
-822. QAChecklist.tsx:43 -- Claims "File processing simulates correctly" status: 'pass' -- acknowledges it's simulation, not real processing
-823. QAChecklist.tsx:49 -- Claims "Scenario lab simulations work" status: 'pass' but simulations use Math.random()
-824. QAChecklist.tsx:51 -- Claims "Simulation history saves" status: 'pass' -- needs verification
-825. QAChecklist.tsx:306-310 -- States "GlucoForge is now a fully functional, production-ready platform" -- overstates readiness
-826. QAChecklist.tsx publicly accessible at `/qa-checklist` -- exposes internal QA status to all users
-827. QA items all have 'pass' status -- no failing items recorded despite known issues
-828. No automated test runner backs the QA checklist -- all statuses are manually hardcoded
-829. QA checklist doesn't cover any of the 800+ issues identified in this audit
-830. QA checklist has no mechanism to re-run or verify checks automatically
+Building on the existing 1200-item audit, this plan catalogs 500 more issues discovered through deep analysis of data connections, UI logic, state management, and presentation accuracy. The existing plan (items 1-1200) is fully preserved.
 
 ---
 
-## Category 14: Hardcoded Public-Facing Statistics (Items 831-870)
+## Category 22: Remaining Fake/Hardcoded Data Still in Codebase (Items 1201-1280)
 
-### 14.1 Homepage and Landing Stats (15)
-831. Index.tsx:153 -- "8.4M" people with T1D worldwide -- static number, not sourced or dated
-832. Index.tsx:159 -- "24/7" stat presented as data point but is just a label
-833. Index.tsx:165 -- "100+" daily micro-decisions -- hardcoded, uncited statistic
-834. Index.tsx:171 -- "5+" apps stat -- hardcoded
-835. Index.tsx:436 -- "50,000+ posts in verified T1D communities" -- fabricated claim, not sourced from database count
-836. Donate.tsx:77 -- "10,000+" Active Participants -- hardcoded, no DB query for actual user count
-837. Donate.tsx:84 -- "25" Active Trials -- hardcoded, not queried from clinical_trials table
-838. Donate.tsx:91 -- "$500K" Research Funded -- hardcoded, not sourced from donations table
-839. Donate.tsx:98 -- "501(c)(3)" presented as fact but described as pending elsewhere
-840. DiabetesBurnout.tsx:258 -- "36-45%" burnout statistic hardcoded (though sourced from research, should cite)
-841. DiabetesBurnout.tsx:262 -- "100+" health decisions stat repeated from homepage
-842. CureProgress.tsx:522 -- "$2.8B+" Annual Research Funding -- hardcoded
-843. CureProgress.tsx:526 -- "150+" Research Institutions -- hardcoded
-844. CureProgress.tsx:530 -- "50K+" Researchers Worldwide -- hardcoded
-845. CureProgress.tsx:150 -- "Live data from global clinical trial registries" claim with animated pulse -- partially true (uses clinicaltrials.gov) but data may be stale
+### 22.1 DashboardWidgets -- Recent Activity Still Hardcoded (5)
+1201. DashboardWidgets.tsx:386-387 -- "Data uploaded" / "2 hours ago" is hardcoded text, not computed from the `data.uploads` array that was fetched from the DB
+1202. DashboardWidgets.tsx:389-391 -- "Survey completed" / "1 day ago" is hardcoded text, not computed from `data.surveys` array
+1203. The `recent-activity` case fetches real upload and survey data (lines 152-174) but the render block (lines 374-396) completely ignores it and shows static strings
+1204. No fallback or empty state for when `data.hasActivity` is false in the rendered output
+1205. The widget should iterate over `data.uploads` and `data.surveys` with real timestamps
 
-### 14.2 SupportGlucoForge Stats and Claims (10)
-846. SupportGlucoForge.tsx:47 -- "50+" Pages & Features -- hardcoded
-847. SupportGlucoForge.tsx:48 -- "27+" Development Projects -- hardcoded, should count from `developmentProjects` array
-848. SupportGlucoForge.tsx:49 -- "10+" Research Sources -- hardcoded
-849. SupportGlucoForge.tsx:50 -- "30+" Devices Tracked -- hardcoded, should query devices table count
-850. SupportGlucoForge.tsx:51 -- "100+" Medications Profiled -- hardcoded, should query medications table count
-851. SupportGlucoForge.tsx:63 -- "50,000+ peer-reviewed fixes" -- fabricated claim in feature description
-852. SupportGlucoForge.tsx:172-177 -- Funding allocation percentages (45%, 25%, 15%, 10%, 5%) hardcoded -- no actual budget tracking
-853. SupportGlucoForge.tsx:182-187 -- Donor tiers and benefits hardcoded -- no system implements these tiers or tracks donor levels
-854. SupportGlucoForge.tsx:200-215 -- Three testimonials ("Sarah M.", "James K.", "Alex T.") are fabricated
-855. SupportGlucoForge.tsx:126-168 -- Development roadmap phases hardcoded with dates and statuses -- not connected to any project tracking system
+### 22.2 DashboardWidgets -- Device Status Still Fake (5)
+1206. DashboardWidgets.tsx:113 -- `sensorDaysLeft: 3` hardcoded for logged-in users (set unconditionally)
+1207. DashboardWidgets.tsx:114 -- `batteryLevel: 85` hardcoded for logged-in users
+1208. DashboardWidgets.tsx:115 -- `lastReading: '2 min ago'` hardcoded string for logged-in users
+1209. DashboardWidgets.tsx:119 -- `cgmConnected: true` hardcoded for non-logged-in users (claims device is connected when no device exists)
+1210. Lines 308-309 added a disclaimer but lines 113-115 still set fake values that could be rendered
 
-### 14.3 DonationImpactVisualization Claims (5)
-856. DonationImpactVisualization.tsx:64 -- "Enable 1,000+ glucose analyses" -- fabricated impact claim
-857. DonationImpactVisualization.tsx -- All impact tier descriptions ("$10 funds...", "$25 enables...") are fabricated
-858. DonationImpactVisualization.tsx -- No actual mapping between donation amounts and platform costs exists
-859. No donation tracking or impact reporting system exists to back these claims
-860. No quarterly transparency reports mentioned in FAQs are actually generated
+### 22.3 DashboardWidgets -- Glucose Fallback Still Has Magic Numbers (5)
+1211. DashboardWidgets.tsx:73 -- Falls back to `127` if no currentBG found in analysis
+1212. DashboardWidgets.tsx:76 -- Falls back to `6.8` for estA1C when no data
+1213. DashboardWidgets.tsx:77 -- Falls back to `24` for CV when no data
+1214. DashboardWidgets.tsx:75 -- Falls back to `78` for timeInRange
+1215. These fallbacks are used when analysis data exists but specific fields are missing -- the user sees "real-looking" numbers that are actually defaults
 
-### 14.4 DonationsInfo Page Hardcoded Data (10)
-861. DonationsInfo.tsx:38-159 -- Entire `organizationsData` array (6 organizations with funding amounts) is hardcoded -- claimed "based on public 990 forms" but not fetched from any API
-862. DonationsInfo.tsx:44 -- JDRF `totalDonations: 198000000` -- hardcoded estimate
-863. DonationsInfo.tsx:64 -- ADA `totalDonations: 145000000` -- hardcoded estimate
-864. DonationsInfo.tsx:84 -- DRI Foundation `totalDonations: 32000000` -- hardcoded estimate
-865. DonationsInfo.tsx:104 -- Joslin `totalDonations: 58000000` -- hardcoded estimate
-866. DonationsInfo.tsx:124 -- Helmsley Trust `totalDonations: 75000000` -- hardcoded estimate
-867. DonationsInfo.tsx:144 -- diaTribe `totalDonations: 8500000` -- hardcoded estimate
-868. DonationsInfo.tsx:161-168 -- `yearlyTrendsData` for organization donations over time is hardcoded
-869. DonationsInfo.tsx:170-175 -- `sectorBreakdown` pie chart data hardcoded ($189.5M individual, $126.5M corporate, etc.)
-870. These numbers may be inaccurate or outdated -- no data source verification or last-updated timestamp shown
+### 22.4 Dashboard Page -- Stats Still Static (5)
+1216. Dashboard.tsx:393 -- "24/7" under "Real-time Updates" is a decorative stat, not data
+1217. Dashboard.tsx:397 -- "100%" under "Customizable" is a decorative stat, not data
+1218. Dashboard.tsx:387-404 -- Bottom hero-gradient card with 4 stats: two are dynamic (widget counts) but two are decorative marketing claims
+1219. No disclaimer that "24/7 Real-time Updates" is aspirational (there are no real-time data feeds)
+1220. No disclaimer that "100% Customizable" is marketing language
 
----
+### 22.5 Index/Homepage -- Remaining Hardcoded Content (10)
+1221. Index.tsx:27-33 -- `volunteerRoles` array hardcoded inline (6 roles) instead of from DB or shared data file
+1222. Index.tsx:153 -- "8.4M" T1D worldwide stat still hardcoded with no source citation or date
+1223. Index.tsx:159 -- "24/7" stat still decorative
+1224. Index.tsx:165 -- "100+" daily decisions stat still hardcoded
+1225. Index.tsx:171 -- "5+" apps stat still hardcoded
+1226. Index.tsx:192-226 -- Emma's story is a fabricated testimonial (not a real user)
+1227. Index.tsx:247-252 -- Platform feature labels include "Advanced AI Patterns" -- misleading since no advanced AI exists
+1228. Index.tsx:289-290 -- "File 501(c)(3) paperwork" in roadmap is hardcoded status
+1229. Index.tsx:93-107 -- Hero "Donate Now" button fires $25 donation without confirmation dialog
+1230. Index.tsx:376 -- "Knowledge is the most powerful tool in managing Type 1 diabetes" -- unattributed quote
 
-## Category 15: Hardcoded Scientific and Research Data (Items 871-920)
+### 22.6 ScenarioLab -- All Glucose Curves Are Random (5)
+1231. ScenarioLab.tsx:92 -- Exercise cardio stabilization: `baseline - 6 + Math.random() * 5`
+1232. ScenarioLab.tsx:123 -- Stress event: `baseline + 25 + Math.sin(time * 0.1) * 15` -- deterministic sine wave + constant, no randomness but no real physiology model
+1233. ScenarioLab.tsx:127 -- Poor sleep: `baseline + 15 + Math.sin(time * 0.05) * 10` -- same pattern
+1234. ScenarioLab.tsx:131 -- Illness: `baseline + 20 + Math.random() * 20` -- pure random
+1235. ScenarioLab.tsx:135 -- Steroid medication: `baseline + 40 + (time * 0.1)` -- linear rise forever (unrealistic)
 
-### 15.1 Public Glucose Data Tab Hardcoded Arrays (15)
-871. SeasonalPatternsTab.tsx:9-22 -- `MONTHLY_DATA` array (12 months of glucose stats) entirely hardcoded -- not computed from actual `public_glucose_data` table
-872. SeasonalPatternsTab.tsx:24-29 -- `SEASONAL_SUMMARY` array hardcoded (Winter avg 158, Spring 145, Summer 137, Autumn 146)
-873. SeasonalPatternsTab.tsx:31-37 -- `RADAR_DATA` array hardcoded (5 metrics across 4 seasons)
-874. PopulationTrendsTab.tsx:10-18 -- `YEARLY_TRENDS` array (7 years of TIR data 2018-2024) entirely hardcoded
-875. PopulationTrendsTab.tsx:21-29 -- `STUDY_COMPARISON` array (7 studies) hardcoded with one marked `isDynamic: true`
-876. PopulationTrendsTab.tsx:32-38 -- `REGIONAL_DATA` array (5 regions with TIR, CGM use, AID use) hardcoded -- claims sample sizes like `n: 12000`
-877. PopulationTrendsTab.tsx:41-49 -- `TECH_ADOPTION` array (7 years of technology adoption %) hardcoded
-878. PublicGlucoseData.tsx:401 -- Fallback text claims "31,000+ readings from 750+ anonymized users" -- hardcoded fallback when actual count unavailable
-879. SeasonalPatternsTab presents hardcoded data as if computed from real CGM uploads
-880. PopulationTrendsTab claims "This Dataset" row with dynamic values but all other study rows are static
-881. No disclaimers or "illustrative data" labels on any of these hardcoded charts
-882. Regional data claims (North America n=12000, Europe n=9500) are fabricated
-883. Technology adoption percentages (CGM: 35% in 2018 to 78% in 2024) are hardcoded estimates
-884. No data source citations for study comparison numbers (T1D Exchange, UK Biobank, TEDDY, etc.)
-885. These hardcoded arrays should be replaced with aggregations from the `public_glucose_data` table or clearly labeled as reference data
+### 22.7 QA Checklist -- All Items Marked Pass (10)
+1236. QAChecklist.tsx:17-130 -- Every single QA item has `status: 'pass'` -- no failures recorded
+1237. QAChecklist.tsx:34 -- "Dashboard loads with live data" marked pass, but widgets show hardcoded data
+1238. QAChecklist.tsx:35 -- "Widgets display real data" marked pass, but recent-activity widget is hardcoded
+1239. QAChecklist.tsx:41 -- "Upload progress displays" marked pass, but progress was previously hardcoded
+1240. QAChecklist.tsx:42 -- "File processing simulates correctly" marked pass -- acknowledges it simulates, not processes
+1241. QAChecklist.tsx:49 -- "Scenario lab simulations work" marked pass -- uses Math.random(), not real model
+1242. QAChecklist.tsx:55 -- "Profile settings functional" marked pass -- privacy settings have no Save button
+1243. QAChecklist.tsx:56 -- "Notification preferences work" marked pass -- previously saved to localStorage
+1244. QAChecklist.tsx:57 -- "Privacy settings functional" marked pass -- no save handler for privacy section
+1245. Page publicly accessible at `/qa-checklist` -- exposes internal QA to all users
 
-### 15.2 EmergenceOfDiabetes Research Data (10)
-886. EmergenceOfDiabetes.tsx:85-260 -- Entire research studies array (~10 studies) hardcoded with DOIs, sample sizes, findings, and methodology
-887. While DOIs and citations appear legitimate, the data is static and never refreshed
-888. No mechanism to update findings when new research is published
-889. PubMed IDs hardcoded but never used to fetch current citation counts or updated abstracts
-890. Study sample sizes like "8,676 children" and "545 cases, 1,668 controls" are static text not verified against current publications
-891. No last-verified date shown for any research citation
-892. Methodology descriptions are static summaries that may become outdated
-893. No link to fetch full paper or current abstract from PubMed API
-894. "Myths Coming Soon" placeholder at line 963 -- content gap
-895. No mechanism for researchers to submit corrections or updates to cited data
+### 22.8 Fixes Page -- All Links Dead (5)
+1246. Fixes.tsx:49 -- `link: '#'` assigned to every fix item
+1247. Fixes.tsx:38 -- Difficulty derived from severity mapping, not community verification
+1248. Fixes.tsx:48 -- Source hardcoded to `'Community'` for all items regardless of actual source
+1249. No detail page exists for individual fixes
+1250. No mechanism for users to verify fix effectiveness
 
-### 15.3 CureProgress Simulation Data (5)
-896. CureProgress.tsx:163-178 -- `getSimulationData()` generates "projections" using a crude formula: `progressFactor = Math.min(1, (phase3Count * 5 + approvedCount * 10) / 100)` -- this is not a real predictive model
-897. CureProgress.tsx:507-509 -- Claims "Projection based on current clinical trial trajectories and historical breakthrough patterns" -- misleading description of simple arithmetic
-898. CureProgress.tsx:17-23 -- Hero animation shows phases with hardcoded progress percentages (Discovery: 100%, Phase 1: 100%, Phase 2: 75%, Phase 3: 40%, Cure: 0%)
-899. Timeline milestones (Tzield approval, Vertex VX-880, etc.) are hardcoded and will become stale
-900. No mechanism to update cure progress milestones when new breakthroughs occur
+### 22.9 Financial Tools -- Resource Links Dead (5)
+1251. FinancialTools.tsx:155-158 -- All resource URLs pointing to "#" trigger "Coming Soon" toast
+1252. FinancialTools.tsx:268-270 -- Insurance denial template button shows "Coming Soon"
+1253. FinancialTools.tsx:283-285 -- Another template button shows "Coming Soon"
+1254. Static appeal letter template (lines 25-77) is useful but not personalized or dynamic
+1255. No actual insurance plan data integration despite UI implying it
 
----
+### 22.10 Contact Page -- Missing Info (5)
+1256. Contact.tsx:106 -- Office location shows "Coming Soon"
+1257. No phone number or direct contact method
+1258. No live chat or ticket system
+1259. Contact form submissions go to DB but no admin notification sent
+1260. No confirmation email sent to the submitter
 
-## Category 16: Hardcoded Content in Feature Pages (Items 921-980)
+### 22.11 src/data/ Files -- All Static (10)
+1261. developmentProjects.ts -- 27+ projects hardcoded with progress percentages that never update
+1262. developmentProjects.ts -- Task statuses (todo/in_progress/done) are static
+1263. developmentProjects.ts -- Target completion dates are static
+1264. volunteerRoles.ts -- All roles hardcoded, no application flow
+1265. volunteerRoles.ts -- "Open projects" references are static strings, not DB-linked
+1266. achievementDefinitions.ts -- All achievement criteria hardcoded
+1267. achievementDefinitions.ts -- Point values and targets never tuned to actual user behavior
+1268. cureReportContent.ts -- Report content entirely static
+1269. projectReportsContent.ts -- Project report content entirely static
+1270. No admin interface exists to manage any of these data files
 
-### 16.1 FindDiabeticNearMe Hardcoded Tips (5)
-901. FindDiabeticNearMe.tsx:44-46 -- `TIPS` array with 3 tips ("Diabetes Walks", "Spot the CGM", "Diabetes Camps") hardcoded
-902. No user-submitted tips or community-sourced content
-903. Tip about "JDRF One Walk" and "ADA Step Out" events has no dates or location data
-904. No integration with event APIs to show actual upcoming diabetes walks
-905. No location-based content despite page name implying geographic features
-
-### 16.2 SupportGlucoForge Testimonials and FAQs (5)
-906. SupportGlucoForge.tsx:200-215 -- Three testimonials are fabricated ("Sarah M.", "James K.", "Alex T.") with made-up quotes
-907. SupportGlucoForge.tsx:219-242 -- FAQ answers hardcoded including "quarterly transparency reports" that don't exist
-908. SupportGlucoForge.tsx:222 -- Claims 501(c)(3) donations will be "tax-deductible retroactively" -- potential legal inaccuracy
-909. No mechanism for actual users to submit testimonials
-910. FAQ section not connected to any CMS or database -- can't be updated without code changes
-
-### 16.3 FinancialTools Hardcoded Resources (5)
-911. FinancialTools.tsx:155-163 -- Resource links array contains URLs pointing to "#" that trigger "Coming Soon" toast
-912. FinancialTools.tsx:268-286 -- Template buttons trigger "Coming Soon" toast -- no actual template content
-913. No actual appeal letter templates exist despite UI suggesting they do
-914. No insurance plan data integration
-915. Financial tools page is primarily a static information page with no interactive functionality
-
-### 16.4 Fixes Page Dead Links (5)
-916. Fixes.tsx:49 -- All fix items have `link: '#'` -- every fix links to a dead anchor
-917. Fixes page fetches from `trending_device_issues` but assigns placeholder links
-918. No actual fix detail pages or deep links to solutions
-919. Fix difficulty ratings derived from a basic mapping function, not community-verified
-920. No mechanism for users to submit or verify fix effectiveness
-
-### 16.5 Development Projects Static Data (5)
-921. `src/data/developmentProjects.ts` -- 27+ development projects hardcoded in a TypeScript file instead of database
-922. Project progress percentages (10%, 15%, etc.) are hardcoded and never updated
-923. Project tasks with statuses ('todo', 'in_progress', 'done') are static -- no real task tracking
-924. Resource links in projects may be stale/broken -- no verification
-925. Target completion dates hardcoded -- no connection to any project management system
-
-### 16.6 Volunteer Roles Static Data (5)
-926. `src/data/volunteerRoles.ts` -- All volunteer roles, technical roles, skills, and tasks hardcoded
-927. No application/signup flow for volunteer roles despite listing open positions
-928. Open projects listed in roles are static references -- not connected to actual project data
-929. No way for users to express interest or apply for roles
-930. No admin interface to manage or update volunteer role listings
-
-### 16.7 Cure Report Content (5)
-931. `src/data/cureReportContent.ts` -- Cure report content entirely hardcoded
-932. `src/data/projectReportsContent.ts` -- Project report content entirely hardcoded
-933. ProjectFullReport.tsx:119 -- "Report Coming Soon" placeholder for project reports
-934. No mechanism to generate reports from live data
-935. Report content becomes stale immediately after deployment
-
-### 16.8 Achievement Definitions (5)
-936. `src/data/achievementDefinitions.ts` -- All achievement criteria hardcoded in TypeScript
-937. Achievement progress tracking may not accurately reflect user activity
-938. No admin interface to create or modify achievements
-939. Achievement thresholds not tuned to actual user behavior data
-940. No A/B testing or adjustment mechanism for gamification elements
-
-### 16.9 ScenarioLab Deep Dive (5)
-941. ScenarioLab.tsx:77-143 -- `generateGlucoseCurve()` uses 8 scenario branches all driven by `Math.random()` and basic arithmetic
-942. ScenarioLab.tsx:91 -- Meal scenario: `baseline - 6 + Math.random() * 5` -- purely random glucose after "recovery"
-943. ScenarioLab.tsx:130 -- Illness scenario: `baseline + 20 + Math.random() * 20` -- random elevated glucose
-944. ScenarioLab.tsx:138 -- Default case: `baseline + Math.random() * 10 - 5` -- baseline noise
-945. ScenarioLab.tsx:142 -- Additional "natural variation" layer: `Math.random() * 8 - 4` added on top
-
-### 16.10 DataUpload Deep Dive (15)
-946. DataUpload.tsx:475 -- "Total Files: 12" hardcoded
-947. DataUpload.tsx:479 -- "Data Points: 47,382" hardcoded
-948. DataUpload.tsx:483 -- "Insights Found: 156" hardcoded
-949. DataUpload.tsx:487 -- "Last Upload: 2 days ago" hardcoded
-950. DataUpload.tsx:412 -- Progress bar `value={65}` hardcoded -- stuck at 65% forever
-951. DataUpload.tsx:498-512 -- Four "Quick Actions" buttons with no onClick handlers (Connect CGM, Schedule Auto-Upload, Share with Doctor, Export Analysis)
-952. DataUpload.tsx:165 -- `Date.now().toString()` for file IDs -- collision risk on simultaneous uploads
-953. DataUpload.tsx:181-200 -- File content read entirely into memory as base64 -- will crash on large files
-954. GlucoseUpload.tsx:41 -- `Math.random().toString(36).substr(2, 9)` for IDs -- weak generation
-955. No file type validation beyond extension checking
-956. No file size enforcement despite claiming 50MB limit
-957. No upload progress WebSocket or polling -- progress bar is decorative
-958. No upload cancellation support
-959. No upload retry on failure
-960. No upload history persistence -- refreshing page loses all upload state
+### 22.12 Remaining "Coming Soon" Stubs (10)
+1271. Settings.tsx:621 -- 2FA button disabled with "Coming Soon"
+1272. Settings.tsx:625 -- Login activity button disabled with "Coming Soon"
+1273. Settings.tsx:720-727 -- Export Glucose Data and Export All Data show "Coming Soon" toast
+1274. Settings.tsx:784 -- Delete All Data shows "Coming Soon" toast
+1275. Settings.tsx:776 -- "Storage usage tracking coming soon" placeholder text
+1276. WarriorSpotlight.tsx:173 -- "Stories Coming Soon" placeholder
+1277. EmergenceOfDiabetes.tsx:963 -- "Myths Coming Soon" placeholder
+1278. AdminContent.tsx:448 -- "Survey management functionality coming soon"
+1279. StateFormsFinder.tsx:320-322 -- Download buttons disabled with "Coming Soon"
+1280. LowBloodSugarWorld.tsx:294 -- Story submission redirects to community
 
 ---
 
-## Category 17: Disconnected or Orphaned Features (Items 961-1020)
+## Category 23: Data Connection and Flow Issues (Items 1281-1380)
 
-### 17.1 Notification System Disconnects (10)
-961. Settings notification preferences save to localStorage (Settings.tsx:230) but `notification_preferences` DB table exists unused by Settings
-962. NotificationCenter reads from DB notifications table -- completely separate system from Settings toggles
-963. Push notification switch in Settings (line 499) is decorative -- no push notification infrastructure
-964. Email digest frequency setting not connected to `send-weekly-digest` edge function
-965. Notification categories in Settings don't map to actual notification types in the DB
-966. No notification preferences migration from localStorage to database
-967. "Community Activity" and "Research Updates" notification toggles have no backend triggers
-968. In-app notification badge count disconnected from notification preferences
-969. No notification for new community replies to user's posts
-970. No notification for device review responses
+### 23.1 Privacy Settings Not Persisted (10)
+1281. Settings.tsx:150-155 -- `privacy` state initialized with defaults, loaded from DB correctly
+1282. Settings.tsx:537-603 -- Privacy tab has 4 toggles but NO Save button or auto-save handler
+1283. Privacy toggle changes are lost when user navigates away or refreshes
+1284. No `handleSavePrivacy` function exists in the component
+1285. `privacy_settings` JSONB column exists in profiles table but privacy section never writes to it
+1286. Data sharing toggle has no backend enforcement even if saved
+1287. Anonymous analytics toggle has no analytics system to respect it
+1288. Public profile toggle has no effect on profile visibility
+1289. Research participation toggle in privacy tab duplicates the one in profile tab -- unclear which takes precedence
+1290. No privacy preferences migration for existing users who set values before DB storage was added
 
-### 17.2 Profile and Settings Disconnects (10)
-971. Settings.tsx:333 -- T1D Diagnosis Date input field renders but value is never read from or written to database
-972. Settings.tsx:339-351 -- Primary CGM selector renders with device options but selection not persisted
-973. Settings.tsx:355-367 -- Insulin Delivery selector renders but selection not persisted
-974. Settings.tsx:379 -- Research Participation switch renders but toggle not persisted
-975. Profile save function (Settings.tsx:197-225) only persists `display_name` and `bio` -- ignores all other fields
-976. Privacy toggle states (data sharing, analytics, public profile) lost on page refresh
-977. Compact Mode toggle (Settings.tsx:659) has no state variable or handler
-978. Animations toggle (Settings.tsx:669) has `defaultChecked` but no effect on any animations
-979. No mechanism to upload profile avatar despite UI suggesting it
-980. Theme selection not synced to user profile in database -- only in localStorage via next-themes
+### 23.2 Notification Delivery Method Switches Disconnected (5)
+1291. Settings.tsx:520 -- Email delivery Switch uses `defaultChecked` -- not bound to any state
+1292. Settings.tsx:528 -- Push notification delivery Switch uses `defaultChecked` -- not bound to any state
+1293. These switches are separate from the PushNotificationsSection (line 507) which IS functional
+1294. Email delivery toggle state is lost on refresh (not persisted)
+1295. No connection between delivery method toggles and actual notification routing
 
-### 17.3 Email and Communication Disconnects (10)
-981. `EmailDigestSignup` component (dashboard) and `WeeklyDigestSignup` component are two separate implementations
-982. `EmailDigestSignup` uses UPSERT, `WeeklyDigestSignup` uses INSERT via `useEmailSubscription` -- inconsistent
-983. `send-weekly-digest` edge function exists but has no cron trigger
-984. No email sending service configured (no SendGrid, Postmark, etc. API key in secrets)
-985. `send-trending-alerts` edge function exists but no trigger mechanism
-986. `daily-briefing` edge function exists but no trigger mechanism
-987. Newsletter delivery day "Sunday" mentioned in UI but not configurable
-988. No email unsubscribe mechanism in actual emails (since no emails are sent)
-989. No email template preview available to users
-990. Contact form submissions go to database but no notification to admin
+### 23.3 Trends Page -- No Data Pipeline (5)
+1296. Trends.tsx:34-40 -- Fetches from `trend_analysis_metrics` table which may be empty
+1297. Trends.tsx:53-57 -- "Refresh" button calls `update_trends()` RPC which is a no-op (`NULL;`)
+1298. Page likely shows empty state permanently since no process populates the table
+1299. No error handling for empty state (just shows empty list)
+1300. User sees "Trends Updated" success toast even though nothing happened
 
-### 17.4 Data Pipeline Disconnects (10)
-991. `update_trends()` DB function is a no-op (`NULL;` body) -- trends page has no data pipeline
-992. `data_refresh_logs` table exists but no process writes to it
-993. `backfill_audit` table exists but no process writes to it
-994. `trend_analysis_metrics` table exists but no pipeline populates it
-995. `population_insights` table exists but no pipeline populates it
-996. `shifts` table purpose unclear -- may be entirely unused
-997. `simulations` table -- no clear UI for viewing saved simulations beyond ScenarioLab
-998. Seed functions are one-time-use but remain deployed and invokable
-999. FDA data feed edge function may not have proper API credentials configured
-1000. Medicare data feed edge function may not refresh on any schedule
+### 23.4 Admin Charts Disconnected from Real Analytics (5)
+1301. AdminDashboard.tsx:21-28 -- `userActivityData` chart uses fabricated monthly growth data
+1302. AdminDashboard.tsx:30-36 -- `platformUsageData` pie chart uses fabricated percentages
+1303. AdminAnalytics.tsx:58-64 -- `featureUsageData` identical fabricated data
+1304. No analytics instrumentation exists in the app to track page views or feature usage
+1305. Admin export function exports fabricated stats as if real
 
-### 17.5 Stripe Integration Disconnects (10)
-1001. DonationModal.tsx:18 uses Stripe key `pk_test_51QSwq6...` hardcoded
-1002. `.env` file has different Stripe key `pk_test_TYooMQauvdEDq54NiTphI7jx` -- two keys in conflict
-1003. DonationModal minimum validation is $1 (line 35), but `create-donation` edge function has $5 minimum -- mismatch
-1004. DonationModal has no maximum validation, but edge function caps at $100,000
-1005. `stripe-shop-webhook` falls back to unverified event parsing when no webhook secret
-1006. No STRIPE_WEBHOOK_SECRET configured in edge function secrets
-1007. Donate.tsx recurring donation UI (monthly/quarterly/annual) -- but `create-donation` edge function doesn't support recurring billing
-1008. No subscription management page for recurring donors
-1009. No donation receipt/confirmation email sent post-payment
-1010. Donor tier benefits (SupportGlucoForge.tsx:182-187) are listed but no system tracks or grants them
+### 23.5 Appearance Settings Not Persisted (5)
+1306. Settings.tsx:688 -- Compact Mode Switch has no `checked` prop, no `onCheckedChange`, no state variable
+1307. Settings.tsx:698 -- Animations Switch has `defaultChecked` but no state variable, no handler, no persistence
+1308. Neither switch has any effect on the UI regardless of toggle position
+1309. No CSS variable or class change occurs when these switches are toggled
+1310. No `prefers-reduced-motion` support connected to the Animations switch
 
-### 17.6 Feature Claims vs Reality (10)
-1011. SupportGlucoForge.tsx:96 -- Claims "CGM Data Upload with AI analysis" -- analysis is algorithmic, not AI
-1012. SupportGlucoForge.tsx:97 -- Claims "Clinical-grade PDF report generation" -- no clinical validation of reports
-1013. SupportGlucoForge.tsx:63 -- Claims "50,000+ peer-reviewed fixes" -- peer review is just upvotes, number is fabricated
-1014. SupportGlucoForge.tsx:98 -- Claims "Glucose heatmaps, AGP charts, pattern detection" -- pattern detection is rule-based
-1015. SupportGlucoForge.tsx:95 -- Claims "Research Hub with AI-generated TLDR summaries" -- verify if AI actually generates these
-1016. Index hero "Donate Now" at $25 fires without confirmation dialog
-1017. SupportGlucoForge "quarterly transparency reports" mentioned in FAQ but none exist
-1018. "Advisory board consideration" listed as donor benefit but no advisory board exists
-1019. "Open Source Spirit" claimed but no public repository
-1020. "Weekly updates" claimed but no changelog or release notes page exists
+### 23.6 Donation Flow Gaps (10)
+1311. Index.tsx:93-107 -- Hero "Donate Now" creates $25 donation via edge function without any confirmation or amount selection
+1312. No donation receipt email sent after payment
+1313. No donation history page for users
+1314. Donate.tsx recurring donation UI exists (monthly/quarterly/annual tabs) but `create-donation` edge function may not support Stripe subscriptions
+1315. DonationModal.tsx opens Stripe checkout in `_blank` tab -- user may not return
+1316. No donation impact tracking linked to specific donors
+1317. Donor tier benefits listed in SupportGlucoForge but no system tracks donor tiers
+1318. No tax receipt generation
+1319. DonationImpactVisualization impact claims ("$10 funds...") are fabricated
+1320. No quarterly transparency reports despite FAQ claiming them
 
----
+### 23.7 Community Data Accuracy (10)
+1321. community_posts are seeded in bulk but never refreshed organically
+1322. Community post quality scores calculation not explained to users
+1323. Community sentiment analysis methodology not disclosed
+1324. Community "solutions" seeded once and become stale
+1325. No mechanism to detect or remove stale community content
+1326. Community search only searches titles, not full content
+1327. No community post reporting/flagging for users
+1328. No spam detection on community submissions
+1329. Comment system may not properly nest replies
+1330. No community moderation queue visible to moderators
 
-## Category 18: Hardcoded Content in Components (Items 1021-1080)
+### 23.8 Research Data Staleness (10)
+1331. Research items fetched from DB but no automatic refresh from PubMed
+1332. Clinical trials data fetched from ClinicalTrials.gov but may be cached indefinitely
+1333. No "last updated" timestamp visible on research data
+1334. No staleness indicator on clinical trial listings
+1335. FDA safety data may be outdated with no refresh schedule
+1336. Medicare coverage data may be outdated with no refresh schedule
+1337. Drug pricing data may be outdated with no refresh schedule
+1338. Patent data in InnovationHub may be outdated
+1339. News articles may be stale with no auto-refresh
+1340. No mechanism for users to report outdated research information
 
-### 18.1 Entity and Brand Hardcoding (10)
-1021. Device images use DuckDuckGo icon proxy (`icons.duckduckgo.com/ip3/`) -- may return low-quality favicons instead of product images
-1022. Device manufacturer to domain mapping hardcoded in `seed-reliable-device-images` edge function
-1023. Medication images similarly proxied through third-party icon services
-1024. No fallback mechanism when DuckDuckGo icon API is down or returns broken images
-1025. Company logos fetched via external APIs with no local caching
-1026. No image CDN or optimization for device/medication images
-1027. Entity logos may display as tiny 16x16 favicons instead of proper product images
-1028. No manufacturer-approved product images -- only web favicons
-1029. Image URL scheme will break if DuckDuckGo changes their API
-1030. No image alt text variations for different device models from same manufacturer
+### 23.9 Device and Medicine Data Gaps (10)
+1341. Device images use DuckDuckGo favicon proxy -- returns low-quality 16x16 icons
+1342. No fallback when DuckDuckGo API is unavailable
+1343. Device `avg_rating` and `review_count` may drift from actual review data
+1344. No device firmware or software version tracking
+1345. Device comparison page may not handle missing data gracefully
+1346. Medication images similarly use third-party favicon proxies
+1347. No medication interaction checker beyond static data
+1348. Medication side effects data may be incomplete
+1349. No medication recall or safety alert integration
+1350. Medicine comparison page may not handle missing fields
 
-### 18.2 Community Content Hardcoding (10)
-1031. Emma's story appears twice on Index.tsx (lines 192-226 and 364-379) -- identical content duplicated
-1032. Index.tsx hero section volunteer roles hardcoded (Beta Testers, Researchers, Designers, etc.)
-1033. GetInvolved.tsx:45-48 -- `transparencyItems` list hardcoded
-1034. BecomeAdvocate page content entirely static with no CMS connection
-1035. Community guidelines/rules not linked from post submission forms
-1036. No user-generated success stories flow beyond community posts
-1037. "Real Impact" section on homepage uses fabricated/curated stories
-1038. No mechanism to feature actual community member stories on homepage
-1039. Community post seeding creates 220+ posts but no ongoing content generation
-1040. Community "solutions" are seeded once and become stale without new user contributions
-
-### 18.3 TrendPrediction Component (5)
-1041. TrendPrediction.tsx:50 -- Confidence values like `78` are hardcoded in prediction objects
-1042. TrendPrediction.tsx:65 -- Post-breakfast spike confidence `72` is hardcoded
-1043. Prediction algorithms use simple threshold comparisons, not actual predictive models
-1044. "Trend Prediction" naming implies ML/AI but implementation is rule-based
-1045. No prediction accuracy tracking or feedback loop
-
-### 18.4 Comparison and Benchmark Data (10)
-1046. PopulationTrendsTab.tsx:23-28 -- Study comparison data (T1D Exchange, JAEB, UK Biobank, TEDDY, JDRF CREATE) hardcoded with specific n-values and metrics
-1047. PopulationTrendsTab.tsx:22 -- "This Dataset" row claims to be dynamic but all reference data is static
-1048. No mechanism to update study comparison data when new publications release
-1049. ATTD Consensus guidelines (line 28) show `n: 0` -- clearly a reference standard, not a study sample
-1050. Study years are static and will become increasingly outdated
-1051. ComparisonWidget.tsx:169 -- Displays sample sizes but these are from hardcoded reference data
-1052. ExerciseCorrelationCard.tsx -- Exercise correlation analysis is purely from uploaded user data but benchmarks may be missing
-1053. ClinicalSuggestionsPanel.tsx -- Clinical suggestions are rule-based, not clinician-reviewed
-1054. Health metrics benchmarks (target TIR 70%, target CV <36%) are hardcoded constants
-1055. No mechanism to adjust benchmarks based on user age, diabetes duration, or clinical goals
-
-### 18.5 PsychLoad and Mental Health Content (5)
-1056. PsychLoadComparisonSection.tsx:86-88 -- "100+ mg/dL swings possible in just one hour" hardcoded
-1057. DiabetesBurnout statistics ("36-45%") cited from research but presented as static facts
-1058. Mental health resource links and crisis hotline numbers are hardcoded
-1059. No mechanism to verify crisis hotline numbers are current
-1060. Mental health content has no professional review or endorsement mechanism
-
-### 18.6 Footer and Layout Hardcoding (10)
-1061. Footer copyright year is dynamic but legal text is static
-1062. Footer "501(c)(3) Status" link goes to `/about` -- same as "About Us" link
-1063. Footer social links may point to non-existent social accounts
-1064. Footer "50,000+ posts" claim repeated from body content
-1065. No footer link to terms of service or privacy policy pages
-1066. Contact page office address (Contact.tsx:106) shows "Coming Soon"
-1067. No actual physical address or registration information displayed
-1068. "Emerging 501(c)(3)" status text will become stale once status changes
-1069. Copyright entity name may need updating if organization structure changes
-1070. No cookie consent banner or GDPR compliance notice
+### 23.10 Upload and Analysis Data Flows (10)
+1351. DataUpload.tsx:181-200 -- File content still read entirely into memory as base64 for binary files
+1352. No Supabase Storage bucket configured for file uploads
+1353. Large files (>6MB) will hit edge function payload limits
+1354. No file size enforcement despite claiming 50MB limit
+1355. No MIME type validation beyond file extension checking
+1356. Upload progress is an animated pulse bar (line 413) -- not actual progress
+1357. No upload cancellation mechanism
+1358. No retry on upload failure
+1359. Upload history resets on page refresh (fetched from DB, but any pending uploads lost)
+1360. GlucoseUpload.tsx:47 -- Still uses `Math.random().toString(36).substr(2, 9)` for file IDs
 
 ---
 
-## Category 19: Configuration and Environment Hardcoding (Items 1071-1120)
+## Category 24: UI Rendering and Presentation Bugs (Items 1381-1480)
 
-### 19.1 Stripe Configuration (5)
-1071. DonationModal.tsx:18 -- Stripe publishable key is a string literal in source code, not from env
-1072. Two different Stripe test keys exist (DonationModal vs .env) -- unclear which is active
-1073. No production Stripe key configuration path
-1074. Stripe webhook secret not in configured secrets -- webhooks are unverified
-1075. No Stripe dashboard link or management interface for admins
+### 24.1 Widget Data-Render Disconnect (10)
+1381. DashboardWidgets recent-activity widget fetches real data but renders hardcoded strings (confirmed lines 374-396)
+1382. DashboardWidgets device-status sets fake sensor/battery data even for logged-in users
+1383. DashboardWidgets glucose-trends fallback numbers (127, 78, 6.8, 24) appear as real data without disclaimer
+1384. DashboardWidgets health-metrics has same fallback issue as glucose-trends
+1385. Quick actions widget (lines 350-372) "Upload Data" and "Log Event" buttons have no `onClick` handlers or navigation
+1386. Community insights widget "View Community" button (line 341) has no `onClick` handler or Link
+1387. No widget refresh mechanism -- data is snapshot-on-mount only
+1388. Widget error state (line 218: `setData({})`) renders "Unknown Widget" instead of user-friendly error
+1389. No widget loading timeout -- if Supabase is slow, skeleton shows indefinitely
+1390. Widget key in Dashboard.tsx grid is `widgetId` -- may cause React reconciliation issues if same widget added twice
 
-### 19.2 API and Service Hardcoding (10)
-1076. Edge functions use various hardcoded API endpoints for external services
-1077. Reddit API calls in `fetch-reddit-reviews` require auth credentials not configured
-1078. No API key rotation mechanism for any external service
-1079. External API rate limits not documented or handled consistently
-1080. No health monitoring for external API dependencies
-1081. ClinicalTrials.gov API endpoint hardcoded in edge function
-1082. FDA API endpoint hardcoded in edge function
-1083. NIH RePORTER API endpoint hardcoded in edge function
-1084. Medicare.gov API endpoint hardcoded in edge function
-1085. No fallback or circuit breaker for when external APIs are unavailable
+### 24.2 Form Submission Gaps (10)
+1391. Settings privacy section has no Save button -- toggles affect local state only
+1392. Settings appearance section has no save mechanism -- Compact Mode and Animations toggles do nothing
+1393. Settings notification delivery method switches (email/push in Delivery Methods subsection) are uncontrolled
+1394. Contact form has no client-side email format validation
+1395. Contact form has no rate limiting
+1396. BecomeAdvocate form doesn't prevent double submission
+1397. Community post submission doesn't validate content length
+1398. Device review form may not handle very long text
+1399. Medication review form may not handle special characters
+1400. No form auto-save for long-form inputs anywhere in the app
 
-### 19.3 UI Configuration Hardcoding (10)
-1086. Predefined donation amounts ($10, $25, $50, $100) hardcoded in DonationModal
-1087. Newsletter delivery day "Sunday" hardcoded in multiple locations
-1088. Search keyboard shortcut "Cmd+K" hardcoded -- no customization
-1089. Dashboard grid breakpoints hardcoded in useDashboardLayout hook
-1090. Default widget list hardcoded in useDashboardLayout
-1091. Sidebar navigation item order hardcoded in AppSidebar.tsx
-1092. Theme colors hardcoded in Tailwind config -- no runtime theme customization
-1093. Toast duration/position not configurable
-1094. Pagination limits (`.limit(50)`, `.limit(10)`) hardcoded throughout hooks
-1095. File upload size limit "50MB" claimed but not enforced
+### 24.3 Empty States and Error Handling (10)
+1401. Trends page shows empty list with no helpful message when `trend_analysis_metrics` is empty
+1402. Fixes page shows empty skeleton state but no "no fixes found" message
+1403. WarriorSpotlight shows "Coming Soon" instead of indicating it will show real stories
+1404. EmergenceOfDiabetes myths section shows "Coming Soon" with no timeline
+1405. AdminContent survey section shows "coming soon" text above a table that may be empty
+1406. ProjectFullReport shows "Report Coming Soon" with no indication of when
+1407. QoLDetailModal falls back to "Detailed information coming soon" for unknown items
+1408. ResearchHub shows loading state but no "no results" empty state
+1409. MedicineHub shows loading but no empty state when no medications match filters
+1410. DeviceAnalytics shows loading but no empty state for devices with no data
 
-### 19.4 Content Configuration (15)
-1096. Achievement definitions hardcoded -- can't add new achievements without code deploy
-1097. Volunteer roles hardcoded -- can't update without code deploy
-1098. Development projects hardcoded -- can't update without code deploy
-1099. Donor tier definitions hardcoded
-1100. FAQ answers hardcoded -- can't update without code deploy
-1101. Financial tools resource URLs hardcoded (many pointing to "#")
-1102. State forms download URLs hardcoded and disabled
-1103. Cure timeline milestones hardcoded
-1104. Research study citations hardcoded
-1105. Organization donation data hardcoded
-1106. Seasonal glucose patterns hardcoded
-1107. Population trends comparison data hardcoded
-1108. Regional glucose data hardcoded
-1109. Technology adoption trend data hardcoded
-1110. Exercise correlation benchmarks hardcoded
+### 24.4 Missing Data Labels and Disclaimers (15)
+1411. DashboardWidgets glucose-trends shows "In Range" badge (line 267) unconditionally regardless of actual value
+1412. DashboardWidgets shows "Current reading" (line 265) but value may be from the last upload, not real-time
+1413. No timestamp showing when glucose data was last updated
+1414. Public glucose data seasonal tab now has disclaimer but individual chart tooltips don't indicate data is reference
+1415. Population trends tab reference studies don't show "last verified" dates
+1416. CureProgress "projection" chart doesn't label y-axis or explain what the percentage means
+1417. Device review counts don't clarify if they're from the platform or aggregated from external sources
+1418. Medication satisfaction percentages don't explain methodology
+1419. Community post "quality scores" not explained to users
+1420. No tooltip explaining what "CV%" means to non-technical users
+1421. No tooltip explaining what "GMI" or "est. A1C" means
+1422. No explanation of what "Time in Range" percentage target should be
+1423. Charts across the app don't have consistent axis labels
+1424. No chart legend explanations for color coding
+1425. No unit conversion option (mg/dL vs mmol/L) anywhere
 
----
+### 24.5 Responsive and Layout Issues (10)
+1426. Settings TabsList `grid-cols-2 lg:grid-cols-5` causes awkward 2-column wrapping on medium screens
+1427. Header buttons (search, bell, heart-donate, user menu) overflow on narrow viewports
+1428. Dashboard grid on very small screens (xxs: 2 cols) may not accommodate widgets properly
+1429. Sidebar collapsed state may hide important navigation on mobile
+1430. Hero section floating animated elements (Beaker, Brain, Heart) overlap text on mobile
+1431. DataUpload drag-and-drop doesn't work well on touch devices
+1432. Footer grid collapse inconsistent on tablet landscape
+1433. Modal dialogs with lots of content may not scroll on small screens
+1434. Chart components may not resize on orientation change
+1435. Admin tables not horizontally scrollable on mobile
 
-## Category 20: Missing Disclaimers and Legal/Compliance (Items 1111-1150)
+### 24.6 Navigation and Routing Issues (10)
+1436. No scroll-to-top on route changes
+1437. No breadcrumb navigation on nested routes
+1438. `/qa-checklist` is publicly accessible -- should be admin-only or removed
+1439. Quick actions widget buttons don't navigate anywhere
+1440. Community insights widget "View Community" button doesn't navigate
+1441. No 404 handling for deep links to non-existent community posts
+1442. No loading states for route transitions
+1443. Search dialog (Cmd+K) routes are hardcoded and may not include all pages
+1444. No "recently visited" or history feature
+1445. Back button behavior inconsistent across pages
 
-### 20.1 Medical and Legal Disclaimers (15)
-1111. No medical disclaimer on glucose analysis results
-1112. No "not medical advice" banner on clinical suggestions
-1113. No disclaimer that ScenarioLab predictions are simulated, not predictive
-1114. No disclaimer on medication interaction checker results
-1115. No disclaimer on device comparison data accuracy
-1116. ClinicalSuggestionsPanel provides actionable health suggestions without medical oversight disclaimer
-1117. TrendPrediction component shows health predictions without confidence context
-1118. Glucose analysis reports could be interpreted as medical advice
-1119. "Clinical-grade" PDF report claim may have regulatory implications
-1120. No terms of service page
-1121. No privacy policy page
-1122. No cookie policy
-1123. No data processing agreement for GDPR compliance
-1124. No HIPAA compliance notice (handling health data)
-1125. No user consent flow for health data collection
+### 24.7 Accessibility Deficiencies (10)
+1446. No skip-to-content link
+1447. Charts lack text alternatives for screen readers
+1448. Icon-only buttons in header lack adequate aria-labels
+1449. Achievement badges use emoji -- not screen-reader friendly
+1450. No `prefers-reduced-motion` support
+1451. Color-only status indicators need text alternatives
+1452. Focus management missing after route changes
+1453. Modal focus trapping may be incomplete
+1454. Form error messages not linked via `aria-describedby`
+1455. Loading spinners have no accessible text
 
-### 20.2 Data Accuracy Disclaimers (10)
-1126. DonationsInfo page shows organization funding amounts with no "estimated" label
-1127. Public glucose data tabs show hardcoded research data with no "illustrative" label
-1128. Population comparison data presented as factual with no verification date
-1129. Clinical trial data from ClinicalTrials.gov may be delayed -- no staleness indicator
-1130. Drug pricing data may be outdated -- no last-refreshed timestamp visible to users
-1131. Medicare coverage data may be outdated -- no last-refreshed timestamp
-1132. FDA safety data may be delayed -- no update frequency shown
-1133. Device reliability scores methodology not disclosed
-1134. Medication satisfaction percentages methodology not disclosed
-1135. Community "quality scores" calculation not explained to users
+### 24.8 Console Pollution (10)
+1456. 340+ console.log/error/warn statements across 39 page files
+1457. Index.tsx:61 -- `console.error('Error fetching insights:', error)`
+1458. Index.tsx:105 -- `console.error('Donation error:', error)`
+1459. Settings.tsx:175, 227 -- console.error in profile loading and saving
+1460. ScenarioLab.tsx:72, 185 -- console.error in simulation flows
+1461. EmergenceOfDiabetes.tsx:530 -- console.error in data fetching
+1462. DataUpload.tsx:260 -- console.error in upload flow
+1463. DashboardWidgets.tsx:218 -- console.error in widget data fetching
+1464. AppCenter.tsx:185, 204, 220 -- multiple console.error calls
+1465. Fixes.tsx:55 -- console.error in fix fetching
 
----
+### 24.9 State Management Fragmentation (10)
+1466. Auth state in Zustand store (`useAuthStore`)
+1467. Server state in React Query (some hooks)
+1468. Server state in raw `useState` + `useEffect` + supabase calls (most pages)
+1469. Notification preferences in DB (after fix) but delivery method switches in uncontrolled state
+1470. Theme in `next-themes` localStorage
+1471. Dashboard layout in custom hook with DB persistence
+1472. Upload files in component-local `useState` (lost on navigation)
+1473. Privacy settings in component state with no save mechanism
+1474. Appearance settings in uncontrolled Switch components
+1475. Achievement tracking split between DB, hooks, and Layout-level modal
 
-## Category 21: Remaining Hardcoded Instances (Items 1136-1200)
-
-### 21.1 GlucoseUpload Component Issues (10)
-1136. GlucoseUpload.tsx:47 -- `Math.random().toString(36).substr(2, 9)` for file IDs
-1137. GlucoseUpload.tsx claims 50MB file size limit but no actual enforcement
-1138. GlucoseUpload accepts file types by extension only -- no MIME type validation
-1139. No virus/malware scanning on uploaded files
-1140. No file content validation (CSV structure, required columns, etc.)
-1141. Upload component shows drag-and-drop but may not work on mobile touch
-1142. No sample/template CSV file available for users
-1143. No data format documentation linked from upload interface
-1144. No upload history page beyond the current session
-1145. Uploaded file data not viewable after leaving the page
-
-### 21.2 Shop and E-Commerce Hardcoding (5)
-1146. Shop product data comes from database but product images may use placeholder URLs
-1147. Shop checkout redirects to Stripe but no order confirmation page verifies payment
-1148. No inventory tracking -- products show as available regardless
-1149. No shipping address collection or shipping cost calculation
-1150. No order history page for users
-
-### 21.3 Search and Navigation Hardcoding (10)
-1151. GlobalSearchDialog page/route list hardcoded -- new pages must be manually added
-1152. Search only searches client-side predefined routes -- no full-text database search
-1153. No search indexing for community posts, devices, medications, articles
-1154. No recent searches persistence
-1155. No search analytics to track what users look for
-1156. Sidebar navigation items hardcoded in arrays -- not configurable
-1157. Sidebar badge counts (if any) are static
-1158. No "recently visited" or "favorites" navigation
-1159. No user-customizable dashboard beyond widget arrangement
-1160. Keyboard shortcuts not discoverable in UI
-
-### 21.4 Auth and User Data Hardcoding (10)
-1161. Settings.tsx:491 -- Email delivery shows `alex@example.com` instead of user's actual email
-1162. No mechanism to detect if user has completed profile setup
-1163. No welcome email sent on registration
-1164. No email verification reminder flow
-1165. Auth.tsx -- signup doesn't show password requirements upfront
-1166. No "remember me" option on login
-1167. No social auth providers (Google, Apple, etc.)
-1168. No magic link authentication option
-1169. Admin role check queries `admin_users` table on every protected page load -- no caching
-1170. User role/permissions not cached in session -- re-fetched on every admin page
-
-### 21.5 Miscellaneous Hardcoded Items (30)
-1171. Index.tsx:4 -- `dropIcon` imported but never used in rendered JSX (dead import)
-1172. `src/data/` directory contains 5 files of hardcoded data that should be in database
-1173. `useEngagementTracking` hook has engagement trigger thresholds hardcoded
-1174. Smart onboarding modal fires after hardcoded 2-second delay
-1175. Onboarding checklist items hardcoded
-1176. Achievement unlock confetti colors hardcoded (gold, orange, red, purple)
-1177. GoodBadJars gradient colors hardcoded inline
-1178. Chart colors (`hsl(var(--chart-1))` through `--chart-5`) limited to 5 -- some charts need more
-1179. PDF report generation uses hardcoded template layout
-1180. DataExport component uses hardcoded CSV column headers
-1181. Date format inconsistent -- some use `toLocaleDateString()`, others use date-fns
-1182. Currency formatting not centralized -- some use `toLocaleString()`, others manual `$` prefix
-1183. Error messages in catch blocks are inconsistent (some show technical details, others generic)
-1184. Console.log statements in 39+ page files running in production
-1185. Loading timeout values hardcoded (e.g., setTimeout with magic numbers)
-1186. Supabase query `.limit()` values inconsistent (10, 50, 100, unbounded)
-1187. Toast message strings hardcoded throughout (no i18n or centralized strings)
-1188. Button labels inconsistent ("Cancel" vs "Close" vs "Dismiss")
-1189. Empty state messages inconsistent across pages
-1190. Error state messages inconsistent across pages
-1191. No centralized constants file for shared values (limits, thresholds, URLs)
-1192. No feature flags system -- all features always on
-1193. No A/B testing infrastructure
-1194. No analytics event tracking (no page views, no click tracking, no funnel analysis)
-1195. No user feedback collection mechanism (no NPS, no satisfaction survey)
-1196. Glucose unit always mg/dL -- no mmol/L support
-1197. Timezone assumed from browser -- no explicit timezone setting
-1198. Date ranges in filters use hardcoded options (7 days, 30 days, 90 days)
-1199. Recharts tooltip formatting hardcoded per-chart instead of shared formatter
-1200. No data export format options beyond what's hardcoded (CSV only in most places, JSON in admin)
+### 24.10 Performance Issues Still Present (5)
+1476. No `React.lazy()` or code splitting for any of 90+ routes
+1477. No `Suspense` boundaries
+1478. All recharts, framer-motion, jspdf, html2canvas loaded for every page
+1479. `useEngagementTracking` runs on every render of AppContent
+1480. `useAccessibilityAudit` and `usePerformanceMonitor` may still run in production (need to verify after previous fix)
 
 ---
 
-## Implementation Priority (Updated for Items 801-1200)
+## Category 25: Missing Features and Incomplete Implementations (Items 1481-1560)
 
-### Phase 1 -- Critical Fixes (Items that mislead users or cause errors)
-- Replace hardcoded DataUpload stats (946-950) with real values from database
-- Fix `alex@example.com` hardcoded email in Settings (1161)
-- Remove or gate QA Checklist from public access (826)
-- Fix Date.now() ID collision (952)
-- Fix Stripe key mismatch between DonationModal and .env (1001-1002)
-- Fix donation amount validation mismatch between client and server (1003-1004)
-- Add "demo data" visual indicator when showing fabricated widget values (809)
-- Remove dead `dropIcon` import from Index.tsx (1171)
-- De-duplicate Emma's story on homepage (1031)
+### 25.1 Account Management Gaps (10)
+1481. Delete Account deletes from 9 tables but at least 15+ more tables may reference user_id
+1482. No cascade delete for: uploads, survey_responses, glucose_analysis_entries, user_view_history
+1483. No cascade delete for: user_activity_log, bookmarks, diabetic_connections, direct_messages
+1484. No cascade delete for: diabetic_profiles, user_preferences, user_roles
+1485. No account deactivation (soft delete) option
+1486. No re-authentication before destructive actions
+1487. No data export before account deletion
+1488. No email change functionality
+1489. No session management (view/revoke active sessions)
+1490. Delete All Data button shows "Coming Soon" -- separate from Delete Account
 
-### Phase 2 -- Misleading Claims and Fake Data
-- Replace admin dashboard hardcoded charts with real analytics queries (811-820)
-- Connect SeasonalPatternsTab and PopulationTrendsTab to actual `public_glucose_data` aggregations (871-885)
-- Label ScenarioLab as "simulation/demonstration" not "AI-powered predictions" (941-945)
-- Add disclaimers to CureProgress projections (896-900)
-- Replace or label DonationsInfo organization data with last-verified dates (861-870)
-- Replace fabricated testimonials with real user quotes or remove (906)
-- Fix or remove inflated community member count (806)
+### 25.2 Data Export Not Implemented (5)
+1491. "Export Glucose Data" shows "Coming Soon" toast (Settings.tsx:720)
+1492. "Export All Data" shows "Coming Soon" toast (Settings.tsx:724)
+1493. No GDPR-compliant data portability feature
+1494. DataExport component exists for individual upload analysis but not for full account data
+1495. No scheduled or automated backup/export
 
-### Phase 3 -- Connect Disconnected Features
-- Persist Settings profile fields (CGM, pump, diagnosis, research) to database (971-975)
-- Connect notification preferences to database table instead of localStorage (961-968)
-- Wire up dead Quick Actions buttons or remove them (951)
-- Configure email sending service and cron triggers for digest/alerts (983-990)
-- Fix recurring donation support in edge function (1007)
-- Add webhook secret verification (1005-1006)
+### 25.3 Email System Not Functional (10)
+1496. `send-weekly-digest` edge function exists but no cron trigger
+1497. `send-trending-alerts` exists but no trigger
+1498. `daily-briefing` exists but no trigger
+1499. No actual email sending service configured (RESEND_API_KEY exists but needs verification)
+1500. No welcome email on registration
+1501. No email verification reminder
+1502. No donation receipt email
+1503. No contact form submission notification to admin
+1504. No email unsubscribe flow
+1505. Newsletter "Sunday" delivery claim in UI but no scheduled job
 
-### Phase 4 -- Content Management
-- Move hardcoded data files (`src/data/`) to database tables (1172)
-- Make achievements, volunteer roles, FAQs, and roadmap admin-configurable (1096-1110)
-- Add medical and legal disclaimers (1111-1125)
-- Add data accuracy/staleness indicators (1126-1135)
-- Create terms of service and privacy policy pages (1120-1122)
+### 25.4 Scheduled Jobs Missing (5)
+1506. No cron for `verify-external-links`
+1507. No cron for `snapshot-generator`
+1508. No cron for `scheduled-maintenance`
+1509. No cron for data feed refreshes (FDA, Medicare, clinical trials)
+1510. No cron for `notification-triggers`
 
-### Phase 5 -- Polish and Quality
-- Replace all fabricated public-facing statistics with real DB counts or clearly label (831-860)
-- Add proper "illustrative data" labels to hardcoded research charts (881, 884)
-- Centralize date formatting, currency formatting, error messages (1181-1183)
-- Remove 345+ console.log statements from production code (1184)
-- Add feature flags system for controlled rollout (1192)
-- Add analytics event tracking infrastructure (1194)
+### 25.5 Shop and E-Commerce Gaps (5)
+1511. No order history page for users
+1512. No inventory tracking
+1513. No shipping cost calculation
+1514. Shop checkout redirects to Stripe with no post-payment verification page
+1515. No STRIPE_WEBHOOK_SECRET configured for shop webhooks
+
+### 25.6 Admin Functionality Gaps (10)
+1516. Admin routes missing `ProtectedRoute` wrapper (5 routes identified previously)
+1517. No admin notification when contact form is submitted
+1518. No admin notification when community content is flagged
+1519. No admin audit log for actions taken
+1520. No admin user management beyond role checking
+1521. Admin dashboard charts are fabricated
+1522. No admin-configurable feature flags
+1523. No admin content scheduling
+1524. No admin analytics on user engagement
+1525. Survey management listed as "coming soon" in admin
+
+### 25.7 Search and Discovery Gaps (10)
+1526. GlobalSearchDialog searches only predefined route list, not database content
+1527. No full-text search across community posts
+1528. No search across device/medication names from DB
+1529. No search across research articles
+1530. No search suggestions or autocomplete
+1531. No recent searches history
+1532. No search analytics
+1533. Sidebar navigation items are hardcoded arrays
+1534. No "favorites" or quick-access bar
+1535. No "recently viewed" items tracking
+
+### 25.8 Gamification and Engagement Gaps (10)
+1536. Achievement definitions hardcoded -- can't add without code deploy
+1537. Achievement progress tracking may have race conditions on concurrent updates
+1538. Achievement `earned_at` may be overwritten to null by UPSERT when not completed
+1539. Duplicate achievement notifications visible in user's notification list (4 "Explorer" notifications in sample data)
+1540. Smart onboarding modal fires 2 seconds after login regardless of context
+1541. Onboarding checklist items hardcoded
+1542. No mechanism to dismiss onboarding permanently
+1543. Streak tracking uses client timezone -- breaks across timezone changes
+1544. No daily login reward or streak-based incentives
+1545. No leaderboard or community ranking system
+
+### 25.9 Legal and Compliance Gaps (10)
+1546. No Terms of Service page content (Terms.tsx may exist but verify content)
+1547. No Privacy Policy page content
+1548. No cookie consent banner
+1549. No GDPR data processing agreement
+1550. No HIPAA compliance notice for health data
+1551. No medical disclaimer on glucose analysis results
+1552. No "not medical advice" banner on clinical suggestions
+1553. No disclaimer on ScenarioLab that results are simulated
+1554. No disclaimer on medication interaction results
+1555. Crisis hotline numbers in mental health content may be outdated
+
+### 25.10 Internationalization and Localization (5)
+1556. Glucose unit always mg/dL -- no mmol/L support
+1557. Timezone assumed from browser -- no explicit setting
+1558. No language selection or i18n support
+1559. Date format inconsistent (some toLocaleDateString, some date-fns)
+1560. Currency always USD -- no localization
+
+---
+
+## Category 26: Code Quality and Architecture Bugs (Items 1561-1640)
+
+### 26.1 Type Safety Issues (10)
+1561. DashboardWidgets.tsx:49 -- `data` typed as `any` (useState<any>(null))
+1562. DashboardWidgets.tsx:70 -- `analysis` cast with `as any`
+1563. DataUpload.tsx:79-83 -- Five `any` typed fields in UploadedFile interface
+1564. Dashboard.tsx:42 -- `component: React.ComponentType<any>` in DashboardWidget interface
+1565. Settings.tsx privacy/notifications state types are inline object literals, not interfaces
+1566. Multiple hooks use `catch (error: any)` or `catch (error)` without typed handling
+1567. No discriminated union types for widget state or upload status
+1568. `Json` type from Supabase requires unsafe type assertions everywhere
+1569. No branded types for UUIDs (user_id, post_id all plain strings)
+1570. Event handlers in many components use inferred types
+
+### 26.2 React Pattern Issues (10)
+1571. No ErrorBoundary component -- unhandled errors crash the entire app
+1572. Layout renders modals (Achievement, Onboarding, Search) on every page regardless of need
+1573. Dashboard `ResponsiveGridLayout` re-renders on every layout change without debounce
+1574. No `React.memo` on expensive list item components
+1575. No `useMemo` for expensive computations in chart components
+1576. `useEffect` with empty deps in multiple components that reference external state
+1577. Props drilling through component trees in some cases
+1578. No `Suspense` boundaries for code splitting
+1579. Multiple re-renders during initial auth state resolution
+1580. Side effects (console.log) in render paths
+
+### 26.3 Duplicate Components (10)
+1581. `EmailDigestSignup` (dashboard) and `WeeklyDigestSignup` -- two components for same feature
+1582. `AdminRoute` and `withAdmin` HOC both implement admin checking
+1583. Toast usage split between `sonner` toast and `useToast` hook (shadcn)
+1584. Loading skeleton patterns reimplemented in every page
+1585. Empty state patterns reimplemented per page
+1586. Card styling duplicated without shared variants
+1587. Search/filter patterns duplicated across list pages
+1588. Date formatting not centralized
+1589. Currency formatting not centralized
+1590. Error message strings hardcoded and inconsistent
+
+### 26.4 Edge Function Issues (10)
+1591. Different Supabase JS versions across edge functions
+1592. Different Stripe versions across edge functions
+1593. CORS `Access-Control-Allow-Origin: *` in all edge functions
+1594. No shared utility functions (CORS headers duplicated everywhere)
+1595. No standardized error response format
+1596. No request size limits
+1597. No timeout handling
+1598. Seed functions are one-time-use but remain deployed and invokable
+1599. No health check endpoint for monitoring
+1600. No rate limiting
+
+### 26.5 Database Issues (10)
+1601. `update_trends()` function is a no-op
+1602. `update_updated_at_column()` trigger function exists but no triggers are attached (per linter)
+1603. No cascade delete setup for user data across 20+ tables
+1604. `data_refresh_logs` table has no write process
+1605. `backfill_audit` table has no write process
+1606. `trend_analysis_metrics` has no data pipeline
+1607. `population_insights` has no data pipeline
+1608. `shifts` table purpose unclear
+1609. Device reviews `helpful_count` may drift from `review_helpful_votes` count
+1610. No database cleanup for old notifications or chat sessions
+
+### 26.6 Missing Indexes and Performance (10)
+1611. No verified indexes on frequently queried foreign key columns
+1612. `public_glucose_data` (126k+ rows) aggregation functions may timeout
+1613. No materialized views for pre-computed analytics
+1614. No query timeout configuration
+1615. No connection pooling optimization
+1616. Community posts queries may be slow without full-text search indexes
+1617. No pagination on several list pages (using unbounded or high limit queries)
+1618. Supabase query `.limit()` values inconsistent (10, 20, 50, 100)
+1619. No read/write splitting strategy
+1620. No database-level validation for email format or donation amounts
+
+### 26.7 Security Remaining Issues (10)
+1621. Stripe publishable key may still be hardcoded in DonationModal (verify env var usage)
+1622. No STRIPE_WEBHOOK_SECRET in configured secrets
+1623. No rate limiting on auth endpoints
+1624. No CAPTCHA on signup or contact forms
+1625. No input sanitization on community post submissions
+1626. No XSS protection on user-generated content rendering
+1627. Edge functions CORS allows any origin
+1628. No audit logging for admin actions
+1629. Profile bio has no length limit
+1630. Community post content has no profanity filter
+
+### 26.8 Testing and Monitoring (10)
+1631. Zero unit tests
+1632. Zero integration tests
+1633. Zero E2E tests
+1634. No visual regression tests
+1635. `axe-core` installed but only used in QA utility
+1636. No error tracking integration (Sentry, etc.)
+1637. No performance monitoring
+1638. No uptime monitoring for edge functions
+1639. No dependency vulnerability scanning
+1640. No code coverage reporting
+
+---
+
+## Category 27: Miscellaneous Remaining Issues (Items 1641-1700)
+
+### 27.1 PWA and SEO (5)
+1641. No PWA manifest
+1642. No service worker
+1643. No favicon configured
+1644. No OG meta tags for social sharing
+1645. No page-level meta descriptions
+
+### 27.2 Print and Offline (5)
+1646. No print stylesheet for data-heavy pages
+1647. No offline detection or "you are offline" banner
+1648. No offline caching strategy
+1649. No data export for offline use
+1650. PDF report generation uses hardcoded template layout
+
+### 27.3 Webhook and Integration (10)
+1651. Stripe shop webhook falls back to unverified parsing when no secret
+1652. No webhook retry or dead-letter handling
+1653. No webhook event deduplication
+1654. No CGM device API integration (Dexcom, LibreView APIs)
+1655. No calendar integration for appointment reminders
+1656. No health record export (FHIR/HL7)
+1657. No social sharing integration
+1658. No SSO or social login (Google, Apple)
+1659. No magic link authentication
+1660. No OAuth token refresh handling
+
+### 27.4 Content Freshness (10)
+1661. Emma's story on homepage is fabricated
+1662. SupportGlucoForge testimonials are fabricated ("Community Member (illustrative)")
+1663. Cure timeline milestones will become outdated
+1664. Organization donation data (DonationsInfo) will become outdated
+1665. Research study citations will become outdated
+1666. Technology adoption trend data (2018-2024) already outdated for 2025+
+1667. Regional glucose data claims fabricated sample sizes
+1668. Study comparison data from named studies (T1D Exchange, etc.) are static
+1669. Financial organizations funding data approximated and undated
+1670. Roadmap phase status ("Current Phase: Foundation") hardcoded
+
+### 27.5 UX Flow Issues (15)
+1671. Settings "Change Password" button redirects via toast to Profile page instead of inline
+1672. No unsaved changes warning when navigating away from Settings
+1673. No confirmation dialog for hero "Donate Now" $25 button
+1674. No "back to top" button on long pages
+1675. No breadcrumbs on detail pages
+1676. No recently viewed items
+1677. Multiple duplicate achievement notifications generated (4x "Explorer" in user's data)
+1678. Achievement unlock modal may interrupt important workflows
+1679. No way to permanently dismiss smart onboarding
+1680. No contextual help or tooltips for complex features
+1681. Dashboard edit mode indicator could be more prominent
+1682. Widget library dialog scrolls full page instead of internal scroll
+1683. No pagination on community posts, devices, or medication lists
+1684. No URL-based state for filters on list pages
+1685. Search results don't highlight matched terms
+
+### 27.6 Configuration and Environment (15)
+1686. Two Stripe keys possibly still in conflict (DonationModal vs .env) -- verify fix applied
+1687. Predefined donation amounts ($10, $25, $50, $100) hardcoded in DonationModal
+1688. Dashboard grid breakpoints hardcoded
+1689. Default widget list hardcoded in useDashboardLayout
+1690. File upload size "50MB" claimed but not enforced
+1691. Chart color palette limited to 5 colors
+1692. Toast duration/position not configurable
+1693. Pagination limits inconsistent across hooks
+1694. No feature flags system
+1695. No A/B testing infrastructure
+1696. No analytics event tracking
+1697. No user feedback collection (NPS, satisfaction)
+1698. No centralized constants file
+1699. No design tokens file
+1700. Error messages inconsistent across the app
+
+---
+
+## Implementation Priority for Items 1201-1700
+
+### Immediate (Data Accuracy)
+- Fix DashboardWidgets recent-activity to render real data from `data.uploads`/`data.surveys` instead of hardcoded strings (1201-1205)
+- Fix DashboardWidgets device-status to not show fake sensor/battery for logged-in users (1206-1210)
+- Remove glucose widget magic number fallbacks or add "estimated" label (1211-1215)
+- Add Save button for privacy settings section (1281-1285)
+- Fix notification delivery method switches to be controlled components (1291-1295)
+
+### High Priority (Broken Functionality)
+- Implement cascade deletes for remaining tables on account deletion (1481-1484)
+- Add "Coming Soon" stubs with actual timeline or remove misleading UI (1271-1280)
+- Fix QA Checklist to reflect actual status or gate behind admin (1236-1245)
+- Fix Fixes page dead links (1246-1250)
+- Implement data export (1491-1495)
+- Remove ScenarioLab magic-number fallbacks in glucose curves (1231-1235)
+
+### Medium Priority (Data Integrity)
+- Move `src/data/` files to database tables with admin management (1261-1270)
+- Add cron triggers for edge functions (1506-1510)
+- Fix Trends page no-op `update_trends()` (1296-1300)
+- Add file upload size enforcement and MIME validation (1354-1356)
+
+### Lower Priority (Polish)
+- Remove 340+ console statements from production (1456-1465)
+- Add ErrorBoundary component (1571)
+- Add code splitting with React.lazy (1476-1478)
+- Add proper empty states across all list pages (1401-1410)
+- Add accessibility improvements (1446-1455)
+- Centralize formatting utilities (1588-1590)
 
