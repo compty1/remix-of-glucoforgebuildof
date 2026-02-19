@@ -34,7 +34,8 @@ import {
 } from 'recharts';
 import { EntityLogo } from '@/components/ui/entity-logo';
 
-// Estimated donations data based on public 990 forms and annual reports (approximate, last reviewed 2024)
+// Estimated donations data based on public 990 forms and annual reports (approximate, last reviewed 2024).
+// ⚠ All values are static estimates — verify with each organization's official filings for current data.
 const organizationsData = [
   {
     id: '1',
@@ -158,6 +159,7 @@ const organizationsData = [
   }
 ];
 
+// ⚠ Illustrative trend data — NOT sourced from verified financial records.
 const yearlyTrendsData = [
   { year: 2019, JDRF: 175, ADA: 132, DRI: 28, Joslin: 52, Helmsley: 65 },
   { year: 2020, JDRF: 168, ADA: 118, DRI: 26, Joslin: 48, Helmsley: 70 },
@@ -167,6 +169,7 @@ const yearlyTrendsData = [
   { year: 2024, JDRF: 198, ADA: 145, DRI: 32, Joslin: 58, Helmsley: 75 }
 ];
 
+// ⚠ Illustrative sector breakdown — NOT sourced from verified financial records.
 const sectorBreakdown = [
   { name: 'Individual Donors', value: 189500000, color: 'hsl(var(--primary))' },
   { name: 'Corporate Sponsors', value: 126500000, color: 'hsl(var(--chart-2))' },

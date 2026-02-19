@@ -52,7 +52,6 @@ export default function AdminProjects() {
       if (error) throw error;
       setSubmissions(data || []);
     } catch (error) {
-      console.error('Error fetching submissions:', error);
       toast.error('Failed to fetch project submissions');
     } finally {
       setLoading(false);
@@ -103,7 +102,6 @@ export default function AdminProjects() {
       setReviewModalOpen(false);
       fetchSubmissions();
     } catch (error) {
-      console.error('Error approving submission:', error);
       toast.error('Failed to approve submission');
     } finally {
       setActionLoading(null);
@@ -136,7 +134,6 @@ export default function AdminProjects() {
       setReviewModalOpen(false);
       fetchSubmissions();
     } catch (error) {
-      console.error('Error rejecting submission:', error);
       toast.error('Failed to reject submission');
     } finally {
       setActionLoading(null);
@@ -187,7 +184,6 @@ export default function AdminProjects() {
       setReviewModalOpen(false);
       fetchSubmissions();
     } catch (error) {
-      console.error('Error publishing project:', error);
       toast.error('Failed to publish project');
     } finally {
       setActionLoading(null);

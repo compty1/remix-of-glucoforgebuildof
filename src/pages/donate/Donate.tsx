@@ -52,7 +52,6 @@ export default function Donate() {
         throw new Error('No checkout URL received');
       }
     } catch (error) {
-      console.error('Donation error:', error);
       toast.error('Failed to process donation. Please try again.');
     } finally {
       setProcessing(false);
@@ -231,7 +230,7 @@ export default function Donate() {
                   </p>
                   <p className="flex items-center gap-1">
                     <Check className="h-3 w-3 text-success" />
-                    Tax-deductible as allowed by law
+                    Tax-deductible once 501(c)(3) status is confirmed
                   </p>
                   <p className="flex items-center gap-1">
                     <Check className="h-3 w-3 text-success" />
@@ -311,11 +310,11 @@ export default function Donate() {
                 <CardContent>
                   <div className="space-y-2 text-sm text-muted-foreground">
                     <p>
-                      GlucoForge is a 501(c)(3) nonprofit organization. 
-                      Your donation is tax-deductible to the full extent allowed by law.
+                      GlucoForge is in the process of obtaining 501(c)(3) nonprofit status. 
+                      Donations are not currently tax-deductible. We will notify donors when this status is confirmed.
                     </p>
                     <p>
-                      EIN: [To be provided when 501(c)(3) status is approved]
+                      EIN: Pending — 501(c)(3) application in progress
                     </p>
                     <p>
                       You will receive a receipt via email for your records.

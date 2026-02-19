@@ -97,7 +97,6 @@ const AdminShop = () => {
         setOrders(typedOrders);
       }
     } catch (err) {
-      console.error('Error fetching data:', err);
       toast.error('Failed to load shop data');
     } finally {
       setLoading(false);
@@ -148,7 +147,6 @@ const AdminShop = () => {
       resetForm();
       fetchData();
     } catch (err) {
-      console.error('Error saving product:', err);
       toast.error('Failed to save product');
     }
   };
@@ -161,7 +159,6 @@ const AdminShop = () => {
       toast.success('Product deleted');
       fetchData();
     } catch (err) {
-      console.error('Error deleting product:', err);
       toast.error('Failed to delete product');
     }
   };
@@ -176,7 +173,7 @@ const AdminShop = () => {
       toast.success(product.is_active ? 'Product hidden' : 'Product visible');
       fetchData();
     } catch (err) {
-      console.error('Error toggling product:', err);
+      // Toggle failed — UI will re-sync on next fetch
     }
   };
 

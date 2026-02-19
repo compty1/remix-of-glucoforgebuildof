@@ -102,7 +102,6 @@ export default function AdminWarriors() {
       resetForm();
       fetchStories();
     } catch (error) {
-      console.error(error);
       toast.error('Failed to save warrior story');
     }
   };

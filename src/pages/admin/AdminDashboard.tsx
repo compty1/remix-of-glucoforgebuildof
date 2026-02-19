@@ -88,7 +88,7 @@ export default function AdminDashboard() {
         totalDonations: 0 // Will show actual data when donation tracking is implemented
       });
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      // Stats fetch failed silently — dashboard shows zeros
     } finally {
       setLoading(false);
     }
@@ -189,7 +189,10 @@ export default function AdminDashboard() {
             {/* User Growth Chart */}
             <Card>
               <CardHeader>
-                <CardTitle>User Growth</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>User Growth</CardTitle>
+                  <Badge variant="outline" className="text-xs text-muted-foreground">Illustrative Data</Badge>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="h-80">
@@ -210,7 +213,10 @@ export default function AdminDashboard() {
             {/* Platform Usage */}
             <Card>
               <CardHeader>
-                <CardTitle>Platform Usage</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Platform Usage</CardTitle>
+                  <Badge variant="outline" className="text-xs text-muted-foreground">Illustrative Data</Badge>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="h-80">

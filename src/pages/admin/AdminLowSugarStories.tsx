@@ -90,7 +90,6 @@ export default function AdminLowSugarStories() {
       resetForm();
       fetchStories();
     } catch (error) {
-      console.error(error);
       toast.error('Failed to save story');
     }
   };

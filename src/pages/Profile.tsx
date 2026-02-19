@@ -122,7 +122,6 @@ export default function Profile() {
         });
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
       toast.error('Failed to load profile');
     } finally {
       setLoading(false);
@@ -177,7 +176,7 @@ export default function Profile() {
 
       setRecentActivity(activities);
     } catch (error) {
-      console.error('Error fetching activity stats:', error);
+      // Activity stats are non-critical — fail silently
     }
   };
 
@@ -215,7 +214,6 @@ export default function Profile() {
       toast.success('Profile updated successfully');
       await fetchProfile();
     } catch (error) {
-      console.error('Error saving profile:', error);
       toast.error('Failed to update profile');
     } finally {
       setSaving(false);
@@ -259,7 +257,6 @@ export default function Profile() {
       setShowPasswordDialog(false);
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error: any) {
-      console.error('Error changing password:', error);
       toast.error(error.message || 'Failed to change password');
     } finally {
       setChangingPassword(false);
@@ -411,8 +408,9 @@ export default function Profile() {
                             id="display_name"
                             type="text"
                             value={formData.display_name}
-                            onChange={(e) => handleChange('display_name', e.target.value)}
+                            onChange={(e) => handleChange('display_name', e.target.value.slice(0, 50))}
                             placeholder="Your warrior name"
+                            maxLength={50}
                           />
                           <Button 
                             variant="outline" 
@@ -432,10 +430,12 @@ export default function Profile() {
                         <Textarea
                           id="bio"
                           value={formData.bio}
-                          onChange={(e) => handleChange('bio', e.target.value)}
+                          onChange={(e) => handleChange('bio', e.target.value.slice(0, 500))}
                           placeholder="Share your T1D journey, tips, or anything you'd like..."
                           className="min-h-[100px]"
+                          maxLength={500}
                         />
+                        <p className="text-xs text-muted-foreground text-right">{formData.bio.length}/500</p>
                       </div>
 
                       <div className="space-y-2">

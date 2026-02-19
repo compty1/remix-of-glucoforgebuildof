@@ -60,7 +60,7 @@ const featureCategories = [
     color: 'from-blue-500 to-cyan-500',
     features: [
       'T1D Companion AI Chat - 24/7 intelligent support',
-      'Community Solutions Hub - 50,000+ peer-reviewed fixes',
+      'Community Solutions Hub - Aggregated peer discussions',
       'Warrior Spotlight - Real stories from real people',
       'Threaded discussions with expert verification'
     ]

@@ -39,7 +39,6 @@ const Trends = () => {
       if (error) throw error;
       setTrends(data || []);
     } catch (error) {
-      console.error('Error fetching trends:', error);
       toast({
         title: "Error",
         description: "Failed to load trend analysis",
@@ -61,7 +60,6 @@ const Trends = () => {
         description: "Showing latest available trend data",
       });
     } catch (error) {
-      console.error('Error refreshing trends:', error);
       toast({
         title: "Error",
         description: "Failed to refresh trend data",
@@ -206,7 +204,7 @@ const Trends = () => {
                   <div className="text-center py-8 text-muted-foreground">
                     <AlertTriangle className="h-12 w-12 mx-auto mb-4 opacity-50" />
                     <p>No trend data available yet</p>
-                    <p className="text-sm">Click "Refresh Data" to analyze current community discussions</p>
+                    <p className="text-sm">Trend analysis data is populated automatically as community discussions are processed. Check back later for insights.</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
