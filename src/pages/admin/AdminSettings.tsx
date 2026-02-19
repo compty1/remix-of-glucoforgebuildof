@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Settings, Globe, Palette, Shield, Zap, Upload } from 'lucide-react';
-import { useState } from 'react';
+import { Settings, Palette, Shield, Zap, Upload, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuthStore } from '@/store/authStore';
 
 interface FeatureFlag {
   id: string;
@@ -24,138 +26,154 @@ interface BrandingSetting {
   type: 'text' | 'color' | 'image' | 'url';
 }
 
+interface SystemSettings {
+  maintenanceMode: boolean;
+  registrationEnabled: boolean;
+  dataRetentionDays: number;
+  sessionTimeoutMinutes: number;
+  maxFileUploadMB: number;
+}
+
+const DEFAULT_FEATURE_FLAGS: FeatureFlag[] = [
+  { id: 'dark_mode', name: 'Dark Mode', description: 'Enable dark mode theme support', enabled: true, category: 'ui' },
+  { id: 'pwa_features', name: 'PWA Features', description: 'Progressive Web App capabilities', enabled: true, category: 'features' },
+  { id: 'experimental_charts', name: 'Experimental Charts', description: 'New chart visualizations in beta', enabled: false, category: 'experimental' },
+  { id: 'social_login', name: 'Social Login', description: 'Google/Facebook authentication', enabled: false, category: 'features' },
+  { id: 'advanced_analytics', name: 'Advanced Analytics', description: 'Detailed user behavior tracking', enabled: true, category: 'features' },
+];
+
+const DEFAULT_BRANDING: BrandingSetting[] = [
+  { id: 'site_name', name: 'Site Name', value: 'GlucoForge', type: 'text' },
+  { id: 'primary_color', name: 'Primary Color', value: '#8B5CF6', type: 'color' },
+  { id: 'logo_url', name: 'Logo URL', value: '/src/assets/glucoforge-logo-new.png', type: 'image' },
+  { id: 'support_email', name: 'Support Email', value: 'support@glucoforge.com', type: 'text' },
+  { id: 'privacy_url', name: 'Privacy Policy URL', value: '/privacy', type: 'url' },
+];
+
+const DEFAULT_SYSTEM: SystemSettings = {
+  maintenanceMode: false,
+  registrationEnabled: true,
+  dataRetentionDays: 365,
+  sessionTimeoutMinutes: 60,
+  maxFileUploadMB: 50,
+};
+
+// Helper to load/save settings via admin_settings table
+async function loadSetting<T>(key: string, fallback: T): Promise<T> {
+  const { data } = await supabase
+    .from('admin_settings')
+    .select('setting_value')
+    .eq('setting_key', key)
+    .maybeSingle();
+  return data ? (data.setting_value as unknown as T) : fallback;
+}
+
+async function saveSetting(key: string, value: unknown, category: string, userId: string) {
+  const { error } = await supabase
+    .from('admin_settings')
+    .upsert({
+      setting_key: key,
+      setting_value: value as any,
+      category,
+      updated_by: userId,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'setting_key' });
+  if (error) throw error;
+}
+
 export default function AdminSettings() {
-  const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>([
-    {
-      id: 'dark_mode',
-      name: 'Dark Mode',
-      description: 'Enable dark mode theme support',
-      enabled: true,
-      category: 'ui'
-    },
-    {
-      id: 'pwa_features',
-      name: 'PWA Features',
-      description: 'Progressive Web App capabilities',
-      enabled: true,
-      category: 'features'
-    },
-    {
-      id: 'experimental_charts',
-      name: 'Experimental Charts',
-      description: 'New chart visualizations in beta',
-      enabled: false,
-      category: 'experimental'
-    },
-    {
-      id: 'social_login',
-      name: 'Social Login',
-      description: 'Google/Facebook authentication',
-      enabled: false,
-      category: 'features'
-    },
-    {
-      id: 'advanced_analytics',
-      name: 'Advanced Analytics',
-      description: 'Detailed user behavior tracking',
-      enabled: true,
-      category: 'features'
+  const { user } = useAuthStore();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [featureFlags, setFeatureFlags] = useState<FeatureFlag[]>(DEFAULT_FEATURE_FLAGS);
+  const [brandingSettings, setBrandingSettings] = useState<BrandingSetting[]>(DEFAULT_BRANDING);
+  const [systemSettings, setSystemSettings] = useState<SystemSettings>(DEFAULT_SYSTEM);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [flags, branding, system] = await Promise.all([
+          loadSetting('feature_flags', DEFAULT_FEATURE_FLAGS),
+          loadSetting('branding', DEFAULT_BRANDING),
+          loadSetting('system', DEFAULT_SYSTEM),
+        ]);
+        setFeatureFlags(flags);
+        setBrandingSettings(branding);
+        setSystemSettings(system);
+      } catch {
+        // Falls back to defaults silently
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const toggleFeatureFlag = async (flagId: string) => {
+    const updated = featureFlags.map(f => f.id === flagId ? { ...f, enabled: !f.enabled } : f);
+    setFeatureFlags(updated);
+    try {
+      await saveSetting('feature_flags', updated, 'features', user!.id);
+      toast.success('Feature flag saved');
+    } catch {
+      toast.error('Failed to save feature flag');
     }
-  ]);
-
-  const [brandingSettings, setBrandingSettings] = useState<BrandingSetting[]>([
-    {
-      id: 'site_name',
-      name: 'Site Name',
-      value: 'GlucoForge',
-      type: 'text'
-    },
-    {
-      id: 'primary_color',
-      name: 'Primary Color',
-      value: '#8B5CF6',
-      type: 'color'
-    },
-    {
-      id: 'logo_url',
-      name: 'Logo URL',
-      value: '/src/assets/glucoforge-logo-new.png',
-      type: 'image'
-    },
-    {
-      id: 'support_email',
-      name: 'Support Email',
-      value: 'support@glucoforge.com',
-      type: 'text'
-    },
-    {
-      id: 'privacy_url',
-      name: 'Privacy Policy URL',
-      value: '/privacy',
-      type: 'url'
-    }
-  ]);
-
-  const [systemSettings, setSystemSettings] = useState({
-    maintenanceMode: false,
-    registrationEnabled: true,
-    dataRetentionDays: 365,
-    sessionTimeoutMinutes: 60,
-    maxFileUploadMB: 50
-  });
-
-  const toggleFeatureFlag = (flagId: string) => {
-    setFeatureFlags(flags => 
-      flags.map(flag => 
-        flag.id === flagId 
-          ? { ...flag, enabled: !flag.enabled }
-          : flag
-      )
-    );
-    toast.success('Feature flag updated');
   };
 
   const updateBrandingSetting = (settingId: string, value: string) => {
-    setBrandingSettings(settings =>
-      settings.map(setting =>
-        setting.id === settingId
-          ? { ...setting, value }
-          : setting
-      )
-    );
+    setBrandingSettings(s => s.map(st => st.id === settingId ? { ...st, value } : st));
   };
 
-  const saveBrandingSettings = () => {
-    toast.success('Branding settings saved successfully');
+  const handleSaveBranding = async () => {
+    setSaving('branding');
+    try {
+      await saveSetting('branding', brandingSettings, 'branding', user!.id);
+      toast.success('Branding settings saved');
+    } catch {
+      toast.error('Failed to save branding settings');
+    } finally {
+      setSaving(null);
+    }
   };
 
-  const saveSystemSettings = () => {
-    toast.success('System settings saved successfully');
+  const handleSaveSystem = async () => {
+    setSaving('system');
+    try {
+      await saveSetting('system', systemSettings, 'system', user!.id);
+      toast.success('System settings saved');
+    } catch {
+      toast.error('Failed to save system settings');
+    } finally {
+      setSaving(null);
+    }
   };
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'features':
-        return 'bg-primary/10 text-primary';
-      case 'ui':
-        return 'bg-accent text-accent-foreground';
-      case 'experimental':
-        return 'bg-warning/10 text-warning';
-      default:
-        return 'bg-muted text-muted-foreground';
+      case 'features': return 'bg-primary/10 text-primary';
+      case 'ui': return 'bg-accent text-accent-foreground';
+      case 'experimental': return 'bg-warning/10 text-warning';
+      default: return 'bg-muted text-muted-foreground';
     }
   };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-heading font-bold text-foreground mb-2">
-            System Settings
-          </h1>
-          <p className="text-sm text-muted-foreground mb-8 flex items-center gap-2">
-            <Badge variant="outline" className="text-warning border-warning/30">Demo Mode</Badge>
-            Settings on this page are for demonstration only and are not persisted to the database.
+          <h1 className="text-4xl font-heading font-bold text-foreground mb-2">System Settings</h1>
+          <p className="text-sm text-muted-foreground mb-8">
+            Settings are persisted to the database and apply across all admin sessions.
           </p>
 
           <Tabs defaultValue="features" className="space-y-6">
@@ -181,18 +199,11 @@ export default function AdminSettings() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-medium">{flag.name}</h4>
-                            <Badge className={getCategoryColor(flag.category)}>
-                              {flag.category}
-                            </Badge>
+                            <Badge className={getCategoryColor(flag.category)}>{flag.category}</Badge>
                           </div>
-                          <p className="text-sm text-muted-foreground">
-                            {flag.description}
-                          </p>
+                          <p className="text-sm text-muted-foreground">{flag.description}</p>
                         </div>
-                        <Switch
-                          checked={flag.enabled}
-                          onCheckedChange={() => toggleFeatureFlag(flag.id)}
-                        />
+                        <Switch checked={flag.enabled} onCheckedChange={() => toggleFeatureFlag(flag.id)} />
                       </div>
                     ))}
                   </div>
@@ -214,42 +225,21 @@ export default function AdminSettings() {
                       <label className="text-sm font-medium">{setting.name}</label>
                       {setting.type === 'color' ? (
                         <div className="flex items-center gap-3 mt-1">
-                          <Input
-                            type="color"
-                            value={setting.value}
-                            onChange={(e) => updateBrandingSetting(setting.id, e.target.value)}
-                            className="w-16 h-10"
-                          />
-                          <Input
-                            value={setting.value}
-                            onChange={(e) => updateBrandingSetting(setting.id, e.target.value)}
-                            placeholder="#000000"
-                          />
+                          <Input type="color" value={setting.value} onChange={(e) => updateBrandingSetting(setting.id, e.target.value)} className="w-16 h-10" />
+                          <Input value={setting.value} onChange={(e) => updateBrandingSetting(setting.id, e.target.value)} placeholder="#000000" />
                         </div>
                       ) : setting.type === 'image' ? (
                         <div className="space-y-2 mt-1">
-                          <Input
-                            value={setting.value}
-                            onChange={(e) => updateBrandingSetting(setting.id, e.target.value)}
-                            placeholder="Image URL or path"
-                          />
-                          <Button variant="outline" size="sm">
-                            <Upload className="h-4 w-4 mr-2" />
-                            Upload Image
-                          </Button>
+                          <Input value={setting.value} onChange={(e) => updateBrandingSetting(setting.id, e.target.value)} placeholder="Image URL or path" />
+                          <Button variant="outline" size="sm"><Upload className="h-4 w-4 mr-2" />Upload Image</Button>
                         </div>
                       ) : (
-                        <Input
-                          value={setting.value}
-                          onChange={(e) => updateBrandingSetting(setting.id, e.target.value)}
-                          placeholder={`Enter ${setting.name.toLowerCase()}`}
-                          className="mt-1"
-                        />
+                        <Input value={setting.value} onChange={(e) => updateBrandingSetting(setting.id, e.target.value)} placeholder={`Enter ${setting.name.toLowerCase()}`} className="mt-1" />
                       )}
                     </div>
                   ))}
-                  
-                  <Button onClick={saveBrandingSettings}>
+                  <Button onClick={handleSaveBranding} disabled={saving === 'branding'}>
+                    {saving === 'branding' && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                     Save Branding Settings
                   </Button>
                 </CardContent>
@@ -268,74 +258,33 @@ export default function AdminSettings() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">Maintenance Mode</p>
-                      <p className="text-sm text-muted-foreground">
-                        Temporarily disable site access for maintenance
-                      </p>
+                      <p className="text-sm text-muted-foreground">Temporarily disable site access for maintenance</p>
                     </div>
-                    <Switch
-                      checked={systemSettings.maintenanceMode}
-                      onCheckedChange={(checked) =>
-                        setSystemSettings({...systemSettings, maintenanceMode: checked})
-                      }
-                    />
+                    <Switch checked={systemSettings.maintenanceMode} onCheckedChange={(checked) => setSystemSettings(s => ({ ...s, maintenanceMode: checked }))} />
                   </div>
-
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-medium">User Registration</p>
-                      <p className="text-sm text-muted-foreground">
-                        Allow new users to create accounts
-                      </p>
+                      <p className="text-sm text-muted-foreground">Allow new users to create accounts</p>
                     </div>
-                    <Switch
-                      checked={systemSettings.registrationEnabled}
-                      onCheckedChange={(checked) =>
-                        setSystemSettings({...systemSettings, registrationEnabled: checked})
-                      }
-                    />
+                    <Switch checked={systemSettings.registrationEnabled} onCheckedChange={(checked) => setSystemSettings(s => ({ ...s, registrationEnabled: checked }))} />
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm font-medium">Data Retention (days)</label>
-                      <Input
-                        type="number"
-                        value={systemSettings.dataRetentionDays}
-                        onChange={(e) => setSystemSettings({
-                          ...systemSettings,
-                          dataRetentionDays: parseInt(e.target.value)
-                        })}
-                        className="mt-1"
-                      />
+                      <Input type="number" value={systemSettings.dataRetentionDays} onChange={(e) => setSystemSettings(s => ({ ...s, dataRetentionDays: parseInt(e.target.value) || 0 }))} className="mt-1" />
                     </div>
                     <div>
                       <label className="text-sm font-medium">Session Timeout (minutes)</label>
-                      <Input
-                        type="number"
-                        value={systemSettings.sessionTimeoutMinutes}
-                        onChange={(e) => setSystemSettings({
-                          ...systemSettings,
-                          sessionTimeoutMinutes: parseInt(e.target.value)
-                        })}
-                        className="mt-1"
-                      />
+                      <Input type="number" value={systemSettings.sessionTimeoutMinutes} onChange={(e) => setSystemSettings(s => ({ ...s, sessionTimeoutMinutes: parseInt(e.target.value) || 0 }))} className="mt-1" />
                     </div>
                   </div>
-
                   <div>
                     <label className="text-sm font-medium">Max File Upload Size (MB)</label>
-                    <Input
-                      type="number"
-                      value={systemSettings.maxFileUploadMB}
-                      onChange={(e) => setSystemSettings({
-                        ...systemSettings,
-                        maxFileUploadMB: parseInt(e.target.value)
-                      })}
-                      className="mt-1"
-                    />
+                    <Input type="number" value={systemSettings.maxFileUploadMB} onChange={(e) => setSystemSettings(s => ({ ...s, maxFileUploadMB: parseInt(e.target.value) || 0 }))} className="mt-1" />
                   </div>
-
-                  <Button onClick={saveSystemSettings}>
+                  <Button onClick={handleSaveSystem} disabled={saving === 'system'}>
+                    {saving === 'system' && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                     Save System Settings
                   </Button>
                 </CardContent>
@@ -353,48 +302,34 @@ export default function AdminSettings() {
                 <CardContent>
                   <div className="space-y-6">
                     <div className="p-4 bg-warning/10 border border-warning/20 rounded-lg">
-                      <p className="text-sm">
-                        <strong>Security Audit:</strong> Last performed on {new Date().toLocaleDateString()}
-                      </p>
-                      <Button variant="outline" size="sm" className="mt-2">
-                        Run Security Audit
-                      </Button>
+                      <p className="text-sm"><strong>Security Audit:</strong> Last performed on {new Date().toLocaleDateString()}</p>
+                      <Button variant="outline" size="sm" className="mt-2">Run Security Audit</Button>
                     </div>
-
                     <div className="space-y-4">
                       <h4 className="font-medium">Access Control</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="p-4 border rounded-lg">
                           <p className="font-medium">Two-Factor Authentication</p>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Require 2FA for admin accounts
-                          </p>
+                          <p className="text-sm text-muted-foreground mb-2">Require 2FA for admin accounts</p>
                           <Switch />
                         </div>
                         <div className="p-4 border rounded-lg">
                           <p className="font-medium">IP Allowlist</p>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            Restrict admin access by IP
-                          </p>
+                          <p className="text-sm text-muted-foreground mb-2">Restrict admin access by IP</p>
                           <Switch />
                         </div>
                       </div>
                     </div>
-
                     <div className="space-y-4">
                       <h4 className="font-medium">Data Protection</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="p-4 border rounded-lg">
                           <p className="font-medium">Data Encryption</p>
-                          <p className="text-sm text-muted-foreground">
-                            ✅ Enabled (AES-256)
-                          </p>
+                          <p className="text-sm text-muted-foreground">✅ Enabled (AES-256)</p>
                         </div>
                         <div className="p-4 border rounded-lg">
                           <p className="font-medium">Backup Encryption</p>
-                          <p className="text-sm text-muted-foreground">
-                            ✅ Enabled
-                          </p>
+                          <p className="text-sm text-muted-foreground">✅ Enabled</p>
                         </div>
                       </div>
                     </div>

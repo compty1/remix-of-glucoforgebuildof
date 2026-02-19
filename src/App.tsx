@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { useEngagementTracking } from "@/hooks/useEngagementTracking";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -215,7 +215,7 @@ const AppContent = () => {
         <Route path="/trials" element={<TrialMatching />} />
         <Route path="/quality-of-life" element={<QualityOfLife />} />
         {/* Redirect legacy route to canonical */}
-        <Route path="/donation-result" element={<DonateSuccess />} />
+        <Route path="/donation-result" element={<Navigate to="/donate/success" replace />} />
         <Route path="/qa-checklist" element={<ProtectedRoute><AdminRoute><QAChecklist /></AdminRoute></ProtectedRoute>} />
         
         {/* New Routes - Phases 3-24 */}
