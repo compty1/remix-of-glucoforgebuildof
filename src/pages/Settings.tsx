@@ -288,7 +288,7 @@ const Settings = () => {
     
     setLoading(true);
     try {
-      // Delete user data from key tables before signing out
+      // Delete user data from ALL tables referencing user_id before signing out
       const userId = user.id;
       await Promise.allSettled([
         supabase.from('profiles').delete().eq('user_id', userId),
@@ -300,6 +300,26 @@ const Settings = () => {
         supabase.from('notifications').delete().eq('user_id', userId),
         supabase.from('device_reviews').delete().eq('user_id', userId),
         supabase.from('user_dashboards').delete().eq('user_id', userId),
+        // Additional cascade deletes (items 1481-1484)
+        supabase.from('uploads').delete().eq('user_id', userId),
+        supabase.from('survey_responses').delete().eq('user_id', userId),
+        supabase.from('user_view_history').delete().eq('user_id', userId),
+        supabase.from('user_activity_log').delete().eq('user_id', userId),
+        supabase.from('user_bookmarks').delete().eq('user_id', userId),
+        supabase.from('diabetic_profiles').delete().eq('user_id', userId),
+        supabase.from('user_preferences').delete().eq('user_id', userId),
+        supabase.from('user_roles').delete().eq('user_id', userId),
+        supabase.from('connection_requests').delete().eq('from_user_id', userId),
+        supabase.from('connection_requests').delete().eq('to_user_id', userId),
+        supabase.from('direct_messages').delete().eq('sender_id', userId),
+        supabase.from('direct_messages').delete().eq('receiver_id', userId),
+        supabase.from('claimed_projects').delete().eq('user_id', userId),
+        supabase.from('challenge_participants').delete().eq('user_id', userId),
+        supabase.from('simulations').delete().eq('user_id', userId),
+        supabase.from('community_statements').delete().eq('user_id', userId),
+        supabase.from('advocate_applications').delete().eq('user_id', userId),
+        supabase.from('adult_content_submissions').delete().eq('user_id', userId),
+        supabase.from('medication_reviews').delete().eq('user_id', userId),
       ]);
       await signOut();
       toast({
@@ -721,18 +741,13 @@ const Settings = () => {
                           Show more information in less space
                         </p>
                       </div>
-                      <Switch />
+                     <Switch 
+                        checked={false}
+                        disabled
+                        aria-label="Compact mode (coming soon)"
+                      />
                     </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-0.5">
-                        <Label className="text-base">Animations</Label>
-                        <p className="text-sm text-muted-foreground">
-                          Enable smooth transitions and animations
-                        </p>
-                      </div>
-                      <Switch defaultChecked />
-                    </div>
+                    <p className="text-xs text-muted-foreground italic">Display options will be available in a future update.</p>
                   </div>
                 </div>
               </CardContent>
@@ -753,11 +768,57 @@ const Settings = () => {
                   </p>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Button variant="outline" className="justify-start" onClick={() => toast({ title: "Coming Soon", description: "Data export will be available in a future update." })}>
+                   <Button variant="outline" className="justify-start" onClick={async () => {
+                      if (!user) return;
+                      try {
+                        const { data } = await supabase
+                          .from('uploads')
+                          .select('file_name, uploaded_at, detailed_analysis')
+                          .eq('user_id', user.id)
+                          .order('uploaded_at', { ascending: false });
+                        if (!data || data.length === 0) {
+                          toast({ title: "No Data", description: "No glucose data found to export." });
+                          return;
+                        }
+                        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `glucose-data-${new Date().toISOString().split('T')[0]}.json`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        toast({ title: "Exported", description: `${data.length} records exported.` });
+                      } catch { toast({ variant: "destructive", title: "Error", description: "Export failed." }); }
+                    }}>
                       <Download className="h-4 w-4 mr-2" />
                       Export Glucose Data
                     </Button>
-                    <Button variant="outline" className="justify-start" onClick={() => toast({ title: "Coming Soon", description: "Data export will be available in a future update." })}>
+                    <Button variant="outline" className="justify-start" onClick={async () => {
+                      if (!user) return;
+                      try {
+                        const [uploads, surveys, sessions, achievements] = await Promise.all([
+                          supabase.from('uploads').select('*').eq('user_id', user.id),
+                          supabase.from('survey_responses').select('*').eq('user_id', user.id),
+                          supabase.from('chat_sessions').select('id, context_name, created_at, summary').eq('user_id', user.id),
+                          supabase.from('user_achievements').select('*').eq('user_id', user.id),
+                        ]);
+                        const exportData = {
+                          exported_at: new Date().toISOString(),
+                          uploads: uploads.data || [],
+                          surveys: surveys.data || [],
+                          chat_sessions: sessions.data || [],
+                          achievements: achievements.data || [],
+                        };
+                        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `glucoforge-export-${new Date().toISOString().split('T')[0]}.json`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                        toast({ title: "Exported", description: "All data exported successfully." });
+                      } catch { toast({ variant: "destructive", title: "Error", description: "Export failed." }); }
+                    }}>
                       <Download className="h-4 w-4 mr-2" />
                       Export All Data
                     </Button>

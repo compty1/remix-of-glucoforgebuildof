@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SkipToContent } from '@/components/SkipToContent';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
@@ -64,6 +65,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <SidebarProvider>
+      <SkipToContent />
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         
@@ -114,7 +116,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </header>
           
           {/* Main content */}
-          <main className="flex-1 bg-background">
+          <main id="main-content" className="flex-1 bg-background" role="main">
             {children}
           </main>
           

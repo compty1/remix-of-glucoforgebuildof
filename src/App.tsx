@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,121 +9,122 @@ import { useEngagementTracking } from "@/hooks/useEngagementTracking";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ScrollToTop } from "@/components/ScrollToTop";
+import { Loader2 } from "lucide-react";
+
+// Eagerly loaded critical routes
 import Index from "./pages/Index";
-import Journey from "./pages/Journey";
-import About from "./pages/About";
-import Fixes from "./pages/Fixes";
-import Discoveries from "./pages/Discoveries";
-import HowItWorks from "./pages/HowItWorks";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
-import Accessibility from "./pages/Accessibility";
-import Contact from "./pages/Contact";
-import Profile from "./pages/Profile";
-import Insights from "./pages/Insights";
-import Dashboard from "./pages/Dashboard";
-import LiveCureMonitoring from "./pages/LiveCureMonitoring";
-import DeviceAnalytics from "./pages/DeviceAnalytics";
-import ResearchHub from "./pages/ResearchHub";
-import CitizenScience from "./pages/CitizenScience";
-import DataUpload from "./pages/DataUpload";
 import Auth from "./pages/Auth";
-import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
-import Donate from "./pages/donate/Donate";
-import DonateSuccess from "./pages/donate/DonateSuccess";
-import DonateCancel from "./pages/donate/DonateCancel";
-import CureProgress from "./pages/CureProgress";
-import GlucoseUpload from "./pages/glucose/GlucoseUpload";
-import Journal from "./pages/Journal";
-import Bounties from "./pages/Bounties";
-import FinancialTools from "./pages/FinancialTools";
-import Admin from "./pages/Admin";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminUsers from "./pages/admin/AdminUsers";
-import AdminContent from "./pages/admin/AdminContent";
-import AdminIntegrations from "./pages/admin/AdminIntegrations";
-import AdminSettings from "./pages/admin/AdminSettings";
-import AdminAnalytics from "./pages/admin/AdminAnalytics";
-import AdminProjects from "./pages/admin/AdminProjects";
-import MentalHealthHub from "./pages/MentalHealthHub";
-import ScenarioLab from "./pages/ScenarioLab";
-import Trends from "./pages/Trends";
-import Settings from "./pages/Settings";
-import PrepareForVisit from "./pages/PrepareForVisit";
-import CustomizableDashboard from "./pages/CustomizableDashboard";
-import Discover from "./pages/Discover";
-import DiscoverDetails from "./pages/DiscoverDetails";
-import QAChecklist from "./pages/QAChecklist";
-import FDASafety from "./pages/FDASafety";
-import InnovationHub from "./pages/InnovationHub";
-import ResearchFunding from "./pages/ResearchFunding";
-import ResearchInsights from "./pages/ResearchInsights";
-import DeviceDetail from "./pages/DeviceDetail";
-import DeviceComparison from "./pages/DeviceComparison";
-import T1DCompanion from "./pages/T1DCompanion";
-import CommunitySolutions from "./pages/CommunitySolutions";
-import CommunityPostDetail from "./pages/CommunityPostDetail";
-import Projects from "./pages/Projects";
-import ProjectDetail from "./pages/ProjectDetail";
-import Companies from "./pages/Companies";
-import CompanyDetail from "./pages/CompanyDetail";
-import CompanyComparison from "./pages/CompanyComparison";
-import Resources from "./pages/Resources";
-import StateFormsFinder from "./pages/StateFormsFinder";
-import News from "./pages/News";
-import BuildWithUs from "./pages/BuildWithUs";
-import DevelopmentProjectDetail from "./pages/DevelopmentProjectDetail";
-import GetInvolved from "./pages/GetInvolved";
-import MedicineHub from "./pages/MedicineHub";
-import MedicineComparison from "./pages/MedicineComparison";
-import TrialMatching from "./pages/TrialMatching";
-import QualityOfLife from "./pages/QualityOfLife";
+
+// Lazy loaded routes for code splitting (items 1476-1478)
+const Journey = lazy(() => import("./pages/Journey"));
+const About = lazy(() => import("./pages/About"));
+const Fixes = lazy(() => import("./pages/Fixes"));
+const Discoveries = lazy(() => import("./pages/Discoveries"));
+const HowItWorks = lazy(() => import("./pages/HowItWorks"));
+const Terms = lazy(() => import("./pages/Terms"));
+const Privacy = lazy(() => import("./pages/Privacy"));
+const Accessibility = lazy(() => import("./pages/Accessibility"));
+const Contact = lazy(() => import("./pages/Contact"));
+const Profile = lazy(() => import("./pages/Profile"));
+const Insights = lazy(() => import("./pages/Insights"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const LiveCureMonitoring = lazy(() => import("./pages/LiveCureMonitoring"));
+const DeviceAnalytics = lazy(() => import("./pages/DeviceAnalytics"));
+const ResearchHub = lazy(() => import("./pages/ResearchHub"));
+const CitizenScience = lazy(() => import("./pages/CitizenScience"));
+const DataUpload = lazy(() => import("./pages/DataUpload"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Donate = lazy(() => import("./pages/donate/Donate"));
+const DonateSuccess = lazy(() => import("./pages/donate/DonateSuccess"));
+const DonateCancel = lazy(() => import("./pages/donate/DonateCancel"));
+const CureProgress = lazy(() => import("./pages/CureProgress"));
+const GlucoseUpload = lazy(() => import("./pages/glucose/GlucoseUpload"));
+const Journal = lazy(() => import("./pages/Journal"));
+const Bounties = lazy(() => import("./pages/Bounties"));
+const FinancialTools = lazy(() => import("./pages/FinancialTools"));
+const Admin = lazy(() => import("./pages/Admin"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
+const AdminContent = lazy(() => import("./pages/admin/AdminContent"));
+const AdminIntegrations = lazy(() => import("./pages/admin/AdminIntegrations"));
+const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const AdminAnalytics = lazy(() => import("./pages/admin/AdminAnalytics"));
+const AdminProjects = lazy(() => import("./pages/admin/AdminProjects"));
+const MentalHealthHub = lazy(() => import("./pages/MentalHealthHub"));
+const ScenarioLab = lazy(() => import("./pages/ScenarioLab"));
+const Trends = lazy(() => import("./pages/Trends"));
+const Settings = lazy(() => import("./pages/Settings"));
+const PrepareForVisit = lazy(() => import("./pages/PrepareForVisit"));
+const CustomizableDashboard = lazy(() => import("./pages/CustomizableDashboard"));
+const Discover = lazy(() => import("./pages/Discover"));
+const DiscoverDetails = lazy(() => import("./pages/DiscoverDetails"));
+const QAChecklist = lazy(() => import("./pages/QAChecklist"));
+const FDASafety = lazy(() => import("./pages/FDASafety"));
+const InnovationHub = lazy(() => import("./pages/InnovationHub"));
+const ResearchFunding = lazy(() => import("./pages/ResearchFunding"));
+const ResearchInsights = lazy(() => import("./pages/ResearchInsights"));
+const DeviceDetail = lazy(() => import("./pages/DeviceDetail"));
+const DeviceComparison = lazy(() => import("./pages/DeviceComparison"));
+const T1DCompanion = lazy(() => import("./pages/T1DCompanion"));
+const CommunitySolutions = lazy(() => import("./pages/CommunitySolutions"));
+const CommunityPostDetail = lazy(() => import("./pages/CommunityPostDetail"));
+const Projects = lazy(() => import("./pages/Projects"));
+const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
+const Companies = lazy(() => import("./pages/Companies"));
+const CompanyDetail = lazy(() => import("./pages/CompanyDetail"));
+const CompanyComparison = lazy(() => import("./pages/CompanyComparison"));
+const Resources = lazy(() => import("./pages/Resources"));
+const StateFormsFinder = lazy(() => import("./pages/StateFormsFinder"));
+const News = lazy(() => import("./pages/News"));
+const BuildWithUs = lazy(() => import("./pages/BuildWithUs"));
+const DevelopmentProjectDetail = lazy(() => import("./pages/DevelopmentProjectDetail"));
+const GetInvolved = lazy(() => import("./pages/GetInvolved"));
+const MedicineHub = lazy(() => import("./pages/MedicineHub"));
+const MedicineComparison = lazy(() => import("./pages/MedicineComparison"));
+const TrialMatching = lazy(() => import("./pages/TrialMatching"));
+const QualityOfLife = lazy(() => import("./pages/QualityOfLife"));
 import { AdminRoute } from "./components/admin/AdminRoute";
 
-// New Pages - Phase 3-24
-import LowBloodSugarWorld from "./pages/LowBloodSugarWorld";
-import Diabeto18Plus from "./pages/Diabeto18Plus";
-import Articles from "./pages/Articles";
-import ArticleDetail from "./pages/ArticleDetail";
-import HealthcareExperience from "./pages/HealthcareExperience";
-import HealthcareProviders from "./pages/HealthcareProviders";
-import AppCenter from "./pages/AppCenter";
-import EmergenceOfDiabetes from "./pages/EmergenceOfDiabetes";
-import LearnExplore from "./pages/LearnExplore";
-import WarriorSpotlight from "./pages/WarriorSpotlight";
-import Shop from "./pages/Shop";
-import PublicGlucoseData from "./pages/PublicGlucoseData";
-import ShopSuccess from "./pages/shop/ShopSuccess";
-import ShopCancel from "./pages/shop/ShopCancel";
+// Lazy loaded phase routes
+const LowBloodSugarWorld = lazy(() => import("./pages/LowBloodSugarWorld"));
+const Diabeto18Plus = lazy(() => import("./pages/Diabeto18Plus"));
+const Articles = lazy(() => import("./pages/Articles"));
+const ArticleDetail = lazy(() => import("./pages/ArticleDetail"));
+const HealthcareExperience = lazy(() => import("./pages/HealthcareExperience"));
+const HealthcareProviders = lazy(() => import("./pages/HealthcareProviders"));
+const AppCenter = lazy(() => import("./pages/AppCenter"));
+const EmergenceOfDiabetes = lazy(() => import("./pages/EmergenceOfDiabetes"));
+const LearnExplore = lazy(() => import("./pages/LearnExplore"));
+const WarriorSpotlight = lazy(() => import("./pages/WarriorSpotlight"));
+const Shop = lazy(() => import("./pages/Shop"));
+const PublicGlucoseData = lazy(() => import("./pages/PublicGlucoseData"));
+const ShopSuccess = lazy(() => import("./pages/shop/ShopSuccess"));
+const ShopCancel = lazy(() => import("./pages/shop/ShopCancel"));
 
-// Admin Pages
-import AdminArticles from "./pages/admin/AdminArticles";
-import AdminLowSugarStories from "./pages/admin/AdminLowSugarStories";
-import AdminWarriors from "./pages/admin/AdminWarriors";
-import AdminShop from "./pages/admin/AdminShop";
-import ContentModeration from "./pages/admin/ContentModeration";
+const AdminArticles = lazy(() => import("./pages/admin/AdminArticles"));
+const AdminLowSugarStories = lazy(() => import("./pages/admin/AdminLowSugarStories"));
+const AdminWarriors = lazy(() => import("./pages/admin/AdminWarriors"));
+const AdminShop = lazy(() => import("./pages/admin/AdminShop"));
+const ContentModeration = lazy(() => import("./pages/admin/ContentModeration"));
 
-// New Pages - Phases 1-8
-import AICenter from "./pages/AICenter";
-import DiabetesOrganizations from "./pages/DiabetesOrganizations";
-import BecomeAdvocate from "./pages/BecomeAdvocate";
+const AICenter = lazy(() => import("./pages/AICenter"));
+const DiabetesOrganizations = lazy(() => import("./pages/DiabetesOrganizations"));
+const BecomeAdvocate = lazy(() => import("./pages/BecomeAdvocate"));
+const EventsNearMe = lazy(() => import("./pages/EventsNearMe"));
+const FutureOfT1D = lazy(() => import("./pages/FutureOfT1D"));
+const Explore = lazy(() => import("./pages/Explore"));
+const YourExperience = lazy(() => import("./pages/YourExperience"));
+const DonationsInfo = lazy(() => import("./pages/DonationsInfo"));
+const SupportGlucoForge = lazy(() => import("./pages/SupportGlucoForge"));
+const DiabetesBurnout = lazy(() => import("./pages/DiabetesBurnout"));
+const FindDiabeticNearMe = lazy(() => import("./pages/FindDiabeticNearMe"));
 
-// New Pages - Phases 9-16
-import EventsNearMe from "./pages/EventsNearMe";
-import FutureOfT1D from "./pages/FutureOfT1D";
-
-// New Pages - Explore & Your Experience
-import Explore from "./pages/Explore";
-import YourExperience from "./pages/YourExperience";
-
-// New Pages - Donations Info
-import DonationsInfo from "./pages/DonationsInfo";
-
-// Support Page
-import SupportGlucoForge from "./pages/SupportGlucoForge";
-import DiabetesBurnout from "./pages/DiabetesBurnout";
-import FindDiabeticNearMe from "./pages/FindDiabeticNearMe";
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
 
 const queryClient = new QueryClient();
 
@@ -142,6 +143,7 @@ const AppContent = () => {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/journey" element={<Journey />} />
@@ -252,6 +254,7 @@ const AppContent = () => {
         
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </Suspense>
     </BrowserRouter>
   );
 };
