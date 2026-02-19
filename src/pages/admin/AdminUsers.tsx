@@ -46,7 +46,6 @@ export default function AdminUsers() {
       if (error) throw error;
       setUsers(data.users || []);
     } catch (error) {
-      console.error('Error fetching users:', error);
       toast.error('Failed to fetch users');
     } finally {
       setLoading(false);
@@ -86,7 +85,6 @@ export default function AdminUsers() {
       if (error) throw error;
       toast.success('Password reset email sent successfully');
     } catch (error) {
-      console.error('Error resetting password:', error);
       toast.error('Failed to send password reset email');
     } finally {
       setActionLoading(null);
@@ -105,7 +103,6 @@ export default function AdminUsers() {
       toast.success('User deactivated successfully');
       fetchUsers(); // Refresh the list
     } catch (error) {
-      console.error('Error deactivating user:', error);
       toast.error('Failed to deactivate user');
     } finally {
       setActionLoading(null);
@@ -135,7 +132,6 @@ export default function AdminUsers() {
       setInviteRole('user');
       fetchUsers(); // Refresh the list
     } catch (error) {
-      console.error('Error inviting user:', error);
       toast.error('Failed to invite user');
     } finally {
       setActionLoading(null);
@@ -154,7 +150,6 @@ export default function AdminUsers() {
       toast.success('User role updated successfully');
       fetchUsers(); // Refresh the list
     } catch (error) {
-      console.error('Error updating role:', error);
       toast.error('Failed to update user role');
     } finally {
       setActionLoading(null);

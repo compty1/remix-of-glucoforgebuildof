@@ -149,7 +149,7 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
             }
             
             setData({
-              activeMembers: count || 0,
+              activeMembers: count || 0, // Actually "posts in last 24h" — variable name kept for interface compat
               postsToday: count || 0,
               userContributions
             } as CommunityData);

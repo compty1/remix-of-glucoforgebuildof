@@ -273,7 +273,6 @@ const DataUpload = () => {
 
       toast.success(`${file.name} analyzed - ${readingsCount} readings processed`);
     } catch (error: any) {
-      console.error('Upload error:', error);
       setUploadedFiles(prev => prev.map(f => 
         f.id === tempId ? { ...f, status: 'error' as const } : f
       ));
@@ -322,8 +321,11 @@ const DataUpload = () => {
           <h1 className="text-4xl font-heading font-bold text-foreground mb-4">
             Data Upload & Analysis Hub
           </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-4">
             Upload your CGM data, pump logs, or manual entries to unlock AI-powered insights and personalized recommendations
+          </p>
+          <p className="text-sm text-muted-foreground max-w-2xl mx-auto mb-8 italic">
+            ⚠ Analysis results are for informational purposes only and should not replace professional medical advice. Always consult your healthcare team before making treatment changes.
           </p>
         </section>
 

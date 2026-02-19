@@ -83,7 +83,6 @@ export default function AdminContent() {
       setBounties(bountiesData || []);
       setSurveys(surveysData || []);
     } catch (error) {
-      console.error('Error fetching content:', error);
       toast.error('Failed to fetch content');
     } finally {
       setLoading(false);
@@ -120,7 +119,6 @@ export default function AdminContent() {
       setNewDiscovery({ title: '', snippet: '', credibility: 'Medium', mechanism: '' });
       toast.success('Discovery created successfully');
     } catch (error) {
-      console.error('Error creating discovery:', error);
       toast.error('Failed to create discovery');
     }
   };
@@ -149,7 +147,6 @@ export default function AdminContent() {
       setNewBounty({ title: '', description: '', reward_amount: 0 });
       toast.success('Bounty created successfully');
     } catch (error) {
-      console.error('Error creating bounty:', error);
       toast.error('Failed to create bounty');
     }
   };
@@ -166,7 +163,6 @@ export default function AdminContent() {
       setDiscoveries(discoveries.filter(d => d.id !== id));
       toast.success('Discovery deleted successfully');
     } catch (error) {
-      console.error('Error deleting discovery:', error);
       toast.error('Failed to delete discovery');
     }
   };
@@ -183,7 +179,6 @@ export default function AdminContent() {
       setBounties(bounties.filter(b => b.id !== id));
       toast.success('Bounty deleted successfully');
     } catch (error) {
-      console.error('Error deleting bounty:', error);
       toast.error('Failed to delete bounty');
     }
   };

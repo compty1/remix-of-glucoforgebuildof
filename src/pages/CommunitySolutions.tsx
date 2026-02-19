@@ -76,11 +76,11 @@ const CommunitySolutions: React.FC = () => {
   }, [updateFilters]);
 
   const handleQuickTopic = useCallback((keywords: string) => {
-    updateFilters({ query: keywords.split(' ')[0] });
+    updateFilters({ query: keywords });
   }, [updateFilters]);
 
   const handleTopicSelect = useCallback((keywords: string) => {
-    updateFilters({ query: keywords.split(' ')[0] });
+    updateFilters({ query: keywords });
     // Scroll to results
     const resultsSection = document.getElementById('results-section');
     if (resultsSection) {
@@ -107,11 +107,11 @@ const CommunitySolutions: React.FC = () => {
   }, [navigate]);
 
   const handleTrendingClick = useCallback((post: CommunityPost) => {
-    updateFilters({ query: post.title.split(' ').slice(0, 3).join(' ') });
+    updateFilters({ query: post.title.split(' ').slice(0, 5).join(' ') });
   }, [updateFilters]);
 
   const handleSimilarClick = useCallback((post: CommunityPost) => {
-    updateFilters({ query: post.title.split(' ').slice(0, 3).join(' ') });
+    updateFilters({ query: post.title.split(' ').slice(0, 5).join(' ') });
     const resultsSection = document.getElementById('results-section');
     if (resultsSection) {
       resultsSection.scrollIntoView({ behavior: 'smooth' });

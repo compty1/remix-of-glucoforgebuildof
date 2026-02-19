@@ -50,7 +50,6 @@ export const useCommunityPosts = (deviceName?: string) => {
           sentiment: post.sentiment as 'positive' | 'neutral' | 'negative' | null
         })));
       } catch (err) {
-        console.error('Error fetching community posts:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch community posts');
       } finally {
         setLoading(false);

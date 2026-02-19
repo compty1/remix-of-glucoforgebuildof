@@ -195,7 +195,7 @@ const Settings = () => {
         }
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      // Profile load error — defaults will be used
     }
   };
 
@@ -226,7 +226,6 @@ const Settings = () => {
         description: "Profile updated successfully!"
       });
     } catch (error) {
-      console.error('Profile update error:', error);
       toast({
         variant: "destructive",
         title: "Error",

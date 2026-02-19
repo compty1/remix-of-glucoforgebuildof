@@ -115,7 +115,6 @@ export const useCitationNetwork = (): UseCitationNetworkResult => {
       setNodes(paperNodes);
       setLinks(citationLinks);
     } catch (err) {
-      console.error('Error fetching citation network:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch network data');
     } finally {
       setLoading(false);

@@ -99,7 +99,6 @@ export default function AdminArticles() {
       resetForm();
       fetchArticles();
     } catch (error) {
-      console.error(error);
       toast.error('Failed to save article');
     }
   };
