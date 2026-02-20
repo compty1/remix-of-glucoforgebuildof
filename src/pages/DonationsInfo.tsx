@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import Layout from '@/components/Layout';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -185,6 +186,7 @@ const impactMetrics = [
 ];
 
 const DonationsInfo: React.FC = () => {
+  usePageMeta('Donation Transparency', 'See how top T1D organizations spend their donations — research allocations, program costs, and financial transparency data.');
   const totalDonations = useMemo(() => 
     organizationsData.reduce((sum, org) => sum + org.totalDonations, 0), 
   []);

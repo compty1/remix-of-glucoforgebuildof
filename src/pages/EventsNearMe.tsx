@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
 import { BackButton } from '@/components/ui/back-button';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ import {
 import { format } from 'date-fns';
 
 export default function EventsNearMe() {
+  usePageMeta('T1D Events Near Me', 'Find Type 1 diabetes walks, conferences, support groups, and virtual events happening near you.');
   const { events, loading, error } = useT1DEvents();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');

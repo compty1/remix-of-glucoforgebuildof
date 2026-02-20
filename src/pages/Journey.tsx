@@ -1,10 +1,12 @@
 import Layout from '@/components/Layout';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Users, Target, Heart } from 'lucide-react';
 
 export default function Journey() {
+  usePageMeta('Journey to a Cure', 'GlucoForge\'s mission to accelerate T1D research through community-driven data, real-world evidence, and collaborative intelligence.');
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">

@@ -494,7 +494,7 @@ const Settings = () => {
                   <div className="space-y-2">
                     <Label htmlFor="device">Primary CGM</Label>
                     <Select value={profile.primaryCgm} onValueChange={(val) => setProfile(prev => ({ ...prev, primaryCgm: val }))}>
-                      <SelectTrigger>
+                      <SelectTrigger id="device">
                         <SelectValue placeholder="Select your CGM" />
                       </SelectTrigger>
                       <SelectContent>
@@ -510,7 +510,7 @@ const Settings = () => {
                   <div className="space-y-2">
                     <Label htmlFor="pump">Insulin Delivery</Label>
                     <Select value={profile.insulinDelivery} onValueChange={(val) => setProfile(prev => ({ ...prev, insulinDelivery: val }))}>
-                      <SelectTrigger>
+                      <SelectTrigger id="pump">
                         <SelectValue placeholder="Select your insulin delivery method" />
                       </SelectTrigger>
                       <SelectContent>
