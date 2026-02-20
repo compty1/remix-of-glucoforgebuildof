@@ -143,7 +143,7 @@ export const useDeviceReviews = (deviceId: string | undefined): UseDeviceReviews
     } finally {
       setLoading(false);
     }
-  }, [deviceId, user]);
+  }, [deviceId, user?.id]);
 
   useEffect(() => {
     fetchReviews();
@@ -178,9 +178,8 @@ export const useDeviceReviews = (deviceId: string | undefined): UseDeviceReviews
       if (err.code === '23505') {
         toast.error('You have already reviewed this device');
       } else {
-        toast.error('Failed to submit review');
+      toast.error('Failed to submit review');
       }
-      console.error('Error submitting review:', err);
       return false;
     }
   };
@@ -212,7 +211,6 @@ export const useDeviceReviews = (deviceId: string | undefined): UseDeviceReviews
       return true;
     } catch (err) {
       toast.error('Failed to update review');
-      console.error('Error updating review:', err);
       return false;
     }
   };
@@ -237,7 +235,6 @@ export const useDeviceReviews = (deviceId: string | undefined): UseDeviceReviews
       return true;
     } catch (err) {
       toast.error('Failed to delete review');
-      console.error('Error deleting review:', err);
       return false;
     }
   };
@@ -277,7 +274,6 @@ export const useDeviceReviews = (deviceId: string | undefined): UseDeviceReviews
       return true;
     } catch (err) {
       toast.error('Failed to update vote');
-      console.error('Error toggling helpful vote:', err);
       return false;
     }
   };

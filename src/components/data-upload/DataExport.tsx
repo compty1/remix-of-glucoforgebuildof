@@ -136,8 +136,7 @@ export function DataExport({ analysisData, fileName }: DataExportProps) {
       // Save
       doc.save(`glucose-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
       toast.success('PDF report downloaded successfully');
-    } catch (error) {
-      console.error('PDF export error:', error);
+    } catch {
       toast.error('Failed to generate PDF');
     } finally {
       setExporting(false);

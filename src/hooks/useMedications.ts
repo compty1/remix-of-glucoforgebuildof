@@ -63,14 +63,15 @@ interface UseMedicationsOptions {
   category?: MedicationCategory;
   search?: string;
   sort?: SortOption;
+  sortDirection?: 'asc' | 'desc';
   featured?: boolean;
 }
 
 export const useMedications = (options: UseMedicationsOptions = {}) => {
-  const { category = "all", search = "", sort = "popularity", featured } = options;
+  const { category = "all", search = "", sort = "popularity", sortDirection = 'asc', featured } = options;
 
   return useQuery({
-    queryKey: ["medications", category, search, sort, featured],
+    queryKey: ["medications", category, search, sort, sortDirection, featured],
     queryFn: async () => {
       let query = supabase
         .from("medications")
@@ -91,7 +92,8 @@ export const useMedications = (options: UseMedicationsOptions = {}) => {
         query = query.or(`name.ilike.%${search}%,generic_name.ilike.%${search}%,manufacturer.ilike.%${search}%`);
       }
 
-      // Apply sorting
+      // Apply sorting — direction is passed in for price asc/desc support (Issue 180)
+      const asc = sortDirection === 'asc';
       switch (sort) {
         case "name":
           query = query.order("name", { ascending: true });
@@ -100,7 +102,7 @@ export const useMedications = (options: UseMedicationsOptions = {}) => {
           query = query.order("rating_avg", { ascending: false, nullsFirst: false });
           break;
         case "price":
-          query = query.order("avg_price", { ascending: true, nullsFirst: false });
+          query = query.order("avg_price", { ascending: asc, nullsFirst: false });
           break;
         case "popularity":
         default:

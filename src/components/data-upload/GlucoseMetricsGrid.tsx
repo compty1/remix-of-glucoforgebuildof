@@ -80,6 +80,10 @@ const MetricCard: React.FC<{
             <Progress 
               value={Math.min(100, progressValue)} 
               className="h-2"
+              aria-valuenow={Math.min(100, progressValue)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`${label}: ${Math.min(100, progressValue).toFixed(0)}%`}
             />
           </div>
         )}

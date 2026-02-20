@@ -275,14 +275,12 @@ export const useRefreshCommunityData = () => {
       const { data, error } = await supabase.functions.invoke('community-feed');
       
       if (error) {
-        console.error('Community feed error:', error);
         // Only seed if the table is nearly empty
         const { count } = await supabase
           .from('community_posts')
           .select('*', { count: 'exact', head: true });
 
         if ((count || 0) < 10) {
-          console.log('Table nearly empty, seeding curated data...');
           await supabase.functions.invoke('seed-community-posts');
           await supabase.functions.invoke('seed-community-comments');
         }
