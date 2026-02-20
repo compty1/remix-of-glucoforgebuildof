@@ -85,7 +85,6 @@ export default function HealthcareProviders() {
       setSubmitted(true);
       toast.success('Thank you! We\'ll be in touch soon.');
     } catch (error) {
-      console.error('Error submitting inquiry:', error);
       toast.error('Failed to submit inquiry. Please try again.');
     } finally {
       setSubmitting(false);

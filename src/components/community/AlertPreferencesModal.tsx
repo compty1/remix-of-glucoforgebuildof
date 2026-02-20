@@ -115,7 +115,6 @@ export const AlertPreferencesModal: React.FC<AlertPreferencesModalProps> = ({
       toast.success('Alert preferences saved! You\'ll receive notifications for matching solutions.');
       onClose();
     } catch (error) {
-      console.error('Failed to save preferences:', error);
       toast.error('Failed to save preferences. Please try again.');
     } finally {
       setIsSubmitting(false);

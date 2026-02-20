@@ -44,7 +44,6 @@ export const useResearchFunding = () => {
       const { error: functionError } = await supabase.functions.invoke('funding-research-feed');
 
       if (functionError) {
-        console.error('Edge function error:', functionError);
         if (!existingData || existingData.length === 0) {
           throw functionError;
         }
@@ -59,7 +58,6 @@ export const useResearchFunding = () => {
         if (freshData) setData(freshData);
       }
     } catch (err) {
-      console.error('Error fetching research funding data:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch research funding data');
     } finally {
       setLoading(false);

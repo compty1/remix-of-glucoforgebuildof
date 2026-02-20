@@ -77,7 +77,6 @@ export function DynamicPredictions({ onClose }: DynamicPredictionsProps) {
         }
       }
     } catch (error) {
-      console.error('Prediction error:', error);
       toast.error('Failed to generate prediction. Please try again.');
     } finally {
       setIsLoading(false);

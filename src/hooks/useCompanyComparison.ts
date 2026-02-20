@@ -38,7 +38,6 @@ export const useCompanyComparison = (initialIds: string[] = []): UseCompanyCompa
         .order('name');
 
       if (error) {
-        console.error('Error fetching companies:', error);
         return;
       }
 

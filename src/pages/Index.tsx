@@ -58,7 +58,7 @@ const Index = () => {
 
         setFeaturedInsights(typedData);
       } catch (error) {
-        console.error('Error fetching insights:', error);
+        // silently fail; featured insights are non-critical
       } finally {
         setLoading(false);
       }

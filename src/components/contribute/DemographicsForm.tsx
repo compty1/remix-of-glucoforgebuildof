@@ -163,7 +163,7 @@ export const DemographicsForm = ({
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching demographics:', error);
+        // silently ignore demographics fetch error; form stays empty
       }
 
       if (data) {
@@ -181,7 +181,7 @@ export const DemographicsForm = ({
         });
       }
     } catch (err) {
-      console.error('Error:', err);
+      // silently ignore outer fetch error
     } finally {
       setLoading(false);
     }
@@ -226,7 +226,6 @@ export const DemographicsForm = ({
 
       onComplete?.();
     } catch (err) {
-      console.error('Error saving demographics:', err);
       toast({
         title: 'Error',
         description: 'Failed to save demographics. Please try again.',

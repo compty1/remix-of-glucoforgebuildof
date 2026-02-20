@@ -71,7 +71,6 @@ export const useT1DNews = (): UseT1DNewsResult => {
       setAllArticles(validArticles);
       setError(null);
     } catch (err) {
-      console.error('Error fetching news from DB:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch news');
     }
   }, []);
@@ -84,7 +83,6 @@ export const useT1DNews = (): UseT1DNewsResult => {
       const { data, error: funcError } = await supabase.functions.invoke('fetch-t1d-news');
 
       if (funcError) {
-        console.error('Edge function error:', funcError);
         throw funcError;
       }
 
@@ -94,7 +92,6 @@ export const useT1DNews = (): UseT1DNewsResult => {
         await fetchNewsFromDB();
       }
     } catch (err) {
-      console.error('Error refreshing news:', err);
       setError(err instanceof Error ? err.message : 'Failed to refresh news');
       // Try to load from DB as fallback
       await fetchNewsFromDB();
