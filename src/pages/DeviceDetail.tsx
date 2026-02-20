@@ -32,12 +32,17 @@ import {
 } from 'lucide-react';
 import { DeviceAIChat } from '@/components/device/DeviceAIChat';
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 const DeviceDetail = () => {
   const { deviceId } = useParams<{ deviceId: string }>();
   const navigate = useNavigate();
-  const { data, loading, error } = useDeviceDetails(deviceId);
-  const { data: userFixes } = useDeviceFixes(deviceId);
-  const { totalCount: solutionsCount } = useDeviceSolutions(deviceId, data?.device?.name);
+
+  // Validate UUID before querying DB — prevents Postgres errors on invalid paths (Issue 107)
+  const isValidDeviceId = deviceId ? UUID_REGEX.test(deviceId) : false;
+  const { data, loading, error } = useDeviceDetails(isValidDeviceId ? deviceId : undefined);
+  const { data: userFixes } = useDeviceFixes(isValidDeviceId ? deviceId : undefined);
+  const { totalCount: solutionsCount } = useDeviceSolutions(isValidDeviceId ? deviceId : undefined, data?.device?.name);
   const [activeTab, setActiveTab] = useState('overview');
 
   const scrollToSupport = () => {
@@ -49,6 +54,24 @@ const DeviceDetail = () => {
     setActiveTab('issues');
     window.scrollTo({ top: 400, behavior: 'smooth' });
   };
+
+  // Invalid UUID path — show 404-style error instead of triggering Postgres error (Issue 107)
+  if (!isValidDeviceId) {
+    return (
+      <Layout>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <Button variant="ghost" onClick={() => navigate('/devices')} className="mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Devices
+          </Button>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>Device not found. The link may be invalid or the device may have been removed.</AlertDescription>
+          </Alert>
+        </div>
+      </Layout>
+    );
+  }
 
   if (error) {
     return (

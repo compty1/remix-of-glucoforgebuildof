@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Mail, Phone, MapPin, Clock } from 'lucide-react';
+import { Mail, MapPin, Clock } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,12 +16,19 @@ export default function Contact() {
     email: '',
     subject: '',
     category: '',
-    message: ''
+    message: '',
+    // Honeypot field — hidden from real users, bots will fill it (Issue 142)
+    _honeypot: ''
   });
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Honeypot check — if filled, silently reject (bot detected)
+    if (formData._honeypot) {
+      toast.success('Message sent successfully!');
+      return;
+    }
     setSubmitting(true);
     try {
       const { error } = await supabase
@@ -36,7 +43,7 @@ export default function Contact() {
 
       if (error) throw error;
       toast.success('Message sent successfully! We\'ll get back to you within 24 hours.');
-      setFormData({ name: '', email: '', subject: '', category: '', message: '' });
+      setFormData({ name: '', email: '', subject: '', category: '', message: '', _honeypot: '' });
     } catch {
       toast.error('Failed to send message. Please try again.');
     } finally {
@@ -120,6 +127,18 @@ export default function Contact() {
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+                    {/* Honeypot field — hidden from real users via CSS, traps bots */}
+                    <div style={{ position: 'absolute', left: '-9999px', opacity: 0, height: 0, overflow: 'hidden' }} aria-hidden="true" tabIndex={-1}>
+                      <Label htmlFor="contact_url">Leave this field blank</Label>
+                      <Input
+                        id="contact_url"
+                        type="text"
+                        value={formData._honeypot}
+                        onChange={(e) => setFormData(prev => ({ ...prev, _honeypot: e.target.value }))}
+                        autoComplete="off"
+                        tabIndex={-1}
+                      />
+                    </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="name">Name *</Label>
