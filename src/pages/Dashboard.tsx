@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Responsive, WidthProvider, Layout as GridLayout } from 'react-grid-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -165,6 +166,7 @@ const availableWidgets: DashboardWidget[] = [
 ];
 
 const Dashboard = () => {
+  usePageMeta('Dashboard', 'Your personal GlucoForge dashboard — glucose trends, widgets, and health data at a glance.');
   const { layouts, widgets, loading, error, saveLayout } = useDashboardLayout();
   const [isEditMode, setIsEditMode] = useState(false);
   const [showWidgetLibrary, setShowWidgetLibrary] = useState(false);

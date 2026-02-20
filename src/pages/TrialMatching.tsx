@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 
 export default function TrialMatching() {
+  usePageMeta('Trial Matching', 'Find T1D clinical trials near you — filter by phase, status, and location to match eligibility.');
   const [zipCode, setZipCode] = useState("");
   const [radius, setRadius] = useState("100");
   const [phase, setPhase] = useState("all");

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Organization {
@@ -13,10 +13,7 @@ export interface Organization {
   country: string;
   annual_revenue: number;
   annual_donations: number;
-  executive_compensation: {
-    ceo_name?: string;
-    ceo_salary?: number;
-  };
+  executive_compensation: { ceo_name?: string; ceo_salary?: number; };
   staff_count: number;
   volunteer_count: number;
   current_projects: Array<{ name: string; description: string }>;
@@ -34,30 +31,25 @@ interface UseDiabetesOrganizationsResult {
   organizations: Organization[];
   loading: boolean;
   error: string | null;
-  refetch: () => Promise<void>;
+  refetch: () => void;
 }
 
+const QUERY_KEY = ['diabetes-organizations'];
+
 export const useDiabetesOrganizations = (): UseDiabetesOrganizationsResult => {
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchOrganizations = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
+  const { data: organizations = [], isLoading: loading, error: rawError } = useQuery({
+    queryKey: QUERY_KEY,
+    queryFn: async () => {
       const { data, error: dbError } = await supabase
         .from('diabetes_organizations')
         .select('*')
         .order('annual_revenue', { ascending: false });
 
-      if (dbError) {
-        throw new Error(dbError.message);
-      }
+      if (dbError) throw new Error(dbError.message);
 
-      // Transform JSONB fields to proper types with safer type handling
-      const transformedData: Organization[] = (data || []).map(org => ({
+      return (data || []).map(org => ({
         id: org.id,
         name: org.name || '',
         acronym: org.acronym || '',
@@ -81,24 +73,13 @@ export const useDiabetesOrganizations = (): UseDiabetesOrganizationsResult => {
         donate_url: org.donate_url || '',
         logo_url: org.logo_url || '',
         charity_navigator_rating: org.charity_navigator_rating || 0,
-      }));
+      })) as Organization[];
+    },
+    staleTime: 30 * 60 * 1000, // 30 minutes
+  });
 
-      setOrganizations(transformedData);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch organizations');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const error = rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch organizations') : null;
+  const refetch = () => queryClient.invalidateQueries({ queryKey: QUERY_KEY });
 
-  useEffect(() => {
-    fetchOrganizations();
-  }, [fetchOrganizations]);
-
-  return {
-    organizations,
-    loading,
-    error,
-    refetch: fetchOrganizations,
-  };
+  return { organizations, loading, error, refetch };
 };

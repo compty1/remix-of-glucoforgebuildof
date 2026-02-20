@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from "@/components/Layout";
 import { MedicalDisclaimer } from "@/components/MedicalDisclaimer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,6 +38,7 @@ const scenarioOptions = [
 ];
 
 const ScenarioLab = () => {
+  usePageMeta('Scenario Lab', 'Simulate how exercise, meals, stress, and illness might affect your glucose levels in a safe lab environment.');
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuthStore();

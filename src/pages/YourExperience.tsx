@@ -1,4 +1,5 @@
 import React from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { motion } from 'framer-motion';
 import { Droplet, Heart, Users } from 'lucide-react';
 import Layout from '@/components/Layout';
@@ -12,6 +13,7 @@ import { InlineSubmissionForm } from '@/components/experience/InlineSubmissionFo
 import { useExperienceCounts } from '@/hooks/useExperienceSubmissions';
 
 export default function YourExperience() {
+  usePageMeta('Your Experience', 'Share your T1D experiences — the good, bad, daily tasks, fears, and embarrassing lows.');
   const { data: counts } = useExperienceCounts();
   
   const totalSubmissions = counts 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +18,7 @@ import {
 } from 'lucide-react';
 
 const CompanyDetail = () => {
+  usePageMeta('Company Details', 'Explore T1D company profiles, funding, pipeline therapies, and research focus areas.');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { company, loading, error } = useCompanyById(id);

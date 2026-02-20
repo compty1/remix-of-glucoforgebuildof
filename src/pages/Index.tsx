@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Activity, Search, TrendingUp, Users, Database, Heart, ArrowRight, Zap, Shield, Globe, Beaker, Brain, Hammer, Code, Palette, PieChart, Server, FileText, Clock, Smartphone, Quote } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ const volunteerRoles = [
 
 
 const Index = () => {
+  usePageMeta('Home', 'GlucoForge — the open T1D intelligence platform. Discover research, community insights, devices, and cure progress.');
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const [featuredInsights, setFeaturedInsights] = useState<DiscoveryCardData[]>([]);

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Newspaper, RefreshCw, Search, AlertCircle, Rss } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,6 +31,7 @@ const NewsCardSkeleton = () => (
 );
 
 const News = () => {
+  usePageMeta('News', 'Latest Type 1 Diabetes news, research breakthroughs, device updates, and community stories.');
   const {
     articles,
     featuredArticles,

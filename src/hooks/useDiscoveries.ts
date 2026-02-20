@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Discovery {
@@ -24,45 +24,32 @@ export const useDiscoveries = (filters?: {
   impact?: string;
   minCredibility?: number;
 }) => {
-  const [discoveries, setDiscoveries] = useState<Discovery[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: discoveries = [], isLoading: loading, error: rawError } = useQuery({
+    queryKey: ['discoveries', filters?.type, filters?.impact, filters?.minCredibility],
+    queryFn: async () => {
+      let query = supabase
+        .from('discoveries')
+        .select('*')
+        .order('credibility_score', { ascending: false })
+        .order('discovered_at', { ascending: false });
 
-  useEffect(() => {
-    const fetchDiscoveries = async () => {
-      try {
-        setLoading(true);
-        let query = supabase
-          .from('discoveries')
-          .select('*')
-          .order('credibility_score', { ascending: false })
-          .order('discovered_at', { ascending: false });
-
-        if (filters?.type && filters.type !== 'all') {
-          query = query.eq('discovery_type', filters.type);
-        }
-
-        if (filters?.impact && filters.impact !== 'all') {
-          query = query.eq('impact_level', filters.impact);
-        }
-
-        if (filters?.minCredibility) {
-          query = query.gte('credibility_score', filters.minCredibility);
-        }
-
-        const { data, error: fetchError } = await query.limit(50);
-
-        if (fetchError) throw fetchError;
-        setDiscoveries((data || []) as Discovery[]);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch discoveries');
-      } finally {
-        setLoading(false);
+      if (filters?.type && filters.type !== 'all') {
+        query = query.eq('discovery_type', filters.type);
       }
-    };
+      if (filters?.impact && filters.impact !== 'all') {
+        query = query.eq('impact_level', filters.impact);
+      }
+      if (filters?.minCredibility) {
+        query = query.gte('credibility_score', filters.minCredibility);
+      }
 
-    fetchDiscoveries();
-  }, [filters?.type, filters?.impact, filters?.minCredibility]);
+      const { data, error: fetchError } = await query.limit(50);
+      if (fetchError) throw fetchError;
+      return (data || []) as Discovery[];
+    },
+    staleTime: 15 * 60 * 1000, // 15 minutes
+  });
 
+  const error = rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch discoveries') : null;
   return { discoveries, loading, error };
 };

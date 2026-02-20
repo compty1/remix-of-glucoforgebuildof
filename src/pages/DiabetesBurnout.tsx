@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -219,6 +220,7 @@ const prescriptionInfo = [
 
 // ─── Main Page ───────────────────────────────────────────────────────
 const DiabetesBurnout = () => {
+  usePageMeta('Diabetes Burnout', 'Understand and recover from diabetes burnout — community support, self-assessment, and recovery plans.');
   const [postCategory, setPostCategory] = useState("all");
   const { data: posts, isLoading: postsLoading } = useBurnoutPosts(postCategory === "all" ? undefined : postCategory);
   const [seeding, setSeeding] = useState(false);

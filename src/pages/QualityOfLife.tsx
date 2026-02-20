@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from "@/components/Layout";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -43,6 +44,7 @@ const evidenceLevelColors: Record<string, string> = {
 };
 
 export default function QualityOfLife() {
+  usePageMeta('Quality of Life', 'Evidence-based supplements, tools, and lifestyle strategies to reduce the daily burden of T1D.');
   const [activeTab, setActiveTab] = useState("supplements");
   const [selectedDeficiency, setSelectedDeficiency] = useState<any>(null);
   const [selectedResource, setSelectedResource] = useState<any>(null);

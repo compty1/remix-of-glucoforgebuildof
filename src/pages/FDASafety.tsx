@@ -1,4 +1,5 @@
 import Layout from '@/components/Layout';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,7 @@ import { useState } from 'react';
 import { useFDAData } from '@/hooks/useFDAData';
 
 export default function FDASafety() {
+  usePageMeta('FDA Safety', 'Browse FDA adverse events, recalls, and 510k clearances for T1D devices and medical equipment.');
   const { data: fdaEvents, loading, error } = useFDAData();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEventType, setSelectedEventType] = useState('all');

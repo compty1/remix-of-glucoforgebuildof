@@ -1,4 +1,5 @@
 import React from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ import {
 import { toast } from 'sonner';
 
 const DeviceComparison = () => {
+  usePageMeta('Device Comparison', 'Compare T1D diabetes devices side by side — CGMs, pumps, and hybrid closed-loop systems.');
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   
