@@ -20,7 +20,8 @@ import {
   RefreshCw,
   AlertCircle,
   Zap,
-  ExternalLink
+  ExternalLink,
+  ArrowLeft
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -87,6 +88,12 @@ const DeviceAnalytics = () => {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Back Button — Issue 187 */}
+        <Button variant="ghost" onClick={() => navigate('/devices')} className="mb-4">
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Devices
+        </Button>
+
         {/* Header */}
         <section className="text-center mb-12">
           <h1 className="text-4xl font-heading font-bold text-foreground mb-4">

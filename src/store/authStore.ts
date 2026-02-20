@@ -42,9 +42,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         }
       });
       return { error };
-    } catch (error) {
-      console.error('Sign up error:', error);
-      return { error };
+    } catch {
+      return { error: new Error('Sign up failed') };
     }
   },
 
@@ -52,8 +51,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       await supabase.auth.signOut();
       set({ user: null, session: null });
-    } catch (error) {
-      console.error('Sign out error:', error);
+    } catch {
+      // Sign out errors are non-critical
     }
   },
 
@@ -61,11 +60,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth state change:', event, session?.user?.email);
-        
         // Handle token refresh errors gracefully
         if (event === 'TOKEN_REFRESHED' && !session) {
-          console.log('Token refresh failed, clearing auth state');
           set({ 
             session: null, 
             user: null, 
@@ -82,20 +78,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           loading: false,
           initialized: true 
         });
-
-        // Defer any additional Supabase calls
-        if (session?.user && event === 'SIGNED_IN') {
-          setTimeout(() => {
-            console.log('User signed in successfully');
-          }, 0);
-        }
       }
     );
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
-        console.error('Error getting session:', error);
         // Clear any invalid session state
         set({ 
           session: null, 

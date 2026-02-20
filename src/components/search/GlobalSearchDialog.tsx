@@ -171,7 +171,18 @@ export function GlobalSearchDialog({ open, onOpenChange }: GlobalSearchDialogPro
             <div className="p-8 text-center text-muted-foreground">
               <Search className="h-8 w-8 mx-auto mb-3 opacity-50" />
               <p>No results found for &ldquo;{query}&rdquo;</p>
-              <p className="text-sm mt-2">Try different keywords or browse categories</p>
+              <p className="text-sm mt-2">Try different keywords</p>
+              <div className="flex flex-wrap gap-2 justify-center mt-4">
+                {['Dexcom G7', 'Ozempic', 'Insulin', 'Clinical Trials'].map(suggestion => (
+                  <button
+                    key={suggestion}
+                    className="px-3 py-1 rounded-full bg-muted text-xs hover:bg-primary/10 hover:text-primary transition-colors"
+                    onClick={() => setQuery(suggestion)}
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
             </div>
           ) : (
             <div className="p-2">
