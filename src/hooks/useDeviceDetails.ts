@@ -217,7 +217,6 @@ export const useDeviceDetails = (deviceId: string | undefined) => {
           reviewStats
         });
       } catch (err) {
-        console.error('Error fetching device details:', err);
         setError(err instanceof Error ? err.message : 'Failed to load device details');
       } finally {
         setLoading(false);

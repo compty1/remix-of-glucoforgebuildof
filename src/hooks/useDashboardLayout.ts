@@ -127,7 +127,6 @@ export const useDashboardLayout = (): UseDashboardLayoutResult => {
       }
 
     } catch (err) {
-      console.error('Error fetching dashboard layout:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch dashboard layout');
       // Use defaults on error
       setLayouts(DEFAULT_LAYOUTS);
@@ -167,7 +166,6 @@ export const useDashboardLayout = (): UseDashboardLayoutResult => {
       setWidgets(widgetList);
 
     } catch (err) {
-      console.error('Error saving dashboard layout:', err);
       setError(err instanceof Error ? err.message : 'Failed to save dashboard layout');
       throw err;
     }

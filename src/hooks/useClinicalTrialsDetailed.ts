@@ -79,13 +79,11 @@ export const useClinicalTrialsDetailed = (phase?: string): UseClinicalTrialsDeta
       const { error: functionError } = await supabase.functions.invoke('clinical-trials-enhanced');
 
       if (functionError) {
-        console.error('Clinical trials enhanced error:', functionError);
         throw new Error(`Failed to refresh clinical trials: ${functionError.message}`);
       }
 
       await fetchFromDB();
     } catch (err) {
-      console.error('Error refreshing clinical trials:', err);
       setError(err instanceof Error ? err.message : 'Failed to refresh clinical trials data');
     } finally {
       setLoading(false);
@@ -115,7 +113,6 @@ export const useClinicalTrialsDetailed = (phase?: string): UseClinicalTrialsDeta
         setError(null);
         await fetchFromDB();
       } catch (err) {
-        console.error('Error fetching clinical trials:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch clinical trials data');
       } finally {
         setLoading(false);

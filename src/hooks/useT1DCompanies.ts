@@ -142,7 +142,6 @@ export function useT1DCompanies(filters?: CompanyFilters) {
       });
 
     } catch (err) {
-      console.error('Error fetching T1D companies:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch companies');
     } finally {
       setLoading(false);
@@ -179,7 +178,6 @@ export function useCompanyById(id: string | undefined) {
         if (fetchError) throw fetchError;
         setCompany(data as unknown as T1DCompany);
       } catch (err) {
-        console.error('Error fetching company:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch company');
       } finally {
         setLoading(false);
@@ -217,7 +215,7 @@ export function useRelatedCompanies(focusAreas: string[] | null, excludeId?: str
         if (error) throw error;
         setCompanies((data || []) as unknown as T1DCompany[]);
       } catch (err) {
-        console.error('Error fetching related companies:', err);
+        // Ignore related companies fetch errors silently
       } finally {
         setLoading(false);
       }

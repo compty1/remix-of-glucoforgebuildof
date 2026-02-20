@@ -85,7 +85,6 @@ export const useDiabetesOrganizations = (): UseDiabetesOrganizationsResult => {
 
       setOrganizations(transformedData);
     } catch (err) {
-      console.error('Error fetching organizations:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch organizations');
     } finally {
       setLoading(false);

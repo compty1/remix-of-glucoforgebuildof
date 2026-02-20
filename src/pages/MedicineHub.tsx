@@ -211,60 +211,29 @@ export default function MedicineHub() {
         {/* Top Medications Section */}
         <TopMedicationsSection />
 
-        {/* Stats Cards */}
+        {/* Stats Cards — Issue 172: label as Reference Data to distinguish seeded records */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Pill className="h-5 w-5 text-primary" />
+          {[
+            { icon: <Pill className="h-5 w-5 text-primary" />, bg: 'bg-primary/10', value: stats.total, label: 'Total Medications' },
+            { icon: <Syringe className="h-5 w-5 text-accent-foreground" />, bg: 'bg-accent', value: stats.insulins, label: 'Insulins' },
+            { icon: <PillBottle className="h-5 w-5 text-secondary-foreground" />, bg: 'bg-secondary', value: stats.oral, label: 'Oral Meds' },
+            { icon: <Activity className="h-5 w-5 text-muted-foreground" />, bg: 'bg-muted', value: stats.injectables, label: 'Injectables' },
+          ].map(({ icon, bg, value, label }) => (
+            <Card key={label}>
+              <CardContent className="pt-4">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2 rounded-lg ${bg}`}>{icon}</div>
+                  <div>
+                    <p className="text-2xl font-bold">{value}</p>
+                    <p className="text-xs text-muted-foreground">{label}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.total}</p>
-                  <p className="text-xs text-muted-foreground">Total Medications</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-accent">
-                  <Syringe className="h-5 w-5 text-accent-foreground" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.insulins}</p>
-                  <p className="text-xs text-muted-foreground">Insulins</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-secondary">
-                  <PillBottle className="h-5 w-5 text-secondary-foreground" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.oral}</p>
-                  <p className="text-xs text-muted-foreground">Oral Meds</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-muted">
-                  <Activity className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.injectables}</p>
-                  <p className="text-xs text-muted-foreground">Injectables</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                <Badge variant="outline" className="mt-2 text-[10px] text-muted-foreground border-muted-foreground/30">
+                  Reference Data
+                </Badge>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Tabs — when switching tabs, reset subcategory to avoid contradictory filters (Issue 181) */}

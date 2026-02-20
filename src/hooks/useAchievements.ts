@@ -115,8 +115,8 @@ export function useAchievements() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-achievements'] });
     },
-    onError: (error) => {
-      console.error('Failed to update achievement:', error);
+    onError: () => {
+      // Achievement update error — no UI notification needed
     },
   });
 

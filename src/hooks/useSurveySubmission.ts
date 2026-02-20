@@ -34,7 +34,6 @@ export const useSurveySubmission = (): UseSurveySubmissionResult => {
 
       return data;
     } catch (err) {
-      console.error('Error checking existing response:', err);
       return null;
     }
   };
@@ -93,7 +92,6 @@ export const useSurveySubmission = (): UseSurveySubmissionResult => {
       });
 
     } catch (err) {
-      console.error('Error submitting survey response:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to submit survey response';
       setError(errorMessage);
       

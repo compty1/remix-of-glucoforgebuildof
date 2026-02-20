@@ -60,8 +60,7 @@ export const usePushNotifications = () => {
         } else {
           setState(prev => ({ ...prev, isSubscribed: false }));
         }
-      } catch (error) {
-        console.error('Error checking subscription:', error);
+      } catch {
         setState(prev => ({ ...prev, isSubscribed: false }));
       }
     };
@@ -109,8 +108,7 @@ export const usePushNotifications = () => {
       setState(prev => ({ ...prev, isSubscribed: true, isLoading: false }));
       toast.success('Notifications enabled');
       return true;
-    } catch (error) {
-      console.error('Error subscribing to push:', error);
+    } catch {
       toast.error('Failed to enable push notifications');
       setState(prev => ({ ...prev, isLoading: false }));
       return false;
@@ -144,8 +142,7 @@ export const usePushNotifications = () => {
       setState(prev => ({ ...prev, isSubscribed: false, isLoading: false }));
       toast.success('Push notifications disabled');
       return true;
-    } catch (error) {
-      console.error('Error unsubscribing from push:', error);
+    } catch {
       toast.error('Failed to disable push notifications');
       setState(prev => ({ ...prev, isLoading: false }));
       return false;
