@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import Layout from '@/components/Layout';
 import { MedicationCard } from '@/components/medicine/MedicationCard';
 import { MedicationCompareBar } from '@/components/medicine/MedicationCompareBar';
@@ -7,12 +7,12 @@ import { MedicationDetailModal } from '@/components/medicine/MedicationDetailMod
 import { InsulinTimingChart } from '@/components/medicine/InsulinTimingChart';
 import { InteractionChecker } from '@/components/medicine/InteractionChecker';
 import { TopMedicationsSection } from '@/components/medicine/TopMedicationsSection';
-import { useMedications, useMedicationCategories, MedicationCategory, SortOption } from '@/hooks/useMedications';
+import { useMedications, useMedicationCategories, Medication, MedicationCategory, SortOption } from '@/hooks/useMedications';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { SkeletonGrid } from '@/components/ui/skeleton-grid';
 import { BackButton } from '@/components/ui/back-button';
 import { Pill, Syringe, PillBottle, Activity, Shield, GitCompare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -57,6 +57,7 @@ export default function MedicineHub() {
     category: selectedCategory,
     search: searchQuery,
     sort: sortBy,
+    sortDirection,
   });
 
   const { data: categories } = useMedicationCategories();
@@ -67,18 +68,19 @@ export default function MedicineHub() {
     return [...new Set(medications.map(m => m.subcategory).filter(Boolean) as string[])];
   }, [medications]);
 
-  // Filter medications based on active tab
+  // Filter medications based on active tab AND subcategory
+  // Issue 181: Tab filter takes precedence; category filter resets when tab changes
   const filteredMedications = useMemo(() => {
     if (!medications) return [];
     
     let filtered = medications;
     
-    // Apply subcategory filter
-    if (selectedSubcategory !== 'all') {
+    // Apply subcategory filter only when no specific tab is active
+    if (selectedSubcategory !== 'all' && activeTab === 'all') {
       filtered = filtered.filter(m => m.subcategory === selectedSubcategory);
     }
     
-    // Apply tab filter
+    // Apply tab filter — overrides category filter
     switch (activeTab) {
       case 'insulins':
         return filtered.filter(m => m.category?.toLowerCase().includes('insulin'));
@@ -153,7 +155,7 @@ export default function MedicineHub() {
     });
   };
 
-  const handleViewDetails = (medication: any) => {
+  const handleViewDetails = (medication: Medication) => {
     setSelectedMedicationId(medication.id);
   };
 
@@ -265,8 +267,8 @@ export default function MedicineHub() {
           </Card>
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+        {/* Tabs — when switching tabs, reset subcategory to avoid contradictory filters (Issue 181) */}
+        <Tabs value={activeTab} onValueChange={(tab) => { setActiveTab(tab); setSelectedSubcategory('all'); }} className="mb-6">
           <TabsList className="grid w-full grid-cols-5 max-w-lg">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="insulins">Insulins</TabsTrigger>
@@ -322,20 +324,7 @@ export default function MedicineHub() {
 
         {/* Medication Grid */}
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i}>
-                <CardHeader>
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-20 w-full mb-4" />
-                  <Skeleton className="h-10 w-full" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <SkeletonGrid count={6} cols={3} card className="gap-6" />
         ) : filteredMedications.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredMedications.map((medication) => (

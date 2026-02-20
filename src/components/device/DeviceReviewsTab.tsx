@@ -62,6 +62,7 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
     reviews: externalReviews,
     stats: externalStats,
     loading: externalLoading,
+    error: externalError,
     filterBySource,
     filterBySentiment
   } = useExternalReviews(deviceId);
@@ -258,13 +259,19 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
                 <p className="text-muted-foreground">Loading external reviews...</p>
               </CardContent>
             </Card>
+          ) : externalError ? (
+            <Card className="command-center-widget">
+              <CardContent className="p-6 text-center">
+                <p className="text-sm text-destructive">Failed to load external reviews. Please try again.</p>
+              </CardContent>
+            </Card>
           ) : filteredExternalReviews.length > 0 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <ExternalLink className="h-5 w-5" />
                 External Reviews ({filteredExternalReviews.length})
               </h3>
-              <div className="grid gap-4">
+              <div className="grid gap-4" role="list" aria-label="External reviews">
                 {filteredExternalReviews.map((review) => (
                   <ExternalReviewCard key={review.id} review={review} />
                 ))}

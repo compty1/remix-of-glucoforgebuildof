@@ -1,5 +1,6 @@
 import React from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 interface SkeletonGridProps {
@@ -7,6 +8,8 @@ interface SkeletonGridProps {
   className?: string;
   itemClassName?: string;
   cols?: number;
+  /** If true, renders card-shaped skeletons (Issue 255) */
+  card?: boolean;
 }
 
 /**
@@ -18,6 +21,7 @@ export const SkeletonGrid: React.FC<SkeletonGridProps> = ({
   className,
   itemClassName,
   cols = 3,
+  card = false,
 }) => {
   const gridCols = {
     1: 'grid-cols-1',
@@ -27,10 +31,23 @@ export const SkeletonGrid: React.FC<SkeletonGridProps> = ({
   }[cols] ?? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3';
 
   return (
-    <div className={cn(`grid ${gridCols} gap-4`, className)}>
-      {Array.from({ length: count }).map((_, i) => (
-        <Skeleton key={i} className={cn('h-32 w-full rounded-lg', itemClassName)} />
-      ))}
+    <div className={cn(`grid ${gridCols} gap-4`, className)} aria-busy="true" aria-label="Loading content">
+      {Array.from({ length: count }).map((_, i) =>
+        card ? (
+          <Card key={i}>
+            <CardHeader>
+              <Skeleton className="h-6 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-20 w-full mb-4" />
+              <Skeleton className="h-10 w-full" />
+            </CardContent>
+          </Card>
+        ) : (
+          <Skeleton key={i} className={cn('h-32 w-full rounded-lg', itemClassName)} />
+        )
+      )}
     </div>
   );
 };
