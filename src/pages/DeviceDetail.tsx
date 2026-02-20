@@ -38,13 +38,22 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12
 const DeviceDetail = () => {
   const { deviceId } = useParams<{ deviceId: string }>();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('overview');
 
   // Validate UUID before querying DB — prevents Postgres errors on invalid paths (Issue 107)
   const isValidDeviceId = deviceId ? UUID_REGEX.test(deviceId) : false;
   const { data, loading, error } = useDeviceDetails(isValidDeviceId ? deviceId : undefined);
   const { data: userFixes } = useDeviceFixes(isValidDeviceId ? deviceId : undefined);
   const { totalCount: solutionsCount } = useDeviceSolutions(isValidDeviceId ? deviceId : undefined, data?.device?.name);
-  const [activeTab, setActiveTab] = useState('overview');
+
+  // MUST be called unconditionally at top level — before any early returns — to satisfy React hooks rules
+  // Falls back gracefully when device data is not yet available
+  usePageMeta(
+    data?.device?.name ?? '',
+    data?.device
+      ? `${data.device.name} reviews, issues, FDA data, and community insights for T1D users on GlucoForge.`
+      : undefined
+  );
 
   const scrollToSupport = () => {
     setActiveTab('support');
@@ -160,9 +169,6 @@ const DeviceDetail = () => {
   }
 
   const { device, metrics, issues, communityPosts, fdaEvents, supportResources, relatedDevices, reviewStats } = data;
-
-  // Issue 231: Update document title with device name for SEO
-  usePageMeta(device.name, `${device.name} reviews, issues, FDA data, and community insights for T1D users on GlucoForge.`);
 
   return (
     <Layout>
