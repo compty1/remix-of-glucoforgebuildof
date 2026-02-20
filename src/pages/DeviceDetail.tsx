@@ -193,7 +193,9 @@ const DeviceDetail = () => {
         {/* Tabbed Content */}
         <section>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full justify-start mb-6 flex-wrap h-auto gap-2 bg-transparent p-0">
+            {/* Scrollable tabs on mobile to prevent overflow (Issue 166) */}
+            <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 mb-6">
+              <TabsList className="flex w-max min-w-full sm:w-full sm:flex-wrap sm:h-auto justify-start gap-1 bg-transparent p-0">
               <TabsTrigger 
                 value="overview" 
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
@@ -251,6 +253,7 @@ const DeviceDetail = () => {
                 AI Assistant
               </TabsTrigger>
             </TabsList>
+            </div>
 
             <TabsContent value="overview">
               <DeviceOverviewTab device={device} />
