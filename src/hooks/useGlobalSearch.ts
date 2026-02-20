@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface SearchResult {
@@ -9,201 +9,132 @@ export interface SearchResult {
   url: string;
 }
 
+const DEBOUNCE_MS = 300;
+
 export function useGlobalSearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const search = useCallback(async (query: string) => {
+  const search = useCallback((query: string) => {
+    // Clear previous debounce timer
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+
     if (query.trim().length < 2) {
       setResults([]);
+      setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
-    const searchTerm = `%${query.toLowerCase()}%`;
 
-    try {
-      // Run all searches in parallel across actual DB tables (items 1971-1980)
-      const [
-        projectsRes,
-        researchRes,
-        medicationsRes,
-        devicesRes,
-        companiesRes,
-        trialsRes,
-        communityRes,
-        articlesRes
-      ] = await Promise.all([
-        // Projects
-        (supabase as any)
-          .from('health_projects')
-          .select('id, title, description, slug')
-          .or(`title.ilike.${searchTerm},description.ilike.${searchTerm}`)
-          .limit(5),
-        
-        // Research Papers (1974)
-        (supabase as any)
-          .from('medical_research_papers')
-          .select('id, title, abstract, paper_id')
-          .or(`title.ilike.${searchTerm},abstract.ilike.${searchTerm}`)
-          .limit(5),
-        
-        // Medications (1973)
-        (supabase as any)
-          .from('medications')
-          .select('id, name, description, generic_name')
-          .or(`name.ilike.${searchTerm},generic_name.ilike.${searchTerm},description.ilike.${searchTerm}`)
-          .limit(5),
-        
-        // Devices (1973)
-        (supabase as any)
-          .from('devices')
-          .select('id, name, description, manufacturer')
-          .or(`name.ilike.${searchTerm},description.ilike.${searchTerm},manufacturer.ilike.${searchTerm}`)
-          .limit(5),
-        
-        // Companies
-        (supabase as any)
-          .from('t1d_companies')
-          .select('id, name, description')
-          .or(`name.ilike.${searchTerm},description.ilike.${searchTerm}`)
-          .limit(5),
-        
-        // Clinical Trials
-        (supabase as any)
-          .from('clinical_trials_detailed')
-          .select('id, title, brief_summary, nct_id')
-          .or(`title.ilike.${searchTerm},brief_summary.ilike.${searchTerm}`)
-          .limit(5),
+    debounceRef.current = setTimeout(async () => {
+      const searchTerm = `%${query.toLowerCase()}%`;
 
-        // Community Posts (1972)
-        (supabase as any)
-          .from('community_posts')
-          .select('id, title, content, source, post_id')
-          .or(`title.ilike.${searchTerm},content.ilike.${searchTerm}`)
-          .limit(5),
+      try {
+        const [
+          projectsRes,
+          researchRes,
+          medicationsRes,
+          devicesRes,
+          companiesRes,
+          trialsRes,
+          communityRes,
+          articlesRes
+        ] = await Promise.all([
+          (supabase as any)
+            .from('health_projects')
+            .select('id, title, description, slug')
+            .or(`title.ilike.${searchTerm},description.ilike.${searchTerm}`)
+            .limit(5),
+          (supabase as any)
+            .from('medical_research_papers')
+            .select('id, title, abstract, paper_id')
+            .or(`title.ilike.${searchTerm},abstract.ilike.${searchTerm}`)
+            .limit(5),
+          (supabase as any)
+            .from('medications')
+            .select('id, name, description, generic_name')
+            .or(`name.ilike.${searchTerm},generic_name.ilike.${searchTerm},description.ilike.${searchTerm}`)
+            .limit(5),
+          (supabase as any)
+            .from('devices')
+            .select('id, name, description, manufacturer')
+            .or(`name.ilike.${searchTerm},description.ilike.${searchTerm},manufacturer.ilike.${searchTerm}`)
+            .limit(5),
+          (supabase as any)
+            .from('t1d_companies')
+            .select('id, name, description')
+            .or(`name.ilike.${searchTerm},description.ilike.${searchTerm}`)
+            .limit(5),
+          (supabase as any)
+            .from('clinical_trials_detailed')
+            .select('id, title, brief_summary, nct_id')
+            .or(`title.ilike.${searchTerm},brief_summary.ilike.${searchTerm}`)
+            .limit(5),
+          (supabase as any)
+            .from('community_posts')
+            .select('id, title, content, source, post_id')
+            .or(`title.ilike.${searchTerm},content.ilike.${searchTerm}`)
+            .limit(5),
+          (supabase as any)
+            .from('articles')
+            .select('id, title, excerpt, slug')
+            .eq('is_published', true)
+            .or(`title.ilike.${searchTerm},excerpt.ilike.${searchTerm}`)
+            .limit(5),
+        ]);
 
-        // Articles (1974)
-        (supabase as any)
-          .from('articles')
-          .select('id, title, excerpt, slug')
-          .eq('is_published', true)
-          .or(`title.ilike.${searchTerm},excerpt.ilike.${searchTerm}`)
-          .limit(5),
-      ]);
+        const allResults: SearchResult[] = [];
 
-      const allResults: SearchResult[] = [];
-
-      // Process projects
-      if (projectsRes.data) {
-        (projectsRes.data as any[]).forEach((p: any) => {
-          allResults.push({
-            id: p.id,
-            title: p.title,
-            description: p.description || 'Health project',
-            category: 'project',
-            url: `/projects/${p.slug || p.id}`,
+        if (projectsRes.data) {
+          (projectsRes.data as any[]).forEach((p: any) => {
+            allResults.push({ id: p.id, title: p.title, description: p.description || 'Health project', category: 'project', url: `/projects/${p.slug || p.id}` });
           });
-        });
-      }
-
-      // Process research
-      if (researchRes.data) {
-        (researchRes.data as any[]).forEach((r: any) => {
-          allResults.push({
-            id: r.id,
-            title: r.title,
-            description: r.abstract?.slice(0, 150) || 'Research paper',
-            category: 'research',
-            url: `/research-hub`,
+        }
+        if (researchRes.data) {
+          (researchRes.data as any[]).forEach((r: any) => {
+            allResults.push({ id: r.id, title: r.title, description: r.abstract?.slice(0, 150) || 'Research paper', category: 'research', url: `/research-hub` });
           });
-        });
-      }
-
-      // Process medications
-      if (medicationsRes.data) {
-        (medicationsRes.data as any[]).forEach((m: any) => {
-          allResults.push({
-            id: m.id,
-            title: m.name,
-            description: m.generic_name || m.description?.slice(0, 100) || 'Medication',
-            category: 'medication',
-            url: `/medicines`,
+        }
+        if (medicationsRes.data) {
+          (medicationsRes.data as any[]).forEach((m: any) => {
+            allResults.push({ id: m.id, title: m.name, description: m.generic_name || m.description?.slice(0, 100) || 'Medication', category: 'medication', url: `/medicines` });
           });
-        });
-      }
-
-      // Process devices
-      if (devicesRes.data) {
-        (devicesRes.data as any[]).forEach((d: any) => {
-          allResults.push({
-            id: d.id,
-            title: d.name,
-            description: d.manufacturer || d.description?.slice(0, 100) || 'Medical device',
-            category: 'device',
-            url: `/devices/${d.id}`,
+        }
+        if (devicesRes.data) {
+          (devicesRes.data as any[]).forEach((d: any) => {
+            allResults.push({ id: d.id, title: d.name, description: d.manufacturer || d.description?.slice(0, 100) || 'Medical device', category: 'device', url: `/devices/${d.id}` });
           });
-        });
-      }
-
-      // Process companies
-      if (companiesRes.data) {
-        (companiesRes.data as any[]).forEach((c: any) => {
-          allResults.push({
-            id: c.id,
-            title: c.name,
-            description: c.description?.slice(0, 100) || 'T1D Company',
-            category: 'company',
-            url: `/companies/${c.id}`,
+        }
+        if (companiesRes.data) {
+          (companiesRes.data as any[]).forEach((c: any) => {
+            allResults.push({ id: c.id, title: c.name, description: c.description?.slice(0, 100) || 'T1D Company', category: 'company', url: `/companies/${c.id}` });
           });
-        });
-      }
-
-      // Process trials
-      if (trialsRes.data) {
-        (trialsRes.data as any[]).forEach((t: any) => {
-          allResults.push({
-            id: t.id,
-            title: t.title,
-            description: t.brief_summary?.slice(0, 100) || t.nct_id || 'Clinical trial',
-            category: 'trial',
-            url: `/trials`,
+        }
+        if (trialsRes.data) {
+          (trialsRes.data as any[]).forEach((t: any) => {
+            allResults.push({ id: t.id, title: t.title, description: t.brief_summary?.slice(0, 100) || t.nct_id || 'Clinical trial', category: 'trial', url: `/trials` });
           });
-        });
-      }
-
-      // Process community posts (1972)
-      if (communityRes.data) {
-        (communityRes.data as any[]).forEach((p: any) => {
-          allResults.push({
-            id: p.id,
-            title: p.title,
-            description: p.content?.slice(0, 100) || 'Community discussion',
-            category: 'community',
-            url: `/community-solutions/${p.id}`,
+        }
+        if (communityRes.data) {
+          (communityRes.data as any[]).forEach((p: any) => {
+            allResults.push({ id: p.id, title: p.title, description: p.content?.slice(0, 100) || 'Community discussion', category: 'community', url: `/community-solutions/${p.id}` });
           });
-        });
-      }
-
-      // Process articles (1974)
-      if (articlesRes.data) {
-        (articlesRes.data as any[]).forEach((a: any) => {
-          allResults.push({
-            id: a.id,
-            title: a.title,
-            description: a.excerpt?.slice(0, 100) || 'Article',
-            category: 'article',
-            url: `/articles/${a.slug}`,
+        }
+        if (articlesRes.data) {
+          (articlesRes.data as any[]).forEach((a: any) => {
+            allResults.push({ id: a.id, title: a.title, description: a.excerpt?.slice(0, 100) || 'Article', category: 'article', url: `/articles/${a.slug}` });
           });
-        });
-      }
+        }
 
-      setResults(allResults);
-    } catch {
-      setResults([]);
-    } finally {
-      setIsLoading(false);
-    }
+        setResults(allResults);
+      } catch {
+        setResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, DEBOUNCE_MS);
   }, []);
 
   return { results, isLoading, search };

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ExternalReview {
@@ -29,91 +29,57 @@ export interface ExternalReviewStats {
   sources: { source: string; count: number }[];
 }
 
+const computeStats = (reviews: ExternalReview[]): ExternalReviewStats => {
+  const positive = reviews.filter(r => r.sentiment === 'positive').length;
+  const neutral = reviews.filter(r => r.sentiment === 'neutral').length;
+  const negative = reviews.filter(r => r.sentiment === 'negative').length;
+  const sourceCounts = reviews.reduce((acc, r) => {
+    acc[r.source] = (acc[r.source] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  const sources = Object.entries(sourceCounts).map(([source, count]) => ({ source, count }));
+  return { total: reviews.length, positive, neutral, negative, sources };
+};
+
+const EMPTY_STATS: ExternalReviewStats = { total: 0, positive: 0, neutral: 0, negative: 0, sources: [] };
+
 export const useExternalReviews = (deviceId: string | undefined) => {
-  const [reviews, setReviews] = useState<ExternalReview[]>([]);
-  const [stats, setStats] = useState<ExternalReviewStats>({
-    total: 0,
-    positive: 0,
-    neutral: 0,
-    negative: 0,
-    sources: []
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchReviews = useCallback(async () => {
-    if (!deviceId) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { data, error: fetchError } = await supabase
+  const query = useQuery({
+    queryKey: ['external-reviews', deviceId],
+    staleTime: 10 * 60 * 1000, // 10 minutes — external reviews don't change often
+    queryFn: async (): Promise<ExternalReview[]> => {
+      if (!deviceId) return [];
+      const { data, error } = await supabase
         .from('external_device_reviews')
         .select('*')
         .eq('device_id', deviceId)
         .order('helpful_count', { ascending: false });
+      if (error) throw error;
+      return (data || []) as ExternalReview[];
+    },
+    enabled: !!deviceId,
+  });
 
-      if (fetchError) throw fetchError;
+  const reviews = query.data || [];
+  const stats = query.data ? computeStats(query.data) : EMPTY_STATS;
 
-      const reviewData = data || [];
-      setReviews(reviewData);
-
-      // Calculate stats
-      const positive = reviewData.filter(r => r.sentiment === 'positive').length;
-      const neutral = reviewData.filter(r => r.sentiment === 'neutral').length;
-      const negative = reviewData.filter(r => r.sentiment === 'negative').length;
-
-      // Group by source
-      const sourceCounts = reviewData.reduce((acc, review) => {
-        const source = review.source;
-        acc[source] = (acc[source] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-
-      const sources = Object.entries(sourceCounts).map(([source, count]) => ({
-        source,
-        count
-      }));
-
-      setStats({
-        total: reviewData.length,
-        positive,
-        neutral,
-        negative,
-        sources
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch reviews');
-    } finally {
-      setLoading(false);
-    }
-  }, [deviceId]);
-
-  useEffect(() => {
-    fetchReviews();
-  }, [fetchReviews]);
-
-  const filterBySource = useCallback((source: string) => {
+  const filterBySource = (source: string) => {
     if (source === 'all') return reviews;
     return reviews.filter(r => r.source === source);
-  }, [reviews]);
+  };
 
-  const filterBySentiment = useCallback((sentiment: string) => {
+  const filterBySentiment = (sentiment: string) => {
     if (sentiment === 'all') return reviews;
     return reviews.filter(r => r.sentiment === sentiment);
-  }, [reviews]);
+  };
 
   return {
     reviews,
     stats,
-    loading,
-    error,
-    refresh: fetchReviews,
+    loading: query.isLoading,
+    error: query.error ? String(query.error) : null,
+    refresh: query.refetch,
     filterBySource,
-    filterBySentiment
+    filterBySentiment,
   };
 };
