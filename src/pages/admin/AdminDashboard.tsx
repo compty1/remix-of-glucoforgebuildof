@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { Users, Activity, TrendingUp, Shield, Settings, DollarSign, Download, Search, Filter } from 'lucide-react';
+import { Users, Activity, TrendingUp, DollarSign, Info } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -18,24 +17,6 @@ interface AdminDashboardStats {
   totalDonations: number;
 }
 
-// PLACEHOLDER DATA — No analytics tracking system is implemented yet.
-// These charts show illustrative data only. Replace with real analytics queries when instrumentation is added.
-const userActivityData = [
-  { month: 'Jan', users: 120, active: 85 },
-  { month: 'Feb', users: 150, active: 102 },
-  { month: 'Mar', users: 200, active: 145 },
-  { month: 'Apr', users: 280, active: 198 },
-  { month: 'May', users: 350, active: 245 },
-  { month: 'Jun', users: 420, active: 310 }
-];
-
-const platformUsageData = [
-  { name: 'Dashboard', value: 35, color: 'hsl(var(--chart-1))' },
-  { name: 'Data Upload', value: 25, color: 'hsl(var(--chart-2))' },
-  { name: 'Research Hub', value: 20, color: 'hsl(var(--chart-3))' },
-  { name: 'Surveys', value: 15, color: 'hsl(var(--chart-4))' },
-  { name: 'Other', value: 5, color: 'hsl(var(--chart-5))' }
-];
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminDashboardStats>({
@@ -185,64 +166,16 @@ export default function AdminDashboard() {
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {/* User Growth Chart */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>User Growth</CardTitle>
-                  <Badge variant="outline" className="text-xs text-muted-foreground">Illustrative Data</Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={userActivityData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="users" stroke="hsl(var(--chart-1))" strokeWidth={2} name="Total Users" />
-                      <Line type="monotone" dataKey="active" stroke="hsl(var(--chart-2))" strokeWidth={2} name="Active Users" />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Platform Usage */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Platform Usage</CardTitle>
-                  <Badge variant="outline" className="text-xs text-muted-foreground">Illustrative Data</Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={platformUsageData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {platformUsageData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Analytics Coming Soon */}
+          <Card className="mb-8">
+            <CardContent className="p-8 text-center">
+              <Info className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-lg font-semibold mb-2">Usage Analytics Coming Soon</h3>
+              <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                No analytics instrumentation is in place yet. When event tracking is added, usage charts will appear here with real data.
+              </p>
+            </CardContent>
+          </Card>
 
           {/* Platform Status */}
           <Card>

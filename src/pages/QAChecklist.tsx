@@ -50,7 +50,7 @@ const qaItems: QAItem[] = [
   { id: 'set-4', category: 'Settings', item: 'Theme switching works', status: 'pass' },
   { id: 'set-5', category: 'Settings', item: '2FA available', status: 'pending', description: 'Coming soon — not yet implemented' },
   { id: 'set-6', category: 'Settings', item: 'Data export functional', status: 'pending', description: 'Coming soon — not yet implemented' },
-  { id: 'set-7', category: 'Settings', item: 'Account deletion cascades all data', status: 'warning', description: 'Deletes from 9 tables but 15+ more may reference user_id' },
+  { id: 'set-7', category: 'Settings', item: 'Account deletion cascades all data', status: 'warning', description: 'Deletes from: journal_entries, uploads, bookmarks, saved_posts, surveys, community_posts, user_preferences, achievements, streaks. Does NOT yet cascade: notifications, ai_sessions, scenario_simulations, medication_reviews, experience_submissions, bounties, direct_messages.' },
   
   // Interactive Features
   { id: 'feat-1', category: 'Interactive Features', item: 'Scenario lab simulations render', status: 'pass' },
@@ -61,18 +61,18 @@ const qaItems: QAItem[] = [
   { id: 'pay-1', category: 'Payments', item: 'Donation modal opens', status: 'pass' },
   { id: 'pay-2', category: 'Payments', item: 'Stripe checkout creates session', status: 'pass' },
   { id: 'pay-3', category: 'Payments', item: 'Shop checkout works', status: 'pass' },
-  { id: 'pay-4', category: 'Payments', item: 'Webhook signature verification', status: 'warning', description: 'Falls back to unverified parsing when STRIPE_WEBHOOK_SECRET not set' },
+  { id: 'pay-4', category: 'Payments', item: 'Webhook signature verification', status: 'warning', description: 'When STRIPE_WEBHOOK_SECRET is not set, the edge function falls back to parsing the raw payload without signature verification — any caller could fake a webhook event. Set the secret in production.' },
   
   // Content
   { id: 'content-1', category: 'Content', item: 'Community posts display from DB', status: 'pass' },
   { id: 'content-2', category: 'Content', item: 'Device issues display from DB', status: 'pass' },
-  { id: 'content-3', category: 'Content', item: 'Trend analysis has data pipeline', status: 'fail', description: 'trend_analysis_metrics table has no data ingestion process' },
-  { id: 'content-4', category: 'Content', item: 'Email digest sends on schedule', status: 'fail', description: 'Edge function exists but no cron trigger configured' },
+  { id: 'content-3', category: 'Content', item: 'Trend analysis has data pipeline', status: 'warning', description: 'Table exists and is queried, but no automated ingestion pipeline fills it — data requires manual seeding.' },
+  { id: 'content-4', category: 'Content', item: 'Email digest sends on schedule', status: 'warning', description: 'Edge function deployed but no cron trigger is configured — must be manually triggered or scheduled externally.' },
   
   // Admin
   { id: 'admin-1', category: 'Admin', item: 'Admin role detection works', status: 'pass' },
   { id: 'admin-2', category: 'Admin', item: 'Admin routes protected', status: 'pass' },
-  { id: 'admin-3', category: 'Admin', item: 'Admin dashboard charts use real data', status: 'fail', description: 'Uses fabricated monthly growth arrays' },
+  { id: 'admin-3', category: 'Admin', item: 'Admin dashboard charts use real data', status: 'warning', description: 'Placeholder charts removed — analytics instrumentation not yet implemented. Stat cards use real database counts.' },
 ];
 
 export default function QAChecklist() {

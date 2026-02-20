@@ -260,9 +260,9 @@ const ScenarioLab = () => {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Scenario</label>
+                    <label htmlFor="scenario-select" className="text-sm font-medium mb-2 block">Scenario</label>
                     <Select value={selectedScenario} onValueChange={setSelectedScenario}>
-                      <SelectTrigger>
+                      <SelectTrigger id="scenario-select">
                         <SelectValue placeholder="Choose a scenario" />
                       </SelectTrigger>
                       <SelectContent>
@@ -279,8 +279,9 @@ const ScenarioLab = () => {
                   </div>
                   
                   <div>
-                    <label className="text-sm font-medium mb-2 block">Baseline Glucose (mg/dL)</label>
+                    <label htmlFor="baseline-glucose" className="text-sm font-medium mb-2 block">Baseline Glucose (mg/dL)</label>
                     <Input
+                      id="baseline-glucose"
                       type="number"
                       value={baselineGlucose}
                       onChange={(e) => setBaselineGlucose(e.target.value)}
@@ -312,7 +313,7 @@ const ScenarioLab = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-80">
+                  <div className="h-80" role="img" aria-label="Predicted glucose response chart showing mg/dL over time">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={currentSimulation}>
                         <CartesianGrid strokeDasharray="3 3" />
