@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom'; // Issue 258: Use Link instead of navigate for navigation
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,7 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
   reviewStats,
   deviceId
 }) => {
-  const navigate = useNavigate();
+  // Issue 258: removed useNavigate — handlePostClick now uses Link component below
   const [sentimentFilter, setSentimentFilter] = useState<'all' | 'positive' | 'neutral' | 'negative'>('all');
   const [visibleCount, setVisibleCount] = useState(10);
   const [activeSection, setActiveSection] = useState<'user' | 'community'>('user');
@@ -139,10 +139,7 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
     total: reviewStats.total + externalStats.total
   };
 
-  // Handle clicking on a community post - navigate to detail page
-  const handlePostClick = (post: CommunityPost) => {
-    navigate(`/community-solutions/${post.post_id}`);
-  };
+  // Issue 258: handlePostClick is no longer needed — posts now use Link component
 
   return (
     <div className="space-y-6">
@@ -287,47 +284,50 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
                 Community Posts ({filteredPosts.length})
               </h3>
               {visiblePosts.map((post) => (
-                <Card 
-                  key={post.id} 
-                  className="command-center-widget cursor-pointer hover:border-primary/50 hover:shadow-md transition-all group"
-                  onClick={() => handlePostClick(post)}
+                // Issue 258: Use Link instead of navigate for semantic navigation
+                <Link
+                  key={post.id}
+                  to={`/community-solutions/${post.post_id}`}
+                  className="block no-underline"
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-4 mb-3">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant="outline" className={getSourceBadge(post.source)}>
-                          {post.source}
-                        </Badge>
-                        {getSentimentBadge(post.sentiment)}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          {post.published_at ? format(new Date(post.published_at), 'MMM d, yyyy') : 'Unknown'}
+                  <Card className="command-center-widget cursor-pointer hover:border-primary/50 hover:shadow-md transition-all group">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-4 mb-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Badge variant="outline" className={getSourceBadge(post.source)}>
+                            {post.source}
+                          </Badge>
+                          {getSentimentBadge(post.sentiment)}
                         </div>
-                        <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                            <Clock className="h-3 w-3" />
+                            {post.published_at ? format(new Date(post.published_at), 'MMM d, yyyy') : 'Unknown'}
+                          </div>
+                          <ArrowUpRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
                       </div>
-                    </div>
-                    <h3 className="font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
-                      {post.title}
-                    </h3>
-                    {post.content && (
-                      <p className="text-sm text-muted-foreground mb-3 line-clamp-3">{post.content}</p>
-                    )}
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      {post.score !== null && (
-                        <span className="flex items-center gap-1">
-                          <ThumbsUp className="h-3 w-3" /> {post.score}
-                        </span>
+                      <h3 className="font-semibold mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                        {post.title}
+                      </h3>
+                      {post.content && (
+                        <p className="text-sm text-muted-foreground mb-3 line-clamp-3">{post.content}</p>
                       )}
-                      {post.num_comments !== null && (
-                        <span className="flex items-center gap-1">
-                          <MessageSquare className="h-3 w-3" /> {post.num_comments} comments
-                        </span>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        {post.score !== null && (
+                          <span className="flex items-center gap-1">
+                            <ThumbsUp className="h-3 w-3" /> {post.score}
+                          </span>
+                        )}
+                        {post.num_comments !== null && (
+                          <span className="flex items-center gap-1">
+                            <MessageSquare className="h-3 w-3" /> {post.num_comments} comments
+                          </span>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
               {filteredPosts.length > visibleCount && (
                 <div className="text-center">

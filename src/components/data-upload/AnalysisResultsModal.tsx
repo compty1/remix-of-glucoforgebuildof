@@ -251,8 +251,9 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
 
         {hasDetailedData ? (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
-            <div className="px-6 border-b">
-              <TabsList className="h-10 flex-wrap">
+            <div className="px-6 border-b overflow-x-auto">
+              {/* Issue 261: TabsList with only visible triggers — no empty conditional renders inside */}
+              <TabsList className="h-10 flex w-max min-w-full sm:flex-wrap sm:w-auto sm:min-w-0">
                 <TabsTrigger value="overview" className="gap-1.5">
                   <Target className="h-4 w-4" />
                   Overview
@@ -283,7 +284,7 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
                 </TabsTrigger>
                 <TabsTrigger value="daycompare" className="gap-1.5">
                   <Calendar className="h-4 w-4" />
-                  Days
+                  Weekday vs Weekend
                 </TabsTrigger>
                 <TabsTrigger value="insights" className="gap-1.5">
                   <Lightbulb className="h-4 w-4" />
@@ -388,15 +389,22 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
                 )}
 
                 <TabsContent value="risk" className="mt-0 space-y-6">
-                  <GlucoseRiskMatrix
-                    hourlyStats={hourlyData?.map(h => ({
-                      hour: h.hour,
-                      average: h.avg,
-                      min: h.min,
-                      max: h.max,
-                      count: h.count
-                    }))} 
-                  />
+                  {/* Issue 260: Guard against undefined hourlyStats to prevent render throws */}
+                  {hourlyData && hourlyData.length > 0 ? (
+                    <GlucoseRiskMatrix
+                      hourlyStats={hourlyData.map(h => ({
+                        hour: h.hour,
+                        average: h.avg,
+                        min: h.min,
+                        max: h.max,
+                        count: h.count
+                      }))}
+                    />
+                  ) : (
+                    <div className="p-6 border rounded-lg text-center text-muted-foreground">
+                      <p>Risk matrix requires raw CGM readings.</p>
+                    </div>
+                  )}
                   <TrendPrediction 
                     hourlyStats={hourlyData?.map(h => ({
                       hour: h.hour,

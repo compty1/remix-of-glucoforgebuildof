@@ -61,6 +61,9 @@ export const useCommunitySearch = (initialFilters?: Partial<SearchFilters>) => {
   // Debounce the text query to avoid firing a DB query on every keystroke (Issue 130)
   const debouncedQuery = useDebounce(filters.query, 300);
   const debouncedFilters = { ...filters, query: debouncedQuery };
+  
+  // Track if we are waiting for debounce to settle (UX improvement)
+  const isDebouncing = filters.query !== debouncedQuery;
 
   const fetchPosts = async () => {
     let query = supabase
