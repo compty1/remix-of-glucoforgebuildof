@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export interface CommunityPost {
   id: string;
@@ -55,7 +56,11 @@ export const useCommunitySearch = (initialFilters?: Partial<SearchFilters>) => {
   });
   const [page, setPage] = useState(0);
   const [accumulatedPosts, setAccumulatedPosts] = useState<CommunityPost[]>([]);
-  const pageSize = 50; // Increased from 20 to show more posts
+  const pageSize = 50;
+
+  // Debounce the text query to avoid firing a DB query on every keystroke (Issue 130)
+  const debouncedQuery = useDebounce(filters.query, 300);
+  const debouncedFilters = { ...filters, query: debouncedQuery };
 
   const fetchPosts = async () => {
     let query = supabase
@@ -63,9 +68,9 @@ export const useCommunitySearch = (initialFilters?: Partial<SearchFilters>) => {
       .select('*', { count: 'exact' })
       .eq('post_type', 'post');
 
-    // Apply text search if query exists
-    if (filters.query) {
-      query = query.or(`title.ilike.%${filters.query}%,content.ilike.%${filters.query}%`);
+    // Apply text search if query exists — uses debounced value
+    if (debouncedFilters.query) {
+      query = query.or(`title.ilike.%${debouncedFilters.query}%,content.ilike.%${debouncedFilters.query}%`);
     }
 
     // Apply source filter
@@ -155,7 +160,7 @@ export const useCommunitySearch = (initialFilters?: Partial<SearchFilters>) => {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['community-search', filters, page],
+    queryKey: ['community-search', debouncedFilters, page],
     queryFn: fetchPosts,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

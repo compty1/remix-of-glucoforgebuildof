@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { MedicationCard } from '@/components/medicine/MedicationCard';
 import { MedicationCompareBar } from '@/components/medicine/MedicationCompareBar';
@@ -11,9 +11,12 @@ import { useMedications, useMedicationCategories, MedicationCategory, SortOption
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BackButton } from '@/components/ui/back-button';
-import { Pill, Syringe, PillBottle, Activity, Shield } from 'lucide-react';
+import { Pill, Syringe, PillBottle, Activity, Shield, GitCompare } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const INSULIN_COLORS = [
   'hsl(var(--chart-1))',
@@ -39,13 +42,16 @@ const parseTimeToMinutes = (timeStr: string | null): number => {
 };
 
 export default function MedicineHub() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<MedicationCategory>('all');
   const [selectedSubcategory, setSelectedSubcategory] = useState('all');
   const [sortBy, setSortBy] = useState<SortOption>('popularity');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [selectedMedicationId, setSelectedMedicationId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('all');
   const [selectedForCompare, setSelectedForCompare] = useState<Array<{ id: string; name: string }>>([]);
+  usePageMeta('Medicine Hub', 'Browse insulins, oral medications, and injectables for diabetes. Compare options, check interactions, and read community reviews.');
 
   const { data: medications, isLoading } = useMedications({
     category: selectedCategory,
@@ -152,20 +158,26 @@ export default function MedicineHub() {
   };
 
   const handleSortChange = (value: string) => {
-    // Map filter sort values to hook sort values
     switch (value) {
       case 'rating':
         setSortBy('rating');
+        setSortDirection('desc');
         break;
       case 'price_low':
+        setSortBy('price');
+        setSortDirection('asc');
+        break;
       case 'price_high':
         setSortBy('price');
+        setSortDirection('desc');
         break;
       case 'popularity':
         setSortBy('popularity');
+        setSortDirection('desc');
         break;
       default:
         setSortBy('name');
+        setSortDirection('asc');
     }
   };
 
@@ -176,9 +188,17 @@ export default function MedicineHub() {
         
         {/* Header */}
         <div className="mb-8 mt-4">
-          <div className="flex items-center gap-3 mb-2">
-            <Pill className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold">Medicine Hub</h1>
+          <div className="flex items-center justify-between gap-3 mb-2 flex-wrap">
+            <div className="flex items-center gap-3">
+              <Pill className="h-8 w-8 text-primary" />
+              <h1 className="text-3xl font-bold">Medicine Hub</h1>
+            </div>
+            {/* Issue 105: Nav link to compare page */}
+            <Button variant="outline" size="sm" onClick={() => navigate('/medicines/compare')}
+              className="flex items-center gap-2">
+              <GitCompare className="h-4 w-4" />
+              Compare Medications
+            </Button>
           </div>
           <p className="text-muted-foreground max-w-2xl">
             Comprehensive directory of diabetes medications including insulins, oral medications, 
