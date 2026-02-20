@@ -1,6 +1,7 @@
 import React from 'react';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { BackButton } from '@/components/ui/back-button';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -90,10 +91,7 @@ const DeviceComparison = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <Button variant="ghost" onClick={() => navigate('/devices')} className="mb-2">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Devices
-            </Button>
+            <BackButton fallbackPath="/devices" className="mb-2" />
             <h1 className="text-3xl font-heading font-bold">Compare Devices</h1>
             <p className="text-muted-foreground">
               Select up to {maxDevices} devices to compare side-by-side

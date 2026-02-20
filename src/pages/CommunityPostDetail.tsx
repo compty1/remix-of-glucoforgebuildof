@@ -373,7 +373,7 @@ const CommunityPostDetail: React.FC = () => {
                   href={post.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  title="Search for similar community discussions on Reddit"
+                  title="View original post"
                   data-test="original-link"
                 >
                   <Button variant="outline" size="sm">
@@ -386,7 +386,7 @@ const CommunityPostDetail: React.FC = () => {
                           : 'bg-warning'
                     }`} />
                     <ExternalLink className="h-4 w-4 mr-2" />
-                    Find Similar Discussion
+                    View Original Post
                   </Button>
                 </a>
               ) : (
@@ -485,11 +485,11 @@ const CommunityPostDetail: React.FC = () => {
                         href={post.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        title="Search for similar community discussions on Reddit"
+                        title="View original post"
                       >
                         <Button variant="outline" size="sm">
                           <ExternalLink className="h-4 w-4 mr-2" />
-                          Find similar discussion on Reddit
+                          View Original Post
                         </Button>
                       </a>
                     ) : (

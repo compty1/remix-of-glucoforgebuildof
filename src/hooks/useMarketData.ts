@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+const STALE_TIME_MS = 10 * 60 * 1000; // 10 minutes
+let lastFetchedAt: number | null = null;
+let cachedData: MarketData[] = [];
+
 interface MarketData {
   id: string;
   company_name: string;
@@ -15,8 +19,8 @@ interface MarketData {
 }
 
 export const useMarketData = () => {
-  const [data, setData] = useState<MarketData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<MarketData[]>(cachedData);
+  const [loading, setLoading] = useState(cachedData.length === 0);
   const [error, setError] = useState<string | null>(null);
 
   const fetchFromDB = async () => {
@@ -27,7 +31,11 @@ export const useMarketData = () => {
       .order('created_at', { ascending: false });
 
     if (dbError) throw dbError;
-    if (dbData) setData(dbData);
+    if (dbData) {
+      cachedData = dbData;
+      lastFetchedAt = Date.now();
+      setData(dbData);
+    }
     return dbData;
   };
 
@@ -51,6 +59,12 @@ export const useMarketData = () => {
   };
 
   useEffect(() => {
+    const now = Date.now();
+    if (lastFetchedAt && now - lastFetchedAt < STALE_TIME_MS && cachedData.length > 0) {
+      setData(cachedData);
+      setLoading(false);
+      return;
+    }
     const load = async () => {
       try {
         setLoading(true);

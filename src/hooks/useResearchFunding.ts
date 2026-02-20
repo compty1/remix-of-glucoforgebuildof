@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+const STALE_TIME_MS = 15 * 60 * 1000; // 15 minutes
+let lastFetchedAt: number | null = null;
+let cachedData: ResearchFunding[] = [];
+
 interface ResearchFunding {
   id: string;
   project_number: string;
@@ -17,11 +21,17 @@ interface ResearchFunding {
 }
 
 export const useResearchFunding = () => {
-  const [data, setData] = useState<ResearchFunding[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<ResearchFunding[]>(cachedData);
+  const [loading, setLoading] = useState(cachedData.length === 0);
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = async () => {
+    const now = Date.now();
+    if (lastFetchedAt && now - lastFetchedAt < STALE_TIME_MS && cachedData.length > 0) {
+      setData(cachedData);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -36,6 +46,8 @@ export const useResearchFunding = () => {
       if (dbError) throw dbError;
 
       if (existingData && existingData.length > 0) {
+        cachedData = existingData;
+        lastFetchedAt = Date.now();
         setData(existingData);
         setLoading(false);
       }
@@ -55,7 +67,11 @@ export const useResearchFunding = () => {
           .order('fiscal_year', { ascending: false })
           .order('funding_amount', { ascending: false });
         
-        if (freshData) setData(freshData);
+        if (freshData) {
+          cachedData = freshData;
+          lastFetchedAt = Date.now();
+          setData(freshData);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch research funding data');

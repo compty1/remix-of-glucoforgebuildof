@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { BackButton } from "@/components/ui/back-button";
 import Layout from "@/components/Layout";
 import { MedicalDisclaimer } from "@/components/MedicalDisclaimer";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -238,6 +239,7 @@ const ScenarioLab = () => {
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
+          <BackButton fallbackPath="/dashboard" className="mb-4" />
           <h1 className="text-4xl font-bold text-foreground mb-2">Scenario Lab</h1>
           <p className="text-muted-foreground mb-4">Explore how different events might affect glucose levels using simplified simulations</p>
           <MedicalDisclaimer context="These are simplified mathematical simulations, not AI-powered predictions. Results are illustrative and should not guide treatment decisions." />

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { BackButton } from '@/components/ui/back-button';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -310,6 +311,7 @@ const ResearchHub = () => {
   return (
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <BackButton fallbackPath="/dashboard" className="mb-6" />
         {/* Header */}
         <section className="text-center mb-12">
           <h1 className="text-4xl font-heading font-bold text-foreground mb-4">

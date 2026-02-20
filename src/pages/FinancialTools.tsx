@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { BackButton } from "@/components/ui/back-button";
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -183,6 +184,7 @@ const FinancialTools = () => {
     <Layout>
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
+          <BackButton fallbackPath="/dashboard" className="mb-4" />
           <h1 className="text-4xl font-bold text-foreground mb-2">Financial Tools Hub</h1>
           <p className="text-muted-foreground">Resources to help manage the financial aspects of diabetes care</p>
         </div>

@@ -1,5 +1,6 @@
 import Layout from '@/components/Layout';
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -111,6 +112,7 @@ export default function FDASafety() {
     <Layout>
       <div className="container mx-auto px-6 py-8">
         <div className="max-w-7xl mx-auto">
+          <BackButton fallbackPath="/dashboard" className="mb-6" />
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-4xl font-heading font-bold text-foreground mb-4">
