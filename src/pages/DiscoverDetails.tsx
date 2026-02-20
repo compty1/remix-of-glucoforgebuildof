@@ -1,4 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { useState, useEffect } from 'react';
 import { ArrowLeft, ExternalLink, Bookmark, TrendingUp, Calendar, Share2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +27,7 @@ interface DiscoveryItem {
 }
 
 export default function DiscoverDetails() {
+  usePageMeta('Discovery Details', 'Deep dive into a T1D research discovery — mechanism, credibility, source citations, and community context.');
   const { id } = useParams<{ id: string }>();
   const { toast } = useToast();
   const [discovery, setDiscovery] = useState<DiscoveryItem | null>(null);

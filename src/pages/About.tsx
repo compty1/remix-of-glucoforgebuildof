@@ -1,4 +1,5 @@
 import Layout from "@/components/Layout";
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
@@ -46,6 +47,7 @@ const values = [
 ];
 
 export default function About() {
+  usePageMeta('About', 'Learn about GlucoForge — our mission, values, and the open T1D intelligence platform we\'re building together.');
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8 max-w-6xl">

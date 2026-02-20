@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { useSearchParams, Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +36,7 @@ const parseTimeToMinutes = (timeStr: string | null): number => {
 };
 
 export default function MedicineComparison() {
+  usePageMeta('Medicine Comparison', 'Compare T1D insulins and medications side by side — onset, peak, duration, and cost.');
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const ids = searchParams.get('ids')?.split(',').filter(Boolean) || [];

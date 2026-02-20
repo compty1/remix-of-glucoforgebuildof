@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -268,6 +269,7 @@ const SurveyCardSkeleton = () => (
 );
 
 const CitizenScience = () => {
+  usePageMeta('Citizen Science', 'Contribute to T1D research by completing surveys and sharing your experience with the global community.');
   const { user } = useAuthStore();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');

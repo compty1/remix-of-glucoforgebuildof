@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Layout from '@/components/Layout';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +17,7 @@ import { useCitationNetwork, type NetworkNode } from '@/hooks/useCitationNetwork
 import { RefreshCw, Sparkles, TrendingUp, Network, Mail, BarChart3, Link2 } from 'lucide-react';
 
 const ResearchInsights = () => {
+  usePageMeta('Research Insights', 'Explore T1D research insights, citation networks, TLDR summaries and influential papers.');
   const [activeTab, setActiveTab] = useState('overview');
   const [selectedPaper, setSelectedPaper] = useState<NetworkNode | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);

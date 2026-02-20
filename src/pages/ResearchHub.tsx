@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -211,6 +212,7 @@ const ResearchCardSkeleton = () => (
 );
 
 const ResearchHub = () => {
+  usePageMeta('Research Hub', 'Explore peer-reviewed T1D research papers, clinical trials, and medical insights from top journals.');
   const [selectedTab, setSelectedTab] = useState('rss');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedImpact, setSelectedImpact] = useState<string>('all');

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from '@/components/Layout';
 import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -72,6 +73,7 @@ interface FilterOptions {
 }
 
 export default function PublicGlucoseData() {
+  usePageMeta('Public Glucose Data', 'Analyze anonymized T1D glucose data — time in range, patterns, and demographic breakdowns.');
   const [selectedDataset, setSelectedDataset] = useState<string>('all');
   const [selectedAgeRange, setSelectedAgeRange] = useState<string>('all');
   const [selectedPump, setSelectedPump] = useState<string>('all');

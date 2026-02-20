@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from '@/components/Layout';
 import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -27,6 +28,7 @@ import {
 } from 'lucide-react';
 
 export default function DiabetesOrganizations() {
+  usePageMeta('Diabetes Organizations', 'Explore T1D advocacy organizations, their missions, funding allocations, and impact on the community.');
   const { organizations, loading, error } = useDiabetesOrganizations();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<string>('all');

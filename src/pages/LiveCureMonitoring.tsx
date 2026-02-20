@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -168,6 +169,7 @@ function CurePipelineAnimation() {
 }
 
 const LiveCureMonitoring = () => {
+  usePageMeta('Live Cure Monitoring', 'Real-time monitoring of T1D cure therapy trials, milestones, and treatment pipeline progress.');
   const { data, loading, error } = useCureMonitoring();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');

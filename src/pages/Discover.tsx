@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Search, Filter, SortDesc, Loader2, Sparkles, TrendingUp, FlaskConical, Cpu, Users, Pill, Database, FileText, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +39,7 @@ const CATEGORIES = [
 ];
 
 const Discover = () => {
+  usePageMeta('Discover', 'Discover T1D research connections, community insights, clinical trials, and AI-found breakthroughs.');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCredibility, setSelectedCredibility] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');

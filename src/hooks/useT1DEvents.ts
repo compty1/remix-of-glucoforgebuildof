@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface T1DEvent {
@@ -25,44 +25,30 @@ interface UseT1DEventsResult {
   events: T1DEvent[];
   loading: boolean;
   error: string | null;
-  refetch: () => Promise<void>;
+  refetch: () => void;
 }
 
+const QUERY_KEY = ['t1d-events'];
+
 export const useT1DEvents = (): UseT1DEventsResult => {
-  const [events, setEvents] = useState<T1DEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchEvents = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
+  const { data: events = [], isLoading: loading, error: rawError } = useQuery({
+    queryKey: QUERY_KEY,
+    queryFn: async () => {
       const { data, error: dbError } = await supabase
         .from('t1d_events')
         .select('*')
         .order('start_date', { ascending: true });
 
-      if (dbError) {
-        throw new Error(dbError.message);
-      }
+      if (dbError) throw new Error(dbError.message);
+      return (data || []) as T1DEvent[];
+    },
+    staleTime: 30 * 60 * 1000, // 30 minutes
+  });
 
-      setEvents(data || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch events');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const error = rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch events') : null;
+  const refetch = () => queryClient.invalidateQueries({ queryKey: QUERY_KEY });
 
-  useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
-
-  return {
-    events,
-    loading,
-    error,
-    refetch: fetchEvents,
-  };
+  return { events, loading, error, refetch };
 };

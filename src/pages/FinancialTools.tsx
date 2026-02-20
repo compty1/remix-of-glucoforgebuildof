@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -77,6 +78,7 @@ Sincerely,
 Attachments: [List all attachments]`;
 
 const FinancialTools = () => {
+  usePageMeta('Financial Tools', 'T1D financial tools — insurance appeal templates, drug pricing, Medicare data, and cost-saving resources.');
   const { toast } = useToast();
   const [resources, setResources] = useState<FinancialResource[]>([]);
   const [filteredResources, setFilteredResources] = useState<FinancialResource[]>([]);

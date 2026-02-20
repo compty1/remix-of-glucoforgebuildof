@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 interface FundingTimelineData {
@@ -17,79 +17,53 @@ interface UseFundingTimelineReturn {
 }
 
 export const useFundingTimeline = (): UseFundingTimelineReturn => {
-  const [timelineData, setTimelineData] = useState<FundingTimelineData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, isLoading: loading, error: rawError } = useQuery({
+    queryKey: ['funding-timeline'],
+    queryFn: async () => {
+      const { data: companies, error: fetchError } = await supabase
+        .from('t1d_companies')
+        .select('name, founded_year, total_funding_usd')
+        .eq('is_active', true)
+        .not('founded_year', 'is', null)
+        .order('founded_year', { ascending: true });
 
-  useEffect(() => {
-    const fetchTimelineData = async () => {
-      setLoading(true);
-      setError(null);
+      if (fetchError) throw fetchError;
 
-      try {
-        const { data, error: fetchError } = await supabase
-          .from('t1d_companies')
-          .select('name, founded_year, total_funding_usd')
-          .eq('is_active', true)
-          .not('founded_year', 'is', null)
-          .order('founded_year', { ascending: true });
+      const yearMap = new Map<number, { totalFunding: number; companies: { name: string; funding: number }[] }>();
 
-        if (fetchError) throw fetchError;
+      (companies || []).forEach((company) => {
+        const year = company.founded_year as number;
+        const funding = (company.total_funding_usd as number) || 0;
+        const name = company.name as string;
 
-        // Group by year
-        const yearMap = new Map<number, { 
-          totalFunding: number; 
-          companies: { name: string; funding: number }[] 
-        }>();
+        if (!yearMap.has(year)) yearMap.set(year, { totalFunding: 0, companies: [] });
 
-        (data || []).forEach((company) => {
-          const year = company.founded_year as number;
-          const funding = (company.total_funding_usd as number) || 0;
-          const name = company.name as string;
+        const yearData = yearMap.get(year)!;
+        yearData.totalFunding += funding;
+        yearData.companies.push({ name, funding });
+      });
 
-          if (!yearMap.has(year)) {
-            yearMap.set(year, { totalFunding: 0, companies: [] });
-          }
+      return Array.from(yearMap.entries())
+        .map(([year, d]) => ({
+          year,
+          totalFunding: d.totalFunding,
+          companyCount: d.companies.length,
+          topCompanies: d.companies
+            .sort((a, b) => b.funding - a.funding)
+            .slice(0, 3)
+            .map(c => c.name),
+        }))
+        .sort((a, b) => a.year - b.year);
+    },
+    staleTime: 30 * 60 * 1000, // 30 minutes
+  });
 
-          const yearData = yearMap.get(year)!;
-          yearData.totalFunding += funding;
-          yearData.companies.push({ name, funding });
-        });
-
-        // Convert to array and sort
-        const timeline: FundingTimelineData[] = Array.from(yearMap.entries())
-          .map(([year, data]) => ({
-            year,
-            totalFunding: data.totalFunding,
-            companyCount: data.companies.length,
-            topCompanies: data.companies
-              .sort((a, b) => b.funding - a.funding)
-              .slice(0, 3)
-              .map(c => c.name),
-          }))
-          .sort((a, b) => a.year - b.year);
-
-        setTimelineData(timeline);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch timeline data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTimelineData();
-  }, []);
-
+  const timelineData = data || [];
+  const error = rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch timeline data') : null;
   const totalInvestment = timelineData.reduce((sum, d) => sum + d.totalFunding, 0);
   const peakYear = timelineData.length > 0
     ? timelineData.reduce((max, d) => d.totalFunding > max.totalFunding ? d : max).year
     : null;
 
-  return {
-    timelineData,
-    loading,
-    error,
-    totalInvestment,
-    peakYear,
-  };
+  return { timelineData, loading, error, totalInvestment, peakYear };
 };

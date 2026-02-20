@@ -1,4 +1,5 @@
 import Layout from '@/components/Layout';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { MedicalDisclaimer } from '@/components/MedicalDisclaimer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -157,6 +158,7 @@ function CureHeroAnimation() {
 }
 
 export default function CureProgress() {
+  usePageMeta('Cure Progress', 'Track T1D cure research progress — clinical trials, therapy phases, and breakthroughs toward a cure.');
   const { data: clinicalTrials, loading, error, refreshData } = useClinicalTrialsDetailed();
   const [selectedPhase, setSelectedPhase] = useState<string>('all');
 

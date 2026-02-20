@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface CureTherapy {
@@ -14,7 +14,6 @@ export interface CureTherapy {
   status: string;
   website_url: string;
   milestones?: CureMilestone[];
-  // Enhanced fields
   approach_type?: string;
   mechanism?: string;
   advantages?: string[];
@@ -48,16 +47,14 @@ export interface CureMonitoringData {
   overallProgress: number;
 }
 
+const QUERY_KEY = ['cure-monitoring'];
+
 export const useCureMonitoring = () => {
-  const [data, setData] = useState<CureMonitoringData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchCureMonitoringData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
+  const { data, isLoading: loading, error: rawError } = useQuery({
+    queryKey: QUERY_KEY,
+    queryFn: async (): Promise<CureMonitoringData> => {
       const { data: therapies, error: therapiesError } = await supabase
         .from('cure_therapies')
         .select(`
@@ -77,10 +74,9 @@ export const useCureMonitoring = () => {
       if (therapiesError) throw therapiesError;
 
       const activeTrials = therapies?.filter(t => t.status === 'Active').length || 0;
-      
       const currentDate = new Date();
       const therapiesWithDates = therapies?.filter(t => t.estimated_completion) || [];
-      const avgYearsToMarket = therapiesWithDates.length > 0 
+      const avgYearsToMarket = therapiesWithDates.length > 0
         ? therapiesWithDates.reduce((sum, therapy) => {
             const completionDate = new Date(therapy.estimated_completion);
             const yearsToCompletion = Math.max(0, (completionDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60 * 24 * 365));
@@ -88,18 +84,16 @@ export const useCureMonitoring = () => {
           }, 0) / therapiesWithDates.length
         : 0;
 
-      const advancedTherapies = therapies?.filter(t => 
+      const advancedTherapies = therapies?.filter(t =>
         t.phase === 'Approved' || t.phase === 'Phase III' || t.phase === 'FDA Review'
       ).length || 0;
       const successRate = therapies?.length ? (advancedTherapies / therapies.length) * 100 : 0;
-
       const topConfidence = Math.max(...(therapies?.map(t => t.confidence_score) || [0]));
-
-      const overallProgress = therapies?.length 
+      const overallProgress = therapies?.length
         ? therapies.reduce((sum, therapy) => sum + therapy.progress_percentage, 0) / therapies.length
         : 0;
 
-      setData({
+      return {
         therapies: therapies || [],
         stats: {
           activeTrials,
@@ -108,17 +102,13 @@ export const useCureMonitoring = () => {
           topConfidence,
         },
         overallProgress: Math.round(overallProgress),
-      });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch data');
-    } finally {
-      setLoading(false);
-    }
-  };
+      };
+    },
+    staleTime: 15 * 60 * 1000, // 15 minutes
+  });
 
-  useEffect(() => {
-    fetchCureMonitoringData();
-  }, []);
+  const refetch = () => queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+  const error = rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch data') : null;
 
-  return { data, loading, error, refetch: fetchCureMonitoringData };
+  return { data: data || null, loading, error, refetch };
 };

@@ -1,4 +1,5 @@
 import Layout from '@/components/Layout';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,6 +50,7 @@ interface ActivityItem {
 }
 
 export default function Profile() {
+  usePageMeta('Profile', 'View and edit your GlucoForge profile, achievements, streaks, and activity history.');
   const { user } = useAuthStore();
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get('tab') || 'profile';

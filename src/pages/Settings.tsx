@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { useTheme } from 'next-themes';
 import { useAuthStore } from '@/store/authStore';
 import { supabase } from '@/integrations/supabase/client';
@@ -128,6 +129,7 @@ const PushNotificationsSection = () => {
 };
 
 const Settings = () => {
+  usePageMeta('Settings', 'Manage your GlucoForge account settings, notifications, privacy, and data preferences.');
   const { toast } = useToast();
   const { user, signOut } = useAuthStore();
   const { theme, setTheme: setNextTheme } = useTheme();

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface CommunityPost {
@@ -19,45 +19,31 @@ export interface CommunityPost {
 }
 
 export const useCommunityPosts = (deviceName?: string) => {
-  const [posts, setPosts] = useState<CommunityPost[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: posts = [], isLoading: loading, error: rawError } = useQuery({
+    queryKey: ['community-posts', deviceName],
+    queryFn: async () => {
+      let query = supabase
+        .from('community_posts')
+        .select('*')
+        .order('published_at', { ascending: false })
+        .limit(50);
 
-  useEffect(() => {
-    const fetchCommunityPosts = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        let query = supabase
-          .from('community_posts')
-          .select('*')
-          .order('published_at', { ascending: false })
-          .limit(50);
-
-        // Filter by device if specified
-        if (deviceName) {
-          const deviceKey = deviceName.toLowerCase().split(' ')[0]; // Extract "dexcom", "omnipod", etc.
-          query = query.eq('device_mentioned', deviceKey);
-        }
-
-        const { data, error: postsError } = await query;
-
-        if (postsError) throw postsError;
-
-        setPosts((data || []).map(post => ({
-          ...post,
-          sentiment: post.sentiment as 'positive' | 'neutral' | 'negative' | null
-        })));
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch community posts');
-      } finally {
-        setLoading(false);
+      if (deviceName) {
+        const deviceKey = deviceName.toLowerCase().split(' ')[0];
+        query = query.eq('device_mentioned', deviceKey);
       }
-    };
 
-    fetchCommunityPosts();
-  }, [deviceName]);
+      const { data, error: postsError } = await query;
+      if (postsError) throw postsError;
 
+      return (data || []).map(post => ({
+        ...post,
+        sentiment: post.sentiment as 'positive' | 'neutral' | 'negative' | null
+      }));
+    },
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
+
+  const error = rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch community posts') : null;
   return { posts, loading, error };
 };
