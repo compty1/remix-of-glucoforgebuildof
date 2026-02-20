@@ -6,6 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Stethoscope, 
@@ -17,7 +21,8 @@ import {
   ThumbsDown,
   ExternalLink,
   Sparkles,
-  TrendingUp
+  TrendingUp,
+  Send
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -115,6 +120,14 @@ export default function HealthcareExperience() {
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [activeSentiment, setActiveSentiment] = useState<string>('all');
+  const [showSubmitForm, setShowSubmitForm] = useState(false);
+  
+  // Submission Form State
+  const [submitTitle, setSubmitTitle] = useState('');
+  const [submitContent, setSubmitContent] = useState('');
+  const [submitCategory, setSubmitCategory] = useState('');
+  const [submitSentiment, setSubmitSentiment] = useState('neutral');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -146,6 +159,40 @@ export default function HealthcareExperience() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!submitTitle || !submitContent || !submitCategory) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const { error } = await supabase.from('healthcare_experiences').insert({
+        title: submitTitle,
+        content: submitContent,
+        category: submitCategory,
+        sentiment: submitSentiment,
+        source_platform: 'GlucoForge',
+        is_published: true // Auto-publish for now, moderation can follow
+      });
+
+      if (error) throw error;
+
+      toast.success('Experience shared successfully!');
+      setSubmitTitle('');
+      setSubmitContent('');
+      setSubmitCategory('');
+      setSubmitSentiment('neutral');
+      setShowSubmitForm(false);
+      fetchData(); // Refresh list
+    } catch (error) {
+      toast.error('Failed to share experience');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const filteredExperiences = experiences.filter(exp => {
     const matchesCategory = activeCategory === 'all' || exp.category === activeCategory;
     const matchesSentiment = activeSentiment === 'all' || exp.sentiment === activeSentiment;
@@ -159,17 +206,91 @@ export default function HealthcareExperience() {
 
         {/* Hero */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Stethoscope className="h-10 w-10 text-primary" />
-            <h1 className="text-4xl font-heading font-bold text-foreground">
-              Healthcare Experience
-            </h1>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-3">
+              <Stethoscope className="h-10 w-10 text-primary" />
+              <h1 className="text-4xl font-heading font-bold text-foreground">
+                Healthcare Experience
+              </h1>
+            </div>
+            <Button onClick={() => setShowSubmitForm(!showSubmitForm)}>
+              {showSubmitForm ? 'Cancel' : 'Share Your Experience'}
+            </Button>
           </div>
           <p className="text-xl text-muted-foreground max-w-2xl">
             Real stories from the T1D community about their healthcare experiences - 
             the good, the bad, and everything in between.
           </p>
         </div>
+
+        {/* Submit Form */}
+        {showSubmitForm && (
+          <Card className="mb-8 border-primary/20 animate-in fade-in slide-in-from-top-4">
+            <CardHeader>
+              <CardTitle>Share Your Story</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="title">Title *</Label>
+                  <Input 
+                    id="title" 
+                    value={submitTitle} 
+                    onChange={(e) => setSubmitTitle(e.target.value)} 
+                    placeholder="Brief summary of your experience"
+                    maxLength={100}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="category">Category *</Label>
+                    <Select value={submitCategory} onValueChange={setSubmitCategory}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(categoryConfig).map(([key, { label }]) => (
+                          <SelectItem key={key} value={key}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="sentiment">Sentiment</Label>
+                    <Select value={submitSentiment} onValueChange={setSubmitSentiment}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select sentiment" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="positive">Positive</SelectItem>
+                        <SelectItem value="neutral">Neutral</SelectItem>
+                        <SelectItem value="negative">Negative</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="content">Your Experience * <span className="text-muted-foreground text-xs font-normal">({submitContent.length}/2000)</span></Label>
+                  <Textarea 
+                    id="content" 
+                    value={submitContent} 
+                    onChange={(e) => setSubmitContent(e.target.value)} 
+                    placeholder="Share the details..."
+                    rows={5}
+                    maxLength={2000}
+                  />
+                </div>
+
+                <Button type="submit" disabled={isSubmitting}>
+                  <Send className="h-4 w-4 mr-2" />
+                  {isSubmitting ? 'Posting...' : 'Post Experience'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        )}
 
         {/* AI Recommendations */}
         {recommendations.length > 0 && (

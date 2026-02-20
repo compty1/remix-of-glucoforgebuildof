@@ -322,7 +322,8 @@ const Journal = () => {
                                 {new Date(shift.shift_time).toLocaleDateString()}
                               </span>
                             </div>
-                            <p className="text-sm mb-2">{shift.context}</p>
+                            {/* XSS Prevention: Using text node instead of dangerouslySetInnerHTML (Issue 149) */}
+                            <p className="text-sm mb-2 whitespace-pre-wrap">{shift.context}</p>
                             <div className="flex flex-wrap gap-1">
                               {shift.tags.map((tag, index) => (
                                 <Badge key={index} variant="outline" className="text-xs">
