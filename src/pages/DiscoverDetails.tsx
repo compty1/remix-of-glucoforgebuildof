@@ -178,6 +178,7 @@ export default function DiscoverDetails() {
         </div>
 
         {/* Main Content */}
+        <article aria-labelledby="discovery-title">
         <Card className="gradient-card border-border/50">
           <CardHeader className="pb-6">
             <div className="flex items-start gap-4">
@@ -192,7 +193,7 @@ export default function DiscoverDetails() {
                 />
               )}
               <div className="flex-1">
-                <CardTitle className="text-3xl font-bold mb-4 leading-tight">
+                <CardTitle id="discovery-title" className="text-3xl font-bold mb-4 leading-tight">
                   {discovery.title}
                 </CardTitle>
                 <div className="flex items-center gap-4 mb-4">
@@ -272,6 +273,7 @@ export default function DiscoverDetails() {
             </div>
           </CardContent>
         </Card>
+        </article>
       </div>
     </Layout>
   );

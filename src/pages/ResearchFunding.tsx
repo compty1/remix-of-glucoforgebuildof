@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ interface FundingProject {
 }
 
 const ResearchFunding = () => {
+  usePageMeta('Research Funding', 'Track NIH-funded T1D research projects, grant allocations, and principal investigators.');
   const { data: funding, loading, error, refetch } = useResearchFunding();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProject, setSelectedProject] = useState<FundingProject | null>(null);
