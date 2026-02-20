@@ -65,7 +65,6 @@ export const useResearchInsights = (): UseResearchInsightsResult => {
       
       setPapers((data || []) as ResearchPaperWithTLDR[]);
     } catch (err) {
-      console.error('Error fetching research insights:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch research data');
     } finally {
       setLoading(false);

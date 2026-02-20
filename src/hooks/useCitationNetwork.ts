@@ -126,12 +126,12 @@ export const useCitationNetwork = (): UseCitationNetworkResult => {
       // Call edge function to populate citation relationships
       const { error } = await supabase.functions.invoke('fetch-citation-network');
       if (error) {
-        console.error('Error fetching citation data:', error);
+        // Citation fetch failed — local data will still be shown
       }
       // Refresh the local data
       await fetchPapers();
-    } catch (err) {
-      console.error('Error in fetchCitationData:', err);
+    } catch {
+      // Ignore citation network errors silently
     }
   }, [fetchPapers]);
 

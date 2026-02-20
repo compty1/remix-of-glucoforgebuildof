@@ -97,7 +97,6 @@ export const useDeviceAnalytics = () => {
         mostReportedIssue,
       });
     } catch (err) {
-      console.error('Error fetching device analytics:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch device data');
     } finally {
       setLoading(false);
@@ -110,19 +109,15 @@ export const useDeviceAnalytics = () => {
 
   const refreshCommunityFeed = async () => {
     try {
-      console.log('Triggering community feed refresh...');
       const { data: result, error } = await supabase.functions.invoke('community-feed');
       
       if (error) {
-        console.error('Error refreshing community feed:', error);
         return { success: false, error: error.message };
       }
       
-      console.log('Community feed refresh result:', result);
       await fetchDeviceData();
       return { success: true, data: result };
     } catch (err) {
-      console.error('Error calling community feed function:', err);
       return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
     }
   };

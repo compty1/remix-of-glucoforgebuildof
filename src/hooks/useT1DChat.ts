@@ -143,7 +143,6 @@ export function useT1DChat() {
         }
       }
     } catch (error) {
-      console.error('Chat error:', error);
       toast({
         title: 'Chat Error',
         description: error instanceof Error ? error.message : 'Failed to send message',

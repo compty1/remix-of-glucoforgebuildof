@@ -104,7 +104,6 @@ export const useFoundConnections = (): UseFoundConnectionsResult => {
 
       setAllConnections(parsed);
     } catch (err) {
-      console.error('Error fetching connections:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch connections');
     } finally {
       setLoading(false);
@@ -123,7 +122,6 @@ export const useFoundConnections = (): UseFoundConnectionsResult => {
       // Refresh data after analysis
       await fetchConnections();
     } catch (err) {
-      console.error('Error triggering analysis:', err);
       setError(err instanceof Error ? err.message : 'Failed to analyze connections');
     } finally {
       setAnalyzing(false);

@@ -39,13 +39,11 @@ export const useMarketData = () => {
       const { error: functionError } = await supabase.functions.invoke('financial-market-feed');
 
       if (functionError) {
-        console.error('Edge function error:', functionError);
         throw functionError;
       }
 
       await fetchFromDB();
     } catch (err) {
-      console.error('Error refreshing market data:', err);
       setError(err instanceof Error ? err.message : 'Failed to refresh market data');
     } finally {
       setLoading(false);
@@ -59,7 +57,6 @@ export const useMarketData = () => {
         setError(null);
         await fetchFromDB();
       } catch (err) {
-        console.error('Error fetching market data:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch market data');
       } finally {
         setLoading(false);

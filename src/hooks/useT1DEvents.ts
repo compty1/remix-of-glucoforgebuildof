@@ -49,7 +49,6 @@ export const useT1DEvents = (): UseT1DEventsResult => {
 
       setEvents(data || []);
     } catch (err) {
-      console.error('Error fetching T1D events:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch events');
     } finally {
       setLoading(false);

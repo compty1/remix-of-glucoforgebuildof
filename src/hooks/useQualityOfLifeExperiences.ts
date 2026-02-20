@@ -30,7 +30,6 @@ export function useQualityOfLifeExperiences(category?: string) {
       const { data, error } = await query.limit(50);
       
       if (error) {
-        console.error('Error fetching QoL experiences:', error);
         throw error;
       }
       

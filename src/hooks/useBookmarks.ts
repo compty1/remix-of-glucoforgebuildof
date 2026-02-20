@@ -37,8 +37,7 @@ export function useBookmarks() {
 
       if (error) throw error;
       setBookmarks(data || []);
-    } catch (error) {
-      console.error('Error fetching bookmarks:', error);
+    } catch {
     } finally {
       setLoading(false);
     }
@@ -81,8 +80,7 @@ export function useBookmarks() {
       toast.success('Bookmarked successfully');
       await fetchBookmarks();
       return true;
-    } catch (error) {
-      console.error('Error adding bookmark:', error);
+    } catch {
       toast.error('Failed to bookmark');
       return false;
     }
@@ -103,8 +101,7 @@ export function useBookmarks() {
       toast.success('Bookmark removed');
       await fetchBookmarks();
       return true;
-    } catch (error) {
-      console.error('Error removing bookmark:', error);
+    } catch {
       toast.error('Failed to remove bookmark');
       return false;
     }
@@ -125,8 +122,7 @@ export function useBookmarks() {
       toast.success('Bookmark removed');
       await fetchBookmarks();
       return true;
-    } catch (error) {
-      console.error('Error removing bookmark:', error);
+    } catch {
       toast.error('Failed to remove bookmark');
       return false;
     }

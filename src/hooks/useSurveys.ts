@@ -54,7 +54,6 @@ export const useSurveys = (): UseSurveysResult => {
       // Type assertion to handle the Json type from Supabase
       setSurveys((data as Survey[]) || []);
     } catch (err) {
-      console.error('Error fetching surveys:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch surveys');
     } finally {
       setLoading(false);

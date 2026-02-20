@@ -39,13 +39,11 @@ export const usePatentData = () => {
       const { error: functionError } = await supabase.functions.invoke('patent-innovation-feed');
 
       if (functionError) {
-        console.error('Edge function error:', functionError);
         throw functionError;
       }
 
       await fetchFromDB();
     } catch (err) {
-      console.error('Error refreshing patent data:', err);
       setError(err instanceof Error ? err.message : 'Failed to refresh patent data');
     } finally {
       setLoading(false);
@@ -59,7 +57,6 @@ export const usePatentData = () => {
         setError(null);
         await fetchFromDB();
       } catch (err) {
-        console.error('Error fetching patent data:', err);
         setError(err instanceof Error ? err.message : 'Failed to fetch patent data');
       } finally {
         setLoading(false);

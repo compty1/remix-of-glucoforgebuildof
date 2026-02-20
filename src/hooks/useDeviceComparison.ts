@@ -56,7 +56,6 @@ export const useDeviceComparison = (initialDeviceIds: string[] = []): UseDeviceC
         .order('name');
 
       if (error) {
-        console.error('Error fetching devices:', error);
         return;
       }
 
@@ -135,7 +134,6 @@ export const useDeviceComparison = (initialDeviceIds: string[] = []): UseDeviceC
 
       setComparisonDevices(orderedDevices);
     } catch (err) {
-      console.error('Error fetching comparison data:', err);
       setError(err instanceof Error ? err.message : 'Failed to load comparison data');
     } finally {
       setLoading(false);

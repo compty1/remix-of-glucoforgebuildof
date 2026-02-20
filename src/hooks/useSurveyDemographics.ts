@@ -56,7 +56,6 @@ export const useSurveyDemographics = (): UseSurveyDemographicsResult => {
 
       setDemographics(data as Demographics | null);
     } catch (err) {
-      console.error('Error fetching demographics:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch demographics');
     } finally {
       setLoading(false);
