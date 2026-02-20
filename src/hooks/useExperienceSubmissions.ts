@@ -91,11 +91,24 @@ export function useSubmitExperience() {
         throw new Error('You must be logged in to submit');
       }
 
+      // Issue 148: Check for duplicate submissions before inserting
+      const { data: existing } = await supabase
+        .from('experience_submissions')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('category', category)
+        .eq('content', content.trim())
+        .maybeSingle();
+
+      if (existing) {
+        throw new Error('You have already submitted this exact experience. Try adding a different perspective!');
+      }
+
       const { data, error } = await supabase
         .from('experience_submissions')
         .insert({
           category,
-          content,
+          content: content.trim(),
           user_id: user.id,
           is_anonymous: isAnonymous,
         })

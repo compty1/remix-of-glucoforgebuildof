@@ -144,7 +144,7 @@ export const useDeviceReviews = (deviceId: string | undefined): UseDeviceReviews
     } finally {
       setLoading(false);
     }
-  }, [deviceId, user?.id]);
+  }, [deviceId, user?.id]); // Issue 266: only depend on user.id (not whole user object) to avoid unnecessary refetches
 
   useEffect(() => {
     fetchReviews();

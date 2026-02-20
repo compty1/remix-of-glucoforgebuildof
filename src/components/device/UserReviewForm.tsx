@@ -80,17 +80,22 @@ export const UserReviewForm: React.FC<UserReviewFormProps> = ({
       return;
     }
 
+    // Issue 146: Enforce minimum content length
     if (content.trim().length < 10) {
       return;
     }
+
+    // Issue 90: Filter out empty strings from pros/cons before submitting
+    const cleanPros = pros.filter(p => p.trim().length > 0);
+    const cleanCons = cons.filter(c => c.trim().length > 0);
 
     setIsSubmitting(true);
     const success = await onSubmit({
       rating,
       title,
       content,
-      pros,
-      cons,
+      pros: cleanPros,
+      cons: cleanCons,
       ownership_duration: ownershipDuration || null
     });
 
