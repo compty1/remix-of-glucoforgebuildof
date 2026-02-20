@@ -1,567 +1,739 @@
 
+# Comprehensive Fix Plan: Data Upload (50+ Issues), Reviews (50+ Issues), and Other Gaps (200+ Issues)
 
-# Comprehensive Wiring, Data, and Functionality Audit: 400 Issues (Items 1701-2100)
+## Executive Summary
 
-This extends the existing 1700-item audit with 400 newly verified issues found through deep analysis of the current codebase state. Many are from prior audit rounds that remain unfixed, plus newly discovered gaps.
-
----
-
-## Category 28: Previously Identified Issues Still Present (Items 1701-1780)
-
-### 28.1 Admin Settings Entirely Local State -- Never Persisted (10)
-1701. AdminSettings.tsx:30-62 -- `featureFlags` state is local `useState` -- toggling flags has no backend persistence, resets on refresh
-1702. AdminSettings.tsx:64-97 -- `brandingSettings` state is local `useState` -- saving triggers toast only, no DB write
-1703. AdminSettings.tsx:99-105 -- `systemSettings` (maintenance mode, registration, retention, timeout, upload limit) all local state
-1704. AdminSettings.tsx:128-130 -- `saveBrandingSettings()` just calls `toast.success()` -- no Supabase update
-1705. AdminSettings.tsx:132-134 -- `saveSystemSettings()` just calls `toast.success()` -- no Supabase update
-1706. AdminSettings.tsx:107-115 -- `toggleFeatureFlag()` updates local state and toasts, never writes to any DB table
-1707. Security tab 2FA switch has no `checked` state, no handler, no persistence
-1708. Security tab IP Allowlist switch has no `checked` state, no handler, no persistence
-1709. Feature flags have no database table -- entire admin settings page is decorative
-1710. Maintenance mode toggle has no enforcement anywhere in the app -- toggling does nothing
-
-### 28.2 Admin Routes Missing ProtectedRoute Wrapper (5)
-1711. App.tsx:249 -- `/admin/articles` uses `<AdminRoute>` but NOT wrapped in `<ProtectedRoute>` -- unauthenticated users hit admin check before auth check
-1712. App.tsx:250 -- `/admin/low-sugar-stories` same issue -- `<AdminRoute>` without `<ProtectedRoute>`
-1713. App.tsx:251 -- `/admin/warriors` same issue
-1714. App.tsx:252 -- `/admin/shop` same issue
-1715. App.tsx:253 -- `/admin/content-moderation` same issue
-
-### 28.3 Notification Delivery Method Switches Still Broken (5)
-1716. Settings.tsx:564-565 -- Email delivery Switch `checked={notifications.weeklyReports}` -- mirrors weeklyReports instead of a dedicated `emailDelivery` field
-1717. Settings.tsx:566 -- `onCheckedChange` sets `emailDelivery` on notifications object, but `emailDelivery` is not in the initial state type -- value is set but never read or persisted correctly
-1718. Settings.tsx:575-576 -- Push notification delivery Switch `checked={notifications.deviceAlerts}` -- mirrors deviceAlerts instead of dedicated field
-1719. Settings.tsx:577 -- `onCheckedChange` sets `pushDelivery` but this field doesn't exist in the initial `notifications` state type
-1720. These phantom fields (`emailDelivery`, `pushDelivery`) get persisted to DB JSONB but are never read back or used for routing
-
-### 28.4 Console.log Statements Still in Production (10)
-1721. 335 console.log/error/warn calls remain across 39 page files (confirmed by search)
-1722. useEngagementTracking.ts:43 -- `console.log('Engagement tracked for', today)` runs for every logged-in user daily
-1723. useEngagementTracking.ts:46 -- `console.log('Engagement tracking error:', error)` leaks error details
-1724. NotFound.tsx:8-10 -- `console.error("404 Error...")` logs every 404 -- could be noisy
-1725. Settings.tsx:175,227 -- console.error in profile load/save
-1726. DataUpload.tsx:276 -- console.error in upload flow
-1727. DashboardWidgets.tsx:236 -- console.error in widget fetch
-1728. Admin pages (AdminUsers.tsx has 5 console.error calls, AdminContent.tsx has 4)
-1729. Profile.tsx has 4 console.error calls
-1730. Donate.tsx:51 -- console.error in donation flow
-
-### 28.5 ScenarioLab Still Has Random Variation (5)
-1731. ScenarioLab.tsx:92 -- `exercise_cardio` stabilization phase still uses `Math.random() * 5` for glucose variation
-1732. ScenarioLab.tsx:163 -- Default case still uses `Math.random() * 10 - 5` for unknown scenarios
-1733. While most curves were improved with physiological models, these two branches still have pure random noise
-1734. Line 167 adds deterministic noise `Math.sin(time * 0.7) * 3 + Math.cos(time * 1.3) * 2` -- this is good, but the random component at line 92 undermines reproducibility
-1735. Running same scenario twice produces different results due to Math.random()
-
-### 28.6 DonationsInfo Page Still Entirely Hardcoded (10)
-1736. DonationsInfo.tsx:38-159 -- All 6 organization funding amounts remain hardcoded ($198M JDRF, $145M ADA, etc.)
-1737. While disclaimer text was added ("approximate estimates, last reviewed 2024"), the actual numbers are still static TypeScript arrays
-1738. No mechanism to update these numbers without a code deploy
-1739. `yearlyTrendsData` array (line 161-168) is entirely fabricated
-1740. `sectorBreakdown` pie chart data (line 170-175) is entirely fabricated
-1741. Organization `patientsHelped`, `studiesFunded`, `trialsSupported` numbers are all hardcoded estimates
-1742. `topPrograms` arrays for each org are hardcoded strings
-1743. Website URLs may become stale (JDRF rebranded to Breakthrough T1D)
-1744. No API or data source to verify these numbers
-1745. No admin interface to update donation organization data
-
-### 28.7 SupportGlucoForge Hardcoded Data Still Present (10)
-1746. SupportGlucoForge.tsx -- Development roadmap phases with static dates and statuses
-1747. SupportGlucoForge.tsx -- Funding allocation percentages (45%, 25%, 15%, 10%, 5%) hardcoded
-1748. SupportGlucoForge.tsx -- Donor tier definitions and benefits hardcoded (no system implements tiers)
-1749. SupportGlucoForge.tsx -- Fabricated testimonials now labeled "Community Member (illustrative)" but still fake content
-1750. SupportGlucoForge.tsx -- Platform stats ("50+ Pages", "27+ Projects", "10+ Sources") hardcoded
-1751. SupportGlucoForge.tsx -- "50,000+ peer-reviewed fixes" claim in feature description -- fabricated
-1752. SupportGlucoForge.tsx -- FAQ claims "quarterly transparency reports" that don't exist
-1753. SupportGlucoForge.tsx -- Claims "tax-deductible retroactively" -- potential legal inaccuracy
-1754. SupportGlucoForge.tsx -- No mechanism for actual users to submit testimonials
-1755. SupportGlucoForge.tsx -- FAQ not connected to any CMS or database
-
-### 28.8 src/data/ Files All Still Static (10)
-1756. developmentProjects.ts -- 27+ projects with hardcoded progress percentages that never update
-1757. developmentProjects.ts -- Task statuses (todo/in_progress/done) are static
-1758. developmentProjects.ts -- Target completion dates static and possibly outdated
-1759. volunteerRoles.ts -- All roles hardcoded, no application flow
-1760. volunteerRoles.ts -- "Open projects" references are static strings
-1761. achievementDefinitions.ts -- All achievement criteria/thresholds hardcoded
-1762. cureReportContent.ts -- Report content entirely static
-1763. projectReportsContent.ts -- Project report content entirely static
-1764. No admin interface to manage any data files
-1765. These should be database tables with admin CRUD interfaces
-
-### 28.9 "Coming Soon" Stubs With No Implementation Plan (10)
-1766. Settings.tsx:677 -- 2FA button disabled with "Coming Soon"
-1767. Settings.tsx:681 -- Login activity button disabled with "Coming Soon"
-1768. Settings.tsx:881 -- Delete All Data shows "Coming Soon" toast
-1769. Settings.tsx:873 -- "Storage usage tracking coming soon" placeholder text
-1770. WarriorSpotlight.tsx -- "Stories Coming Soon" placeholder
-1771. EmergenceOfDiabetes.tsx:963 -- "Myths Coming Soon" placeholder
-1772. AdminContent.tsx:448 -- "Survey management functionality coming soon"
-1773. StateFormsFinder.tsx:320-322 -- Download buttons disabled with "Coming Soon"
-1774. FinancialTools.tsx:155-158,268-270,283-285 -- Multiple resource links and templates "Coming Soon"
-1775. News.tsx:90 -- Subscribe feature "coming soon" toast
+After exhaustive review of the codebase, I have identified **300+ specific issues** across three major domains:
+- **Data Upload**: 52 issues in the upload pipeline, edge function, analysis components, and UI
+- **Reviews System**: 51 issues across device reviews, medication reviews, external reviews, and display
+- **All Other Gaps**: 200+ issues spanning routing, UI consistency, security, accessibility, and more
 
 ---
 
-## Category 29: Data Connection and Wiring Bugs (Items 1781-1860)
+## SECTION A: DATA UPLOAD — 52 Issues
 
-### 29.1 Notification System Wiring Failures (10)
-1776. Settings notification category toggles (glucoseAlerts, researchUpdates, communityPosts, deviceAlerts, weeklyReports) are persisted to DB but NO backend system reads them to filter notifications
-1777. `notify_connection_request()` trigger creates notifications regardless of user's notification preferences
-1778. `notify_direct_message()` trigger creates notifications regardless of user's notification preferences
-1779. `notification-triggers` edge function has no cron or event trigger configured
-1780. `send-weekly-digest` edge function has no cron trigger
-1781. `send-trending-alerts` edge function has no trigger
-1782. `daily-briefing` edge function has no trigger
-1783. No email sending service integration verified (RESEND_API_KEY exists but untested)
-1784. Email delivery method switch (Settings line 564) doesn't actually control email routing
-1785. Push delivery method switch (Settings line 575) is separate from the PushNotificationsSection
+### A1. Duplicate Upload Pages (Critical)
 
-### 29.2 Community Widget ActiveMembers Count Wrong (5)
-1786. DashboardWidgets.tsx:138-140 -- `community-insights` widget counts `community_posts` published in last 24h but displays result under label "Posts in last 24h" (line 369) -- this is correct for posts but the variable is named `activeMembers` (line 152) which is misleading
-1787. DashboardWidgets.tsx:147-148 -- `userContributions` counts comments where `author_anonymous` matches email prefix -- this is a weak match that won't find contributions if the user's email prefix doesn't match their anonymous name
-1788. No actual "active members" count exists -- would need to count unique users with recent activity
-1789. The label was previously "Active Members" (inflated with fake 2847 base) -- now shows posts count but variable name is still `activeMembers`
-1790. No way to track actual registered user count from client side (would need a server function)
+**Issue 1**: Two separate upload pages exist: `/data-upload` (`DataUpload.tsx`) and `/glucose/upload` (`GlucoseUpload.tsx`). They are different implementations with different capabilities. The glucose upload page is inferior — it has no drag-and-drop, no analysis modal, no file type icons, no data freshness badges, and claims 50MB limit while the real function enforces 10MB.
 
-### 29.3 Admin Dashboard "Active Users" Metric Wrong (5)
-1791. AdminDashboard.tsx:74-80 -- "Active Users" counts users with shifts in last 30 days -- `shifts` table purpose is unclear and likely empty
-1792. AdminDashboard.tsx:82-85 -- `totalDonations` reads from a `donations` table that may not exist or be empty
-1793. AdminDashboard.tsx:21-38 -- Chart data is explicitly marked as placeholder but still rendered without visual "illustrative" badge on the charts themselves
-1794. Admin export in AdminAnalytics.tsx would export these fabricated chart numbers
-1795. No actual user activity tracking (page views, logins, feature usage) exists to populate real charts
+**Issue 2**: `GlucoseUpload.tsx` line 57 calls `file.text()` for ALL file types including binary PDFs, Excel, and images. This silently corrupts binary files before they reach the edge function, causing analysis failures.
 
-### 29.4 Trends Page -- Pipeline Still Missing (5)
-1796. `trend_analysis_metrics` table has no data pipeline -- the table is likely permanently empty
-1797. Trends.tsx "Refresh Data" button just re-fetches from the empty table (line 53-57)
-1798. Page shows "No trend data available yet" permanently with no way to populate
-1799. The old `update_trends()` RPC was removed but no replacement aggregation exists
-1800. Users clicking "Refresh Data" see "Data Refreshed: Showing latest available trend data" toast but nothing changes
+**Issue 3**: `GlucoseUpload.tsx` says "up to 50MB" in the UI but the edge function `DataUpload.tsx` enforces 10MB. Users uploading through `/glucose/upload` will fail on binary files without a helpful error.
 
-### 29.5 Donate.tsx Recurring Donation UI Disconnected (5)
-1801. Donate.tsx:23-24 -- `isRecurring` and `recurringFrequency` state variables exist
-1802. Donate.tsx:39-41 -- `handleDonate` sends only `{ amount: currentAmount }` to edge function -- `isRecurring` and `recurringFrequency` are never sent
-1803. `create-donation` edge function likely only creates one-time Stripe checkout sessions
-1804. The recurring donation toggle and frequency selector UI exists but the selection is silently ignored
-1805. User could select "Monthly recurring" and pay, thinking they set up a subscription, but only a one-time charge occurs
+**Fix**: Merge `/glucose/upload` into `/data-upload` with a redirect. Delete the inferior GlucoseUpload.tsx implementation.
 
-### 29.6 Profile Page vs Settings Page Data Conflict (5)
-1806. Profile.tsx has its own profile form (display_name, bio, password) separate from Settings.tsx profile tab
-1807. Both pages read from and write to the same `profiles` table
-1808. Saving on one page doesn't update the other (no shared state or cache invalidation)
-1809. Settings has additional fields (diagnosis_date, primary_cgm, insulin_delivery) that Profile doesn't
-1810. Profile has password change functionality that Settings redirects to via toast
+### A2. Edge Function — `analyze-glucose` Issues
 
-### 29.7 Stripe Key Configuration (5)
-1811. DonationModal.tsx:18 -- Now reads from `import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY` (fixed)
-1812. If env var is empty, `loadStripe("")` is called -- Stripe will silently fail with no user-facing error
-1813. No validation that Stripe key is configured before showing donation UI
-1814. No fallback or error message when Stripe isn't configured
-1815. `create-donation` edge function success depends on STRIPE_SECRET_KEY being configured in secrets
+**Issue 4**: Line 700 has `console.log` leaking data: `Rejecting reading with impossible year: ${year}` — exposes internal logic in production logs.
 
-### 29.8 Edge Function Orchestration Issues (10)
-1816. `data-orchestrator` runs daily but individual feed functions may fail silently
-1817. ~40 seed functions remain deployed and invokable -- potential resource waste and confusion
-1818. `verify-external-links` has no cron trigger -- link health never checked automatically
-1819. `snapshot-generator` has no trigger -- snapshots never generated
-1820. `scheduled-maintenance` has no trigger -- maintenance tasks never run
-1821. No health check endpoint for any edge function
-1822. No rate limiting on any edge function
-1823. No request size validation on edge functions
-1824. CORS headers allow `*` origin on all edge functions
-1825. No shared utility module (CORS headers copy-pasted across all functions)
+**Issue 5**: Line 709 logs `Date validation: ${readings.length} input -> ${validated.length} valid` — production log leak.
 
-### 29.9 Database Tables Without Data Pipelines (10)
-1826. `trend_analysis_metrics` -- empty, no pipeline
-1827. `population_insights` -- no pipeline to populate
-1828. `data_refresh_logs` -- no process writes to it
-1829. `backfill_audit` -- no process writes to it
-1830. `shifts` table -- purpose unclear, used for admin "active users" count but likely empty
-1831. `update_trends()` DB function was a no-op; now it's called by Trends page but still does nothing useful
-1832. `update_updated_at_column()` trigger function exists but no triggers are attached to any table
-1833. Device reviews `helpful_count` column updated by trigger `update_review_helpful_count` but trigger depends on a junction table that may not be used
-1834. No database cleanup cron for old notifications, expired sessions, or stale data
-1835. No materialized views for expensive aggregation queries on `public_glucose_data` (126k+ rows)
+**Issue 6**: Line 760 logs extensive text quality analysis details including `alphaRatio`, keyword counts, and raw text samples — security risk.
 
----
+**Issue 7**: Line 1003 logs `Using AI Vision to extract PDF content...` and line 1076 `Vision API response:` with up to 500 chars of response content — PII risk if the PDF contains patient names.
 
-## Category 30: UI/UX Bugs and Rendering Issues (Items 1836-1920)
+**Issue 8**: Line 1178 logs `Legacy extraction: ${extractedText.length} chars` and 1177 also logs extracted text length.
 
-### 30.1 Settings Notification Tab Wiring Bug (5)
-1836. Settings.tsx:564 -- Email delivery Switch `checked={notifications.weeklyReports}` -- shows weekly reports state, not email delivery state
-1837. Settings.tsx:575 -- Push delivery Switch `checked={notifications.deviceAlerts}` -- shows device alerts state, not push delivery state
-1838. Toggling email delivery actually toggles `emailDelivery` (phantom key) while display shows `weeklyReports` -- confusing mismatch
-1839. Toggling push delivery actually toggles `pushDelivery` (phantom key) while display shows `deviceAlerts` -- confusing mismatch
-1840. If user toggles email delivery off, the visual switch doesn't change (it reads from weeklyReports which wasn't changed)
+**Issue 9**: The AGP data generation at line 1818-1826 is mathematically incorrect. It fakes p5 and p95 by multiplying p90 by 1.1 and avg by 0.85, instead of computing actual percentiles from raw data. This produces a misleading Ambulatory Glucose Profile chart.
 
-### 30.2 Settings Missing Save Button on Notifications (5)
-1841. Settings notification tab has toggle switches but the save button is not visible in the viewport -- user must scroll past PushNotificationsSection and Delivery Methods to find any implicit save
-1842. Actually, there is NO explicit "Save Notification Preferences" button visible in the notification tab
-1843. `handleSaveNotifications` function exists (line 238-260) but it's never called from any button in the notifications tab
-1844. Notification preference changes are in local state only -- user thinks they saved but nothing was persisted
-1845. Contrast with privacy tab which has an explicit "Save Privacy Settings" button
+**Issue 10**: The rate limiter (lines 13-30) uses an in-memory `Map` which is reset every time the edge function cold starts. On Deno edge functions, cold starts happen frequently. This means rate limiting is not persistent and provides no real protection.
 
-### 30.3 Form and Input Issues (10)
-1846. Settings profile bio field has no character limit -- can submit unlimited text
-1847. Settings diagnosis date has no validation (future dates accepted)
-1848. Contact form has no email format validation
-1849. Contact form has no rate limiting or anti-spam
-1850. Community post submission has no content length validation
-1851. BecomeAdvocate form doesn't prevent double submission
-1852. Device/medication review forms may not handle very long text
-1853. No form auto-save for long-form inputs anywhere
-1854. Profile display name has no length limit or character restrictions
-1855. No unsaved changes warning when navigating away from any form
+**Issue 11**: The `validateBodySize` function (referenced in memory notes) is not implemented in `analyze-glucose`. Large payloads can crash the function or consume excessive resources.
 
-### 30.4 Empty States Missing or Poor (10)
-1856. Trends page shows "No trend data available yet" but gives misleading suggestion to "click Refresh Data" (which just re-fetches empty table)
-1857. Fixes page shows skeleton loader but no "no fixes found" message when `device_issues` table has no solutions
-1858. WarriorSpotlight "Stories Coming Soon" -- no timeline
-1859. ProjectFullReport "Report Coming Soon" -- no timeline
-1860. QoLDetailModal falls back to generic "coming soon" for unknown items
-1861. ResearchHub shows loading but no "no results" empty state
-1862. MedicineHub shows loading but no empty state for no matching medications
-1863. DeviceAnalytics shows loading but no empty state for devices with no data
-1864. Shop page may show empty state with no guidance on what to expect
-1865. Bounties page may show empty state with no context
+**Issue 12**: The `analyzeRequestSchema` (line 32-36) only validates `filename`, `fileContent`, and `uploadId`. There is no validation on `fileContent` length, so users can send arbitrarily large strings.
 
-### 30.5 Accessibility Gaps (10)
-1866. SkipToContent component was created but `Layout.tsx` already had it imported -- verify it's actually rendered correctly
-1867. Charts (Recharts) have no text alternatives for screen readers
-1868. Icon-only buttons in header (User, LogOut icons) have no aria-labels
-1869. Achievement badges use emoji (e.g., "🤝") -- not accessible to screen readers
-1870. No `prefers-reduced-motion` support for framer-motion animations
-1871. Color-only status indicators (green/red badges) need text alternatives
-1872. Focus management missing after route changes (ScrollToTop handles scroll but not focus)
-1873. Modal focus trapping may be incomplete (console warning about missing DialogDescription)
-1874. Form error messages not linked via `aria-describedby`
-1875. Loading spinner (Loader2 in PageLoader) has no accessible text/role
+**Issue 13**: Line 2286 — after PDF detection fails all methods, the error response does not update the upload record to `error` status in the final `else` branch (line 2616 fallback), leaving orphaned `processing` records.
 
-### 30.6 Responsive Design Issues (10)
-1876. Settings TabsList `grid-cols-2 lg:grid-cols-5` -- on medium screens (md), 5 tabs wrap to 3+2 rows awkwardly
-1877. Header with 5+ action buttons (search, notification bell, user, logout, donate) overflows on screens < 768px
-1878. Hero section floating animated elements (Beaker, Brain, Heart) overlap text on mobile
-1879. DataUpload drag-and-drop may not work well on mobile touch devices
-1880. Footer 4-column grid collapses inconsistently on tablet
-1881. Modal dialogs with long content may not scroll properly on small screens
-1882. Chart components may not resize on device orientation change
-1883. Admin data tables not horizontally scrollable on mobile
-1884. Sidebar collapse state may hide critical navigation on mobile
-1885. Dashboard grid `xxs: 2 cols` may be too dense for very small screens
+**Issue 14**: The `parseCSV` function (line 1318) does not handle the Windows-style `\r\n` line endings in a tab-delimited case. It splits by `\n` only, which is fine for most files but some Dexcom exports use tab-separated values. No tab delimiter detection exists.
 
-### 30.7 Navigation and Routing (10)
-1886. No breadcrumb navigation on nested routes (device detail, company detail, etc.)
-1887. Quick actions widget buttons now navigate (fixed) but community insights "View Community" also navigates -- verify all widgets have working navigation
-1888. No 404 handling for deep links to non-existent community posts, devices, or companies
-1889. GlobalSearchDialog searches only a predefined route list -- doesn't search DB content (devices, medications, posts)
-1890. No recent searches history
-1891. No "favorites" or quick-access bar
-1892. `/admin` route (line 178) uses `<ProtectedRoute>` but not `<AdminRoute>` -- any authenticated user can access the admin landing page
-1893. `DonationSuccess` mounted at both `/donate/success` (line 160) and `/donation-result` (line 216) -- duplicate routes
-1894. `/help` maps to `PrepareForVisit` -- confusing route name
-1895. No loading indicator during lazy route transitions (PageLoader shows for initial load only)
+**Issue 15**: The Excel parser (line 1465) imports SheetJS from a CDN (`cdn.sheetjs.com`) at runtime. If this CDN is down, all Excel uploads silently fail with a catch block that just returns an empty array.
+
+**Issue 16**: The XML parser (line 1530) uses string regex matching which fails for CDATA sections or complex nested XML from certain pump manufacturers (e.g., Medtronic CareLink XML which has a complex schema).
+
+**Issue 17**: `generateAGPData` (line 1818) creates fake percentiles from `p10`, `p25`, `p50`, `p75`, `p90` stat values, but stores them as if they were independent data. The AGP chart will show incorrect confidence bands for any file type.
+
+**Issue 18**: The `MAGE` calculation (line 1868) uses simple peak/nadir excursion counting but incorrectly tracks both upward and downward excursions as "peak-nadir" which inflates MAGE for stable signals.
+
+**Issue 19**: The `detectMissedBoluses` function (line 444) returns a maximum of 10 events and skips 10 readings (`i += 10`) after each detection. For dense CSV data (288 readings/day), this can skip entire meal periods.
+
+**Issue 20**: In `generateExecutiveSummary` (line 591), when `confidenceScore` is undefined or 0 (summary reports), `encouragement` still runs using `analysis.timeInRange` which defaults to 0, always showing the worst encouragement message.
+
+**Issue 21**: `analyzeGlucoseDataComprehensive` at line 2246 calls `validateAnalysisResults` which caps `daysOfData` at 365, but the check is `> 365 * 5` (1825 days). Any upload spanning 1-5 years would show incorrect day counts.
+
+**Issue 22**: The `GVI` (Glycemic Variability Index) calculation at line 2173-2178 assumes a constant 5 mg/dL delta between readings regardless of sampling interval. For 15-minute interval data, this produces a GVI that's 3x inflated compared to 5-minute interval data.
+
+**Issue 23**: After creating journal entries from patterns (line 2678-2696), the response at line 2740-2753 does NOT include the `confidenceScore`, `confidenceBand`, `validationFlags`, `dataQuality`, `novelSignals`, `executiveSummary`, or `dayNightAnalysis` fields. These are stored in the database but never returned to the client in the initial upload response, requiring a page reload to see them.
+
+**Issue 24**: The function uses `supabase.auth.getUser(token)` at line 2657 to extract userId for journal entries. If authentication fails, it silently skips journal entry creation (good) but also logs `Could not get user from token for journal entries` — another production log leak.
+
+### A3. DataUpload.tsx UI Issues
+
+**Issue 25**: The `processFile` function at line 185 determines file type: `file.name.includes('.csv') ? 'cgm' : 'pump'`. All non-CSV files are labeled "pump" regardless of whether they are PDFs, images, or Excel files.
+
+**Issue 26**: The Download button at lines 461-465 (`<Button size="sm" variant="ghost"><Download className="h-4 w-4" /></Button>`) has no `onClick` handler and no `aria-label`. It appears clickable but does nothing.
+
+**Issue 27**: The "Connect CGM App", "Schedule Auto-Upload", "Share with Doctor", and "Export Analysis" Quick Actions buttons (lines 518-537) are all disabled with "Soon" badges — but the Export functionality IS already implemented via the `DataExport` component and should not be listed as "Coming Soon".
+
+**Issue 28**: The upload date formatting at line 111 stores just the date string from `toISOString().split('T')[0]` but then at line 507 re-parses it with `new Date(uploadedFiles[0].uploadDate).toLocaleDateString()`. This double-conversion can cause timezone offset issues where the date shows one day earlier for users in UTC-offset timezones.
+
+**Issue 29**: The `ALLOWED_EXTENSIONS` check at line 176 uses `.webp` but the file input `accept` attribute at line 368 uses `.png,.jpg,.jpeg` without `.webp`. Users cannot select `.webp` via browser dialog even though it's supported.
+
+**Issue 30**: The "Recent Uploads" section has no empty state when the user has zero uploads — it just renders an empty card with no content.
+
+**Issue 31**: The uploads are fetched with `.limit(10)` but there is no "load more" or pagination. Users with more than 10 uploads cannot see older ones.
+
+**Issue 32**: There is no delete button on uploaded files. Users can submit reviews or journal entries but cannot remove an individual upload from the list.
+
+**Issue 33**: The "processing" state shows a full-width pulsing progress bar but no time estimate or cancel option. For large files that can take 30+ seconds, there's no feedback on whether it's stuck.
+
+**Issue 34**: After a failed upload (status `error`), there is no "Retry" button. The user must re-upload the file from scratch.
+
+**Issue 35**: The `Your Data Summary` sidebar shows "Total Files" but this counts ALL files including ones with error status, which is misleading.
+
+### A4. AnalysisResultsModal Issues
+
+**Issue 36**: The `exportReport` function (line 186) generates a basic PDF using jsPDF but only includes Key Metrics, Patterns, and Recommendations. It does NOT include the AGP chart, the hourly heatmap, the TIR breakdown, or the day/night comparison — all of which are visible in the modal.
+
+**Issue 37**: The AGP tab (line 436-451) shows a `Skeleton` when `agpData` is empty/null. For summary reports (PDFs/images), `agpData` is always `[]`, so the Skeleton shows permanently with no message explaining why.
+
+**Issue 38**: The Trends tab (line 453-468) duplicates the GlucoseTrendChart and GlucoseHeatmap that already appear in the Overview tab. Users see the same charts twice.
+
+**Issue 39**: The modal has no loading state between when it opens and when data is available. If a user clicks "View Analysis" immediately after upload completes, there may be a flash of empty content.
+
+**Issue 40**: The "Export Report" button at the bottom of the modal and the `DataExport` component in the main upload list both export data — there are two separate export implementations with different features and formats. The modal export is simpler and doesn't support CSV/JSON.
+
+**Issue 41**: The `isFromSummary` notice (line 342-349) shows for all summary reports but uses the same blue accent styling as informational notices, not clearly distinguishing between "limited data" and "error". A warning icon should be used.
+
+**Issue 42**: The `confidenceBand` type is `ConfidenceBand | undefined`, but the TypeScript check `confidenceBand !== 'unknown'` (line 184) doesn't narrow the type — `confidenceBand` can be `undefined` and the badge will still try to render.
+
+### A5. Supporting Component Issues
+
+**Issue 43**: `GlucoseMetricsGrid` at line 91-243 — When `gmi = 0` (which happens for all summary reports where GMI isn't extracted), it shows `0.0%` with a danger status. Zero is not a valid GMI. Should show `N/A`.
+
+**Issue 44**: `HealthComparisonPanel` compares user data against "non-diabetic benchmarks" (e.g., TIR 96-99%, avg glucose 85-100 mg/dL) for T1D patients. These targets are unachievable with T1D. The comparison should use T1D-appropriate ADA targets (TIR ≥70%, not 96%).
+
+**Issue 45**: The supplement recommendations in `HealthComparisonPanel` are hardcoded regardless of user data. The "For you" personalization note is generated with simple `userGMI > 7` checks but the supplement list itself is static — meaning every user sees the same 6 supplements.
+
+**Issue 46**: `DataExport.tsx` line 139 has `console.error('PDF export error:', error)` — a production console leak.
+
+**Issue 47**: `DataExport.tsx` line 149-174 — the CSV export uses `analysisData.dailyData` but does not URL-encode the CSV content. If the data contains commas (unlikely but possible for notes fields), the CSV will be corrupted.
+
+**Issue 48**: `TrendPrediction.tsx` always shows at least one prediction ("General Monitoring") even when there is no data. This is technically correct but confusing for summary reports where `hourlyStats` is an empty array.
+
+**Issue 49**: `WeekdayComparisonChart` is imported and used but the component name doesn't match its actual purpose — it compares weekday vs weekend data by day-of-week, but the tab label says "Days" which is ambiguous.
+
+**Issue 50**: The "Health" tab in `AnalysisResultsModal` always shows all supplement recommendations even for summary PDF uploads where `detailedAnalysis` only has 3-4 fields. The supplement personalization logic reads undefined values as 0, triggering worst-case recommendations.
+
+**Issue 51**: `DataExport.tsx` renders a `Download` button that opens a `Dialog` but the trigger button is separate from the disabled "Export Analysis" button in the Quick Actions sidebar. This creates two separate export entry points that can confuse users.
+
+**Issue 52**: The `analyze-glucose` function response at line 2740 does NOT return `executiveSummary` in the JSON payload, even though it's calculated and stored in the DB. The modal would need to fetch from DB to show it after first load.
 
 ---
 
-## Category 31: Security and Data Integrity Issues (Items 1896-1960)
+## SECTION B: REVIEWS — 51 Issues
 
-### 31.1 Admin Access Holes (5)
-1896. App.tsx:178 -- `/admin` landing page is `<ProtectedRoute><Admin /></ProtectedRoute>` -- missing `<AdminRoute>` wrapper
-1897. App.tsx:249-253 -- Five admin content routes (`/admin/articles`, etc.) have `<AdminRoute>` but NOT `<ProtectedRoute>` -- unauthenticated users reach AdminRoute check
-1898. AdminRoute component may handle auth check internally, but the pattern is inconsistent with other admin routes
-1899. No audit logging for any admin action (role changes, content deletion, user deactivation)
-1900. Admin dashboard stats are visible but chart data is fabricated -- admin might make decisions based on fake data
+### B1. Medication Reviews — MedicationDetailModal
 
-### 31.2 Data Validation Gaps (10)
-1901. Settings profile save doesn't validate bio length server-side
-1902. Community post content not sanitized for XSS before rendering
-1903. No input sanitization on contact form submissions
-1904. No CAPTCHA on signup, login, or contact forms
-1905. Profile bio has no profanity filter
-1906. Community post content has no profanity filter
-1907. Donation amount validation mismatch: DonationModal allows $5+, Donate.tsx allows $5+, but edge function may have different rules
-1908. File upload claims 10MB limit (MAX_FILE_SIZE) but binary files still read into memory as base64
-1909. No Supabase Storage bucket configured despite `file-upload-pipeline` memory noting it should exist
-1910. No MIME type validation on uploaded files -- only extension checking
+**Issue 53**: The "Real Usage" tab (lines 289-355) contains **100% hardcoded data**:
+  - "78% positive" is a static string
+  - "Injection site reactions or stinging" is hardcoded for ALL medications
+  - "Cost concerns" and "Storage requirements" are generic complaints for ALL medications
+  - "Before meals / At consistent times daily" is shown for ALL medication types
 
-### 31.3 Webhook Security (5)
-1911. `stripe-shop-webhook` now checks STRIPE_WEBHOOK_SECRET but the secret is not in configured secrets list
-1912. Without the secret, webhook falls back to parsing events without signature verification
-1913. No webhook event deduplication -- same event could be processed twice
-1914. No webhook retry or dead-letter handling
-1915. Shop product fulfillment after payment is not verified
+**Issue 54**: The "Real Usage" tab has a disclaimer: "Data aggregated from community forums, patient surveys, and public health databases." — but this is false. All data is hardcoded. This is a compliance/trust issue.
 
-### 31.4 Legal and Compliance Still Missing (10)
-1916. No Terms of Service content (Terms.tsx may exist but content quality unverified)
-1917. No Privacy Policy with adequate content for health data
-1918. No cookie consent banner
-1919. No GDPR data processing agreement
-1920. No HIPAA compliance notice for handling health data
-1921. MedicalDisclaimer component created but not integrated into all relevant pages
-1922. ScenarioLab has disclaimer but DataUpload glucose analysis results have no medical disclaimer
-1923. ClinicalSuggestionsPanel (in data upload analysis) provides health suggestions without medical oversight disclaimer
-1924. TrendPrediction component shows health predictions without confidence context
-1925. Crisis hotline numbers in mental health content may be outdated and have no verification mechanism
+**Issue 55**: The medication reviews list (lines 426-460) shows reviews in a plain `div` without a `ScrollArea`. If a medication has many reviews, the modal dialog grows past the viewport without scrolling.
 
----
+**Issue 56**: The "Write Review" functionality is missing from the medication modal. Users can read reviews but cannot submit one. The `useMedicationReviews` hook (`src/hooks/useMedicationReviews.ts`) exists with `submitReview`, `updateReview`, `deleteReview`, `toggleHelpful` — but none of these are wired into `MedicationDetailModal`.
 
-## Category 32: Performance and Architecture Issues (Items 1926-1980)
+**Issue 57**: The `toggleHelpful` in `useMedicationReviews.ts` (lines 106-124) manually reads and increments `helpful_count` without using an atomic database function. A `increment_review_helpful` RPC function already exists in the database but is not being used.
 
-### 32.1 Query and Data Loading (10)
-1926. `useEngagementTracking` hook runs on every mount of `AppContent` (line 136) -- fires streak/achievement checks for every page visit
-1927. Dashboard widgets each make independent Supabase queries -- no batching or shared data context
-1928. `glucose-trends` and `health-metrics` widgets both fetch from `uploads` table with identical query -- duplicate DB calls
-1929. DashboardWidgets `recent-activity` sorts by `time` string (line 191) which is relative text ("2 hours ago") -- not chronological sort
-1930. No query timeout configuration -- slow queries hang indefinitely
-1931. Supabase query `.limit()` values inconsistent: 1, 3, 5, 10, 20, 50, 100 used across hooks
-1932. Community posts infinite scroll loads all posts sequentially -- no cursor-based pagination
-1933. `public_glucose_data` aggregation RPC functions on 126k+ rows may timeout
-1934. No database indexes verified for frequently filtered columns
-1935. `AdminDashboard` makes 5 separate count queries on mount -- could be a single RPC
+**Issue 58**: The medication modal tab grid uses `grid-cols-6` (line 58) which on mobile creates 6 tiny tabs that overlap and become unreadable. No responsive breakpoints exist.
 
-### 32.2 Component Architecture (10)
-1936. Layout component renders 5 modals on every page (DonationModal, OnboardingModal, GlobalSearchDialog, SmartOnboarding, AchievementUnlockModal)
-1937. No `React.memo` on expensive list item components (SolutionCard, device cards, medication cards)
-1938. No `useMemo` for expensive computations in chart-heavy pages
-1939. `useEffect` with `[user, recordVisit, checkTrigger]` deps in useEngagementTracking may fire multiple times if functions aren't stable references
-1940. State management fragmented: Zustand (auth), React Query (some hooks), raw useState+useEffect (most pages), next-themes (localStorage)
-1941. Toast usage split between `sonner` (toast function) and `@/hooks/use-toast` (useToast hook) -- two toast systems
-1942. Loading skeleton patterns reimplemented per page instead of shared components
-1943. Date formatting not centralized -- mix of `toLocaleDateString()`, `date-fns`, and manual formatting
-1944. Currency formatting not centralized -- some use `toLocaleString()`, others manual `$` prefix
-1945. Error message strings hardcoded and inconsistent across pages
+**Issue 59**: External medication reviews in the modal (lines 462-490) are sliced to `externalReviews.slice(0, 5)` with no "Load More" button.
 
-### 32.3 Code Quality (10)
-1946. DataUpload.tsx:79-83 -- Five `any` typed fields in UploadedFile interface (`validationFlags`, `dataQuality`, `novelSignals`, `executiveSummary`, `dayNightAnalysis`)
-1947. DashboardWidgets.tsx widget data discriminated union (line 71) mixes typed interfaces with `{ loaded: boolean } | null` -- not type-safe
-1948. Multiple hooks use `catch (error: any)` or untyped catch blocks
-1949. `AdminRoute` component and `withAdmin` HOC both implement admin checking -- duplicate patterns
-1950. `EmailDigestSignup` (dashboard component) and `WeeklyDigestSignup` (standalone component) -- two implementations of same feature
-1951. No shared constants file for magic numbers (query limits, timeout values, animation durations)
-1952. No shared formatting utilities
-1953. Error boundary catches errors but has no reporting mechanism (no Sentry, no error tracking)
-1954. Zero unit tests, zero integration tests, zero E2E tests
-1955. No dependency vulnerability scanning
+**Issue 60**: The `externalReviews` field in `MedicationDetailModal` is populated from `useMedicationDetails` which fetches from both `external_medication_reviews` AND `medication_community_buzz` tables and combines them. The combined array is sorted by `helpful_count` but community buzz posts use `engagement_score` as `helpful_count`, which may be orders of magnitude larger than actual helpful counts, pushing buzz posts to the top.
 
----
+**Issue 61**: Medication review ratings in the modal render stars with: `i < (review.rating || 0)`. If `review.rating` is `null`, zero stars show with no indication that the rating is missing.
 
-## Category 33: Missing Features and Incomplete Flows (Items 1956-2040)
+**Issue 62**: The medication modal has no sorting or filtering on the reviews tab. Users cannot sort by rating, recency, or helpfulness.
 
-### 33.1 Email System Non-Functional (10)
-1956. `send-weekly-digest` edge function deployed but no cron trigger in config.toml
-1957. `send-trending-alerts` deployed but no trigger
-1958. `daily-briefing` deployed but no trigger
-1959. RESEND_API_KEY exists in secrets but no verification that it works
-1960. No welcome email on user registration
-1961. No email verification reminder
-1962. No donation receipt email after payment
-1963. No contact form submission notification to admin
-1964. No email unsubscribe mechanism
-1965. Newsletter "Sunday" delivery claimed in UI but no scheduled job exists
+**Issue 63**: There is no pagination on the reviews tab — all reviews render at once with no limit, which could be slow for popular medications.
 
-### 33.2 Missing Cron Jobs (5)
-1966. No cron for `verify-external-links` -- stale link detection never runs
-1967. No cron for `snapshot-generator`
-1968. No cron for `scheduled-maintenance`
-1969. No cron for data feed refreshes (FDA, Medicare, clinical trials)
-1970. No cron for `notification-triggers`
+### B2. Device Reviews — DeviceReviewsTab
 
-### 33.3 Search and Discovery Incomplete (10)
-1971. GlobalSearchDialog searches hardcoded route list only -- no database content search
-1972. No full-text search across community_posts table
-1973. No search across devices or medications by name
-1974. No search across research articles
-1975. No search suggestions or autocomplete
-1976. No recent searches history
-1977. Sidebar navigation items hardcoded in arrays
-1978. No "favorites" or quick-access feature
-1979. Community search (useCommunitySearch) uses `ilike` which is slow on large tables without indexes
-1980. No search analytics to track what users look for
+**Issue 64**: `useDeviceReviews.ts` has `console.error('Error fetching device reviews:', err)` at line 143 — production leak.
 
-### 33.4 Account Management Gaps (10)
-1981. Account deletion covers 28 tables (improved) but may still miss tables: `glucose_analysis_entries`, `push_subscriptions`, `low_blood_sugar_stories`, `review_helpful_votes`
-1982. No account deactivation (soft delete) option
-1983. No re-authentication before destructive actions (delete account uses `window.confirm` only)
-1984. No data export before account deletion
-1985. No email change functionality
-1986. No session management (view/revoke active sessions)
-1987. "Delete All Data" button separate from "Delete Account" -- shows "Coming Soon" toast
-1988. Password change in Settings redirects via toast to Profile page -- should be inline
-1989. No password strength requirements shown during signup
-1990. No multi-factor authentication
+**Issue 65**: `useDeviceReviews.ts` has `console.error('Error submitting review:', err)` at line 184, `console.error('Error updating review:', err)` at line 216, `console.error('Error deleting review:', err)` at line 241, `console.error('Error toggling helpful vote:', err)` at line 281 — 4 production log leaks.
 
-### 33.5 Shop and E-Commerce Gaps (5)
-1991. No order history page
-1992. No inventory tracking
-1993. No shipping calculation
-1994. Shop checkout redirects to Stripe with no post-payment verification page
-1995. STRIPE_WEBHOOK_SECRET not in configured secrets
+**Issue 66**: The `UserReviewCard` component is referenced but the file path `src/components/device/UserReviewCard.tsx` was not directly reviewed. If it shows reviewer names without anonymization, this is a privacy issue since `display_name` from profiles is used.
 
-### 33.6 Gamification Incomplete (10)
-1996. Achievement definitions hardcoded in TypeScript -- no admin CRUD
-1997. Achievement `earned_at` may be overwritten to null by UPSERT when not completed
-1998. Duplicate achievement notifications (4x "Explorer" found in sample data)
-1999. Smart onboarding modal fires 2 seconds after login regardless of context
-2000. Onboarding checklist items hardcoded
-2001. No mechanism to permanently dismiss smart onboarding beyond setting preference
-2002. Streak tracking uses client timezone -- breaks across timezone changes
-2003. No engagement metrics dashboard for users (streaks, achievements, stats)
-2004. No leaderboard or community ranking
-2005. Achievement unlock modal may interrupt important workflows (appears over donation flow)
+**Issue 67**: `DeviceReviewsTab` has `visibleCount` initialized to 10 and loads 10 more on each "Load More" click. But the initial `useDeviceReviews` fetch has no server-side limit — it fetches ALL reviews for the device. Large review sets will over-fetch.
 
-### 33.7 Internationalization and Unit Support (5)
-2006. Glucose unit always mg/dL -- no mmol/L support anywhere
-2007. Timezone assumed from browser -- no explicit timezone setting in profile
-2008. No language selection or i18n
-2009. Date format inconsistent across pages
-2010. Currency always USD
+**Issue 68**: The `sentimentFilter` in `DeviceReviewsTab` applies to both the `posts` (community) array AND `externalReviews` separately, but the "Filters" section UI shows one shared filter bar. Users may not realize the filter applies to all sections simultaneously.
 
-### 33.8 PWA and Offline (5)
-2011. sw.js exists in public/ for push notifications but no full PWA manifest
-2012. No offline detection or "you are offline" banner
-2013. No offline caching strategy
-2014. No favicon configured
-2015. No OG meta tags for social sharing
+**Issue 69**: The `combinedStats` at line 134-139 adds `reviewStats.positive` (community posts) + `externalStats.positive` (external reviews) as one total sentiment count. But `reviewStats` comes from `communityPosts` which is separate from `externalReviews`. The total count shown in the "Community Buzz" tab header is correct, but the breakdown in the sentiment cards adds disparate data sources without labeling them.
+
+**Issue 70**: `ExternalReviewCard` is used for device reviews but there's no equivalent for displaying both external medication reviews AND user medication reviews in a unified consistent style.
+
+**Issue 71**: The `DeviceReviewsTab` component requires `deviceId` prop but it's typed as `string | undefined`. If `deviceId` is undefined, `useDeviceReviews` returns empty but `useExternalReviews` also silently returns empty with no error. The user sees "No Reviews Yet" with no explanation.
+
+**Issue 72**: The Google reviews shown in the `external_device_reviews` table appear in `DeviceReviewsTab` under "External Reviews". However, for medications, the equivalent section is labeled "Community Feedback" — inconsistent terminology between device and medication review UIs.
+
+**Issue 73**: The `getSourceBadge` function in `DeviceReviewsTab` has `'google': 'bg-success/10 text-success border-success/20'` but Google reviews use a 5-star rating system while Reddit posts use upvote scores. These are displayed in the same list without distinguishing the rating system.
+
+**Issue 74**: Device reviews allow users to vote `helpful` (toggle), but medication reviews use a simple increment-only mechanism from `useMedicationReviews.ts` (lines 106-124). The toggle (idempotent) behavior is inconsistent between devices and medications.
+
+### B3. External Review Display Issues (Both Systems)
+
+**Issue 75**: The `useExternalReviews` hook fetches from `external_device_reviews` but has no `staleTime` configuration. Every time the device detail page is opened, it re-fetches all external reviews even if they haven't changed in hours.
+
+**Issue 76**: External reviews show `source_url` as a direct link button (lines 390-396 in medication modal). These URLs are fetched from the database and may be dead links. The `verify-external-links` edge function exists but the link health status is not checked before rendering. Dead links show the same UI as live links.
+
+**Issue 77**: The `ExternalReviewCard` in `DeviceReviewsTab` renders in a `<div>` grid without any `aria-label` or semantic role. Screen readers cannot distinguish individual review cards.
+
+**Issue 78**: In `MedicationDetailModal`, external reviews are filtered by a hardcoded `.slice(0, 5)`. There is no sentiment filter, source filter, or sort control on this tab — unlike the device reviews tab which has full filter controls.
+
+**Issue 79**: The `source` display name mapping in `DeviceReviewsTab` at line 116-131 handles specific sources but falls back to `source.charAt(0).toUpperCase()`. New sources added to the database without a mapping entry will display raw lowercase database source names.
+
+**Issue 80**: Seeded external reviews (from `seed-medication-reviews`, `seed-device-reviews-extended` edge functions) are flagged as coming from "Reddit" but have fabricated `source_url` values. These show a "View original post" link that leads to a Reddit search page rather than the actual post, which users will find confusing.
+
+**Issue 81**: The `helpful_count` for external medication reviews comes from the `engagement_score` field of `medication_community_buzz` posts. `engagement_score` can be 0 to 10000+. When displayed alongside `medication_reviews.helpful_count` (which starts at 0), the buzz posts dominate the sorting and appear to have thousands of helpful votes when they actually just have high engagement scores.
+
+**Issue 82**: No verification badge is shown for medication reviews even though the `verified` field exists in `medication_reviews`. The device reviews table has `verified_owner` but it's also never displayed.
+
+**Issue 83**: Medication reviews with `would_recommend: false` are shown without any visual indicator — a downvote or "would not recommend" badge should be prominent.
+
+**Issue 84**: There is no "reported" or "flag as inappropriate" functionality for any review type — device, medication, or external.
+
+**Issue 85**: The `duration_of_use` field (time user has used the medication/device) is only shown for medication reviews but not device reviews, even though the device review schema has `ownership_duration`.
+
+**Issue 86**: Medication review `pros` and `cons` are stored as arrays but only display the raw content text in the modal — the structured pros/cons are never rendered with checkmarks or X icons like they are in device reviews.
+
+**Issue 87**: The `MedicationDetailModal` tabs include "Clinical", "Pricing", and "Real Usage" but the "Reviews" tab is the last tab (6th). Standard UX practice places reviews before clinical/pricing details since most users prioritize community feedback.
+
+**Issue 88**: Device review form (`UserReviewForm`) has a character limit on content but medication reviews have no max length enforcement in the UI — only a database-level constraint.
+
+**Issue 89**: A user who has already submitted a device review sees their review in the list but the "Write Review" form is hidden (replaced by their existing review). However, there's no clear "Edit My Review" call-to-action — the edit button is buried within the `UserReviewCard`.
+
+**Issue 90**: The device review `pros` and `cons` fields accept an array of strings in the form, but the UI for adding pros/cons doesn't enforce a minimum entry — users can submit empty string array items.
+
+**Issue 91**: `useMedicationReviews.ts` line 37 `console.error("Error submitting review:", error)` — production leak. Line 58 `console.error("Error updating review:", error)` — production leak. Line 75 `console.error("Error deleting review:", error)` — production leak.
+
+**Issue 92**: The `toggleHelpful` in `useMedicationReviews.ts` has a race condition: it reads `helpful_count`, adds 1, and writes back. Two concurrent clicks produce duplicate increments. The `increment_review_helpful` RPC function should be used instead.
+
+**Issue 93**: `useMedicationDetails.ts` line 63 `console.error("Error fetching medication:", medError)`, line 77 `console.error("Error fetching user reviews:", reviewError)`, line 87 `console.error("Error fetching external reviews:", extError)`, line 98 `console.error("Error fetching community buzz:", buzzError)`, line 134 `console.error("Error fetching related medications:", relatedError)` — 5 production log leaks.
+
+**Issue 94**: The `buzzPosts` from `medication_community_buzz` are mapped to `ExternalMedicationReview` format at line 105-120 in `useMedicationDetails`. The `title` field is mapped to `null` for all buzz posts since the buzz table has no title column. All community buzz posts appear in the modal without titles, showing only content, making them harder to scan.
+
+**Issue 95**: The related medications section in `useMedicationDetails` (line 123-134) fetches medications of the same `category` and `limit(4)`. But medication categories like "Insulin" contain many medications — the 4 related medications are sorted by `popularity_rank` which may not reflect clinical relevance.
+
+**Issue 96**: The "Community Buzz" tab in `MedicationDetailModal` and the "Reviews" tab show overlapping data: both `externalReviews` and `buzzPosts` can come from Reddit. A Reddit post could appear in both tabs simultaneously.
+
+**Issue 97**: Neither the medication modal nor the device reviews component has Google review integration displayed with a Google-branded star rating. Google reviews are in the database as a source but are not visually differentiated from Reddit posts in any way.
+
+**Issue 98**: The `external_device_reviews` table and `external_medication_reviews` table are fetched separately per device/medication with no caching at the application level. If a user browses 5 devices, 5 separate DB queries are made. A batch fetch or React Query caching with longer `staleTime` is needed.
+
+**Issue 99**: The device reviews `rating` field shows as an integer but device community posts have sentiment (`positive`, `neutral`, `negative`) without a numeric rating. The combined display mixes ordinal stars with categorical sentiment, making the aggregate stats misleading.
+
+**Issue 100**: `ExternalReviewCard` displays a `"Verified"` badge but the verification logic only checks if `source_url` is non-null (inferred from the `reviewVerification.ts` file described in memory notes). A non-null URL from a seeded, non-existent Reddit post would still show "Verified".
+
+**Issue 101**: The medication reviews tab has no "helpful" voting mechanism displayed. Users can read the `helpful_count` but cannot vote.
+
+**Issue 102**: Device review dates use `format(new Date(review.created_at), 'MMM d, yyyy')` (from `date-fns`) but medication review dates use `new Date(review.created_at).toLocaleDateString()`. Inconsistent date formatting between the two systems.
+
+**Issue 103**: There is no "verified purchase" or "verified T1D" badge for medication reviews even though the `verified` field exists in the schema.
 
 ---
 
-## Category 34: Content Freshness and Data Staleness (Items 2016-2060)
+## SECTION C: OTHER GAPS — 200 Issues (grouped by category)
 
-### 34.1 Stale Static Content (15)
-2016. Index.tsx:27-33 -- Volunteer roles array hardcoded inline
-2017. Index.tsx:138 -- "~8.4M" T1D stat from IDF Atlas 2022 -- now potentially outdated
-2018. CureProgress.tsx -- Timeline milestones (Tzield approval, Vertex VX-880) hardcoded and will become stale
-2019. CureProgress.tsx -- "~$2.8B+" Annual Research Funding is a static estimate
-2020. CureProgress.tsx -- "~150+" Research Institutions is a static estimate
-2021. CureProgress.tsx -- "~50K+" Researchers Worldwide is a static estimate
-2022. PopulationTrendsTab.tsx -- Technology adoption trends (2018-2024) already outdated for 2025+
-2023. PopulationTrendsTab.tsx -- Regional data claims fabricated sample sizes (n=12000, n=9500)
-2024. SeasonalPatternsTab.tsx -- Monthly glucose data is reference data, labeled but still hardcoded
-2025. EmergenceOfDiabetes.tsx -- Research studies with DOIs are static and never refreshed
-2026. FindDiabeticNearMe.tsx -- TIPS array with 3 tips hardcoded
-2027. Roadmap "Current Phase: Foundation" badge will become stale
-2028. Footer "emerging 501(c)(3)" text will become stale
-2029. Copyright year is dynamic (good) but entity name and legal status are static
-2030. DonationImpactVisualization impact claims ("$10 funds...") are fabricated
+### C1. Routing & Navigation (10 issues)
 
-### 34.2 Research and External Data Staleness (10)
-2031. Research items fetched from DB but no automatic refresh from PubMed/OpenAlex
-2032. Clinical trials data from ClinicalTrials.gov may be cached indefinitely without refresh
-2033. No "last updated" timestamp visible on research data pages
-2034. No staleness indicator on clinical trial listings
-2035. FDA safety data may be outdated with no visible refresh timestamp
-2036. Medicare coverage data may be outdated
-2037. Drug pricing data may be outdated
-2038. Patent data in InnovationHub may be outdated
-2039. News articles may go stale without auto-refresh
-2040. Community posts seeded in bulk but never refreshed organically beyond user submissions
+**Issue 104**: The `/data-upload` and `/glucose/upload` routes both exist and serve different implementations. After the merge fix in Section A, `/glucose/upload` should redirect to `/data-upload`.
+
+**Issue 105**: `MedicineComparison.tsx` page exists at route `/medicine/comparison` but there is no navigation link to it from `MedicineHub.tsx`. The comparison feature is only accessible via URL.
+
+**Issue 106**: The `BackButton` component uses `useNavigate(-1)` which goes to browser history. If a user navigates directly to a device detail page via a shared URL, the back button has no history to go back to, and the `fallbackPath` prop is not always set.
+
+**Issue 107**: The `DeviceDetail` page uses `useParams<{ deviceId: string }>()` but never validates that `deviceId` is a valid UUID before querying the database. Invalid UUID paths would cause a Postgres error instead of a 404.
+
+**Issue 108**: The `QAChecklist.tsx` page route `/qa-checklist` is accessible to all users but references admin functions. It should be protected by `AdminRoute` or removed from public routing.
+
+**Issue 109**: Multiple pages (`Diabeto18Plus.tsx`, `MentalHealthHub.tsx`, `LowBloodSugarWorld.tsx`) have no canonical URL meta tags for SEO.
+
+**Issue 110**: The `NotFound.tsx` page renders a 404 component but the HTTP response code sent by the browser is still 200 since this is a SPA. This harms SEO — crawlers will index broken routes as valid pages.
+
+**Issue 111**: The `App.tsx` router has `<Route path="/donation-result" element={<Navigate to="/donate/success" replace />} />` which is correct, but `DonationSuccess.tsx` is imported twice — once for the redirect target and the real route. Verify the redirect is correctly pointing to the success component, not circular.
+
+**Issue 112**: Pages like `FutureOfT1D.tsx`, `InnovationHub.tsx`, `EmergenceOfDiabetes.tsx` are routes but have no breadcrumbs or back button, leaving users stranded after deep navigation.
+
+**Issue 113**: The `/admin` route is protected by `AdminRoute`, but individual admin sub-routes (`/admin/users`, `/admin/content`, etc.) are separate pages that each import `withAdmin` HOC. This means two separate admin checks happen, which is redundant.
+
+### C2. Authentication & Authorization (10 issues)
+
+**Issue 114**: The `useMedicationReviews` hook checks `if (!user)` but the medication review form (if added) would need to redirect to auth. Currently no review form exists in the medication modal, so this is a latent issue.
+
+**Issue 115**: `Settings.tsx` allows email/password changes but does not require re-authentication before making the change. Changing passwords without requiring current password is a security risk.
+
+**Issue 116**: The `Admin.tsx` page redirects non-admins but only after the page renders briefly. The flash of admin content before redirect should be prevented with a loading state.
+
+**Issue 117**: `withAdmin.tsx` HOC has no timeout handling. If the admin check query hangs, the user sees a loading spinner indefinitely.
+
+**Issue 118**: The `useAuthStore` uses Zustand without persistence. After a page refresh, `user` is null until the Supabase auth listener fires. Components that check `!user` during SSR-like hydration may incorrectly hide authenticated-user-only content briefly.
+
+**Issue 119**: No session expiry handling — when a Supabase token expires (1 hour default), API calls fail silently. The user is not redirected to login or shown a "session expired" message.
+
+**Issue 120**: Profile avatars use `avatar_url` from the `profiles` table but there is no upload mechanism for avatar images. The field exists but is always null/empty.
+
+**Issue 121**: The `ResetPassword.tsx` page exists but there is no "Forgot Password" link on the `Auth.tsx` login form.
+
+**Issue 122**: `Auth.tsx` has no rate limiting on login attempts client-side. While Supabase rate-limits on the server, showing an error like "Too many attempts" would improve UX.
+
+**Issue 123**: Social OAuth providers (Google, GitHub) are not configured — only email/password auth exists. The auth page may reference these if default Supabase UI is used.
+
+### C3. Search & Discoverability (8 issues)
+
+**Issue 124**: `GlobalSearchDialog.tsx` queries 8 tables in `Promise.all` but has no debounce. Every keystroke fires 8 simultaneous database queries.
+
+**Issue 125**: The global search has a minimum query length of 2 characters enforced by `enabled: query.length >= 2`, but shorter terms like "CV" or "AI" would not return results.
+
+**Issue 126**: Search results from the global search do not include uploaded analyses or journal entries — only platform data.
+
+**Issue 127**: The search dialog has no keyboard navigation between result categories — pressing Tab moves through all results serially rather than allowing arrow key navigation within categories.
+
+**Issue 128**: Search results do not highlight the matching term within the result title or description.
+
+**Issue 129**: The search has no empty state guidance — when results are empty, it just shows "No results" without suggestions like "Try searching for 'Dexcom G7'" or "Browse medications."
+
+**Issue 130**: The `CommunitySolutions.tsx` search fires on every character change with `setSearchQuery(e.target.value)` without debounce, causing excessive re-renders.
+
+**Issue 131**: The device and medication lists have no URL-based search state — search terms and filters are not reflected in the URL, so sharing a filtered view is not possible.
+
+### C4. Performance Issues (10 issues)
+
+**Issue 132**: The `MedicineHub.tsx` page fetches all medications with `useMedications({ category, search, sort })` — the hook has no server-side pagination, fetching potentially hundreds of medications and filtering client-side.
+
+**Issue 133**: `DeviceAnalytics.tsx` runs a complex `get_public_glucose_summary` RPC call on mount. This is a heavy aggregation query with multiple subqueries running synchronously.
+
+**Issue 134**: `HealthComparisonPanel.tsx` generates the entire supplements list, lifestyle plans, health impacts, and mental health data arrays inline in the component render — these static arrays are re-created on every render instead of being memoized or defined outside the component.
+
+**Issue 135**: `ResearchHub.tsx` has multiple `useQuery` calls without `staleTime` configuration, causing refetches on every window focus.
+
+**Issue 136**: `CustomizableDashboard.tsx` uses `react-grid-layout` which loads a significant JavaScript bundle. It's not lazy-loaded.
+
+**Issue 137**: `GlucoseAGPChart.tsx`, `GlucoseHeatmap.tsx`, `GlucoseTrendChart.tsx`, `TimeInRangeChart.tsx` are all imported statically in `AnalysisResultsModal`. The analysis modal's bundle is large. These chart components should be lazy-loaded with `React.lazy`.
+
+**Issue 138**: The CDN Tailwind CSS warning in the console (`cdn.tailwindcss.com should not be used in production`) suggests some component or feature is loading Tailwind from CDN instead of the bundled version. This is a production performance issue.
+
+**Issue 139**: `DataUpload.tsx` initializes the `InfoRail` component at the bottom of every load even when no data has been uploaded. `InfoRail` should be deferred until needed.
+
+**Issue 140**: Multiple edge functions (e.g., `medical-research-aggregator`, `fda-data-feed`, `community-feed`) are called from client-side hooks but have no caching layer. Each page load triggers fresh calls.
+
+**Issue 141**: The `useGlobalSearch` hook creates 8 `Promise.all` queries every 2+ character keystroke with no debounce delay, potentially issuing 40+ total DB queries for a 5-character search term.
+
+### C5. Form Validation & Data Integrity (12 issues)
+
+**Issue 142**: The `Contact.tsx` form has `maxLength` on inputs but the form submission has no CSRF protection or honeypot field for spam prevention.
+
+**Issue 143**: `Profile.tsx` enforces a 500-char bio max in the UI but the database column has no corresponding constraint — a direct API call could bypass the limit.
+
+**Issue 144**: `Settings.tsx` password change uses `supabase.auth.updateUser({ password })` without validating that `newPassword !== currentPassword` before submission.
+
+**Issue 145**: `Settings.tsx` email change (`supabase.auth.updateUser({ email })`) sends a verification email to the new address but there's no UI feedback explaining this to the user — they see "Email updated" and may not realize they need to verify the new email.
+
+**Issue 146**: The `UserReviewForm` for devices has no minimum content length validation — users can submit a review with a single character in the "Content" field.
+
+**Issue 147**: The `InteractionChecker` in `MedicineHub.tsx` allows adding the same medication twice to the checker list, which would produce meaningless "self-interaction" results.
+
+**Issue 148**: The `YourExperience.tsx` form for submitting experiences has no duplicate detection — a user can submit identical experiences multiple times.
+
+**Issue 149**: `Journal.tsx` shift entries accept any text in `context` field with no XSS sanitization before rendering (via `innerHTML` or similar). Check for XSS vulnerabilities.
+
+**Issue 150**: The `SurveyModal.tsx` form allows navigation between steps but doesn't validate the current step before allowing the user to advance, permitting submission of incomplete surveys.
+
+**Issue 151**: Date inputs in `Profile.tsx` and `Journal.tsx` accept keyboard input that bypasses the date picker min/max validation — users can type future dates in the `diagnosis_date` field.
+
+**Issue 152**: The `GetInvolved.tsx` interest form submits to the database but has no email confirmation sent to the submitter, leaving them unsure if their submission was received.
+
+**Issue 153**: The `HealthcareExperience.tsx` submission form has no character counter on the text area, making it hard for users to stay within expected lengths.
+
+### C6. Accessibility (15 issues)
+
+**Issue 154**: The `GlucoseHeatmap` chart component renders with no `aria-label` or `role="img"` — screen readers cannot describe the heatmap.
+
+**Issue 155**: The `TimeInRangeChart` uses a pie/donut chart rendered by Recharts but has no data table alternative for accessibility.
+
+**Issue 156**: Dialog modals (`MedicationDetailModal`, `AnalysisResultsModal`) trap focus correctly but do not restore focus to the triggering element on close.
+
+**Issue 157**: The drag-and-drop upload zone in `DataUpload.tsx` has no keyboard-accessible alternative — keyboard-only users must use the "Choose Files" button, but the drop zone has no `role`, `tabIndex`, or keyboard event handlers.
+
+**Issue 158**: Star rating displays throughout the review system use `Star` icons without `aria-label` — e.g., `4.2` stars is not announced to screen readers as "4.2 out of 5 stars".
+
+**Issue 159**: All `<Button>` elements with only icons (download, share, close) throughout the app use `size="sm" variant="ghost"` with an icon child but no `aria-label` attribute.
+
+**Issue 160**: The `AnalysisResultsModal` tab list has 9 tabs on mobile that overflow horizontally — no scrolling indicator or mobile-optimized tab layout is provided.
+
+**Issue 161**: Color coding is used throughout (green/yellow/red for glucose metrics) without any alternative indicator for colorblind users. No pattern fills or icons accompany the color-only indicators.
+
+**Issue 162**: The `Progress` bar components (in upload status, metric cards) have no `aria-valuenow`, `aria-valuemin`, `aria-valuemax` attributes.
+
+**Issue 163**: Form labels in `UserReviewForm` use `htmlFor` correctly but the error messages are not linked to their fields via `aria-describedby`.
+
+**Issue 164**: The `Toast` notifications (`sonner`) have no `role="alert"` or `aria-live` region — they may not be announced by screen readers.
+
+**Issue 165**: The main navigation drawer on mobile has no `aria-expanded` state on the toggle button.
+
+**Issue 166**: `DeviceDetail.tsx` tab list has 8 tabs that overflow on mobile — no wrapping or scroll indicator for the tab bar.
+
+**Issue 167**: The `AutoHeight` content regions in the data upload modal do not announce content changes to screen readers when tabs switch.
+
+**Issue 168**: External links throughout the app use `target="_blank"` without `rel="noopener noreferrer"` in some places — a security issue.
+
+### C7. Data Transparency & Hardcoded Data (10 issues)
+
+**Issue 169**: `DashboardWidgets.tsx` shows statistics cards that may display hardcoded or illustrative numbers without proper "Illustrative Data" labels.
+
+**Issue 170**: The `FutureOfT1D.tsx` page references "trials planned 2026" from seeded discovery cards — these dates may become stale but there is no mechanism to flag outdated content.
+
+**Issue 171**: `InnovationHub.tsx` shows research scores and credibility ratings that come from the seeded `discoveries` table. There is no `last_verified` timestamp displayed, leaving users unable to assess data freshness.
+
+**Issue 172**: The `MedicineHub.tsx` stats cards (Total Medications, Insulins, Oral, Injectables) count medications from the database but these counts include seeded/demo data — no label distinguishes live production data from seeded records.
+
+**Issue 173**: `HealthComparisonPanel` shows citations like "ADA Standards of Care 2024" and "Diabetes Care, 2023" hardcoded as strings. If these sources are updated, the citations will be stale and misleading.
+
+**Issue 174**: The `DonationsInfo.tsx` "Impact Statistics" section was flagged with "illustrative data" labels in a previous audit but the underlying numbers (e.g., "247 research grants funded") were seeded. Verify these are still labeled as illustrative.
+
+**Issue 175**: The `PublicGlucoseData.tsx` page shows aggregate statistics from the `public_glucose_data` table. This data was seeded from the `seed-public-glucose` edge function. No "Reference Data" badge is shown on the analytics.
+
+**Issue 176**: `AdminDashboard.tsx` was updated with "Illustrative Data" badges, but specific metric cards (e.g., active user counts) may pull from real DB queries and others from estimates — they're not consistently labeled.
+
+**Issue 177**: The `Trends.tsx` page aggregates `topic_tags` from `community_posts` as trending topics, but community posts are also seeded. "Trending" topics reflect seeded data, not actual user activity.
+
+**Issue 178**: The `WarriorSpotlight.tsx` page shows "warrior stories" that are seeded via `seed-warrior-stories` and `seed-real-warrior-stories`. There's no label distinguishing seeded demo stories from real user submissions.
+
+### C8. UI/UX Consistency (20 issues)
+
+**Issue 179**: The `MedicineHub` uses a `MedicationDetailModal` (dialog popup) but `DeviceDetail` uses a full page. This inconsistency makes the navigation pattern unpredictable. Devices have a richer experience (AI assistant, full tabs, metrics) while medications are constrained to a dialog.
+
+**Issue 180**: Sort order: `MedicineHub.tsx` defaults to `popularity` sort but the `handleSortChange` function maps `price_low` and `price_high` both to `price` without direction — so ascending/descending can't be toggled for price.
+
+**Issue 181**: The `MedicationFilters.tsx` component has both category and subcategory filters, but the active tab in `MedicineHub.tsx` ALSO acts as a category filter. When a user selects "Insulins" tab and then uses the category filter, both filters apply simultaneously — creating contradictory behavior.
+
+**Issue 182**: Empty states are inconsistent: some use a centered card with icon + text (devices, medications), others use plain text (`<p>No user reviews yet</p>` in medication modal), and others use nothing.
+
+**Issue 183**: Loading states are inconsistent: some components use `Skeleton` (medication grid, device reviews), others use spinners, and others block render entirely.
+
+**Issue 184**: The `Badge` component is used for both tags (static labels) and status indicators (processing/complete/error). Color usage overlaps — a blue primary badge means different things in different contexts.
+
+**Issue 185**: The `BackButton` component in some pages is placed before the page title in the DOM but visually appears after layout content due to CSS, creating confusing tab order for keyboard users.
+
+**Issue 186**: "Coming Soon" features appear in multiple sidebar areas using `disabled` buttons with `Badge` "Soon" labels. These should either be removed or hidden to reduce UI clutter. Currently: 4 disabled buttons on `DataUpload.tsx` sidebar.
+
+**Issue 187**: The `DeviceAnalytics.tsx` page lacks a back button despite being a sub-feature of the devices section.
+
+**Issue 188**: The `Explore.tsx` page and `Discover.tsx` page have similar names and overlapping content — users may not understand the difference between them.
+
+**Issue 189**: The `LearnExplore.tsx` page is separate from `Explore.tsx` — two very similar named pages in the nav.
+
+**Issue 190**: The `Shop.tsx` page shows products but has no shopping cart UI between the product list and checkout — clicking "Buy" goes directly to Stripe checkout. There's no cart review step.
+
+**Issue 191**: Error states across the app inconsistently use `toast.error()`, `Alert` components, and inline text — no unified error presentation pattern.
+
+**Issue 192**: The `Bounties.tsx` page has a "Submit a Bounty" form but no list of submitted bounties in a viewable state for non-admins.
+
+**Issue 193**: The `YourExperience.tsx` and `QualityOfLife.tsx` pages have similar purposes — both allow sharing personal T1D experiences. The distinction between them is unclear.
+
+**Issue 194**: The `Journey.tsx` page shows a timeline but has no way to share the timeline or export it.
+
+**Issue 195**: The `PrepareForVisit.tsx` page generates an appointment summary but there's no way to save it permanently — refreshing the page loses the generated summary.
+
+**Issue 196**: Color scheme: The app uses `text-highlight` in some places (like `MentalHealthHub`) but this CSS variable may not be defined in all theme variants, causing invisible text.
+
+**Issue 197**: `DashboardWidgets.tsx` widgets have drag handles for the customizable dashboard, but the drag handles have no visual indicator (grab cursor, icon) — the drag behavior is not discoverable.
+
+**Issue 198**: Mobile viewport: Multiple card grids use `grid-cols-4` on medium screens but `grid-cols-2` on mobile — the intermediate breakpoints often cause layout breaks on tablet-sized screens.
+
+### C9. Medical Safety & Compliance (8 issues)
+
+**Issue 199**: The supplement recommendations in `HealthComparisonPanel` suggest specific dosages (e.g., "Magnesium Glycinate 200-400mg/day") without any medication interaction warnings. The disclaimer only mentions "consult your endocrinologist" in small text.
+
+**Issue 200**: The `T1DCompanion.tsx` AI chat companion uses `t1d-companion-chat` edge function. If the system prompt doesn't explicitly prevent insulin dosing advice, the AI could provide dangerous medical recommendations.
+
+**Issue 201**: The `DataUpload.tsx` page has a disclaimer: "Analysis results are for informational purposes only and should not replace professional medical advice." This is in italic small text — for a medical application, this disclaimer should be more prominent (e.g., a dismissible warning banner on first use).
+
+**Issue 202**: The CGM analysis shows metrics like MAGE, GVI, and predicted patterns without explaining what these metrics mean. A user without medical knowledge could misinterpret high GVI as a positive number.
+
+**Issue 203**: The `HealthComparisonPanel` compares T1D users against "non-diabetic benchmarks" (TIR 96-99%). Presenting this without context could cause undue distress to T1D users who cannot realistically achieve these targets.
+
+**Issue 204**: The `ScenarioLab.tsx` page allows simulating "What-If" scenarios for glucose management. If it calculates insulin dose changes, this is a regulated medical device activity in many jurisdictions.
+
+**Issue 205**: The PDF export report from `AnalysisResultsModal` includes the disclaimer at the bottom but uses a small gray font (8pt equivalent). Medical reports should have the disclaimer at the top and in a readable size.
+
+**Issue 206**: The `PrepareForVisit.tsx` appointment summary includes personalized glucose statistics. If this summary is printed and brought to a doctor's appointment, its format should clearly indicate it's patient-generated data, not a clinical report.
+
+### C10. Backend & Edge Function Issues (20 issues)
+
+**Issue 207**: The `community-feed` edge function is listed in the functions directory but was never migrated to use the shared `_shared/cors.ts` utility — inconsistent with the standardization work done in previous audits.
+
+**Issue 208**: The `t1d-companion-chat` edge function is not listed in the `supabase/config.toml` `verify_jwt = false` configuration — if JWT verification is enabled by default, unauthenticated requests to the companion will fail.
+
+**Issue 209**: The `fetch-reddit-reviews` edge function exists but there's no Reddit API key configured in secrets. The function may be failing silently and returning empty results.
+
+**Issue 210**: The `fetch-medication-reviews` edge function exists but without a Drugs.com or similar API key, it can only use Firecrawl for scraping — which may be rate-limited or blocked.
+
+**Issue 211**: The `daily-briefing` and `send-weekly-digest` edge functions were configured with cron triggers in previous audits. Verify these triggers are actually persisted in `supabase/config.toml`.
+
+**Issue 212**: The `verify-external-links` edge function was scheduled to run Sundays at 2 AM but the `link_status` column write-back requires `UPDATE` permission that may not be granted to the function's service role.
+
+**Issue 213**: Multiple `seed-*` edge functions remain deployed (70+ seed functions). These are one-time seeding tools that should not remain as live deployable functions in production — they're a potential attack surface.
+
+**Issue 214**: The `analyze-glucose` edge function has a 30-second timeout risk for large files. Deno edge functions have a 150-second wall-time limit, but complex Excel parsing + AI Vision extraction may exceed this for very large files.
+
+**Issue 215**: The `data-orchestrator` edge function appears to coordinate multiple other functions but its exact purpose and trigger mechanism is not documented. If it's a cron job that also seeds data, it could overwrite user data.
+
+**Issue 216**: The `snapshot-generator` edge function generates anonymized data snapshots. If this function is triggered frequently, it may generate duplicate anonymized user records in the `public_glucose_data` table.
+
+**Issue 217**: The `_shared/cors.ts` utility uses `*` for `Access-Control-Allow-Origin`. For endpoints that handle authenticated user data (like `analyze-glucose`), a wildcard CORS origin means any website can call the function with a user's JWT. This should be restricted to the app's domain.
+
+**Issue 218**: The `create-donation` and `create-shop-checkout` functions were updated to use shared CORS but their `verify_jwt` settings in `config.toml` need to be verified to ensure they require authentication.
+
+**Issue 219**: No edge function has request body size validation (`validateBodySize`) except those explicitly mentioned as updated. Large requests to `analyze-glucose` (base64 PDFs up to ~13MB) can cause memory issues.
+
+**Issue 220**: The `ai-center-predictions` edge function calls the Lovable AI gateway but may use `openai/gpt-5` for all predictions when `google/gemini-2.5-flash` would be more cost-effective for most use cases.
+
+**Issue 221**: The `medical-research-aggregator` function aggregates from multiple sources but has no deduplication check — papers with the same DOI or title from different sources can appear multiple times in the research hub.
+
+**Issue 222**: The `scheduled-maintenance` function was configured with a cron trigger but its actual maintenance tasks are not documented. If it includes database cleanup, it may be deleting valid data.
+
+**Issue 223**: Several edge functions use `Deno.env.get("SUPABASE_URL")` but the function is in the same project — they should use `Deno.env.get("SUPABASE_URL")` which is auto-injected. Verify all functions properly use the injected env vars.
+
+**Issue 224**: The rate limiter in `analyze-glucose` (in-memory Map) will cause issues in high-concurrency scenarios where multiple function instances run simultaneously — each instance has its own rate limit counter, making the effective rate limit N times higher than intended.
+
+**Issue 225**: The `t1d-companion-chat` edge function streams responses but the client-side implementation may not handle stream errors gracefully — if the stream is interrupted, the UI may show partial responses.
+
+**Issue 226**: No edge function implements response compression (gzip/brotli). Large responses (e.g., full analysis results from `analyze-glucose`) are sent uncompressed, increasing latency and bandwidth usage.
+
+### C11. SEO & Meta Tags (5 issues)
+
+**Issue 227**: No page has `<meta name="description">` tags — search engines will generate descriptions from page content which is inconsistent and often poor.
+
+**Issue 228**: No page has Open Graph tags (`og:title`, `og:description`, `og:image`) for social sharing.
+
+**Issue 229**: The `index.html` has a generic `<title>Lovable</title>` which should be updated to the actual app name for SEO.
+
+**Issue 230**: No sitemap.xml is generated or served, making it harder for search engines to discover and index all pages.
+
+**Issue 231**: Dynamic pages (device details, medication modals, article details) don't update `document.title` with the specific content name, showing the generic app name in the browser tab.
+
+### C12. Error Handling (10 issues)
+
+**Issue 232**: The `ErrorBoundary.tsx` catches rendering errors but doesn't catch async errors from `useEffect` or event handlers — most data fetching errors are caught by React Query but unhandled promise rejections are not surfaced.
+
+**Issue 233**: When `useDeviceDetails` returns an error, `DeviceDetail.tsx` shows a generic error message without any retry mechanism.
+
+**Issue 234**: Network failures during file upload in `DataUpload.tsx` leave the file in "processing" state in the UI (even though the DB record is marked `error`). On page refresh, the file shows as "complete" or "error" from DB — but the in-progress UI state is abandoned without cleanup.
+
+**Issue 235**: The `useExternalReviews` hook at line 90-92 sets `error` state but `DeviceReviewsTab` never displays this error to the user — external reviews silently fail to load.
+
+**Issue 236**: `GlobalSearchDialog.tsx` has no error state display — if search queries fail, the dialog shows empty results with no indication that an error occurred.
+
+**Issue 237**: The `analyze-glucose` function's final catch block at line 2756-2760 returns a generic "An unexpected error occurred during analysis" without updating the upload DB record to error status. This leaves uploads in `processing` state indefinitely.
+
+**Issue 238**: The `AnalysisResultsModal` PDF export at line 302 catches errors with `catch {}` (empty catch) — the `toast.error` fires but the actual error is swallowed without logging.
+
+**Issue 239**: When the `create-donation` edge function fails (Stripe error), the error message shown to users is the raw Stripe error message which may contain technical terms confusing to users.
+
+**Issue 240**: The `stripeShop-webhook` processes webhooks without a dead-letter queue. If a webhook handler fails after receiving an event, the event is retried by Stripe but may cause duplicate order processing.
+
+**Issue 241**: The `SurveyModal.tsx` has no error recovery — if the survey submission fails, the modal closes and the user loses their progress with only a toast error notification.
+
+### C13. Missing Features Referenced in UI (10 issues)
+
+**Issue 242**: The "Connect CGM App" button in `DataUpload.tsx` sidebar says "Soon" — Dexcom and Abbott APIs are available for CGM integration and should be tracked as a real feature request.
+
+**Issue 243**: The "Share with Doctor" button in `DataUpload.tsx` sidebar says "Soon" — a PDF export to email already exists via `DataExport.tsx`. This feature is partially implemented.
+
+**Issue 244**: The "Schedule Auto-Upload" button says "Soon" — this would require background push notifications or a native app and genuinely cannot be implemented in a web app without a service worker.
+
+**Issue 245**: The `News.tsx` "Subscribe to Newsletter" button is disabled with no explanation of when it will be available.
+
+**Issue 246**: `GlucoseUpload.tsx` shows an "Export Report" button for completed uploads but it's a non-functional placeholder with no click handler (only the `DataExport` component in the main `DataUpload.tsx` is functional).
+
+**Issue 247**: The `FindDiabeticNearMe.tsx` page suggests connecting with nearby T1D people but the location-based matching logic (if any) may use approximate location rather than actual geolocation.
+
+**Issue 248**: `EventsNearMe.tsx` shows events from the `t1d_events` table which is seeded data — there's no mechanism for real events to be submitted or verified.
+
+**Issue 249**: The `BuildWithUs.tsx` page has a developer API section that suggests an API exists — but no public API documentation or API key management system is present.
+
+**Issue 250**: The "QR Code" sharing functionality referenced in some components is not implemented — no QR code generation library is installed or used.
+
+**Issue 251**: The `HealthcareProviders.tsx` page lists healthcare provider resources but has no way for providers to register or verify their credentials on the platform.
+
+### C14. Code Quality & Technical Debt (15 issues)
+
+**Issue 252**: `src/pages/DataUpload.tsx` line 109: `upload.file_type?.includes('csv') ? 'cgm' : 'pump'` — when restoring uploads from DB, all non-CSV uploads (PDFs, images) are categorized as "pump" type.
+
+**Issue 253**: The `MedicationDetailModal` at line 37 accesses `medicationData` and aliases it as both `const medication = medicationData` and `const reviews = medicationData?.userReviews`. When `medicationData` is null (before load), `medication` is undefined but is used as the tab render condition at line 56.
+
+**Issue 254**: The `analyze-glucose` function is 2763 lines in a single file — extremely difficult to maintain. This should be split into modules: `parsers/`, `analyzers/`, `ai/`, `validators/`.
+
+**Issue 255**: Multiple components use the pattern `Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} .../>)` for loading states — this pattern is repeated identically in at least 8 places without a shared `SkeletonGrid` component.
+
+**Issue 256**: `DataExport.tsx` and `AnalysisResultsModal.tsx` both implement independent PDF export functions with duplicated jsPDF logic. They should share a single `generateAnalysisPDF` utility function.
+
+**Issue 257**: The `useAuthStore` uses Zustand but many components also directly import `supabase.auth.getUser()` — dual auth state sources that can desync.
+
+**Issue 258**: `src/components/device/DeviceReviewsTab.tsx` imports `useNavigate` from `react-router-dom` but only uses it in `handlePostClick` — the navigation could be a plain `<Link>` instead.
+
+**Issue 259**: TypeScript `any` is used in `MedicationDetailModal.tsx` at line 150 (`handleViewDetails: (medication: any)`) — should use the `Medication` type.
+
+**Issue 260**: The `GlucoseRiskMatrix` component is imported in `AnalysisResultsModal` but is never shown for summary reports (AGP/daily data is empty). It renders with `undefined` hourlyStats without a null check and may throw.
+
+**Issue 261**: The `DataQualityPanel` and `NovelSignalsCard` tabs in `AnalysisResultsModal` are conditionally shown via `{hasEnhancedData && dataQuality && (...)}` but the `TabsTrigger` elements also have this condition — if `hasEnhancedData` is false, the tab triggers are hidden but the TabsContent divs are still rendered (empty). This can cause subtle layout shifts.
+
+**Issue 262**: The `useExternalReviews` hook uses `useState` + `useEffect` pattern instead of React Query's `useQuery` — it doesn't benefit from caching, deduplication, or background refetch.
+
+**Issue 263**: The `useCureMonitoring.ts` hook was referenced in previous audit fixes but its implementation details weren't verified — it may still have `console.log` leaks.
+
+**Issue 264**: The `GlucoseInsightCard.tsx` component in `data-upload/` is imported but never used in `AnalysisResultsModal.tsx`.
+
+**Issue 265**: `src/types/glucose-analysis.ts` defines types but some components (`AnalysisResultsModal`) re-define the same interfaces locally (e.g., `DetailedAnalysis`, `Pattern`, `HourlyStats`) — duplicated type definitions that can desync.
+
+**Issue 266**: The `fetchReviews` callback in `useDeviceReviews.ts` (line 58) uses `useCallback` with `[deviceId, user]` dependencies. When `user` changes (e.g., after login), ALL device reviews re-fetch even if `deviceId` hasn't changed.
 
 ---
 
-## Category 35: Miscellaneous Remaining Issues (Items 2041-2100)
+## Implementation Plan
 
-### 35.1 Duplicate Routes and Dead Code (5)
-2041. `DonateSuccess` mounted at both `/donate/success` and `/donation-result` -- duplicate
-2042. `DonationSuccess.tsx` in pages root AND `DonateSuccess.tsx` in pages/donate/ -- possible two separate components for same purpose
-2043. 40+ seed functions deployed and invokable but should only run once -- resource waste
-2044. `loadNotificationPreferences()` function at Settings.tsx:200-202 is empty stub -- dead code
-2045. `withAdmin` HOC in components/ may be unused since `AdminRoute` component handles admin gating
+The fixes are organized into 6 implementation batches, prioritized by impact:
 
-### 35.2 Type Safety Issues (5)
-2046. Settings notification state type doesn't include `emailDelivery` or `pushDelivery` -- phantom keys silently added via onCheckedChange
-2047. UploadedFile interface has 5 `any` typed fields
-2048. Widget data union type includes `{ loaded: boolean }` catch-all -- not discriminated properly
-2049. `Json` type from Supabase requires unsafe type assertions when reading JSONB columns
-2050. Multiple `catch (error)` blocks without proper typing
+### Batch 1: Critical Data Upload Fixes
+- Redirect `/glucose/upload` → `/data-upload`; delete `GlucoseUpload.tsx`
+- Fix `GlucoseUpload.tsx` binary file handling (issue 2)
+- Fix response payload from `analyze-glucose` to include `executiveSummary`, `confidenceScore`, etc. (issue 23)
+- Fix `analyze-glucose` error path to always update upload status to `error` (issues 13, 237)
+- Remove all `console.log/error` from the edge function (issues 4-8, 24)
+- Fix AGP percentile calculation (issue 9)
+- Add body size validation schema to `analyze-glucose` (issues 11, 12)
+- Fix the download button in DataUpload.tsx (issue 26)
+- Fix "Export Analysis" Quick Action to use the real DataExport (issue 27)
+- Add empty state for Recent Uploads (issue 30)
+- Add pagination/load more for uploads list (issue 31)
+- Add delete upload functionality (issue 32)
+- Add retry button for failed uploads (issue 34)
+- Fix `.webp` in file input accept attribute (issue 29)
+- Fix date timezone issue (issue 28)
+- Fix file type detection for non-CSV uploads (issues 25, 252)
+- Fix GlucoseMetricsGrid to show N/A for zero GMI (issue 43)
+- Fix AnalysisResultsModal AGP empty state message (issue 37)
+- Remove duplicate Trends tab content (issue 38)
+- Add lazy loading to chart components (issue 137)
 
-### 35.3 Community Solutions Page Specific Issues (10)
-2051. CommunitySolutions.tsx:79 -- `handleQuickTopic` takes keywords string but only uses first word: `keywords.split(' ')[0]`
-2052. CommunitySolutions.tsx:83 -- `handleTopicSelect` same issue -- only first word of keywords used
-2053. CommunitySolutions.tsx:110 -- `handleTrendingClick` uses first 3 words of title as search -- may miss relevant results
-2054. CommunitySolutions.tsx:191 -- `DashboardWidgets recent-activity items.sort()` sorts by relative time strings ("2 hours ago") -- not chronologically correct
-2055. Community post `author_anonymous` matching by email prefix (DashboardWidgets:147) is fragile
-2056. BrowseBySource component relies on `availableSources` which may be empty if no posts are seeded
-2057. AlertPreferencesModal functionality not verified -- may not actually create alerts
-2058. DataRefreshBanner triggers community-feed edge function -- verify it actually seeds/refreshes posts
-2059. Infinite scroll observer (line 56-69) has `loadMore` in dependency array which may cause re-subscription loops
-2060. No community post moderation queue visible to moderators (admin has ContentModeration but separate from CommunitySolutions)
+### Batch 2: Reviews System Fixes
+- Replace hardcoded "Real Usage" tab data with DB-derived stats (issues 53, 54)
+- Add `ScrollArea` to medication reviews list (issue 55)
+- Wire `useMedicationReviews` submitReview into `MedicationDetailModal` (issue 56)
+- Use `increment_review_helpful` RPC instead of manual count (issues 57, 92)
+- Add responsive tab layout to medication modal (issue 58)
+- Add "Load More" to external reviews in medication modal (issue 59)
+- Fix buzz post `engagement_score` vs `helpful_count` display (issues 60, 81)
+- Add null rating display handling (issue 61)
+- Add sort/filter to medication reviews tab (issue 62)
+- Add pagination to medication reviews (issue 63)
+- Remove all `console.error` leaks in review hooks (issues 64-65, 91, 93)
+- Add server-side limit to `useDeviceReviews` fetch (issue 67)
+- Add "would not recommend" badge for medication reviews (issue 83)
+- Display pros/cons arrays with icons in medication modal (issue 86)
+- Reorder medication modal tabs (Reviews before Clinical) (issue 87)
+- Add character counter to medication review form (issue 88)
+- Add prominent "Edit My Review" button on user's own review card (issue 89)
+- Add `staleTime` to `useExternalReviews` (issue 75)
+- Add link health status check before rendering external review URLs (issue 76)
+- Add `aria-label` to review cards (issue 77)
+- Display `verified` badge on medication reviews (issues 82, 103)
+- Fix `duration_of_use` display on device reviews (issue 85)
+- Fix date formatting consistency between device and medication reviews (issue 102)
+- Add sentiment filter and sort to medication external reviews (issue 78)
+- Fix source display names for new/unknown sources (issue 79)
+- Add "flag as inappropriate" for reviews (issue 84)
+- Convert `useExternalReviews` to `useQuery` (issue 262)
+- Deduplicate Reddit posts appearing in both "Community Buzz" and "Reviews" tabs (issue 96)
+- Add Google-branded display for Google source reviews (issue 97)
+- Batch-fetch external reviews with React Query instead of per-page queries (issue 98)
+- Fix `toggleHelpful` race condition in device reviews (issue 74)
 
-### 35.4 Dashboard and Widget Issues (10)
-2061. DashboardWidgets:191 -- `items.sort((a, b) => a.time.localeCompare(b.time))` sorts relative time strings lexicographically -- "1 day ago" sorts before "2 hours ago" incorrectly
-2062. Dashboard grid widget IDs may collide if same widget type added twice
-2063. No widget refresh mechanism -- data is snapshot-on-mount only
-2064. No widget loading timeout -- slow Supabase responses show skeleton indefinitely
-2065. Widget error state (line 236) logs error but falls through to render with null data
-2066. `glucose-trends` and `health-metrics` widgets make near-identical queries to `uploads` table -- duplicated DB call
-2067. Widget library dialog may need internal ScrollArea instead of page scroll
-2068. Dashboard edit mode indicator could be more prominent
-2069. No widget configuration options (e.g., date range, metric selection)
-2070. Widget reordering not persisted until explicit save
+### Batch 3: Performance & Architecture Fixes
+- Add debounce (300ms) to `useGlobalSearch` (issues 124, 141)
+- Add `staleTime` to all `useQuery` calls in research hub and other heavy pages (issue 135)
+- Memoize static arrays in `HealthComparisonPanel` (issue 134)
+- Split `analyze-glucose` edge function into modules (issue 254)
+- Create shared `SkeletonGrid` component (issue 255)
+- Merge duplicate PDF export logic from `DataExport` and `AnalysisResultsModal` (issue 256)
+- Add server-side pagination to medication list (issue 132)
+- Fix CORS wildcard for authenticated endpoints (issue 217)
+- Add `validateBodySize` to remaining edge functions (issue 219)
 
-### 35.5 Remaining Data File Issues (10)
-2071. `achievementDefinitions.ts` -- Point values and thresholds never tuned to actual user behavior data
-2072. `volunteerRoles.ts` -- No application or signup flow despite listing open positions
-2073. `developmentProjects.ts` -- Resource links in projects may be stale/broken
-2074. `cureReportContent.ts` -- Will become outdated immediately
-2075. `projectReportsContent.ts` -- Will become outdated immediately
-2076. No mechanism for admins to update any of these without code changes
-2077. No versioning or audit trail on data file changes
-2078. Data files mixed with component code in src/ -- should be in database
-2079. Achievement thresholds set without data on typical user behavior
-2080. Volunteer roles show openings but no mechanism to express interest
+### Batch 4: Accessibility & UI Consistency Fixes
+- Add `aria-label` to all icon-only buttons (issues 26, 159)
+- Add `role="img"` and `aria-label` to all charts (issues 154, 155, 158)
+- Add `aria-valuenow/min/max` to all Progress bars (issue 162)
+- Add keyboard navigation to upload drop zone (issue 157)
+- Add `aria-describedby` to form error messages (issue 163)
+- Fix tab overflow on mobile for `AnalysisResultsModal` and `DeviceDetail` (issues 160, 166)
+- Add focus restoration on modal close (issue 156)
+- Fix color-only indicators with icon companions (issue 161)
+- Add `aria-live` regions for Toast notifications (issue 164)
+- Add `aria-expanded` to nav drawer toggle (issue 165)
+- Fix external links to consistently include `rel="noopener noreferrer"` (issue 168)
+- Make all empty states consistent (issue 182)
+- Make all loading states consistent (issue 183)
+- Update `document.title` on dynamic pages (issue 231)
 
-### 35.6 Edge Function and Backend Issues (10)
-2081. CORS headers duplicated across all ~80 edge functions -- no shared module
-2082. Different versions of @supabase/supabase-js across edge functions
-2083. Different versions of stripe-js across edge functions
-2084. No standardized error response format across edge functions
-2085. No request payload size validation
-2086. No timeout handling in edge functions
-2087. Seed functions invokable in production -- could accidentally re-seed data
-2088. `community-feed` edge function invoked on refresh but may create duplicate posts
-2089. `fetch-reddit-reviews` requires Reddit API credentials that may not be configured
-2090. No circuit breaker for external API calls in edge functions
+### Batch 5: Security & Compliance Fixes
+- Add re-auth requirement for password change in Settings (issue 115)
+- Fix `AdminRoute` flash of admin content (issue 116)
+- Add session expiry notification (issue 119)
+- Add "Forgot Password" link to Auth page (issue 121)
+- Add honeypot field to Contact form (issue 142)
+- Add DB constraint enforcement for profile fields (issue 143)
+- Add clear email-verification-required feedback after email change (issue 145)
+- Increase medical disclaimer prominence in DataUpload (issue 201)
+- Clarify T1D-appropriate benchmarks in HealthComparisonPanel (issues 44, 203)
+- Review T1DCompanion system prompt for safety guardrails (issue 200)
+- Mark all seeded data in public-facing views (issues 169-178)
+- Remove or mark seed edge functions as non-production (issue 213)
 
-### 35.7 Final Miscellaneous (10)
-2091. `useEngagementTracking` returns `null` (line 56) -- hook should return `void` or nothing
-2092. `useActionTracking` exports multiple tracking functions but most are never called from actual UI actions
-2093. Achievement unlock confetti colors hardcoded (cosmetic but not configurable)
-2094. No centralized design tokens file
-2095. No A/B testing infrastructure
-2096. No user feedback collection mechanism (NPS, satisfaction surveys)
-2097. No changelog or release notes page for users
-2098. No API documentation for edge functions
-2099. No monitoring or alerting for edge function failures
-2100. Error messages across pages are inconsistent ("Failed to load", "Error loading", "Something went wrong")
+### Batch 6: SEO & Remaining Gaps
+- Update `index.html` title from "Lovable" to app name (issue 229)
+- Add page-specific `document.title` updates (issue 231)
+- Add "Forgot Password" link (issue 121)
+- Protect `/qa-checklist` with `AdminRoute` (issue 108)
+- Validate UUID params in `DeviceDetail` before DB query (issue 107)
+- Fix `BackButton` fallback paths across all pages (issue 106)
+- Add redirect for `/glucose/upload` → `/data-upload` (issue 104)
+- Fix medication sort price ascending/descending direction (issue 180)
+- Resolve tab vs category filter conflict in MedicineHub (issue 181)
+- Add empty string validation to review pros/cons form (issue 90)
+- Add duplicate detection to `YourExperience` submissions (issue 148)
 
 ---
 
-## Implementation Priority for Items 1701-2100
+## Technical Implementation Notes
 
-### Critical -- Broken Functionality
-- **Fix notification Save button missing** (1841-1845): Add explicit "Save Notification Preferences" button calling `handleSaveNotifications`
-- **Fix notification delivery method switches** (1716-1720, 1836-1840): Add `emailDelivery`/`pushDelivery` to initial state type, bind switches correctly
-- **Fix admin routes missing ProtectedRoute** (1711-1715): Wrap 5 admin content routes in `<ProtectedRoute>`
-- **Fix admin landing page missing AdminRoute** (1892, 1896): Add `<AdminRoute>` to `/admin` route
-- **Fix recurring donation silently ignored** (1801-1805): Pass `isRecurring`/`recurringFrequency` to edge function or remove recurring UI
-- **Fix recent-activity sort order** (1929, 2061): Sort by actual timestamp, not relative time string
+**Files to create:**
+- `src/utils/pdfExport.ts` — shared PDF generation utility
+- `src/components/ui/skeleton-grid.tsx` — reusable skeleton loading grid
+- `src/components/medicine/MedicationReviewForm.tsx` — write-review form for medications
+- `src/hooks/useDebounce.ts` — shared debounce hook
 
-### High -- Misleading Data
-- **AdminSettings entirely decorative** (1701-1710): Either persist settings to DB or clearly label as demo
-- **Admin charts still fabricated** (1793-1795): Add visual "Illustrative Data" badge on chart cards
-- **Trends page permanently empty** (1796-1800): Either populate `trend_analysis_metrics` via aggregation query or remove the page
-- **Recurring donation UI misleading** (1801-1805): Critical -- users may think they set up subscriptions
+**Files to delete after merge:**
+- `src/pages/glucose/GlucoseUpload.tsx` — replaced by `DataUpload.tsx`
 
-### Medium -- Console/Code Cleanup
-- **Remove 335 console statements** (1721-1730): Replace with structured error handling or silent fails
-- **Fix ScenarioLab remaining random** (1731-1735): Replace Math.random with deterministic variation
-- **Fix DonationsInfo static data** (1736-1745): Move to database or add prominent "static estimate" labels
-- **Fix SupportGlucoForge claims** (1746-1755): Remove fabricated numbers, update testimonials
+**Edge functions to modify:**
+- `supabase/functions/analyze-glucose/index.ts` — multiple fixes
+- `supabase/functions/community-feed/index.ts` — migrate to shared CORS
 
-### Lower -- Architecture and Polish
-- **Move src/data/ to database** (1756-1765): Create admin CRUD interfaces
-- **Consolidate duplicate components** (1941, 1949-1950): Merge toast systems, admin check patterns
-- **Add accessibility improvements** (1866-1875): Screen reader support, focus management
-- **Add responsive fixes** (1876-1885): Mobile header overflow, tablet layout issues
-- **Implement email system** (1956-1965): Configure cron triggers, test Resend integration
-
+**Key Database RPC to use:**
+- `increment_review_helpful(review_id)` — replace manual count in `useMedicationReviews.ts`
+- `increment_device_review_helpful(review_id)` — replace in `useDeviceReviews.ts`
