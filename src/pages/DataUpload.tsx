@@ -588,8 +588,8 @@ const DataUpload = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Total Files</span>
-                  <span className="font-semibold">{uploadedFiles.length}</span>
+                  <span className="text-sm text-muted-foreground">Analyzed Files</span>
+                  <span className="font-semibold">{uploadedFiles.filter(f => f.status === 'complete').length}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Data Points</span>
@@ -601,7 +601,7 @@ const DataUpload = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Last Upload</span>
-                  <span className="font-semibold">{uploadedFiles.length > 0 ? new Date(uploadedFiles[0].uploadDate).toLocaleDateString() : 'No uploads yet'}</span>
+                  <span className="font-semibold">{uploadedFiles.length > 0 ? uploadedFiles[0].uploadDate : 'No uploads yet'}</span>
                 </div>
               </CardContent>
             </Card>

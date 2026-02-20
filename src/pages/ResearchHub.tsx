@@ -216,9 +216,18 @@ const ResearchHub = () => {
   const [selectedImpact, setSelectedImpact] = useState<string>('all');
   const [selectedTimePeriod, setSelectedTimePeriod] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedItem, setSelectedItem] = useState<ResearchItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showType1Only, setShowType1Only] = useState(true);
+
+  // Debounce search input (Issue 135)
+  const searchDebounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => setDebouncedSearch(value), 300);
+  };
   
   const { data: researchData, loading: rssLoading, error: rssError, refreshFeed } = useResearchFeed();
   const { data: medicalPapers, loading: papersLoading, error: papersError, refreshData: refreshPapers } = useMedicalResearchPapers({ type1Only: showType1Only });
@@ -281,8 +290,8 @@ const ResearchHub = () => {
     const matchesImpact = selectedImpact === 'all' || 
                          item.impact_level.toLowerCase() === selectedImpact.toLowerCase();
     const matchesTimePeriod = getTimePeriodFilter(item, selectedTimePeriod);
-    const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.summary.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = item.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+                         item.summary.toLowerCase().includes(debouncedSearch.toLowerCase());
     return matchesCategory && matchesImpact && matchesTimePeriod && matchesSearch;
   });
 
@@ -394,7 +403,7 @@ const ResearchHub = () => {
                     placeholder="Search research papers..."
                     className="pl-10 w-full lg:w-80"
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                   />
                 </div>
               </div>

@@ -62,12 +62,13 @@ export const useDeviceReviews = (deviceId: string | undefined): UseDeviceReviews
       setLoading(true);
       setError(null);
 
-      // Fetch reviews
+      // Fetch reviews — server-side limit to prevent over-fetching (Issue 67)
       const { data: reviewsData, error: reviewsError } = await supabase
         .from('device_reviews')
         .select('*')
         .eq('device_id', deviceId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100);
 
       if (reviewsError) throw reviewsError;
 
