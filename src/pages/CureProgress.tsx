@@ -208,9 +208,14 @@ export default function CureProgress() {
     <Layout>
       <div className="container mx-auto px-6 py-8">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-heading font-bold text-foreground mb-6">
-            Cure Progress Tracker
-          </h1>
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <h1 className="text-4xl font-heading font-bold text-foreground">
+              Cure Progress Tracker
+            </h1>
+            <Badge variant="outline" className="text-muted-foreground border-muted-foreground/40 text-xs">
+              Reference Data
+            </Badge>
+          </div>
           <p className="text-muted-foreground mb-8">
             Real-time tracking of Type 1 diabetes cure research progress from ClinicalTrials.gov worldwide database.
           </p>

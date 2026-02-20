@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+const STALE_TIME_MS = 5 * 60 * 1000; // 5 minutes - news refreshes more often
+let newsCache: { data: any[]; fetchedAt: number } | null = null;
+
 export interface NewsArticle {
   id: string;
   title: string;
@@ -42,6 +45,11 @@ export const useT1DNews = (): UseT1DNewsResult => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const fetchNewsFromDB = useCallback(async () => {
+    const now = Date.now();
+    if (newsCache && now - newsCache.fetchedAt < STALE_TIME_MS && newsCache.data.length > 0) {
+      setAllArticles(newsCache.data as NewsArticle[]);
+      return;
+    }
     try {
       const { data, error: dbError } = await supabase
         .from('t1d_news_articles')
@@ -68,6 +76,7 @@ export const useT1DNews = (): UseT1DNewsResult => {
           is_featured: article.is_featured ?? false
         }));
 
+      newsCache = { data: validArticles, fetchedAt: Date.now() };
       setAllArticles(validArticles);
       setError(null);
     } catch (err) {

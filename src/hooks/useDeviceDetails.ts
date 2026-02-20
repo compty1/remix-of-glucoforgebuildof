@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+const STALE_TIME_MS = 10 * 60 * 1000; // 10 minutes
+const deviceDetailsCache: Record<string, { data: any; fetchedAt: number }> = {};
+
 export interface DeviceMetrics {
   reliability_score: number | null;
   social_setting_score: number | null;
@@ -122,6 +125,14 @@ export const useDeviceDetails = (deviceId: string | undefined) => {
         return;
       }
 
+      const now = Date.now();
+      const cached = deviceDetailsCache[deviceId];
+      if (cached && now - cached.fetchedAt < STALE_TIME_MS) {
+        setData(cached.data);
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
@@ -206,7 +217,7 @@ export const useDeviceDetails = (deviceId: string | undefined) => {
           total: posts.length
         };
 
-        setData({
+        const result = {
           device: deviceData,
           metrics: metricsData || null,
           issues: issuesData || [],
@@ -215,7 +226,9 @@ export const useDeviceDetails = (deviceId: string | undefined) => {
           supportResources: resourcesData || [],
           relatedDevices: relatedData || [],
           reviewStats
-        });
+        };
+        deviceDetailsCache[deviceId] = { data: result, fetchedAt: Date.now() };
+        setData(result);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load device details');
       } finally {
