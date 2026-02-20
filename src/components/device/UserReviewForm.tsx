@@ -151,15 +151,16 @@ export const UserReviewForm: React.FC<UserReviewFormProps> = ({
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Rating */}
           <div className="space-y-2">
-            <Label>Your Rating *</Label>
+            <Label id="rating-label">Your Rating *</Label>
             <StarRating
               rating={rating}
               size="lg"
               interactive
               onRatingChange={setRating}
+              aria-labelledby="rating-label"
             />
             {rating === 0 && (
-              <p className="text-xs text-muted-foreground">Please select a rating</p>
+              <p id="rating-error" className="text-xs text-muted-foreground" role="alert">Please select a rating</p>
             )}
           </div>
 
@@ -173,6 +174,7 @@ export const UserReviewForm: React.FC<UserReviewFormProps> = ({
               onChange={(e) => setTitle(e.target.value)}
               required
               maxLength={100}
+              aria-required="true"
             />
           </div>
 
@@ -188,9 +190,12 @@ export const UserReviewForm: React.FC<UserReviewFormProps> = ({
               minLength={10}
               maxLength={2000}
               className="min-h-[120px]"
+              aria-required="true"
+              aria-describedby="review-content-hint"
             />
-            <p className="text-xs text-muted-foreground">
-              {content.length} / 2000 characters{content.trim().length < 10 && content.length > 0 ? ' (minimum 10)' : ''}
+            {/* Issue 163: aria-describedby links hint text to the textarea */}
+            <p id="review-content-hint" className="text-xs text-muted-foreground">
+              {content.length} / 2000 characters{content.trim().length < 10 && content.length > 0 ? ' (minimum 10 required)' : ''}
             </p>
           </div>
 
@@ -228,8 +233,9 @@ export const UserReviewForm: React.FC<UserReviewFormProps> = ({
                 size="icon"
                 onClick={handleAddPro}
                 disabled={pros.length >= 5 || !newPro.trim()}
+                aria-label="Add pro"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
             {pros.length > 0 && (
@@ -270,8 +276,9 @@ export const UserReviewForm: React.FC<UserReviewFormProps> = ({
                 size="icon"
                 onClick={handleAddCon}
                 disabled={cons.length >= 5 || !newCon.trim()}
+                aria-label="Add con"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-4 w-4" aria-hidden="true" />
               </Button>
             </div>
             {cons.length > 0 && (

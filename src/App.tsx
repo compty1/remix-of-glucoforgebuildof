@@ -162,6 +162,21 @@ const AppContent = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Issue 232: Handle unhandled promise rejections not caught by ErrorBoundary
+  useEffect(() => {
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      // Prevent these from being completely silent — surface via toast
+      const msg = event.reason?.message || String(event.reason) || 'An unexpected error occurred';
+      // Only show for non-network errors to avoid noise during offline states
+      if (!msg.includes('NetworkError') && !msg.includes('Failed to fetch')) {
+        toast.error(`Unexpected error: ${msg.slice(0, 100)}`);
+      }
+      event.preventDefault();
+    };
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+    return () => window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+  }, []);
+
   return (
     <BrowserRouter>
       <ScrollToTop />
