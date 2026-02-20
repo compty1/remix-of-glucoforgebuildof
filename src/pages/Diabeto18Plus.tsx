@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Layout from '@/components/Layout';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ import {
 import { toast } from 'sonner';
 
 export default function Diabeto18Plus() {
+  usePageMeta('18+ Diabetes Community', 'Candid adult discussions on diabetes and relationships, intimacy, alcohol, and lifestyle topics — verified 18+ community space.');
   const [ageVerified, setAgeVerified] = useState(false);
   const [showAgeVerification, setShowAgeVerification] = useState(true);
   const [isSeeding, setIsSeeding] = useState(false);

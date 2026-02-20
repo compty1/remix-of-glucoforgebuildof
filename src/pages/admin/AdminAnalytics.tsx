@@ -1,25 +1,16 @@
 import Layout from '@/components/Layout';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Users, DollarSign, Activity, Download, RefreshCw, Calendar, Info } from 'lucide-react';
+import { TrendingUp, Users, DollarSign, Activity, Download, RefreshCw, Info } from 'lucide-react';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-
-const CHART_COLORS = [
-  'hsl(var(--chart-1))',
-  'hsl(var(--chart-2))',
-  'hsl(var(--chart-3))',
-  'hsl(var(--chart-4))',
-  'hsl(var(--chart-5))',
-];
 
 export default function AdminAnalytics() {
+  usePageMeta('Analytics & Reports', 'Admin analytics and platform usage reports for GlucoForge.');
   const [dateRange, setDateRange] = useState('last_30_days');
 
   const { data: stats, isLoading, refetch, isRefetching } = useQuery({
@@ -55,14 +46,6 @@ export default function AdminAnalytics() {
     },
   });
 
-  // Note: Feature usage data is illustrative until event tracking is implemented
-  const featureUsageData = [
-    { name: 'Dashboard', value: 35 },
-    { name: 'Data Upload', value: 25 },
-    { name: 'Research Hub', value: 20 },
-    { name: 'Surveys', value: 15 },
-    { name: 'Community', value: 5 },
-  ];
 
   const handleExportData = (type: string) => {
     const data = {
@@ -166,38 +149,13 @@ export default function AdminAnalytics() {
             </TabsList>
 
             <TabsContent value="usage" className="space-y-6">
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertDescription>
-                  Feature usage distribution is illustrative. Detailed analytics require event tracking integration.
-                </AlertDescription>
-              </Alert>
               <Card>
-                <CardHeader>
-                  <CardTitle>Feature Usage Distribution (Illustrative — requires event tracking)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-80">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={featureUsageData}
-                          cx="50%"
-                          cy="50%"
-                          labelLine={false}
-                          label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                          outerRadius={80}
-                          fill="hsl(var(--chart-1))"
-                          dataKey="value"
-                        >
-                          {featureUsageData.map((_, index) => (
-                            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
+                <CardContent className="p-8 text-center">
+                  <Info className="h-10 w-10 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">Feature Usage Analytics Coming Soon</h3>
+                  <p className="text-sm text-muted-foreground max-w-md mx-auto">
+                    No event tracking instrumentation is in place yet. When page-view and feature-click events are captured, usage distribution charts will appear here with real data.
+                  </p>
                 </CardContent>
               </Card>
             </TabsContent>

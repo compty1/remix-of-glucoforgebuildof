@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -230,6 +231,7 @@ const STATIC_FORMS: StateForm[] = [
 ];
 
 const StateFormsFinder = () => {
+  usePageMeta('State Forms Finder', 'Find state-specific diabetes accommodation forms for driving, school, employment, and travel in all 50 US states.');
   const [selectedState, setSelectedState] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('driving');
   const [forms, setForms] = useState<StateForm[]>(STATIC_FORMS);
