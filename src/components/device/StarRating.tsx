@@ -48,7 +48,11 @@ export const StarRating: React.FC<StarRatingProps> = ({
   const displayRating = hoverRating || rating;
 
   return (
-    <div className={cn('flex items-center gap-0.5', className)}>
+    <div
+      className={cn('flex items-center gap-0.5', className)}
+      role="img"
+      aria-label={`${rating} out of ${maxRating} stars`}
+    >
       {Array.from({ length: maxRating }, (_, index) => {
         const value = index + 1;
         const isFilled = value <= displayRating;
@@ -61,6 +65,7 @@ export const StarRating: React.FC<StarRatingProps> = ({
             onMouseEnter={() => handleMouseEnter(value)}
             onMouseLeave={handleMouseLeave}
             disabled={!interactive}
+            aria-label={interactive ? `Rate ${value} out of ${maxRating}` : undefined}
             className={cn(
               'transition-colors',
               interactive ? 'cursor-pointer hover:scale-110' : 'cursor-default',
@@ -70,10 +75,11 @@ export const StarRating: React.FC<StarRatingProps> = ({
             <Star
               className={cn(
                 sizeClasses[size],
-                isFilled 
-                  ? 'fill-warning text-warning' 
+                isFilled
+                  ? 'fill-warning text-warning'
                   : 'fill-none text-muted-foreground'
               )}
+              aria-hidden="true"
             />
           </button>
         );

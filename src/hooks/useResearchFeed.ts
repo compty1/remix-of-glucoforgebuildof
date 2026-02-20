@@ -50,8 +50,7 @@ export const useResearchFeed = (): UseResearchFeedResult => {
       const { error: functionError } = await supabase.functions.invoke('research-feed');
 
       if (functionError) {
-        console.error('Edge function error:', functionError);
-        // Don't throw here if we already have data - just log the error
+        // Don't throw here if we already have cached data — just surface the error if empty
         if (!existingData || existingData.length === 0) {
           throw new Error(`Failed to fetch research feed: ${functionError.message}`);
         }
@@ -68,7 +67,6 @@ export const useResearchFeed = (): UseResearchFeedResult => {
       }
 
     } catch (err) {
-      console.error('Error fetching research feed:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch research data');
     } finally {
       setLoading(false);

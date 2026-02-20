@@ -133,7 +133,7 @@ export const ExternalReviewCard: React.FC<ExternalReviewCardProps> = ({ review }
   );
 
   return (
-    <Card className="command-center-widget hover:shadow-md transition-shadow">
+    <Card className="command-center-widget hover:shadow-md transition-shadow" role="article" aria-label={`Review from ${getSourceLabel()}`}>
       <CardContent className="p-4">
         {/* Header */}
         <div className="flex items-start justify-between gap-4 mb-3">
