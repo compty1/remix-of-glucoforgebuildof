@@ -10,6 +10,7 @@ import { Lightbulb, ExternalLink, Search, RefreshCw, TrendingUp, Users, Building
 import { usePatentData } from "@/hooks/usePatentData";
 import { supabase } from "@/integrations/supabase/client";
 import { PatentDetailModal } from "@/components/innovation/PatentDetailModal";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 interface PatentData {
   id: string;
@@ -32,6 +33,7 @@ const InnovationHub = () => {
   const [topCompanies, setTopCompanies] = useState<any[]>([]);
   const [selectedPatent, setSelectedPatent] = useState<PatentData | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  usePageMeta('Innovation Hub', 'Explore the latest diabetes technology patents and innovations. Track emerging T1D treatments and devices from the USPTO.');
 
   const handlePatentClick = (patent: PatentData) => {
     setSelectedPatent(patent);

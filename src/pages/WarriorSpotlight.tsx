@@ -5,11 +5,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Trophy, Heart, PenLine, Users } from 'lucide-react';
+import { Trophy, Heart, PenLine, Users, Info } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { WarriorStoryCard } from '@/components/warrior/WarriorStoryCard';
 import { WarriorStoryModal } from '@/components/warrior/WarriorStoryModal';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface WarriorStory {
   id: string;
@@ -29,6 +30,7 @@ interface WarriorStory {
 
 export default function WarriorSpotlight() {
   const [selectedStory, setSelectedStory] = useState<WarriorStory | null>(null);
+  usePageMeta('Warrior Spotlight', 'Celebrate the strength and resilience of Type 1 diabetics. Read inspiring warrior stories from the T1D community on GlucoForge.');
 
   const { data: stories, isLoading } = useQuery({
     queryKey: ['warrior-stories'],
@@ -51,7 +53,7 @@ export default function WarriorSpotlight() {
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">
-        <BackButton />
+        <BackButton fallbackPath="/dashboard" />
         
         {/* Hero Section */}
         <div className="mb-8">
@@ -63,6 +65,13 @@ export default function WarriorSpotlight() {
             Celebrating the strength, resilience, and daily victories of Type 1 diabetics.
             Every story here represents a life lived fully, despite the challenges.
           </p>
+          {/* Issue 178: Data transparency — stories include both community-submitted and seeded content */}
+          <div className="mt-3 flex items-center gap-2">
+            <Badge variant="outline" className="gap-1 text-xs text-muted-foreground">
+              <Info className="h-3 w-3" />
+              Community & Demo Stories
+            </Badge>
+          </div>
         </div>
 
         {/* Stats Bar */}

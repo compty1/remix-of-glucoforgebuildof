@@ -7,6 +7,7 @@ import { CommandCenterWidget } from '@/components/CommandCenterWidget';
 import { InfoRail } from '@/components/InfoRail';
 import Layout from '@/components/Layout';
 import { BackButton } from '@/components/ui/back-button';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import MentalHealthConditionsSection from '@/components/mental-health/MentalHealthConditionsSection';
 import PsychLoadComparisonSection from '@/components/mental-health/PsychLoadComparisonSection';
 import DeviceFearDistressSection from '@/components/mental-health/DeviceFearDistressSection';
@@ -62,6 +63,7 @@ interface CopingStrategy {
 const MentalHealthHub = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [activeStrategy, setActiveStrategy] = useState<CopingStrategy | null>(null);
+  usePageMeta('Mental Health Hub', 'Resources, coping strategies, and peer support for managing the psychosocial challenges of Type 1 diabetes.');
 
   const resources: MentalHealthResource[] = [
     {

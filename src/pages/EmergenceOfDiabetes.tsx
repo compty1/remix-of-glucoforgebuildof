@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { 
   TrendingUp, 
   AlertCircle, 
@@ -553,7 +554,7 @@ export default function EmergenceOfDiabetes() {
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">
-        <BackButton />
+        <BackButton fallbackPath="/explore" />
 
         {/* Hero */}
         <div className="mb-8">
