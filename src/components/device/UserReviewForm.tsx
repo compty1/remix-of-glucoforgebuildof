@@ -80,7 +80,7 @@ export const UserReviewForm: React.FC<UserReviewFormProps> = ({
       return;
     }
 
-    if (content.length < 50) {
+    if (content.trim().length < 10) {
       return;
     }
 
@@ -181,15 +181,16 @@ export const UserReviewForm: React.FC<UserReviewFormProps> = ({
             <Label htmlFor="review-content">Your Review *</Label>
             <Textarea
               id="review-content"
-              placeholder="Share details about your experience with this device... (minimum 50 characters)"
+              placeholder="Share details about your experience with this device..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
               required
-              minLength={50}
+              minLength={10}
+              maxLength={2000}
               className="min-h-[120px]"
             />
             <p className="text-xs text-muted-foreground">
-              {content.length}/50 characters minimum
+              {content.length} / 2000 characters{content.trim().length < 10 && content.length > 0 ? ' (minimum 10)' : ''}
             </p>
           </div>
 
@@ -298,7 +299,7 @@ export const UserReviewForm: React.FC<UserReviewFormProps> = ({
           <div className="flex gap-3">
             <Button 
               type="submit" 
-              disabled={isSubmitting || rating === 0 || !title.trim() || content.length < 50}
+              disabled={isSubmitting || rating === 0 || !title.trim() || content.trim().length < 10}
             >
               {isSubmitting ? 'Submitting...' : isEditing ? 'Update Review' : 'Submit Review'}
             </Button>

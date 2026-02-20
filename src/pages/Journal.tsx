@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Layout from "@/components/Layout";
+import { usePageMeta } from "@/hooks/usePageMeta";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,6 +33,7 @@ const Journal = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuthStore();
+  usePageMeta('Glucose Journal', 'Track glucose shifts, patterns, and triggers in your personal diabetes journal on GlucoForge.');
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [autoDetectedShifts, setAutoDetectedShifts] = useState<Shift[]>([]);
   const [triggerReport, setTriggerReport] = useState<TriggerReport[]>([]);
@@ -76,7 +78,7 @@ const Journal = () => {
       setShifts(manualEntries);
       generateTriggerReport(allShifts);
     } catch (error) {
-      console.error('Error fetching shifts:', error);
+      // Silent failure — toast is shown to user below
       toast({
         title: "Error",
         description: "Failed to load your journal entries",

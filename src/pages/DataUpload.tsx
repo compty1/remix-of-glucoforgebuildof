@@ -7,6 +7,7 @@ import Layout from '@/components/Layout';
 import AnalysisResultsModal from '@/components/data-upload/AnalysisResultsModal';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { toast } from 'sonner';
 import { 
   Upload, 
@@ -91,6 +92,9 @@ const DataUpload = () => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [selectedFile, setSelectedFile] = useState<UploadedFile | null>(null);
+
+  // Issue 231: Set page title and meta description
+  usePageMeta('Data Upload & Analysis', 'Upload your CGM, pump, or logbook data for AI-powered glucose analysis, TIR breakdowns, and personalized T1D insights.');
 
   const [uploadPage, setUploadPage] = useState(0);
   const [hasMoreUploads, setHasMoreUploads] = useState(false);

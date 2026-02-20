@@ -304,11 +304,16 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                           role="article" aria-label="User review">
                           <div className="flex items-center justify-between flex-wrap gap-2">
                             <div className="flex items-center gap-2">
-                              <div className="flex items-center gap-0.5" aria-label={`${review.rating || 0} out of 5 stars`}>
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                  <Star key={i} className={`h-4 w-4 ${i < (review.rating || 0) ? 'fill-warning text-warning' : 'text-muted-foreground'}`} />
-                                ))}
-                              </div>
+                              {/* Issue 61: if rating is null/0, show "No rating" instead of empty stars */}
+                              {review.rating != null && review.rating > 0 ? (
+                                <div className="flex items-center gap-0.5" aria-label={`${review.rating} out of 5 stars`}>
+                                  {Array.from({ length: 5 }).map((_, i) => (
+                                    <Star key={i} className={`h-4 w-4 ${i < review.rating! ? 'fill-warning text-warning' : 'text-muted-foreground'}`} />
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-xs text-muted-foreground italic">No rating</span>
+                              )}
                               {review.verified && (
                                 <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/20">
                                   <Shield className="h-3 w-3 mr-1" /> Verified

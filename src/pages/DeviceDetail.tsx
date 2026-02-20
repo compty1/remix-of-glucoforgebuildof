@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import { DeviceSupportTab } from '@/components/device/DeviceSupportTab';
 import { DeviceUserFixesTab } from '@/components/device/DeviceUserFixesTab';
 import { DeviceSolutionsTab } from '@/components/device/DeviceSolutionsTab';
 import { RelatedDevicesSection } from '@/components/device/RelatedDevicesSection';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { 
   ArrowLeft, 
   AlertCircle,
@@ -156,6 +157,9 @@ const DeviceDetail = () => {
   }
 
   const { device, metrics, issues, communityPosts, fdaEvents, supportResources, relatedDevices, reviewStats } = data;
+
+  // Issue 231: Update document title with device name for SEO
+  usePageMeta(device.name, `${device.name} reviews, issues, FDA data, and community insights for T1D users on GlucoForge.`);
 
   return (
     <Layout>
