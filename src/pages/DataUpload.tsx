@@ -417,7 +417,7 @@ const DataUpload = () => {
                     onClick={() => {
                       const input = document.createElement('input');
                       input.type = 'file';
-                      input.accept = '.csv,.json,.pdf,.xlsx,.xls,.xml,.png,.jpg,.jpeg';
+                      input.accept = '.csv,.json,.pdf,.xlsx,.xls,.xml,.png,.jpg,.jpeg,.webp';
                       input.multiple = true;
                       input.onchange = async (e) => {
                         const files = Array.from((e.target as HTMLInputElement).files || []);
@@ -612,6 +612,25 @@ const DataUpload = () => {
                 <CardTitle className="text-lg">Quick Actions</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
+                {/* Issue 26/243: Export Analysis is available — show real DataExport trigger */}
+                {uploadedFiles.filter(f => f.status === 'complete').length > 0 ? (
+                  <DataExport
+                    analysisData={{
+                      detailedAnalysis: uploadedFiles.find(f => f.status === 'complete')?.detailedAnalysis,
+                      patterns: uploadedFiles.find(f => f.status === 'complete')?.patterns,
+                      recommendations: uploadedFiles.find(f => f.status === 'complete')?.recommendations,
+                      dailyData: uploadedFiles.find(f => f.status === 'complete')?.dailyData,
+                      hourlyData: uploadedFiles.find(f => f.status === 'complete')?.hourlyData,
+                    }}
+                    fileName={uploadedFiles.find(f => f.status === 'complete')?.name || 'export'}
+                  />
+                ) : (
+                  <Button className="w-full justify-start" variant="outline" disabled>
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Export Analysis
+                    <Badge variant="outline" className="ml-auto text-[10px]">Upload first</Badge>
+                  </Button>
+                )}
                 <Button className="w-full justify-start" variant="outline" disabled>
                   <Smartphone className="h-4 w-4 mr-2" />
                   Connect CGM App
@@ -627,18 +646,6 @@ const DataUpload = () => {
                   Share with Doctor
                   <Badge variant="outline" className="ml-auto text-[10px]">Soon</Badge>
                 </Button>
-                {uploadedFiles.filter(f => f.status === 'complete').length > 0 && (
-                  <DataExport
-                    analysisData={{
-                      detailedAnalysis: uploadedFiles.find(f => f.status === 'complete')?.detailedAnalysis,
-                      patterns: uploadedFiles.find(f => f.status === 'complete')?.patterns,
-                      recommendations: uploadedFiles.find(f => f.status === 'complete')?.recommendations,
-                      dailyData: uploadedFiles.find(f => f.status === 'complete')?.dailyData,
-                      hourlyData: uploadedFiles.find(f => f.status === 'complete')?.hourlyData,
-                    }}
-                    fileName={uploadedFiles.find(f => f.status === 'complete')?.name || 'export'}
-                  />
-                )}
               </CardContent>
             </Card>
 

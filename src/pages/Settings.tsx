@@ -468,6 +468,11 @@ const Settings = () => {
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <Input id="email" type="email" value={user?.email || ''} disabled />
+                    {emailChangeInfo && (
+                      <Alert className="border-info/30 bg-info/5">
+                        <AlertDescription className="text-xs text-info">{emailChangeInfo}</AlertDescription>
+                      </Alert>
+                    )}
                     <p className="text-xs text-muted-foreground">Email cannot be changed here. Contact support if needed.</p>
                   </div>
                 </div>

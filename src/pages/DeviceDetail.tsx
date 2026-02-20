@@ -84,8 +84,11 @@ const DeviceDetail = () => {
           </Button>
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {error}
+            <AlertDescription className="flex items-center justify-between">
+              <span>{error}</span>
+              <Button size="sm" variant="outline" className="ml-4 shrink-0" onClick={() => window.location.reload()}>
+                Retry
+              </Button>
             </AlertDescription>
           </Alert>
         </div>

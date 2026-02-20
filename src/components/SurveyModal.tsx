@@ -434,7 +434,20 @@ export const SurveyModal: React.FC<SurveyModalProps> = ({
               {currentStep < questions.length - 1 ? (
                 <Button
                   type="button"
-                  onClick={() => setCurrentStep(Math.min(questions.length - 1, currentStep + 1))}
+                  onClick={() => {
+                    // Validate current required question before advancing (Issue 150)
+                    const currentQuestion = questions[currentStep];
+                    if (currentQuestion?.required) {
+                      const fieldName = `question_${currentQuestion.id || currentStep}`;
+                      const val = watchedValues[fieldName];
+                      const isEmpty = val === undefined || val === null || val === '' || 
+                        (Array.isArray(val) && val.length === 0);
+                      if (isEmpty) {
+                        return; // Block advance silently — error shown by field validation
+                      }
+                    }
+                    setCurrentStep(Math.min(questions.length - 1, currentStep + 1));
+                  }}
                 >
                   Next
                   <ChevronRight className="h-4 w-4 ml-1" />
