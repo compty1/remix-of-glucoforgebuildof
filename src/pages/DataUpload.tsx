@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { InfoRail } from '@/components/InfoRail';
 import Layout from '@/components/Layout';
 import AnalysisResultsModal from '@/components/data-upload/AnalysisResultsModal';
@@ -15,7 +14,6 @@ import {
   Smartphone, 
   Cloud,
   TrendingUp,
-  Download,
   Share2,
   AlertCircle,
   CheckCircle,
@@ -26,9 +24,13 @@ import {
   FileImage,
   FileSpreadsheet,
   Database,
-  FileCode
+  FileCode,
+  Trash2,
+  RefreshCw,
+  ChevronDown
 } from 'lucide-react';
 import { DataExport } from '@/components/data-upload/DataExport';
+
 
 interface UploadedFile {
   id: string;
@@ -90,48 +92,77 @@ const DataUpload = () => {
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [selectedFile, setSelectedFile] = useState<UploadedFile | null>(null);
 
+  const [uploadPage, setUploadPage] = useState(0);
+  const [hasMoreUploads, setHasMoreUploads] = useState(false);
+  const UPLOADS_PER_PAGE = 10;
+
+  const mapUploadRecord = (upload: any): UploadedFile => {
+    const ext = upload.file_name?.split('.').pop()?.toLowerCase();
+    const fileType: UploadedFile['type'] =
+      ext === 'csv' || ext === 'txt' || ext === 'json' || ext === 'xml' ? 'cgm'
+      : ext === 'pdf' || ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'webp' ? 'logbook'
+      : ext === 'xlsx' || ext === 'xls' ? 'lab'
+      : 'cgm';
+
+    return {
+      id: upload.id,
+      name: upload.file_name,
+      type: fileType,
+      size: upload.file_size ? `${(upload.file_size / 1024 / 1024).toFixed(1)} MB` : '0 MB',
+      uploadDate: new Date(upload.uploaded_at).toLocaleDateString(),
+      status: (upload.status === 'completed' ? 'complete' : upload.status) as 'complete' | 'processing' | 'error',
+      insights: upload.insights || [],
+      readingsCount: upload.readings_count || 0,
+      detailedAnalysis: upload.detailed_analysis as UploadedFile['detailedAnalysis'],
+      hourlyData: upload.hourly_data as UploadedFile['hourlyData'],
+      dailyData: upload.daily_data as UploadedFile['dailyData'],
+      agpData: upload.agp_data as UploadedFile['agpData'],
+      patterns: upload.patterns as UploadedFile['patterns'],
+      recommendations: upload.recommendations || [],
+      aiInsights: upload.ai_insights as UploadedFile['aiInsights'],
+      confidenceScore: upload.confidence_score ?? undefined,
+      confidenceBand: (upload.confidence_band || 'unknown') as UploadedFile['confidenceBand'],
+      validationFlags: upload.validation_flags as UploadedFile['validationFlags'],
+      dataQuality: upload.data_quality as UploadedFile['dataQuality'],
+      novelSignals: upload.novel_signals as UploadedFile['novelSignals'],
+      executiveSummary: (upload.ai_insights as any)?.executiveSummary as UploadedFile['executiveSummary'],
+      dayNightAnalysis: upload.day_night_analysis as UploadedFile['dayNightAnalysis']
+    };
+  };
+
+  const fetchUploads = async (page = 0) => {
+    if (!user) return;
+
+    const { data, count } = await supabase
+      .from('uploads')
+      .select('*', { count: 'exact' })
+      .eq('user_id', user.id)
+      .order('uploaded_at', { ascending: false })
+      .range(page * UPLOADS_PER_PAGE, (page + 1) * UPLOADS_PER_PAGE - 1);
+
+    if (data) {
+      if (page === 0) {
+        setUploadedFiles(data.map(mapUploadRecord));
+      } else {
+        setUploadedFiles(prev => [...prev, ...data.map(mapUploadRecord)]);
+      }
+      setHasMoreUploads((count ?? 0) > (page + 1) * UPLOADS_PER_PAGE);
+    }
+  };
+
+  const handleDeleteUpload = async (fileId: string) => {
+    const { error } = await supabase.from('uploads').delete().eq('id', fileId).eq('user_id', user!.id);
+    if (!error) {
+      setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
+      toast.success('Upload deleted');
+    } else {
+      toast.error('Failed to delete upload');
+    }
+  };
+
   // Fetch user's previous uploads
   useEffect(() => {
-    const fetchUploads = async () => {
-      if (!user) return;
-      
-      const { data } = await supabase
-        .from('uploads')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('uploaded_at', { ascending: false })
-        .limit(10);
-        
-      if (data) {
-        setUploadedFiles(data.map(upload => ({
-          id: upload.id,
-          name: upload.file_name,
-          type: upload.file_type?.includes('csv') ? 'cgm' : 'pump',
-          size: upload.file_size ? `${(upload.file_size / 1024 / 1024).toFixed(1)} MB` : '0 MB',
-          uploadDate: new Date(upload.uploaded_at).toISOString().split('T')[0],
-          status: (upload.status === 'completed' ? 'complete' : upload.status) as 'complete' | 'processing' | 'error',
-          insights: upload.insights || [],
-          readingsCount: upload.readings_count || 0,
-          detailedAnalysis: upload.detailed_analysis as UploadedFile['detailedAnalysis'],
-          hourlyData: upload.hourly_data as UploadedFile['hourlyData'],
-          dailyData: upload.daily_data as UploadedFile['dailyData'],
-          agpData: upload.agp_data as UploadedFile['agpData'],
-          patterns: upload.patterns as UploadedFile['patterns'],
-          recommendations: upload.recommendations || [],
-          aiInsights: upload.ai_insights as UploadedFile['aiInsights'],
-          // Enhanced analysis fields
-          confidenceScore: upload.confidence_score ?? undefined,
-          confidenceBand: (upload.confidence_band || 'unknown') as UploadedFile['confidenceBand'],
-          validationFlags: upload.validation_flags as UploadedFile['validationFlags'],
-          dataQuality: upload.data_quality as UploadedFile['dataQuality'],
-          novelSignals: upload.novel_signals as UploadedFile['novelSignals'],
-          executiveSummary: (upload.ai_insights as any)?.executiveSummary as UploadedFile['executiveSummary'],
-          dayNightAnalysis: upload.day_night_analysis as UploadedFile['dayNightAnalysis']
-        })));
-      }
-    };
-    
-    fetchUploads();
+    fetchUploads(0);
   }, [user]);
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -160,18 +191,27 @@ const DataUpload = () => {
   }, [user]);
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB practical limit for edge functions
-  const ALLOWED_EXTENSIONS = ['.csv', '.txt', '.pdf', '.xlsx', '.xls', '.png', '.jpg', '.jpeg', '.webp'];
+  const ALLOWED_EXTENSIONS = ['.csv', '.txt', '.pdf', '.xlsx', '.xls', '.png', '.jpg', '.jpeg', '.webp', '.xml', '.json'];
+
+  /** Determine upload type from file extension — not just csv vs "pump" */
+  const getFileType = (filename: string): UploadedFile['type'] => {
+    const ext = filename.split('.').pop()?.toLowerCase();
+    if (ext === 'csv' || ext === 'txt' || ext === 'json' || ext === 'xml') return 'cgm';
+    if (ext === 'pdf' || ext === 'png' || ext === 'jpg' || ext === 'jpeg' || ext === 'webp') return 'logbook';
+    if (ext === 'xlsx' || ext === 'xls') return 'lab';
+    return 'cgm';
+  };
 
   const processFile = async (file: File) => {
     if (!user) return;
 
-    // File size validation (item 1354)
+    // File size validation
     if (file.size > MAX_FILE_SIZE) {
       toast.error(`File "${file.name}" exceeds the 10MB limit. Please use a smaller file.`);
       return;
     }
 
-    // MIME/extension validation (item 1355)
+    // MIME/extension validation
     const ext = '.' + file.name.split('.').pop()?.toLowerCase();
     if (!ALLOWED_EXTENSIONS.includes(ext)) {
       toast.error(`Unsupported file type "${ext}". Accepted: ${ALLOWED_EXTENSIONS.join(', ')}`);
@@ -182,9 +222,9 @@ const DataUpload = () => {
     const newFile: UploadedFile = {
       id: tempId,
       name: file.name,
-      type: file.name.includes('.csv') ? 'cgm' : 'pump',
+      type: getFileType(file.name),
       size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
-      uploadDate: new Date().toISOString().split('T')[0],
+      uploadDate: new Date().toLocaleDateString(), // Use locale string directly to avoid timezone issues
       status: 'processing',
       insights: [],
       readingsCount: 0
@@ -444,39 +484,84 @@ const DataUpload = () => {
                         {getStatusIcon(file.status)}
                       </div>
                       
-                      {file.status === 'complete' && (
-                        <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
+                      <div className="flex gap-2 flex-wrap">
+                        {file.status === 'complete' && (
+                          <>
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedFile(file);
+                                setShowAnalysis(true);
+                              }}
+                            >
+                              <TrendingUp className="h-4 w-4 mr-1" />
+                              View Analysis
+                            </Button>
+                            <DataExport 
+                              analysisData={{
+                                detailedAnalysis: file.detailedAnalysis,
+                                patterns: file.patterns,
+                                recommendations: file.recommendations,
+                                dailyData: file.dailyData,
+                                hourlyData: file.hourlyData
+                              }}
+                              fileName={file.name}
+                            />
+                          </>
+                        )}
+                        {file.status === 'error' && (
+                          <Button
+                            size="sm"
                             variant="outline"
-                            onClick={() => {
-                              setSelectedFile(file);
-                              setShowAnalysis(true);
-                            }}
+                            onClick={() => toast.info('Re-upload the file using the upload area above to retry analysis.')}
+                            className="text-destructive border-destructive/30"
                           >
-                            <TrendingUp className="h-4 w-4 mr-1" />
-                            View Analysis
+                            <RefreshCw className="h-4 w-4 mr-1" />
+                            Retry
                           </Button>
-                          <Button 
-                            size="sm" 
+                        )}
+                        {file.status !== 'processing' && !file.id.startsWith('temp-') && (
+                          <Button
+                            size="sm"
                             variant="ghost"
+                            aria-label={`Delete ${file.name}`}
+                            onClick={() => handleDeleteUpload(file.id)}
+                            className="text-muted-foreground hover:text-destructive"
                           >
-                            <Download className="h-4 w-4" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
-                          <DataExport 
-                            analysisData={{
-                              detailedAnalysis: file.detailedAnalysis,
-                              patterns: file.patterns,
-                              recommendations: file.recommendations,
-                              dailyData: file.dailyData,
-                              hourlyData: file.hourlyData
-                            }}
-                            fileName={file.name}
-                          />
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   ))}
+
+                  {/* Empty state */}
+                  {uploadedFiles.length === 0 && (
+                    <div className="text-center py-10 text-muted-foreground">
+                      <FileText className="h-10 w-10 mx-auto mb-3 opacity-40" />
+                      <p className="font-medium">No uploads yet</p>
+                      <p className="text-sm">Upload a CGM export above to get started</p>
+                    </div>
+                  )}
+
+                  {/* Load more */}
+                  {hasMoreUploads && (
+                    <div className="pt-2 text-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const nextPage = uploadPage + 1;
+                          setUploadPage(nextPage);
+                          fetchUploads(nextPage);
+                        }}
+                      >
+                        <ChevronDown className="h-4 w-4 mr-1" />
+                        Load more uploads
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -530,11 +615,18 @@ const DataUpload = () => {
                   Share with Doctor
                   <Badge variant="outline" className="ml-auto text-[10px]">Soon</Badge>
                 </Button>
-                <Button className="w-full justify-start" variant="outline" disabled>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export Analysis
-                  <Badge variant="outline" className="ml-auto text-[10px]">Soon</Badge>
-                </Button>
+                {uploadedFiles.filter(f => f.status === 'complete').length > 0 && (
+                  <DataExport
+                    analysisData={{
+                      detailedAnalysis: uploadedFiles.find(f => f.status === 'complete')?.detailedAnalysis,
+                      patterns: uploadedFiles.find(f => f.status === 'complete')?.patterns,
+                      recommendations: uploadedFiles.find(f => f.status === 'complete')?.recommendations,
+                      dailyData: uploadedFiles.find(f => f.status === 'complete')?.dailyData,
+                      hourlyData: uploadedFiles.find(f => f.status === 'complete')?.hourlyData,
+                    }}
+                    fileName={uploadedFiles.find(f => f.status === 'complete')?.name || 'export'}
+                  />
+                )}
               </CardContent>
             </Card>
 

@@ -139,7 +139,6 @@ export const useDeviceReviews = (deviceId: string | undefined): UseDeviceReviews
         });
       }
     } catch (err) {
-      console.error('Error fetching device reviews:', err);
       setError(err instanceof Error ? err.message : 'Failed to load reviews');
     } finally {
       setLoading(false);

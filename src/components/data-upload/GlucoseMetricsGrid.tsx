@@ -113,6 +113,7 @@ const GlucoseMetricsGrid: React.FC<GlucoseMetricsGridProps> = ({ analysis }) => 
   };
 
   const getGMIStatus = (gmi: number) => {
+    if (gmi === 0) return 'neutral'; // 0 is not a valid GMI — show neutral
     if (gmi < 7) return 'success';
     if (gmi < 8) return 'warning';
     return 'danger';
@@ -153,7 +154,7 @@ const GlucoseMetricsGrid: React.FC<GlucoseMetricsGridProps> = ({ analysis }) => 
         <MetricCard
           icon={<BarChart3 className="h-4 w-4 text-primary" />}
           label="GMI (Est. A1C)"
-          value={`${safeAnalysis.gmi.toFixed(1)}%`}
+          value={safeAnalysis.gmi === 0 ? 'N/A' : `${safeAnalysis.gmi.toFixed(1)}%`}
           subValue={safeAnalysis.avgGlucose > 0 ? `Avg: ${safeAnalysis.avgGlucose.toFixed(0)} mg/dL` : undefined}
           status={getGMIStatus(safeAnalysis.gmi)}
           target="<7%"
