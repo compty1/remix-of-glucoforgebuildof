@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { 
   Laugh, 
   AlertTriangle, 
@@ -144,6 +145,7 @@ export default function LowBloodSugarWorld() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const queryClient = useQueryClient();
+  usePageMeta('Low Blood Sugar World', 'Real T1D community stories about low blood sugar moments — funny, scary, and educational experiences from the diabetes community.');
 
   const { data: stories = [], isLoading: loading } = useQuery({
     queryKey: ['low-blood-sugar-stories'],
@@ -194,7 +196,7 @@ export default function LowBloodSugarWorld() {
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">
-        <BackButton />
+        <BackButton fallbackPath="/dashboard" />
 
         {/* Hero Section */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-500 via-pink-500 to-orange-400 p-8 md:p-12 mb-8 text-white">

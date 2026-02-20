@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { InfoRail } from "@/components/InfoRail";
 import { TrendingUp, TrendingDown, BarChart3, RefreshCw, AlertTriangle, MessageSquare } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { usePageMeta } from "@/hooks/usePageMeta";
 
 interface TrendMetric {
   id: string;
@@ -27,6 +28,7 @@ interface CommunityTrend {
 
 const Trends = () => {
   const { toast } = useToast();
+  usePageMeta('Community Trends', 'Track what the T1D community is discussing — trending topics, emerging issues, and popular solutions from diabetes forums.');
 
   // Fetch from trend_analysis_metrics table
   const { data: trends = [], isLoading: loading, refetch, isRefetching } = useQuery({
