@@ -106,6 +106,7 @@ export function useGlucoseComparison() {
 
   const { data: userMetrics, isLoading: userLoading } = useQuery({
     queryKey: ['user-latest-analysis', user?.id],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       if (!user) return null;
       const { data, error } = await supabase
@@ -135,6 +136,7 @@ export function useGlucoseComparison() {
 
   const { data: benchmarks, isLoading: benchLoading } = useQuery({
     queryKey: ['high-performer-benchmarks'],
+    staleTime: 30 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_high_performer_benchmarks');
       if (error) throw error;

@@ -182,7 +182,6 @@ export default function AppCenter() {
       if (error) throw error;
       setApps(data || []);
     } catch (error) {
-      console.error('Error fetching apps:', error);
       toast.error('Failed to load apps');
     } finally {
       setLoading(false);
@@ -201,7 +200,7 @@ export default function AppCenter() {
       if (error) throw error;
       setReviews(data || []);
     } catch (error) {
-      console.error('Error fetching reviews:', error);
+      // silently fail; reviews are non-critical
     }
   };
 
@@ -217,7 +216,7 @@ export default function AppCenter() {
       if (error) throw error;
       setBuzz(data || []);
     } catch (error) {
-      console.error('Error fetching app buzz:', error);
+      // silently fail; buzz is non-critical
     }
   };
 

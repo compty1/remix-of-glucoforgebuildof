@@ -17,6 +17,7 @@ export interface QualityOfLifeExperience {
 export function useQualityOfLifeExperiences(category?: string) {
   return useQuery({
     queryKey: ['quality-of-life-experiences', category],
+    staleTime: 10 * 60 * 1000, // 10 minutes
     queryFn: async () => {
       let query = supabase
         .from('quality_of_life_experiences')
@@ -27,13 +28,22 @@ export function useQualityOfLifeExperiences(category?: string) {
         query = query.eq('category', category);
       }
 
-      const { data, error } = await query.limit(50);
+      const { data, error } = await query.limit(100);
       
       if (error) {
         throw error;
       }
       
-      return (data || []) as QualityOfLifeExperience[];
+      // Deduplicate by title — seeded data can contain identical entries
+      const seen = new Set<string>();
+      const deduplicated = (data || []).filter((item) => {
+        const key = `${item.title}__${item.category}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      return deduplicated as QualityOfLifeExperience[];
     },
   });
 }
@@ -41,6 +51,7 @@ export function useQualityOfLifeExperiences(category?: string) {
 export function useQualityOfLifeCategories() {
   return useQuery({
     queryKey: ['quality-of-life-categories'],
+    staleTime: 30 * 60 * 1000, // 30 minutes — categories rarely change
     queryFn: async () => {
       const { data, error } = await supabase
         .from('quality_of_life_experiences')

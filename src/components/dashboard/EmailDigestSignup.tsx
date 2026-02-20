@@ -38,7 +38,6 @@ export function EmailDigestSignup() {
       setIsSubscribed(true);
       toast.success('Subscribed to weekly research digest!');
     } catch (error) {
-      console.error('Subscription error:', error);
       toast.error('Failed to subscribe. Please try again.');
     } finally {
       setIsLoading(false);

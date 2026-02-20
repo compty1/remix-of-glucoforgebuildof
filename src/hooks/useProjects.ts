@@ -91,6 +91,7 @@ export const useProjects = (initialFilters?: Partial<ProjectFilters>) => {
 
   const { data: projects = [], isLoading, error, refetch } = useQuery({
     queryKey: ['projects', filters],
+    staleTime: 5 * 60 * 1000,
     queryFn: async () => {
       let query = supabase
         .from('diabetic_health_projects')
@@ -116,6 +117,7 @@ export const useProjects = (initialFilters?: Partial<ProjectFilters>) => {
 
   const { data: featuredProjects = [] } = useQuery({
     queryKey: ['projects', 'featured'],
+    staleTime: 10 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('diabetic_health_projects')
@@ -132,6 +134,7 @@ export const useProjects = (initialFilters?: Partial<ProjectFilters>) => {
 
   const { data: categories = [] } = useQuery({
     queryKey: ['projects', 'categories'],
+    staleTime: 30 * 60 * 1000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('diabetic_health_projects')

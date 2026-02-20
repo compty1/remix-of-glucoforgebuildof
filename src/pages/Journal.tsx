@@ -139,7 +139,6 @@ const Journal = () => {
       // Refresh data
       fetchShifts();
     } catch (error) {
-      console.error('Error adding shift:', error);
       toast({
         title: "Error",
         description: "Failed to add journal entry",

@@ -40,7 +40,7 @@ export function useClaimedProjects() {
       if (error) throw error;
       setClaimedProjects((data || []) as ClaimedProject[]);
     } catch (error) {
-      console.error('Error fetching claimed projects:', error);
+      // silently fail; UI shows empty state
     } finally {
       setLoading(false);
     }
@@ -78,7 +78,6 @@ export function useClaimedProjects() {
       await fetchClaimedProjects();
       return data;
     } catch (error) {
-      console.error('Error claiming project:', error);
       toast.error('Failed to claim project');
       return null;
     }
@@ -113,7 +112,6 @@ export function useClaimedProjects() {
       await fetchClaimedProjects();
       return true;
     } catch (error) {
-      console.error('Error updating project:', error);
       toast.error('Failed to update project');
       return false;
     }
@@ -148,7 +146,6 @@ export function useClaimedProjects() {
       await fetchClaimedProjects();
       return true;
     } catch (error) {
-      console.error('Error updating progress:', error);
       toast.error('Failed to update progress');
       return false;
     }
@@ -182,7 +179,6 @@ export function useClaimedProjects() {
       await fetchClaimedProjects();
       return true;
     } catch (error) {
-      console.error('Error completing task:', error);
       toast.error('Failed to complete task');
       return false;
     }
@@ -204,7 +200,6 @@ export function useClaimedProjects() {
       await fetchClaimedProjects();
       return true;
     } catch (error) {
-      console.error('Error abandoning project:', error);
       toast.error('Failed to remove project');
       return false;
     }

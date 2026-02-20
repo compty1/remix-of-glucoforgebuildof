@@ -528,7 +528,6 @@ export default function EmergenceOfDiabetes() {
       setEmergenceData(dataResult.data || []);
       setMyths(mythsResult.data || []);
     } catch (error) {
-      console.error('Error fetching data:', error);
       toast.error('Failed to load data');
     } finally {
       setLoading(false);

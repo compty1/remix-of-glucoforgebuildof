@@ -72,6 +72,7 @@ export const useMedications = (options: UseMedicationsOptions = {}) => {
 
   return useQuery({
     queryKey: ["medications", category, search, sort, sortDirection, featured],
+    staleTime: 5 * 60 * 1000, // 5 minutes
     queryFn: async () => {
       let query = supabase
         .from("medications")
@@ -124,6 +125,7 @@ export const useMedications = (options: UseMedicationsOptions = {}) => {
 export const useMedicationCategories = () => {
   return useQuery({
     queryKey: ["medication-categories"],
+    staleTime: 30 * 60 * 1000, // 30 minutes — categories rarely change
     queryFn: async () => {
       const { data, error } = await supabase
         .from("medications")

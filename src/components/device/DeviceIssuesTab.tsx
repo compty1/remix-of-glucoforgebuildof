@@ -78,7 +78,6 @@ function IssueRelatedPosts({ issueTitle, deviceName }: { issueTitle: string; dev
       const { data, error } = await query;
       
       if (error) {
-        console.error('Error fetching related posts:', error);
         return [];
       }
       

@@ -68,7 +68,6 @@ export function StatementJar() {
       setNewStatement('');
       fetchStatements();
     } catch (error) {
-      console.error('Error submitting statement:', error);
       toast.error('Failed to submit. Please try again.');
     } finally {
       setIsSubmitting(false);
