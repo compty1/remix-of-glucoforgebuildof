@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Medication } from "./useMedications";
-import type { Json } from "@/integrations/supabase/types";
 
 export interface ExternalMedicationReview {
   id: string;
@@ -49,6 +48,7 @@ export interface MedicationWithDetails extends Medication {
 export const useMedicationDetails = (medicationId: string | undefined) => {
   return useQuery({
     queryKey: ["medication-details", medicationId],
+    staleTime: 5 * 60 * 1000, // 5 minutes
     queryFn: async (): Promise<MedicationWithDetails | null> => {
       if (!medicationId) return null;
 
@@ -59,47 +59,45 @@ export const useMedicationDetails = (medicationId: string | undefined) => {
         .eq("id", medicationId)
         .maybeSingle();
 
-      if (medError) {
-        console.error("Error fetching medication:", medError);
-        throw medError;
-      }
-
+      if (medError) throw medError;
       if (!medication) return null;
 
-      // Fetch user reviews
-      const { data: userReviews, error: reviewError } = await supabase
-        .from("medication_reviews")
-        .select("*")
-        .eq("medication_id", medicationId)
-        .order("created_at", { ascending: false });
+      // Fetch user reviews, external reviews, buzz posts, and related in parallel
+      const [
+        { data: userReviews },
+        { data: externalReviews },
+        { data: buzzPosts },
+        { data: related },
+      ] = await Promise.all([
+        supabase
+          .from("medication_reviews")
+          .select("*")
+          .eq("medication_id", medicationId)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("external_medication_reviews")
+          .select("*")
+          .eq("medication_id", medicationId)
+          .order("helpful_count", { ascending: false })
+          .limit(50),
+        supabase
+          .from("medication_community_buzz")
+          .select("*")
+          .eq("medication_id", medicationId)
+          .order("engagement_score", { ascending: false })
+          .limit(50),
+        supabase
+          .from("medications")
+          .select("*")
+          .eq("category", medication.category)
+          .neq("id", medicationId)
+          .order("popularity_rank", { ascending: true })
+          .limit(4),
+      ]);
 
-      if (reviewError) {
-        console.error("Error fetching user reviews:", reviewError);
-      }
-
-      // Fetch external reviews from external_medication_reviews
-      const { data: externalReviews, error: extError } = await supabase
-        .from("external_medication_reviews")
-        .select("*")
-        .eq("medication_id", medicationId)
-        .order("helpful_count", { ascending: false });
-
-      if (extError) {
-        console.error("Error fetching external reviews:", extError);
-      }
-
-      // Fetch community buzz posts
-      const { data: buzzPosts, error: buzzError } = await supabase
-        .from("medication_community_buzz")
-        .select("*")
-        .eq("medication_id", medicationId)
-        .order("engagement_score", { ascending: false });
-
-      if (buzzError) {
-        console.error("Error fetching community buzz:", buzzError);
-      }
-
-      // Combine external reviews and community buzz into a unified format
+      // Combine external reviews and community buzz — normalise engagement_score to 
+      // a comparable scale so buzz posts don't dominate the sorted list
+      const MAX_HELPFUL_COUNT = 100;
       const combinedReviews: ExternalMedicationReview[] = [
         ...(externalReviews || []).map(r => r as ExternalMedicationReview),
         ...(buzzPosts || []).map(buzz => ({
@@ -108,10 +106,12 @@ export const useMedicationDetails = (medicationId: string | undefined) => {
           source: buzz.source || 'Community',
           external_id: null,
           author_anonymous: buzz.author_handle,
-          title: null,
+          // Use buzz post_content as title when no explicit title
+          title: buzz.post_content ? buzz.post_content.slice(0, 80) + (buzz.post_content.length > 80 ? '…' : '') : null,
           content: buzz.post_content || '',
           sentiment: buzz.sentiment,
-          helpful_count: buzz.engagement_score,
+          // Normalise engagement_score so buzz posts don't overwhelm user reviews
+          helpful_count: buzz.engagement_score ? Math.min(buzz.engagement_score, MAX_HELPFUL_COUNT) : 0,
           published_at: buzz.post_date,
           source_url: buzz.post_url,
           subreddit: null,
@@ -119,19 +119,6 @@ export const useMedicationDetails = (medicationId: string | undefined) => {
           created_at: buzz.created_at
         }))
       ].sort((a, b) => (b.helpful_count || 0) - (a.helpful_count || 0));
-
-      // Fetch related medications (same category)
-      const { data: related, error: relatedError } = await supabase
-        .from("medications")
-        .select("*")
-        .eq("category", medication.category)
-        .neq("id", medicationId)
-        .order("popularity_rank", { ascending: true })
-        .limit(4);
-
-      if (relatedError) {
-        console.error("Error fetching related medications:", relatedError);
-      }
 
       return {
         ...medication,
@@ -148,6 +135,7 @@ export const useMedicationDetails = (medicationId: string | undefined) => {
 export const useMedicationByName = (name: string | undefined) => {
   return useQuery({
     queryKey: ["medication-by-name", name],
+    staleTime: 10 * 60 * 1000,
     queryFn: async () => {
       if (!name) return null;
 
@@ -157,11 +145,7 @@ export const useMedicationByName = (name: string | undefined) => {
         .ilike("name", name)
         .maybeSingle();
 
-      if (error) {
-        console.error("Error fetching medication by name:", error);
-        return null;
-      }
-
+      if (error) return null;
       return data as Medication;
     },
     enabled: !!name,

@@ -40,13 +40,14 @@ const HealthComparisonPanel: React.FC<HealthComparisonPanelProps> = ({ detailedA
     return 'text-destructive';
   };
 
+  // Use ADA T1D-appropriate targets (NOT non-diabetic benchmarks)
   const metrics = [
-    { label: 'Time in Range (70-180)', user: `${userTIR.toFixed(1)}%`, healthy: '96-99%', gap: `${(97 - userTIR).toFixed(1)}%`, color: getGapColor(userTIR, 96, 99), source: 'ADA/ATTD Consensus 2019' },
-    { label: 'Average Glucose', user: `${userAvg.toFixed(0)} mg/dL`, healthy: '85-100 mg/dL', gap: userAvg > 100 ? `+${(userAvg - 100).toFixed(0)} mg/dL` : 'On target', color: getGapColor(100, userAvg, 100), source: 'Diabetes Care, 2023' },
-    { label: 'Coefficient of Variation', user: `${userCV.toFixed(1)}%`, healthy: '15-20%', gap: userCV > 20 ? `+${(userCV - 20).toFixed(1)}%` : 'On target', color: getGapColor(userCV, 0, 20, true), source: 'ATTD Consensus 2019' },
-    { label: 'GMI (Estimated A1C)', user: `${userGMI.toFixed(1)}%`, healthy: '4.8-5.6%', gap: userGMI > 5.6 ? `+${(userGMI - 5.6).toFixed(1)}%` : 'On target', color: getGapColor(userGMI, 0, 5.6, true), source: 'Bergenstal et al., Diabetes Care 2018' },
-    { label: 'Time Above 180', user: `${userTimeHigh.toFixed(1)}%`, healthy: '<1%', gap: `+${(userTimeHigh - 1).toFixed(1)}%`, color: getGapColor(userTimeHigh, 0, 1, true), source: 'ADA Standards of Care 2024' },
-    { label: 'Time Below 70', user: `${userTimeLow.toFixed(1)}%`, healthy: '<1%', gap: userTimeLow > 1 ? `+${(userTimeLow - 1).toFixed(1)}%` : 'On target', color: getGapColor(userTimeLow, 0, 1, true), source: 'ADA Standards of Care 2024' },
+    { label: 'Time in Range (70-180)', user: `${userTIR.toFixed(1)}%`, healthy: '≥70% (T1D target)', gap: userTIR >= 70 ? 'On target ✓' : `${(70 - userTIR).toFixed(1)}% below target`, color: getGapColor(userTIR, 70, 100), source: 'ADA Standards of Care 2024 (T1D)' },
+    { label: 'Average Glucose', user: `${userAvg.toFixed(0)} mg/dL`, healthy: '100-154 mg/dL', gap: userAvg > 154 ? `+${(userAvg - 154).toFixed(0)} mg/dL` : 'On target', color: getGapColor(100, userAvg, 154), source: 'ADA/ATTD Consensus 2019' },
+    { label: 'Coefficient of Variation', user: `${userCV.toFixed(1)}%`, healthy: '<36% (T1D target)', gap: userCV > 36 ? `+${(userCV - 36).toFixed(1)}%` : 'On target', color: getGapColor(userCV, 0, 36, true), source: 'ATTD Consensus 2019' },
+    { label: 'GMI (Estimated A1C)', user: `${userGMI.toFixed(1)}%`, healthy: '<7% (ADA T1D goal)', gap: userGMI > 7 ? `+${(userGMI - 7).toFixed(1)}%` : 'On target', color: getGapColor(userGMI, 0, 7, true), source: 'ADA Standards of Care 2024' },
+    { label: 'Time Above 180', user: `${userTimeHigh.toFixed(1)}%`, healthy: '<25% (T1D target)', gap: userTimeHigh > 25 ? `+${(userTimeHigh - 25).toFixed(1)}%` : 'On target', color: getGapColor(userTimeHigh, 0, 25, true), source: 'ADA Standards of Care 2024' },
+    { label: 'Time Below 70', user: `${userTimeLow.toFixed(1)}%`, healthy: '<4% (T1D target)', gap: userTimeLow > 4 ? `+${(userTimeLow - 4).toFixed(1)}%` : 'On target', color: getGapColor(userTimeLow, 0, 4, true), source: 'ADA Standards of Care 2024' },
   ];
 
   const healthImpacts = [
@@ -99,9 +100,9 @@ const HealthComparisonPanel: React.FC<HealthComparisonPanelProps> = ({ detailedA
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5 text-primary" />
-            Your Glucose vs. Non-Diabetic Benchmarks
+            Your Glucose vs. ADA T1D Targets
           </CardTitle>
-          <p className="text-sm text-muted-foreground">Side-by-side comparison of your CGM data against healthy non-diabetic ranges</p>
+          <p className="text-sm text-muted-foreground">Comparison against ADA-recommended targets for T1D management — not non-diabetic benchmarks</p>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
