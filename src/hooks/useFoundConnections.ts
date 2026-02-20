@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+const STALE_TIME_MS = 10 * 60 * 1000; // 10 minutes
+let lastFetchedAt: number | null = null;
+let cachedConnections: any[] = [];
+
 export type ConnectionType = 'food' | 'biology' | 'device' | 'chemical' | 'environmental' | 'symptom' | 'treatment';
 export type ValidationStatus = 'confirmed' | 'emerging' | 'hypothesis';
 
@@ -60,8 +64,8 @@ interface UseFoundConnectionsResult {
 }
 
 export const useFoundConnections = (): UseFoundConnectionsResult => {
-  const [allConnections, setAllConnections] = useState<FoundConnection[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [allConnections, setAllConnections] = useState<FoundConnection[]>(cachedConnections);
+  const [loading, setLoading] = useState(cachedConnections.length === 0);
   const [analyzing, setAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<ConnectionType | 'all'>('all');
@@ -69,6 +73,12 @@ export const useFoundConnections = (): UseFoundConnectionsResult => {
   const [sortBy, setSortBy] = useState<'confidence' | 'novelty' | 'recent'>('confidence');
 
   const fetchConnections = useCallback(async () => {
+    const now = Date.now();
+    if (lastFetchedAt && now - lastFetchedAt < STALE_TIME_MS && cachedConnections.length > 0) {
+      setAllConnections(cachedConnections);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -102,6 +112,8 @@ export const useFoundConnections = (): UseFoundConnectionsResult => {
         updated_at: conn.updated_at,
       }));
 
+      cachedConnections = parsed;
+      lastFetchedAt = Date.now();
       setAllConnections(parsed);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch connections');

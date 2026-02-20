@@ -101,6 +101,10 @@ export default function QualityOfLife() {
                     key={def.id} 
                     className="hover:shadow-md transition-shadow cursor-pointer hover:border-primary/50"
                     onClick={() => setSelectedDeficiency(def)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedDeficiency(def); }}
+                    aria-label={`View details for ${def.nutrient_name}`}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-3">
@@ -210,6 +214,10 @@ export default function QualityOfLife() {
                         key={resource.id} 
                         className="hover:shadow-lg transition-shadow cursor-pointer hover:border-primary/50"
                         onClick={() => setSelectedResource(resource)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedResource(resource); }}
+                        aria-label={`View details for ${resource.name}`}
                       >
                         <CardHeader>
                           <div className="flex items-start justify-between">

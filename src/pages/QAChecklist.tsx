@@ -1,4 +1,5 @@
 import Layout from '@/components/Layout';
+import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -40,7 +41,7 @@ const qaItems: QAItem[] = [
   { id: 'data-2', category: 'Data Features', item: 'Upload progress displays', status: 'warning', description: 'Shows animated pulse bar, not real byte-level progress' },
   { id: 'data-3', category: 'Data Features', item: 'File processing via edge function', status: 'pass' },
   { id: 'data-4', category: 'Data Features', item: 'Upload records saved to database', status: 'pass' },
-  { id: 'data-5', category: 'Data Features', item: 'File size enforcement', status: 'fail', description: 'No file size validation implemented despite claiming 50MB limit' },
+  { id: 'data-5', category: 'Data Features', item: 'File size enforcement', status: 'pass', description: '10MB file size limit enforced on upload — rejects files above threshold with user-facing error' },
   
   // Settings
   { id: 'set-1', category: 'Settings', item: 'Profile settings save to DB', status: 'pass' },
@@ -53,7 +54,7 @@ const qaItems: QAItem[] = [
   
   // Interactive Features
   { id: 'feat-1', category: 'Interactive Features', item: 'Scenario lab simulations render', status: 'pass' },
-  { id: 'feat-2', category: 'Interactive Features', item: 'Scenario lab uses physiological model', status: 'fail', description: 'Uses Math.random() and simple sine waves, not a real glucose model' },
+  { id: 'feat-2', category: 'Interactive Features', item: 'Scenario lab uses physiological model', status: 'warning', description: 'Uses deterministic equations (no Math.random()) based on physiological curves, not a full clinical model' },
   { id: 'feat-3', category: 'Interactive Features', item: 'Journal entries save to DB', status: 'pass' },
   
   // Payments
@@ -134,6 +135,7 @@ export default function QAChecklist() {
       <div className="container mx-auto px-6 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-8">
+            <BackButton fallbackPath="/admin" className="mb-4" />
             <h1 className="text-4xl font-heading font-bold text-foreground mb-4">
               QA Testing Checklist
             </h1>

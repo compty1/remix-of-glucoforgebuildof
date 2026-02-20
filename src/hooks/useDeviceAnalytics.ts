@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+const STALE_TIME_MS = 10 * 60 * 1000; // 10 minutes
+let lastFetchedAt: number | null = null;
+let cachedAnalytics: DeviceAnalyticsData | null = null;
+
 export interface Device {
   id: string;
   name: string;
@@ -47,11 +51,17 @@ export interface DeviceAnalyticsData {
 }
 
 export const useDeviceAnalytics = () => {
-  const [data, setData] = useState<DeviceAnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<DeviceAnalyticsData | null>(cachedAnalytics);
+  const [loading, setLoading] = useState(cachedAnalytics === null);
   const [error, setError] = useState<string | null>(null);
 
   const fetchDeviceData = async () => {
+    const now = Date.now();
+    if (lastFetchedAt && now - lastFetchedAt < STALE_TIME_MS && cachedAnalytics !== null) {
+      setData(cachedAnalytics);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -90,12 +100,16 @@ export const useDeviceAnalytics = () => {
         allIssues[0]
       )?.issue_title || 'No issues reported';
 
-      setData({
+      const result = {
         devices: processedDevices,
         totalDevices,
         avgReliabilityScore: Math.round(avgReliabilityScore),
         mostReportedIssue,
-      });
+      };
+
+      cachedAnalytics = result;
+      lastFetchedAt = Date.now();
+      setData(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch device data');
     } finally {
@@ -115,6 +129,7 @@ export const useDeviceAnalytics = () => {
         return { success: false, error: error.message };
       }
       
+      cachedAnalytics = null; // invalidate cache
       await fetchDeviceData();
       return { success: true, data: result };
     } catch (err) {

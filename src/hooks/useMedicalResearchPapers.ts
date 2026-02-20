@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+const STALE_TIME_MS = 15 * 60 * 1000; // 15 minutes
+const cache: Record<string, { data: any[]; fetchedAt: number }> = {};
+
 export interface MedicalResearchPaper {
   id: string;
   paper_id: string;
@@ -53,11 +56,19 @@ interface UseMedicalResearchPapersOptions {
 
 export const useMedicalResearchPapers = (options?: UseMedicalResearchPapersOptions): UseMedicalResearchPapersResult => {
   const { minRelevanceScore, type1Only = true } = options || {};
-  const [data, setData] = useState<MedicalResearchPaper[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cacheKey = `${minRelevanceScore ?? 'none'}-${type1Only}`;
+  const [data, setData] = useState<MedicalResearchPaper[]>(cache[cacheKey]?.data || []);
+  const [loading, setLoading] = useState(!cache[cacheKey]?.data?.length);
   const [error, setError] = useState<string | null>(null);
 
   const fetchResearchPapers = useCallback(async () => {
+    const now = Date.now();
+    const cached = cache[cacheKey];
+    if (cached && now - cached.fetchedAt < STALE_TIME_MS && cached.data.length > 0) {
+      setData(cached.data as MedicalResearchPaper[]);
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
@@ -84,6 +95,7 @@ export const useMedicalResearchPapers = (options?: UseMedicalResearchPapersOptio
       }
 
       if (existingData && existingData.length > 0) {
+        cache[cacheKey] = { data: existingData, fetchedAt: Date.now() };
         setData(existingData as MedicalResearchPaper[]);
         setLoading(false);
       }
@@ -110,6 +122,7 @@ export const useMedicalResearchPapers = (options?: UseMedicalResearchPapersOptio
         }
         const { data: refreshedData } = await refreshQuery.limit(100);
         if (refreshedData && refreshedData.length > 0) {
+          cache[cacheKey] = { data: refreshedData, fetchedAt: Date.now() };
           setData(refreshedData as MedicalResearchPaper[]);
         }
       }

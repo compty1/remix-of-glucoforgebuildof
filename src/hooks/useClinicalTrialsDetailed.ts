@@ -1,6 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+const STALE_TIME_MS = 15 * 60 * 1000; // 15 minutes
+const cache: Record<string, { data: any[]; fetchedAt: number }> = {};
+
 export interface ClinicalTrialDetailed {
   id: string;
   nct_id: string;
@@ -45,8 +48,9 @@ interface UseClinicalTrialsDetailedResult {
 }
 
 export const useClinicalTrialsDetailed = (phase?: string): UseClinicalTrialsDetailedResult => {
-  const [data, setData] = useState<ClinicalTrialDetailed[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cacheKey = phase || 'all';
+  const [data, setData] = useState<ClinicalTrialDetailed[]>(cache[cacheKey]?.data || []);
+  const [loading, setLoading] = useState(!cache[cacheKey]?.data?.length);
   const [error, setError] = useState<string | null>(null);
 
   const fetchFromDB = useCallback(async () => {
@@ -66,6 +70,7 @@ export const useClinicalTrialsDetailed = (phase?: string): UseClinicalTrialsDeta
     }
 
     if (dbData) {
+      cache[cacheKey] = { data: dbData, fetchedAt: Date.now() };
       setData(dbData as ClinicalTrialDetailed[]);
     }
     return dbData;
@@ -107,6 +112,13 @@ export const useClinicalTrialsDetailed = (phase?: string): UseClinicalTrialsDeta
   }, [data]);
 
   useEffect(() => {
+    const now = Date.now();
+    const cached = cache[cacheKey];
+    if (cached && now - cached.fetchedAt < STALE_TIME_MS && cached.data.length > 0) {
+      setData(cached.data as ClinicalTrialDetailed[]);
+      setLoading(false);
+      return;
+    }
     const load = async () => {
       try {
         setLoading(true);
