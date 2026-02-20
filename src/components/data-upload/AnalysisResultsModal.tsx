@@ -354,8 +354,9 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
                 </TabsContent>
 
                 <TabsContent value="trends" className="mt-0 space-y-6">
+                  {/* Heatmap-only — no TIR chart duplicate from Overview (Issue 38) */}
                   {hourlyData && hourlyData.length > 0 ? (
-                    <GlucoseHeatmap data={hourlyData} />
+                    <GlucoseHeatmap data={hourlyData} aria-label="Glucose heatmap by hour of day" />
                   ) : (
                     <div className="p-6 border rounded-lg text-center">
                       <p className="text-sm text-muted-foreground">Hourly heatmap requires raw CGM readings.</p>
