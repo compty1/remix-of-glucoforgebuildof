@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { 
   BarChart3,
@@ -23,9 +22,12 @@ import {
   Calendar,
   ShieldCheck,
   Zap,
-  Heart
+  Heart,
+  Info
 } from 'lucide-react';
-import jsPDF from 'jspdf';
+import { Skeleton } from '@/components/ui/skeleton';
+import { generateAnalysisPDF } from '@/utils/pdfExport';
+
 
 import GlucoseMetricsGrid from './GlucoseMetricsGrid';
 import GlucoseAGPChart from './GlucoseAGPChart';
@@ -186,118 +188,13 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
   const exportReport = async () => {
     setIsExporting(true);
     try {
-      const pdf = new jsPDF();
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      let yPos = 20;
-      
-      // Title
-      pdf.setFontSize(20);
-      pdf.setTextColor(33, 33, 33);
-      pdf.text('Glucose Analysis Report', pageWidth / 2, yPos, { align: 'center' });
-      yPos += 10;
-      
-      // File info
-      pdf.setFontSize(10);
-      pdf.setTextColor(100, 100, 100);
-      pdf.text(`File: ${fileName}`, pageWidth / 2, yPos, { align: 'center' });
-      yPos += 5;
-      pdf.text(`Generated: ${new Date().toLocaleString()}`, pageWidth / 2, yPos, { align: 'center' });
-      yPos += 15;
-      
-      // Key Metrics
-      if (detailedAnalysis) {
-        pdf.setFontSize(14);
-        pdf.setTextColor(33, 33, 33);
-        pdf.text('Key Metrics', 20, yPos);
-        yPos += 10;
-        
-        pdf.setFontSize(10);
-        pdf.setTextColor(66, 66, 66);
-        
-        const metrics = [
-          `Readings Analyzed: ${detailedAnalysis.readingsCount?.toLocaleString() || 'N/A'}`,
-          `Days of Data: ${detailedAnalysis.daysOfData || 'N/A'}`,
-          `Average Glucose: ${detailedAnalysis.avgGlucose?.toFixed(0) || 'N/A'} mg/dL`,
-          `Time in Range (70-180): ${detailedAnalysis.timeInRange?.toFixed(1) || 'N/A'}%`,
-          `CV (Variability): ${detailedAnalysis.cv?.toFixed(1) || 'N/A'}%`,
-          `GMI: ${detailedAnalysis.gmi?.toFixed(1) || 'N/A'}%`,
-        ];
-        
-        metrics.forEach(metric => {
-          pdf.text(`• ${metric}`, 25, yPos);
-          yPos += 6;
-        });
-        yPos += 10;
-      }
-      
-      // Patterns
-      if (patterns && patterns.length > 0) {
-        pdf.setFontSize(14);
-        pdf.setTextColor(33, 33, 33);
-        pdf.text('Detected Patterns', 20, yPos);
-        yPos += 10;
-        
-        pdf.setFontSize(10);
-        patterns.forEach(pattern => {
-          if (yPos > 270) {
-            pdf.addPage();
-            yPos = 20;
-          }
-          pdf.setTextColor(pattern.severity === 'critical' ? 180 : pattern.severity === 'warning' ? 200 : 66, 
-                           pattern.severity === 'critical' ? 0 : pattern.severity === 'warning' ? 150 : 66, 
-                           66);
-          pdf.text(`• ${pattern.title}`, 25, yPos);
-          yPos += 6;
-          pdf.setTextColor(100, 100, 100);
-          const descLines = pdf.splitTextToSize(pattern.description, pageWidth - 50);
-          descLines.forEach((line: string) => {
-            if (yPos > 270) {
-              pdf.addPage();
-              yPos = 20;
-            }
-            pdf.text(line, 30, yPos);
-            yPos += 5;
-          });
-          yPos += 3;
-        });
-        yPos += 10;
-      }
-      
-      // Recommendations
-      if (recommendations && recommendations.length > 0) {
-        if (yPos > 240) {
-          pdf.addPage();
-          yPos = 20;
-        }
-        
-        pdf.setFontSize(14);
-        pdf.setTextColor(33, 33, 33);
-        pdf.text('Recommendations', 20, yPos);
-        yPos += 10;
-        
-        pdf.setFontSize(10);
-        pdf.setTextColor(66, 66, 66);
-        recommendations.forEach(rec => {
-          if (yPos > 270) {
-            pdf.addPage();
-            yPos = 20;
-          }
-          const recLines = pdf.splitTextToSize(`• ${rec}`, pageWidth - 50);
-          recLines.forEach((line: string) => {
-            pdf.text(line, 25, yPos);
-            yPos += 5;
-          });
-          yPos += 2;
-        });
-      }
-      
-      // Footer
-      pdf.setFontSize(8);
-      pdf.setTextColor(150, 150, 150);
-      pdf.text('Discuss these results with your healthcare provider before making any treatment changes.', 
-               pageWidth / 2, 285, { align: 'center' });
-      
-      pdf.save(`glucose-analysis-${fileName.replace(/\.[^/.]+$/, '')}.pdf`);
+      await generateAnalysisPDF({
+        fileName,
+        detailedAnalysis,
+        patterns,
+        recommendations,
+        confidenceScore,
+      });
       toast.success('Report exported successfully');
     } catch {
       toast.error('Failed to export report');
@@ -305,6 +202,7 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
       setIsExporting(false);
     }
   };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -338,13 +236,16 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
           </div>
         </DialogHeader>
 
-        {/* Summary Report Notice */}
+        {/* Summary Report Notice — use warning styling */}
         {isFromSummary && (
-          <div className="mx-6 p-3 rounded-lg bg-accent/50 border border-accent text-sm">
-            <p className="font-medium text-accent-foreground">📊 Summary Report Analysis</p>
-            <p className="text-muted-foreground mt-1">
-              This analysis is based on summary metrics from your PDF report. For detailed patterns, AGP charts, and AI recommendations, export your CGM data as CSV from Dexcom Clarity, LibreView, or your pump app.
-            </p>
+          <div className="mx-6 p-3 rounded-lg bg-warning/10 border border-warning/30 text-sm flex gap-2">
+            <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-medium text-warning">Summary Report Analysis</p>
+              <p className="text-muted-foreground mt-1">
+                This analysis is based on summary metrics from your PDF report. For detailed patterns, AGP charts, and AI recommendations, export your CGM data as CSV from Dexcom Clarity, LibreView, or your pump app.
+              </p>
+            </div>
           </div>
         )}
 
@@ -437,35 +338,39 @@ const AnalysisResultsModal: React.FC<AnalysisResultsModalProps> = ({
                   {agpData && agpData.length > 0 ? (
                     <GlucoseAGPChart data={agpData} />
                   ) : (
-                    <div className="p-6 border rounded-lg">
-                      <Skeleton className="h-64 w-full" />
+                    <div className="p-6 border rounded-lg text-center space-y-3">
+                      <Info className="h-8 w-8 mx-auto text-muted-foreground/50" />
+                      <p className="font-medium text-muted-foreground">AGP Chart Not Available</p>
+                      <p className="text-sm text-muted-foreground">
+                        {isFromSummary
+                          ? 'AGP data requires raw CGM readings. Export your data as CSV from Dexcom Clarity or LibreView for full AGP analysis.'
+                          : 'Not enough hourly data was found to generate an Ambulatory Glucose Profile chart.'}
+                      </p>
                     </div>
                   )}
-                  {dailyData && dailyData.length > 0 ? (
+                  {dailyData && dailyData.length > 0 && (
                     <GlucoseTrendChart data={dailyData} />
-                  ) : (
-                    <div className="p-6 border rounded-lg">
-                      <Skeleton className="h-48 w-full" />
-                    </div>
                   )}
                 </TabsContent>
 
                 <TabsContent value="trends" className="mt-0 space-y-6">
-                  {dailyData && dailyData.length > 0 ? (
-                    <GlucoseTrendChart data={dailyData} />
-                  ) : (
-                    <div className="p-6 border rounded-lg">
-                      <Skeleton className="h-48 w-full" />
-                    </div>
-                  )}
                   {hourlyData && hourlyData.length > 0 ? (
                     <GlucoseHeatmap data={hourlyData} />
                   ) : (
-                    <div className="p-6 border rounded-lg">
-                      <Skeleton className="h-48 w-full" />
+                    <div className="p-6 border rounded-lg text-center">
+                      <p className="text-sm text-muted-foreground">Hourly heatmap requires raw CGM readings.</p>
                     </div>
                   )}
+                  <TrendPrediction 
+                    hourlyStats={hourlyData?.map(h => ({
+                      hour: h.hour,
+                      average: h.avg,
+                      min: h.min,
+                      max: h.max
+                    }))}
+                  />
                 </TabsContent>
+
 
                 {/* Quality Tab - Enhanced */}
                 {hasEnhancedData && dataQuality && (

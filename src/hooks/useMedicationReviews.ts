@@ -37,7 +37,6 @@ export const useMedicationReviews = () => {
         .single();
 
       if (error) {
-        console.error("Error submitting review:", error);
         throw error;
       }
 
@@ -68,7 +67,6 @@ export const useMedicationReviews = () => {
         .single();
 
       if (error) {
-        console.error("Error updating review:", error);
         throw error;
       }
 
@@ -96,7 +94,6 @@ export const useMedicationReviews = () => {
         .eq("user_id", user.id);
 
       if (error) {
-        console.error("Error deleting review:", error);
         throw error;
       }
 
@@ -114,25 +111,10 @@ export const useMedicationReviews = () => {
 
   const toggleHelpful = useMutation({
     mutationFn: async ({ reviewId, medicationId }: { reviewId: string; medicationId: string }) => {
-      // Read current count then increment (race-tolerant for low traffic)
-      const { data, error } = await supabase
-        .from("medication_reviews")
-        .select("helpful_count")
-        .eq("id", reviewId)
-        .maybeSingle();
-
+      // Use atomic RPC to avoid race conditions (Issue 92)
+      const { error } = await supabase.rpc('increment_review_helpful', { review_id: reviewId as any });
       if (error) throw error;
-
-      const newCount = (data?.helpful_count || 0) + 1;
-
-      const { error: updateError } = await supabase
-        .from("medication_reviews")
-        .update({ helpful_count: newCount })
-        .eq("id", reviewId);
-
-      if (updateError) throw updateError;
-
-      return { reviewId, medicationId, newCount };
+      return { reviewId, medicationId };
     },
     onSuccess: ({ medicationId }) => {
       queryClient.invalidateQueries({ queryKey: ["medication-details", medicationId] });
