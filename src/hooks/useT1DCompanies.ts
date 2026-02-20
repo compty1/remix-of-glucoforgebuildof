@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+const STALE_TIME_MS = 10 * 60 * 1000; // 10 minutes
+let _companiesCache: { data: any[]; fetchedAt: number; key: string } | null = null;
+
 export interface T1DCompany {
   id: string;
   name: string;
@@ -55,12 +58,21 @@ export interface CompanyStats {
 }
 
 export function useT1DCompanies(filters?: CompanyFilters) {
-  const [companies, setCompanies] = useState<T1DCompany[]>([]);
-  const [loading, setLoading] = useState(true);
+  const cacheKey = JSON.stringify(filters || {});
+  const cached = _companiesCache?.key === cacheKey ? _companiesCache : null;
+  const [companies, setCompanies] = useState<T1DCompany[]>((cached?.data || []) as T1DCompany[]);
+  const [loading, setLoading] = useState(!cached?.data?.length);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<CompanyStats | null>(null);
 
   const fetchCompanies = async () => {
+    const now = Date.now();
+    const cur = _companiesCache?.key === cacheKey ? _companiesCache : null;
+    if (cur && now - cur.fetchedAt < STALE_TIME_MS && cur.data.length > 0) {
+      setCompanies(cur.data as T1DCompany[]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
 
@@ -112,6 +124,7 @@ export function useT1DCompanies(filters?: CompanyFilters) {
         );
       }
 
+      _companiesCache = { data: filteredData, fetchedAt: Date.now(), key: cacheKey };
       setCompanies(filteredData);
 
       // Calculate stats

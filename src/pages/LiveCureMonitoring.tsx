@@ -241,6 +241,11 @@ const LiveCureMonitoring = () => {
             <h1 className="text-4xl font-heading font-bold text-foreground mb-4">
               Live Cure Tracker
             </h1>
+            <div className="flex justify-center mb-4">
+              <Badge variant="outline" className="text-muted-foreground border-muted-foreground/40 text-xs">
+                Reference Data — Seeded from public registries
+              </Badge>
+            </div>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-6">
               Real-time updates on the latest approaches to curing Type 1 Diabetes. Track clinical trials, 
               timelines, and breakthrough developments from leading research institutions.

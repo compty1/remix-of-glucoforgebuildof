@@ -39,10 +39,13 @@ const ResearchInsights = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <section className="text-center mb-8">
-          <div className="flex items-center justify-center gap-2 mb-4">
+          <div className="flex items-center justify-center gap-2 mb-4 flex-wrap">
             <Badge className="bg-highlight/10 text-highlight border-highlight/20">
               <Sparkles className="h-3 w-3 mr-1" />
               AI-Powered Research Intelligence
+            </Badge>
+            <Badge variant="outline" className="text-muted-foreground border-muted-foreground/40 text-xs">
+              Reference Data
             </Badge>
           </div>
           <h1 className="text-4xl font-heading font-bold text-foreground mb-4">

@@ -185,7 +185,12 @@ const FinancialTools = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <BackButton fallbackPath="/dashboard" className="mb-4" />
-          <h1 className="text-4xl font-bold text-foreground mb-2">Financial Tools Hub</h1>
+          <div className="flex flex-wrap items-center gap-3 mb-2">
+            <h1 className="text-4xl font-bold text-foreground">Financial Tools Hub</h1>
+            <Badge variant="outline" className="text-muted-foreground border-muted-foreground/40 text-xs">
+              Reference Data
+            </Badge>
+          </div>
           <p className="text-muted-foreground">Resources to help manage the financial aspects of diabetes care</p>
         </div>
 
