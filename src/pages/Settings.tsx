@@ -157,9 +157,10 @@ const Settings = () => {
     researchParticipation: true
   });
 
-  // Password change state (1988 - inline instead of redirect)
-  const [passwordForm, setPasswordForm] = useState({ newPassword: '', confirmPassword: '' });
+  // Password change state — requires current password re-auth (Issue 115)
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [emailChangeInfo, setEmailChangeInfo] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -277,8 +278,12 @@ const Settings = () => {
     }
   };
 
-  // Inline password change (1988)
+  // Password change — requires current password re-authentication first (Issue 115)
   const handleChangePassword = async () => {
+    if (!passwordForm.currentPassword) {
+      toast({ variant: "destructive", title: "Error", description: "Please enter your current password to confirm." });
+      return;
+    }
     if (passwordForm.newPassword.length < 8) {
       toast({ variant: "destructive", title: "Error", description: "Password must be at least 8 characters." });
       return;
@@ -287,11 +292,24 @@ const Settings = () => {
       toast({ variant: "destructive", title: "Error", description: "Passwords do not match." });
       return;
     }
+    if (passwordForm.newPassword === passwordForm.currentPassword) {
+      toast({ variant: "destructive", title: "Error", description: "New password must be different from your current password." });
+      return;
+    }
     setPasswordLoading(true);
     try {
+      // Re-authenticate with current password first
+      const { error: reAuthError } = await supabase.auth.signInWithPassword({
+        email: user?.email || '',
+        password: passwordForm.currentPassword,
+      });
+      if (reAuthError) {
+        toast({ variant: "destructive", title: "Error", description: "Current password is incorrect." });
+        return;
+      }
       const { error } = await supabase.auth.updateUser({ password: passwordForm.newPassword });
       if (error) throw error;
-      setPasswordForm({ newPassword: '', confirmPassword: '' });
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
       toast({ title: "Success", description: "Password updated successfully!" });
     } catch {
       toast({ variant: "destructive", title: "Error", description: "Failed to update password." });
@@ -736,26 +754,38 @@ const Settings = () => {
                         <KeyRound className="h-4 w-4" />
                         <Label className="text-base font-medium">Change Password</Label>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-3">
                         <div className="space-y-2">
-                          <Label htmlFor="new-password" className="text-sm">New Password</Label>
+                          <Label htmlFor="current-password" className="text-sm">Current Password <span className="text-destructive">*</span></Label>
                           <Input
-                            id="new-password"
+                            id="current-password"
                             type="password"
-                            placeholder="Min. 8 characters"
-                            value={passwordForm.newPassword}
-                            onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                            placeholder="Enter your current password"
+                            value={passwordForm.currentPassword}
+                            onChange={(e) => setPasswordForm(prev => ({ ...prev, currentPassword: e.target.value }))}
                           />
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="confirm-password" className="text-sm">Confirm Password</Label>
-                          <Input
-                            id="confirm-password"
-                            type="password"
-                            placeholder="Re-enter password"
-                            value={passwordForm.confirmPassword}
-                            onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                          />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="new-password" className="text-sm">New Password</Label>
+                            <Input
+                              id="new-password"
+                              type="password"
+                              placeholder="Min. 8 characters"
+                              value={passwordForm.newPassword}
+                              onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="confirm-password" className="text-sm">Confirm Password</Label>
+                            <Input
+                              id="confirm-password"
+                              type="password"
+                              placeholder="Re-enter new password"
+                              value={passwordForm.confirmPassword}
+                              onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                            />
+                          </div>
                         </div>
                       </div>
                       {passwordForm.newPassword.length > 0 && passwordForm.newPassword.length < 8 && (
@@ -765,7 +795,7 @@ const Settings = () => {
                         variant="outline" 
                         size="sm" 
                         onClick={handleChangePassword}
-                        disabled={passwordLoading || !passwordForm.newPassword || !passwordForm.confirmPassword}
+                        disabled={passwordLoading || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword}
                       >
                         <Lock className="h-4 w-4 mr-2" />
                         {passwordLoading ? 'Updating...' : 'Update Password'}

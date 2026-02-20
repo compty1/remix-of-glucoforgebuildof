@@ -10,6 +10,8 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Eagerly loaded critical routes
 import Index from "./pages/Index";
@@ -39,7 +41,7 @@ const Donate = lazy(() => import("./pages/donate/Donate"));
 const DonateSuccess = lazy(() => import("./pages/donate/DonateSuccess"));
 const DonateCancel = lazy(() => import("./pages/donate/DonateCancel"));
 const CureProgress = lazy(() => import("./pages/CureProgress"));
-const GlucoseUpload = lazy(() => import("./pages/glucose/GlucoseUpload"));
+// GlucoseUpload is now a redirect to /data-upload (Issue 104)
 const Journal = lazy(() => import("./pages/Journal"));
 const Bounties = lazy(() => import("./pages/Bounties"));
 const FinancialTools = lazy(() => import("./pages/FinancialTools"));
@@ -141,6 +143,25 @@ const AppContent = () => {
     return cleanup;
   }, [initialize]);
 
+  // Session expiry handling — notify user when token refresh fails (Issue 119)
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'TOKEN_REFRESHED') return; // success
+      if (event === 'SIGNED_OUT') {
+        // Check if this was an unexpected sign-out (e.g., expired token)
+        const wasLoggedIn = sessionStorage.getItem('gf_was_logged_in');
+        if (wasLoggedIn) {
+          sessionStorage.removeItem('gf_was_logged_in');
+          toast.warning('Your session has expired. Please sign in again.');
+        }
+      }
+      if (event === 'SIGNED_IN') {
+        sessionStorage.setItem('gf_was_logged_in', '1');
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <BrowserRouter>
       <ScrollToTop />
@@ -162,9 +183,8 @@ const AppContent = () => {
         <Route path="/donate/cancel" element={<DonateCancel />} />
         <Route path="/cure-progress" element={<CureProgress />} />
         <Route path="/insights" element={<Insights />} />
-        <Route path="/glucose/upload" element={<ProtectedRoute><GlucoseUpload /></ProtectedRoute>} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/reset-password" element={<ResetPassword />} />
+        {/* Redirect legacy glucose upload route to the canonical data-upload page (Issue 104) */}
+        <Route path="/glucose/upload" element={<Navigate to="/data-upload" replace />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/cure" element={<ProtectedRoute><LiveCureMonitoring /></ProtectedRoute>} />
         <Route path="/devices" element={<ProtectedRoute><DeviceAnalytics /></ProtectedRoute>} />

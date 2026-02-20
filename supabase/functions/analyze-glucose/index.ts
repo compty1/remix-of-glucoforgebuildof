@@ -695,7 +695,7 @@ function validateReadings(readings: GlucoseReading[]): GlucoseReading[] {
     
     const year = r.timestamp.getFullYear();
     if (year < 2010 || year > currentYear + 1) {
-      console.log(`Rejecting reading with impossible year: ${year}`);
+      // Skip reading with impossible year
       return false;
     }
     
@@ -706,7 +706,7 @@ function validateReadings(readings: GlucoseReading[]): GlucoseReading[] {
     return true;
   });
   
-  console.log(`Date validation: ${readings.length} input -> ${validated.length} valid`);
+  // Date validation complete
   return validated;
 }
 
@@ -757,7 +757,7 @@ function assessTextQuality(text: string): TextQualityResult {
   
   const isReadable = score >= 40;
   
-  console.log(`Text quality: score=${score.toFixed(0)}, alphaRatio=${alphanumericRatio.toFixed(2)}, keywords=${foundKeywords.length}, numbers=${glucoseRangeNumbers.length}, percentages=${percentages.length}`);
+  // Text quality assessment complete
   
   return { score, hasNumbers, hasKeywords, isReadable, alphanumericRatio };
 }
@@ -1000,7 +1000,7 @@ async function extractPDFWithVision(base64PDF: string, filename: string): Promis
     return { metrics: null, text: '' };
   }
   
-  console.log('Using AI Vision to extract PDF content...');
+  // Using AI Vision to extract PDF content
   
   try {
     // Use Gemini with vision capability to read the PDF document
@@ -1073,7 +1073,7 @@ OUTPUT FORMAT: Return ONLY a valid JSON object with these fields (use null for m
     
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || '';
-    console.log('Vision API response:', content.substring(0, 500));
+    // Vision API response received
     
     // Parse JSON from response
     const jsonMatch = content.match(/\{[\s\S]*\}/);
@@ -1174,7 +1174,7 @@ function extractTextFromPDFBinary(pdfContent: string): string {
     .replace(/\s+/g, ' ')
     .trim();
   
-  console.log(`Legacy extraction: ${extractedText.length} chars`);
+  // Legacy PDF text extraction complete
   return extractedText;
 }
 
@@ -2656,8 +2656,8 @@ serve(async (req) => {
         const token = authHeader.replace('Bearer ', '');
         const { data: { user } } = await supabaseClient.auth.getUser(token);
         userId = user?.id || null;
-      } catch (e) {
-        console.log('Could not get user from token for journal entries');
+      } catch (_e) {
+        // Could not get user from token for journal entries — skipping
       }
     }
     
@@ -2735,8 +2735,6 @@ serve(async (req) => {
       })
       .eq('id', uploadId);
     
-    console.log(`Analysis complete: ${readings.length} readings, ${patterns.length} patterns`);
-    
     return new Response(
       JSON.stringify({
         success: true,
@@ -2748,13 +2746,34 @@ serve(async (req) => {
         agpData,
         patterns,
         recommendations,
-        aiInsights
+        aiInsights,
+        // Enhanced fields now included in response (Issue 23, 52)
+        confidenceScore,
+        confidenceBand,
+        validationFlags,
+        dataQuality,
+        novelSignals,
+        dayNightAnalysis,
+        executiveSummary
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
     
   } catch (error) {
-    console.error("Unexpected error:", error);
+    // Update upload status to error to prevent orphaned processing records (Issue 237)
+    try {
+      const body = await req.clone().json().catch(() => ({}));
+      const uploadId = body?.uploadId;
+      if (uploadId) {
+        const supabaseClient = createClient(
+          Deno.env.get("SUPABASE_URL") ?? "",
+          Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+        );
+        await supabaseClient.from('uploads').update({ status: 'error' }).eq('id', uploadId);
+      }
+    } catch (_inner) {
+      // Could not update upload status
+    }
     return new Response(
       JSON.stringify({ error: 'An unexpected error occurred during analysis.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

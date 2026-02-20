@@ -357,17 +357,25 @@ const DataUpload = () => {
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <section className="text-center mb-12">
+        <section className="text-center mb-8">
           <h1 className="text-4xl font-heading font-bold text-foreground mb-4">
             Data Upload & Analysis Hub
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-4">
             Upload your CGM data, pump logs, or manual entries to unlock AI-powered insights and personalized recommendations
           </p>
-          <p className="text-sm text-muted-foreground max-w-2xl mx-auto mb-8 italic">
-            ⚠ Analysis results are for informational purposes only and should not replace professional medical advice. Always consult your healthcare team before making treatment changes.
-          </p>
         </section>
+
+        {/* Prominent medical disclaimer (Issue 201) */}
+        <div className="mb-6 p-4 rounded-lg border border-warning/40 bg-warning/10 flex gap-3 items-start">
+          <AlertCircle className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-semibold text-warning text-sm">Medical Disclaimer</p>
+            <p className="text-foreground/80 text-sm">
+              Analysis results are for <strong>informational purposes only</strong> and do not constitute medical advice. Always consult your endocrinologist or healthcare team before making any changes to your diabetes management plan.
+            </p>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Upload Section */}
