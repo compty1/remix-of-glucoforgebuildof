@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { 
   TrendingUp, 
@@ -68,174 +69,147 @@ interface HealthMetricsData {
   isDemo?: boolean;
 }
 
-type WidgetData = GlucoseData | DeviceData | CommunityData | RecentActivityData | HealthMetricsData | { loaded: boolean } | null;
+const WIDGET_STALE_TIME = 5 * 60 * 1000;
 
 export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, isEditing }) => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
-  const [data, setData] = useState<WidgetData>(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchWidgetData = async () => {
-      try {
-        setLoading(true);
-        
-        switch (widgetId) {
-          case 'glucose-trends':
-            if (user?.id) {
-              const { data: uploads } = await supabase
-                .from('uploads')
-                .select('detailed_analysis, uploaded_at')
-                .eq('user_id', user.id)
-                .order('uploaded_at', { ascending: false })
-                .limit(1);
-              
-              if (uploads && uploads.length > 0 && uploads[0].detailed_analysis) {
-                const analysis = uploads[0].detailed_analysis as Record<string, unknown>;
-                const metrics = (analysis?.metrics || analysis?.rawMetrics || {}) as Record<string, number | undefined>;
-                const avgGlucose = analysis?.avgGlucose as number | undefined;
-                const tir = analysis?.timeInRange as number | undefined;
-                const estA1c = analysis?.estimatedA1C as number | undefined;
-                const cvVal = analysis?.cv as number | undefined;
-
-                setData({
-                  currentBG: metrics.currentBG ?? metrics.mean ?? (avgGlucose ? Math.round(avgGlucose) : null),
-                  trend: metrics.trend ? String(metrics.trend) : undefined,
-                  timeInRange: metrics.timeInRange != null ? Math.round(metrics.timeInRange) : (tir != null ? Math.round(tir) : undefined),
-                  estA1C: (metrics.gmi ?? metrics.estimatedA1c ?? estA1c)?.toFixed(1),
-                  cv: metrics.cv != null ? Math.round(metrics.cv) : (cvVal != null ? Math.round(cvVal) : undefined),
-                  hasData: true,
-                  lastUpdated: uploads[0].uploaded_at
-                } as GlucoseData);
-              } else {
-                setData({ currentBG: null, hasData: false } as GlucoseData);
-              }
-            } else {
-              setData({ currentBG: null, hasData: false, isDemo: true } as GlucoseData);
-            }
-            break;
-          
-          case 'device-status':
-            if (user?.id) {
-              const { data: prefs } = await supabase
-                .from('user_preferences')
-                .select('device_brands, cgm_device_id')
-                .eq('user_id', user.id)
-                .maybeSingle();
-              
-              setData({
-                cgmConnected: !!prefs?.cgm_device_id,
-                cgmModel: prefs?.device_brands?.[0] || 'CGM',
-              } as DeviceData);
-            } else {
-              setData({ cgmConnected: false } as DeviceData);
-            }
-            break;
-          
-          case 'community-insights': {
-            const { count } = await supabase
-              .from('community_posts')
-              .select('*', { count: 'exact', head: true })
-              .gte('published_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
-            
-            let userContributions = 0;
-            if (user?.id) {
-              const { count: contribCount } = await supabase
-                .from('community_comments')
-                .select('*', { count: 'exact', head: true })
-                .eq('author_anonymous', user.email?.split('@')[0] || 'user');
-              userContributions = contribCount || 0;
-            }
-            
-            setData({
-              activeMembers: count || 0, // Actually "posts in last 24h" — variable name kept for interface compat
-              postsToday: count || 0,
-              userContributions
-            } as CommunityData);
-            break;
-          }
-            
-          case 'recent-activity':
-            if (user?.id) {
-              const { data: activityData } = await supabase
-                .from('uploads')
-                .select('id, file_name, uploaded_at')
-                .eq('user_id', user.id)
-                .order('uploaded_at', { ascending: false })
-                .limit(5);
-              
-              const { data: surveys } = await supabase
-                .from('survey_responses')
-                .select('id, survey_id, completed_at')
-                .eq('user_id', user.id)
-                .order('completed_at', { ascending: false })
-                .limit(3);
-              
-              
-              // Sort by most recent (reverse chronological by raw timestamp)
-              const allRaw = [
-                ...(activityData || []).map(u => ({ type: 'upload' as const, label: u.file_name || 'Data uploaded', raw: u.uploaded_at || '' })),
-                ...(surveys || []).map(s => ({ type: 'survey' as const, label: 'Survey completed', raw: s.completed_at || '' }))
-              ].sort((a, b) => new Date(b.raw).getTime() - new Date(a.raw).getTime());
-              const sortedItems: ActivityItem[] = allRaw.map(r => ({
-                type: r.type,
-                label: r.label,
-                time: r.raw ? formatDistanceToNow(new Date(r.raw), { addSuffix: true }) : 'recently'
-              }));
-
-              setData({
-                items: sortedItems.slice(0, 5),
-                hasActivity: sortedItems.length > 0
-              } as RecentActivityData);
-            } else {
-              setData({ items: [], hasActivity: false } as RecentActivityData);
-            }
-            break;
-            
-          case 'health-metrics':
-            if (user?.id) {
-              const { data: uploads } = await supabase
-                .from('uploads')
-                .select('detailed_analysis')
-                .eq('user_id', user.id)
-                .order('uploaded_at', { ascending: false })
-                .limit(1);
-              
-              if (uploads && uploads.length > 0 && uploads[0].detailed_analysis) {
-                const analysis = uploads[0].detailed_analysis as Record<string, unknown>;
-                const metrics = (analysis?.metrics || {}) as Record<string, number | undefined>;
-                setData({
-                  timeInRange: metrics.timeInRange != null ? Math.round(metrics.timeInRange) : undefined,
-                  estA1C: metrics.gmi?.toFixed(1),
-                  cv: metrics.cv != null ? Math.round(metrics.cv) : undefined,
-                  hasData: true
-                } as HealthMetricsData);
-              } else {
-                setData({ hasData: false } as HealthMetricsData);
-              }
-            } else {
-              setData({ hasData: false, isDemo: true } as HealthMetricsData);
-            }
-            break;
-            
-          case 'quick-actions':
-            setData({ loaded: true });
-            break;
-            
-          default:
-            setData(null);
-        }
-      } catch {
-        // Widget data fetch failed — show empty state
-        setData(null);
-      } finally {
-        setLoading(false);
+  const { data: glucoseData, isLoading: glucoseLoading } = useQuery({
+    queryKey: ['widget-glucose-trends', user?.id],
+    queryFn: async (): Promise<GlucoseData> => {
+      if (!user?.id) return { currentBG: null, hasData: false, isDemo: true };
+      const { data: uploads } = await supabase
+        .from('uploads')
+        .select('detailed_analysis, uploaded_at')
+        .eq('user_id', user.id)
+        .order('uploaded_at', { ascending: false })
+        .limit(1);
+      if (uploads && uploads.length > 0 && uploads[0].detailed_analysis) {
+        const analysis = uploads[0].detailed_analysis as Record<string, unknown>;
+        const metrics = (analysis?.metrics || analysis?.rawMetrics || {}) as Record<string, number | undefined>;
+        const avgGlucose = analysis?.avgGlucose as number | undefined;
+        const tir = analysis?.timeInRange as number | undefined;
+        const estA1c = analysis?.estimatedA1C as number | undefined;
+        const cvVal = analysis?.cv as number | undefined;
+        return {
+          currentBG: metrics.currentBG ?? metrics.mean ?? (avgGlucose ? Math.round(avgGlucose) : null),
+          trend: metrics.trend ? String(metrics.trend) : undefined,
+          timeInRange: metrics.timeInRange != null ? Math.round(metrics.timeInRange) : (tir != null ? Math.round(tir) : undefined),
+          estA1C: (metrics.gmi ?? metrics.estimatedA1c ?? estA1c)?.toFixed(1),
+          cv: metrics.cv != null ? Math.round(metrics.cv) : (cvVal != null ? Math.round(cvVal) : undefined),
+          hasData: true,
+          lastUpdated: uploads[0].uploaded_at
+        };
       }
-    };
+      return { currentBG: null, hasData: false };
+    },
+    enabled: widgetId === 'glucose-trends',
+    staleTime: WIDGET_STALE_TIME,
+  });
 
-    fetchWidgetData();
-  }, [widgetId, user?.id]);
+  const { data: deviceData, isLoading: deviceLoading } = useQuery({
+    queryKey: ['widget-device-status', user?.id],
+    queryFn: async (): Promise<DeviceData> => {
+      if (!user?.id) return { cgmConnected: false };
+      const { data: prefs } = await supabase
+        .from('user_preferences')
+        .select('device_brands, cgm_device_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      return {
+        cgmConnected: !!prefs?.cgm_device_id,
+        cgmModel: prefs?.device_brands?.[0] || 'CGM',
+      };
+    },
+    enabled: widgetId === 'device-status',
+    staleTime: WIDGET_STALE_TIME,
+  });
+
+  const { data: communityData, isLoading: communityLoading } = useQuery({
+    queryKey: ['widget-community-insights', user?.id],
+    queryFn: async (): Promise<CommunityData> => {
+      const { count } = await supabase
+        .from('community_posts')
+        .select('*', { count: 'exact', head: true })
+        .gte('published_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+      let userContributions = 0;
+      if (user?.id) {
+        const { count: contribCount } = await supabase
+          .from('community_comments')
+          .select('*', { count: 'exact', head: true })
+          .eq('author_anonymous', user.email?.split('@')[0] || 'user');
+        userContributions = contribCount || 0;
+      }
+      return { activeMembers: count || 0, postsToday: count || 0, userContributions };
+    },
+    enabled: widgetId === 'community-insights',
+    staleTime: WIDGET_STALE_TIME,
+  });
+
+  const { data: activityData, isLoading: activityLoading } = useQuery({
+    queryKey: ['widget-recent-activity', user?.id],
+    queryFn: async (): Promise<RecentActivityData> => {
+      if (!user?.id) return { items: [], hasActivity: false };
+      const { data: uploadsData } = await supabase
+        .from('uploads')
+        .select('id, file_name, uploaded_at')
+        .eq('user_id', user.id)
+        .order('uploaded_at', { ascending: false })
+        .limit(5);
+      const { data: surveys } = await supabase
+        .from('survey_responses')
+        .select('id, survey_id, completed_at')
+        .eq('user_id', user.id)
+        .order('completed_at', { ascending: false })
+        .limit(3);
+      const allRaw = [
+        ...(uploadsData || []).map(u => ({ type: 'upload' as const, label: u.file_name || 'Data uploaded', raw: u.uploaded_at || '' })),
+        ...(surveys || []).map(s => ({ type: 'survey' as const, label: 'Survey completed', raw: s.completed_at || '' }))
+      ].sort((a, b) => new Date(b.raw).getTime() - new Date(a.raw).getTime());
+      const sortedItems: ActivityItem[] = allRaw.map(r => ({
+        type: r.type,
+        label: r.label,
+        time: r.raw ? formatDistanceToNow(new Date(r.raw), { addSuffix: true }) : 'recently'
+      }));
+      return { items: sortedItems.slice(0, 5), hasActivity: sortedItems.length > 0 };
+    },
+    enabled: widgetId === 'recent-activity',
+    staleTime: WIDGET_STALE_TIME,
+  });
+
+  const { data: healthData, isLoading: healthLoading } = useQuery({
+    queryKey: ['widget-health-metrics', user?.id],
+    queryFn: async (): Promise<HealthMetricsData> => {
+      if (!user?.id) return { hasData: false, isDemo: true };
+      const { data: uploads } = await supabase
+        .from('uploads')
+        .select('detailed_analysis')
+        .eq('user_id', user.id)
+        .order('uploaded_at', { ascending: false })
+        .limit(1);
+      if (uploads && uploads.length > 0 && uploads[0].detailed_analysis) {
+        const analysis = uploads[0].detailed_analysis as Record<string, unknown>;
+        const metrics = (analysis?.metrics || {}) as Record<string, number | undefined>;
+        return {
+          timeInRange: metrics.timeInRange != null ? Math.round(metrics.timeInRange) : undefined,
+          estA1C: metrics.gmi?.toFixed(1),
+          cv: metrics.cv != null ? Math.round(metrics.cv) : undefined,
+          hasData: true
+        };
+      }
+      return { hasData: false };
+    },
+    enabled: widgetId === 'health-metrics',
+    staleTime: WIDGET_STALE_TIME,
+  });
+
+  const loading = widgetId === 'glucose-trends' ? glucoseLoading
+    : widgetId === 'device-status' ? deviceLoading
+    : widgetId === 'community-insights' ? communityLoading
+    : widgetId === 'recent-activity' ? activityLoading
+    : widgetId === 'health-metrics' ? healthLoading
+    : false;
 
   if (loading) {
     return (
@@ -254,7 +228,7 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
   const renderWidget = () => {
     switch (widgetId) {
       case 'glucose-trends': {
-        const gd = data as GlucoseData | null;
+        const gd = glucoseData ?? null;
         const hasRealData = gd?.hasData && gd?.currentBG != null;
         return (
           <Card className="h-full">
@@ -317,7 +291,7 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
       }
 
       case 'device-status': {
-        const dd = data as DeviceData | null;
+        const dd = deviceData ?? null;
         return (
           <Card className="h-full">
             <CardHeader className="pb-2">
@@ -347,7 +321,7 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
       }
 
       case 'community-insights': {
-        const cd = data as CommunityData | null;
+        const cd = communityData ?? null;
         return (
           <Card className="h-full">
             <CardHeader className="pb-2">
@@ -403,7 +377,7 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
         );
 
       case 'recent-activity': {
-        const ra = data as RecentActivityData | null;
+        const ra = activityData ?? null;
         return (
           <Card className="h-full">
             <CardHeader className="pb-2">
@@ -431,7 +405,7 @@ export const DashboardWidgets: React.FC<DashboardWidgetsProps> = ({ widgetId, is
       }
 
       case 'health-metrics': {
-        const hm = data as HealthMetricsData | null;
+        const hm = healthData ?? null;
         const hasMetrics = hm?.hasData && (hm?.timeInRange != null || hm?.estA1C || hm?.cv != null);
         return (
           <Card className="h-full">

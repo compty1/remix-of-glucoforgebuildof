@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from '@/components/Layout';
 import { BackButton } from '@/components/ui/back-button';
@@ -10,7 +10,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EntityLogo } from '@/components/ui/entity-logo';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuthStore } from '@/store/authStore';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { 
   Smartphone, 
   Star, 
@@ -53,6 +57,7 @@ interface AppReview {
   content: string;
   rating: number | null;
   source_platform: string | null;
+  source_url?: string | null;
   author: string | null;
   created_at: string;
 }
@@ -166,71 +171,99 @@ const AppCard: React.FC<{ app: DiabetesApp; onClick: () => void }> = ({ app, onC
 
 export default function AppCenter() {
   usePageMeta('App Center', 'Discover and compare the best diabetes management apps. Real reviews, community insights, and feature breakdowns.');
-  const [apps, setApps] = useState<DiabetesApp[]>([]);
-  const [reviews, setReviews] = useState<AppReview[]>([]);
-  const [buzz, setBuzz] = useState<AppBuzz[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuthStore();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedApp, setSelectedApp] = useState<DiabetesApp | null>(null);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ rating: 0, title: '', content: '' });
+  const [submittingReview, setSubmittingReview] = useState(false);
 
-  useEffect(() => {
-    fetchApps();
-  }, []);
-
-  const fetchApps = async () => {
-    try {
+  // useQuery for apps
+  const { data: apps = [], isLoading: loading } = useQuery({
+    queryKey: ['diabetes-apps'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('diabetes_apps')
         .select('*')
         .order('is_featured', { ascending: false })
         .order('avg_rating', { ascending: false });
-
       if (error) throw error;
-      setApps(data || []);
-    } catch (error) {
-      toast.error('Failed to load apps');
-    } finally {
-      setLoading(false);
-    }
-  };
+      return (data || []) as DiabetesApp[];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
 
-  const fetchAppReviews = async (appId: string) => {
-    try {
+  // useQuery for reviews
+  const { data: reviews = [] } = useQuery({
+    queryKey: ['app-reviews', selectedApp?.id],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('app_reviews')
         .select('*')
-        .eq('app_id', appId)
+        .eq('app_id', selectedApp!.id)
         .order('created_at', { ascending: false })
         .limit(10);
-
       if (error) throw error;
-      setReviews(data || []);
-    } catch (error) {
-      // silently fail; reviews are non-critical
-    }
-  };
+      return (data || []) as AppReview[];
+    },
+    enabled: !!selectedApp?.id,
+    staleTime: 5 * 60 * 1000,
+  });
 
-  const fetchAppBuzz = async (appName: string) => {
-    try {
+  // useQuery for buzz
+  const { data: buzz = [] } = useQuery({
+    queryKey: ['app-buzz', selectedApp?.name],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('app_community_buzz')
         .select('*')
-        .eq('app_name', appName)
+        .eq('app_name', selectedApp!.name)
         .order('upvotes', { ascending: false })
         .limit(15);
-
       if (error) throw error;
-      setBuzz(data || []);
-    } catch (error) {
-      // silently fail; buzz is non-critical
-    }
-  };
+      return (data || []) as AppBuzz[];
+    },
+    enabled: !!selectedApp?.name,
+    staleTime: 5 * 60 * 1000,
+  });
 
   const handleAppClick = (app: DiabetesApp) => {
     setSelectedApp(app);
-    fetchAppReviews(app.id);
-    fetchAppBuzz(app.name);
+    setShowReviewForm(false);
+    setReviewForm({ rating: 0, title: '', content: '' });
+  };
+
+  const handleSubmitReview = async () => {
+    if (!user || !selectedApp) return;
+    if (reviewForm.rating === 0) {
+      toast.error('Please select a rating');
+      return;
+    }
+    if (reviewForm.content.trim().length < 10) {
+      toast.error('Review must be at least 10 characters');
+      return;
+    }
+    setSubmittingReview(true);
+    try {
+      const { error } = await supabase.from('app_reviews').insert({
+        app_id: selectedApp.id,
+        content: reviewForm.content.trim(),
+        rating: reviewForm.rating,
+        author: reviewForm.title.trim() || null,
+        source_platform: 'GlucoForge',
+      });
+      if (error) throw error;
+      toast.success('Review submitted!');
+      setShowReviewForm(false);
+      setReviewForm({ rating: 0, title: '', content: '' });
+      queryClient.invalidateQueries({ queryKey: ['app-reviews', selectedApp.id] });
+    } catch {
+      toast.error('Failed to submit review');
+    } finally {
+      setSubmittingReview(false);
+    }
   };
 
   const categories = ['all', ...Array.from(new Set(apps.map(a => a.category).filter(Boolean)))];
@@ -497,7 +530,13 @@ export default function AppCenter() {
                                 )}
                               </div>
                               {review.source_platform && (
-                                <Badge variant="outline" className="text-xs">{review.source_platform}</Badge>
+                                <Badge 
+                                  variant="outline" 
+                                  className="text-xs"
+                                  title={!review.source_url ? `Original link unavailable — review sourced from ${review.source_platform}` : undefined}
+                                >
+                                  {review.source_platform}
+                                </Badge>
                               )}
                             </div>
                             <p className="text-sm">{review.content}</p>
@@ -508,6 +547,67 @@ export default function AppCenter() {
                       <p className="text-center text-muted-foreground py-8">
                         No reviews yet for this app.
                       </p>
+                    )}
+
+                    {/* Review Submission Form */}
+                    {user && (
+                      <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
+                        {!showReviewForm ? (
+                          <Button variant="outline" className="w-full" onClick={() => setShowReviewForm(true)}>
+                            <Star className="h-4 w-4 mr-2" /> Write a Review
+                          </Button>
+                        ) : (
+                          <>
+                            <h4 className="font-medium">Write Your Review</h4>
+                            <div className="space-y-1">
+                              <Label>Rating</Label>
+                              <div className="flex gap-1">
+                                {[1, 2, 3, 4, 5].map(n => (
+                                  <button
+                                    key={n}
+                                    aria-label={`Rate ${n} stars`}
+                                    className="focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
+                                    onClick={() => setReviewForm(f => ({ ...f, rating: n }))}
+                                  >
+                                    <Star className={`h-6 w-6 ${n <= reviewForm.rating ? 'fill-yellow-500 text-yellow-500' : 'text-muted-foreground'}`} />
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor="app-rev-title">Title (optional)</Label>
+                              <Input
+                                id="app-rev-title"
+                                maxLength={100}
+                                value={reviewForm.title}
+                                onChange={e => setReviewForm(f => ({ ...f, title: e.target.value }))}
+                                placeholder="Summary of your experience"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor="app-rev-content">
+                                Your Review <span className="text-muted-foreground text-xs">({reviewForm.content.length}/2000)</span>
+                              </Label>
+                              <Textarea
+                                id="app-rev-content"
+                                maxLength={2000}
+                                rows={4}
+                                value={reviewForm.content}
+                                onChange={e => setReviewForm(f => ({ ...f, content: e.target.value }))}
+                                placeholder="Share your experience with this app..."
+                              />
+                            </div>
+                            <div className="flex gap-2">
+                              <Button onClick={handleSubmitReview} disabled={submittingReview} size="sm">
+                                {submittingReview ? 'Submitting...' : 'Submit Review'}
+                              </Button>
+                              <Button variant="ghost" size="sm" onClick={() => setShowReviewForm(false)}>
+                                Cancel
+                              </Button>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     )}
                   </TabsContent>
 
@@ -568,9 +668,9 @@ export default function AppCenter() {
                                   {post.category && (
                                     <Badge variant="secondary" className="text-[10px]">{post.category.replace('_', ' ')}</Badge>
                                   )}
-                                  {(post as any).source_url && (
+                                  {post.source_url && (
                                     <a
-                                      href={(post as any).source_url}
+                                      href={post.source_url}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       className="text-primary hover:underline flex items-center gap-1"
