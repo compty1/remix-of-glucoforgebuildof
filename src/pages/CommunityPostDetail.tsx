@@ -27,7 +27,7 @@ import { useSinglePost, usePostComments } from '@/hooks/useCommunitySearch';
 import { useSavedPosts } from '@/hooks/useSavedPosts';
 import { SavePostNotesModal } from '@/components/community/SavePostNotesModal';
 import { RelatedPosts } from '@/components/community/RelatedPosts';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuthStore } from '@/store/authStore';
 import { formatDistanceToNow, format } from 'date-fns';
 
 const CommunityPostDetail: React.FC = () => {
@@ -42,19 +42,13 @@ const CommunityPostDetail: React.FC = () => {
   const hasMoreComments = commentsResult?.hasMore || false;
 
   const [isCopied, setIsCopied] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [isEditingNotes, setIsEditingNotes] = useState(false);
 
-  const { isPostSaved, savePost, unsavePost, updateNotes, getPostNotes, isSaving, isUnsaving, isUpdatingNotes } = useSavedPosts();
+  const { user } = useAuthStore();
+  const isLoggedIn = !!user;
 
-  React.useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsLoggedIn(!!user);
-    };
-    checkAuth();
-  }, []);
+  const { isPostSaved, savePost, unsavePost, updateNotes, getPostNotes, isSaving, isUnsaving, isUpdatingNotes } = useSavedPosts();
 
   const isSaved = post ? isPostSaved(post.post_id) : false;
   const currentNotes = post ? getPostNotes(post.post_id) : null;

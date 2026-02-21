@@ -335,9 +335,12 @@ const FinancialTools = () => {
                           <div key={item.id} className="p-4 border rounded-lg">
                             <div className="flex justify-between items-start mb-2">
                               <h3 className="font-medium">{item.device_name}</h3>
-                              <Badge variant={item.coverage_status === 'Covered' ? 'default' : 'secondary'}>
-                                {item.coverage_status}
-                              </Badge>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className="text-[10px] text-muted-foreground">Source: CMS</Badge>
+                                <Badge variant={item.coverage_status === 'Covered' ? 'default' : 'secondary'}>
+                                  {item.coverage_status}
+                                </Badge>
+                              </div>
                             </div>
                             {item.coverage_details && (
                               <div className="text-sm space-y-2 text-muted-foreground">

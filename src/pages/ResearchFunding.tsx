@@ -235,6 +235,7 @@ const ResearchFunding = () => {
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div className="h-full bg-success" style={{ width: '100%' }}></div>
                   </div>
+                  <p className="text-[10px] text-muted-foreground mt-1">Based on available NIH data — some projects have undisclosed funding amounts.</p>
                 </div>
 
                 <div>
