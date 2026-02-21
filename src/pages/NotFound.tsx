@@ -1,7 +1,9 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const NotFound = () => {
+  usePageMeta('Page Not Found', 'The page you requested could not be found.');
   const location = useLocation();
 
   // 404 logged silently — no console noise in production

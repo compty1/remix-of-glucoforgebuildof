@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface FeatureFlag {
   id: string;
@@ -82,6 +83,7 @@ async function saveSetting(key: string, value: unknown, category: string, userId
 }
 
 export default function AdminSettings() {
+  usePageMeta('Admin - Settings', 'GlucoForge admin panel.');
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);

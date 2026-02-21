@@ -24,8 +24,10 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const DeviceAnalytics = () => {
+  usePageMeta('Device Analytics', 'Compare CGMs, pumps, and diabetes devices with real-world data and FDA safety reports.');
   const navigate = useNavigate();
   const { data, loading, error, refreshCommunityFeed } = useDeviceAnalytics();
   const { data: fdaData, loading: fdaLoading, error: fdaError, refreshData: refreshFDA } = useFDAData();

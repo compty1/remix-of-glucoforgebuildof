@@ -11,6 +11,7 @@ import { Search, UserPlus, Edit, Trash2, Mail, Calendar, Shield, RefreshCw } fro
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface User {
   id: string;
@@ -24,6 +25,7 @@ interface User {
 }
 
 export default function AdminUsers() {
+  usePageMeta('Admin - Users', 'GlucoForge admin panel.');
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');

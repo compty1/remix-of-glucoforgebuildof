@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { InfoRail } from '@/components/InfoRail';
 import { DynamicPredictions } from '@/components/ai-center/DynamicPredictions';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { 
   Brain, 
   Sparkles, 
@@ -239,6 +240,7 @@ const scenarioResponses: ScenarioResponse[] = [
 ];
 
 export default function AICenter() {
+  usePageMeta('AI Center', 'Research-based T1D predictions, management scenarios, and AI-powered insights.');
   const [selectedScenario, setSelectedScenario] = useState<ScenarioResponse | null>(null);
 
   const getCategoryColor = (category: string) => {

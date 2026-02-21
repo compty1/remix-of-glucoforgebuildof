@@ -10,6 +10,7 @@ import { ProductCard } from '@/components/shop/ProductCard';
 import { ShoppingCart, CartItem } from '@/components/shop/ShoppingCart';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const categoryLabels: Record<string, string> = {
   all: 'All Products',
@@ -23,6 +24,7 @@ const categoryLabels: Record<string, string> = {
 };
 
 export default function Shop() {
+  usePageMeta('Shop', 'Browse T1D accessories, supplies, and community merchandise.');
   const [activeCategory, setActiveCategory] = useState('all');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [checkoutLoading, setCheckoutLoading] = useState(false);

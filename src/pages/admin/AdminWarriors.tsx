@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Edit, Trash2, Award, Eye, EyeOff, Shield, Trophy } from 'lucide-react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface WarriorStory {
   id: string;
@@ -28,6 +29,7 @@ interface WarriorStory {
 }
 
 export default function AdminWarriors() {
+  usePageMeta('Admin - Warriors', 'GlucoForge admin panel.');
   const [stories, setStories] = useState<WarriorStory[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingStory, setEditingStory] = useState<WarriorStory | null>(null);

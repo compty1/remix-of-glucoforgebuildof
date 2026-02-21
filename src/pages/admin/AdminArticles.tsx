@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Plus, Edit, Trash2, FileText, Eye, EyeOff } from 'lucide-react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface Article {
   id: string;
@@ -29,6 +30,7 @@ interface Article {
 }
 
 export default function AdminArticles() {
+  usePageMeta('Admin - Articles', 'GlucoForge admin panel.');
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingArticle, setEditingArticle] = useState<Article | null>(null);

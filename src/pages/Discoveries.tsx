@@ -8,8 +8,10 @@ import { ExternalLink, Calendar, TrendingUp, Search, AlertCircle, Microscope, Fl
 import { useState } from 'react';
 import { useDiscoveries } from '@/hooks/useDiscoveries';
 import { supabase } from '@/integrations/supabase/client';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function Discoveries() {
+  usePageMeta('Discoveries', 'Browse T1D research discoveries, breakthroughs, and clinical findings.');
   const [filters, setFilters] = useState({
     type: 'all',
     impact: 'all',

@@ -133,10 +133,12 @@ async function scrapeDrugsComReviews(medicationName: string, url: string): Promi
     
     // Content quality filter — skip scraped navigation/junk
     const JUNK_MARKERS = [
-      'skip to main content', 'a-z list', 'pill identifier',
+      'skip to main content', 'a-z list', 'a-z list of drugs', 'pill identifier',
       'page you were looking', 'find treatment options',
       'keyboard shortcuts', 'save up to', 'drug interaction checker',
-      'sign up for', 'advertisement', 'cookie policy'
+      'sign up for', 'advertisement', 'cookie policy',
+      'skip to fda search', 'skip to footer links', 'skip to in this section',
+      'in this section:',
     ];
     
     // Take first 5 substantial paragraphs as reviews, filtering junk

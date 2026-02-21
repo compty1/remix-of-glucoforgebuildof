@@ -2,8 +2,10 @@ import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Keyboard, Volume2, Eye, MousePointer } from 'lucide-react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function Accessibility() {
+  usePageMeta('Accessibility', 'Our commitment to digital accessibility and WCAG compliance.');
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">

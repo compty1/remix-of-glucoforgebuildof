@@ -9,8 +9,10 @@ import { Mail, MapPin, Clock } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function Contact() {
+  usePageMeta('Contact Us', 'Get in touch with the GlucoForge team for support, feedback, or partnerships.');
   const [formData, setFormData] = useState({
     name: '',
     email: '',

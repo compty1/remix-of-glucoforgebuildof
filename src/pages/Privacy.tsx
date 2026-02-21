@@ -1,8 +1,10 @@
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Shield, Lock, Eye, Database } from 'lucide-react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function Privacy() {
+  usePageMeta('Privacy Policy', 'How GlucoForge handles your data, privacy rights, and security practices.');
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">

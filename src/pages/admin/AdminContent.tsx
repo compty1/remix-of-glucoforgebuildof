@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface Discovery {
   id: string;
@@ -39,6 +40,7 @@ interface Survey {
 }
 
 export default function AdminContent() {
+  usePageMeta('Admin - Content', 'GlucoForge admin panel.');
   const navigate = useNavigate();
   const [discoveries, setDiscoveries] = useState<Discovery[]>([]);
   const [bounties, setBounties] = useState<Bounty[]>([]);

@@ -13,10 +13,12 @@ import { toast } from 'sonner';
 import logoImage from '@/assets/glucoforge-logo.svg';
 import { signInSchema, signUpSchema } from '@/lib/validation';
 import { z } from 'zod';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 
 const Auth = () => {
+  usePageMeta('Sign In', 'Sign in or create your GlucoForge account.');
   const { user, loading, initialized, signIn, signUp } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('signin');
