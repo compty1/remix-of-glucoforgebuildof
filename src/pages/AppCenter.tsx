@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from '@/components/Layout';
 import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -82,6 +83,10 @@ const AppCard: React.FC<{ app: DiabetesApp; onClick: () => void }> = ({ app, onC
     <Card 
       className="command-center-widget cursor-pointer hover:shadow-lg transition-all"
       onClick={onClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+      aria-label={`View details for ${app.name}`}
     >
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
@@ -159,6 +164,7 @@ const AppCard: React.FC<{ app: DiabetesApp; onClick: () => void }> = ({ app, onC
 };
 
 export default function AppCenter() {
+  usePageMeta('App Center', 'Discover and compare the best diabetes management apps. Real reviews, community insights, and feature breakdowns.');
   const [apps, setApps] = useState<DiabetesApp[]>([]);
   const [reviews, setReviews] = useState<AppReview[]>([]);
   const [buzz, setBuzz] = useState<AppBuzz[]>([]);
@@ -557,9 +563,11 @@ export default function AppCenter() {
                               <p className="text-sm">{post.content}</p>
                               <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
                                 {post.author_anonymous && <span>{post.author_anonymous}</span>}
-                                {post.category && (
-                                  <Badge variant="secondary" className="text-[10px]">{post.category.replace('_', ' ')}</Badge>
-                                )}
+                                <div className="flex items-center gap-2">
+                                  {post.category && (
+                                    <Badge variant="secondary" className="text-[10px]">{post.category.replace('_', ' ')}</Badge>
+                                  )}
+                                </div>
                               </div>
                             </CardContent>
                           </Card>

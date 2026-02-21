@@ -227,6 +227,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                       <p className="text-sm text-muted-foreground" aria-label={`${medication.review_count || 0} reviews`}>
                         {medication.review_count || 0} reviews
                       </p>
+                      <Badge variant="outline" className="text-[10px] mt-1 text-muted-foreground">Reference Data</Badge>
                     </div>
                   </div>
                 )}
@@ -259,6 +260,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                           <div className="flex gap-1">
                             {[1,2,3,4,5].map(n => (
                               <button key={n} aria-label={`Rate ${n} stars`}
+                                className="focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded-sm"
                                 onClick={() => setReviewForm(f => ({ ...f, rating: n }))}>
                                 <Star className={`h-6 w-6 ${n <= reviewForm.rating ? 'fill-warning text-warning' : 'text-muted-foreground'}`} />
                               </button>
@@ -298,7 +300,10 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                 {reviews.length > 0 ? (
                   <ScrollArea className="max-h-[400px]">
                     <div className="space-y-4">
-                      <h4 className="font-medium">User Reviews ({reviews.length})</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium">User Reviews ({reviews.length})</h4>
+                        <Badge variant="outline" className="text-[10px] text-muted-foreground">Demo Data</Badge>
+                      </div>
                       {reviews.map((review) => (
                         <div key={review.id} className="p-4 border rounded-lg space-y-2"
                           role="article" aria-label="User review">
@@ -374,47 +379,52 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                   </div>
                 )}
 
-                {/* External Reviews */}
-                {externalReviews.length > 0 && (
-                  <div className="space-y-4 mt-4">
-                    <h4 className="font-medium">Community Feedback ({externalReviews.length})</h4>
-                    {externalReviews.slice(0, externalVisible).map((review) => (
-                      <div key={review.id} className="p-4 border rounded-lg space-y-2"
-                        role="article" aria-label="Community review">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge variant="outline">{review.source}</Badge>
-                          {review.sentiment && (
-                            <Badge variant={review.sentiment === 'positive' ? 'default' : review.sentiment === 'negative' ? 'destructive' : 'secondary'}>
-                              {review.sentiment}
-                            </Badge>
-                          )}
-                          {review.published_at && (
-                            <span className="text-xs text-muted-foreground ml-auto">
-                              {format(new Date(review.published_at), 'MMM d, yyyy')}
-                            </span>
-                          )}
+                {/* External Reviews — show only Drugs.com reviews in Reviews tab */}
+                {(() => {
+                  const drugsComReviews = externalReviews.filter(r => r.source?.toLowerCase() === 'drugs.com');
+                  if (drugsComReviews.length === 0) return null;
+                  return (
+                    <div className="space-y-4 mt-4">
+                      <h4 className="font-medium">From Drugs.com ({drugsComReviews.length})</h4>
+                      {drugsComReviews.slice(0, externalVisible).map((review) => (
+                        <div key={review.id} className="p-4 border rounded-lg space-y-2"
+                          role="article" aria-label="Drugs.com review">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge variant="outline" className="bg-accent text-accent-foreground border-border">Drugs.com</Badge>
+                            {review.sentiment && (
+                              <Badge variant={review.sentiment === 'positive' ? 'default' : review.sentiment === 'negative' ? 'destructive' : 'secondary'}>
+                                {review.sentiment}
+                              </Badge>
+                            )}
+                            {review.published_at && (
+                              <span className="text-xs text-muted-foreground ml-auto">
+                                {format(new Date(review.published_at), 'MMM d, yyyy')}
+                              </span>
+                            )}
+                          </div>
+                          {review.title && <h5 className="font-medium text-sm">{review.title}</h5>}
+                          <p className="text-sm text-muted-foreground line-clamp-3">{review.content}</p>
+                          <div className="flex items-center gap-3">
+                            {review.source_url && (
+                              <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
+                                <a href={review.source_url} target="_blank" rel="noopener noreferrer"
+                                  aria-label="View original review on Drugs.com">
+                                  View source <ExternalLink className="h-3 w-3 ml-1" />
+                                </a>
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                        {review.title && <h5 className="font-medium text-sm">{review.title}</h5>}
-                        <p className="text-sm text-muted-foreground line-clamp-3">{review.content}</p>
-                        <div className="flex items-center gap-3">
-                          {review.source_url && (
-                            <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
-                              <a href={review.source_url} target="_blank" rel="noopener noreferrer">
-                                View source <ExternalLink className="h-3 w-3 ml-1" />
-                              </a>
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    {externalVisible < externalReviews.length && (
-                      <Button variant="outline" className="w-full" onClick={() => setExternalVisible(v => v + 5)}>
-                        <ChevronDown className="h-4 w-4 mr-2" />
-                        Load More ({externalReviews.length - externalVisible} remaining)
-                      </Button>
-                    )}
-                  </div>
-                )}
+                      ))}
+                      {externalVisible < drugsComReviews.length && (
+                        <Button variant="outline" className="w-full" onClick={() => setExternalVisible(v => v + 5)}>
+                          <ChevronDown className="h-4 w-4 mr-2" />
+                          Load More ({drugsComReviews.length - externalVisible} remaining)
+                        </Button>
+                      )}
+                    </div>
+                  );
+                })()}
               </TabsContent>
 
               {/* COMMUNITY BUZZ TAB */}
@@ -427,40 +437,55 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                   <p className="text-sm text-muted-foreground">
                     Authentic discussions shared by people with diabetes across forums and social media.
                   </p>
-                  {externalReviews.length > 0 ? (
-                    <div className="space-y-3">
-                      {externalReviews.map((review) => (
-                        <div key={review.id} className="p-4 border rounded-lg space-y-2 hover:bg-muted/50 transition-colors"
-                          role="article" aria-label="Community post">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="text-xs">{review.source}</Badge>
-                              {review.sentiment && (
-                                <Badge variant={review.sentiment === 'positive' ? 'default' : review.sentiment === 'negative' ? 'destructive' : 'secondary'} className="text-xs">
-                                  {review.sentiment}
-                                </Badge>
-                              )}
+                  {/* Show only Reddit / community posts in Community tab (not Drugs.com) */}
+                  {(() => {
+                    const communityPosts = externalReviews.filter(r => r.source?.toLowerCase() !== 'drugs.com');
+                    return communityPosts.length > 0 ? (
+                      <div className="space-y-3">
+                        {communityPosts.map((review) => (
+                          <div key={review.id} className="p-4 border rounded-lg space-y-2 hover:bg-muted/50 transition-colors"
+                            role="article" aria-label="Community post">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className={`text-xs ${
+                                  review.source?.toLowerCase() === 'reddit' ? 'bg-warning/10 text-warning border-warning/20' : ''
+                                }`}>{review.source === 'reddit' ? 'Reddit' : review.source}</Badge>
+                                {review.sentiment && (
+                                  <Badge variant={review.sentiment === 'positive' ? 'default' : review.sentiment === 'negative' ? 'destructive' : 'secondary'} className="text-xs">
+                                    {review.sentiment}
+                                  </Badge>
+                                )}
+                              </div>
                             </div>
+                            {review.title && <h5 className="font-medium text-sm">{review.title}</h5>}
+                            <p className="text-sm">{review.content}</p>
+                            {review.source_url ? (
+                              <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
+                                <a href={review.source_url} target="_blank" rel="noopener noreferrer"
+                                  aria-label={`View original post on ${review.source}`}>
+                                  View original post <ExternalLink className="h-3 w-3 ml-1" />
+                                </a>
+                              </Button>
+                            ) : review.source === 'reddit' ? (
+                              <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
+                                <a href={`https://www.reddit.com/search/?q=${encodeURIComponent(review.title || review.content?.slice(0, 50) || '')}&type=link`}
+                                  target="_blank" rel="noopener noreferrer"
+                                  aria-label="Search Reddit for this discussion">
+                                  Search Reddit <ExternalLink className="h-3 w-3 ml-1" />
+                                </a>
+                              </Button>
+                            ) : null}
                           </div>
-                          {review.title && <h5 className="font-medium text-sm">{review.title}</h5>}
-                          <p className="text-sm">{review.content}</p>
-                          {review.source_url && (
-                            <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
-                              <a href={review.source_url} target="_blank" rel="noopener noreferrer">
-                                View original post <ExternalLink className="h-3 w-3 ml-1" />
-                              </a>
-                            </Button>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>No community discussions found yet.</p>
-                      <p className="text-xs mt-1">Check back soon as we aggregate more content.</p>
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p>No community discussions found yet.</p>
+                        <p className="text-xs mt-1">Check back soon as we aggregate more content.</p>
+                      </div>
+                    );
+                  })()}
                 </div>
               </TabsContent>
 

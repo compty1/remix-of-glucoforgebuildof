@@ -1,4 +1,5 @@
 import Layout from '@/components/Layout';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { TechnicalRoleCard } from '@/components/get-involved/TechnicalRoleCard';

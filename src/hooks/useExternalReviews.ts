@@ -29,6 +29,24 @@ export interface ExternalReviewStats {
   sources: { source: string; count: number }[];
 }
 
+// Filter out scraped navigation/junk content from external reviews
+const JUNK_MARKERS = [
+  'Skip to main content',
+  'Keyboard shortcuts',
+  'Save up to',
+  'A-Z list of drugs',
+  'pill identifier',
+  'page you were looking',
+  'Find treatment options',
+  'The page you were looking could not be found',
+];
+
+const isValidReviewContent = (content: string): boolean => {
+  if (!content || content.length < 50) return false;
+  const lower = content.toLowerCase();
+  return !JUNK_MARKERS.some(marker => lower.includes(marker.toLowerCase()));
+};
+
 const computeStats = (reviews: ExternalReview[]): ExternalReviewStats => {
   const positive = reviews.filter(r => r.sentiment === 'positive').length;
   const neutral = reviews.filter(r => r.sentiment === 'neutral').length;
@@ -55,7 +73,8 @@ export const useExternalReviews = (deviceId: string | undefined) => {
         .eq('device_id', deviceId)
         .order('helpful_count', { ascending: false });
       if (error) throw error;
-      return (data || []) as ExternalReview[];
+      // Filter out scraped navigation/junk content (Issue #2)
+      return ((data || []) as ExternalReview[]).filter(r => isValidReviewContent(r.content));
     },
     enabled: !!deviceId,
   });
