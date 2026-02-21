@@ -183,33 +183,68 @@ async function scrapeDrugsComReviews(medicationName: string, url: string): Promi
   }
 }
 
-// Fetch Reddit posts
-async function fetchRedditPosts(subreddit: string, query: string, limit = 5): Promise<any[]> {
-  const url = `https://www.reddit.com/r/${subreddit}/search.json?q=${encodeURIComponent(query)}&sort=top&t=year&limit=${limit}&restrict_sr=1`;
-  
+// Fetch Reddit posts via Firecrawl search (direct Reddit API blocked with 403)
+async function fetchRedditPosts(query: string, limit = 5): Promise<any[]> {
+  const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
+  if (!firecrawlKey) {
+    console.log('Firecrawl API key not available, skipping Reddit search');
+    return [];
+  }
+
   try {
-    const response = await fetch(url, {
-      headers: { 'User-Agent': 'GlucoForge/1.0 (Diabetes community app)' }
+    const searchQuery = `site:reddit.com ${query}`;
+    console.log(`Firecrawl search: "${searchQuery}"`);
+
+    const response = await fetch('https://api.firecrawl.dev/v1/search', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${firecrawlKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: searchQuery,
+        limit,
+        scrapeOptions: { formats: ['markdown'] },
+      }),
     });
-    
-    if (!response.ok) return [];
+
+    if (!response.ok) {
+      console.error(`Firecrawl search error: ${response.status}`);
+      await response.text();
+      return [];
+    }
+
     const data = await response.json();
-    if (!data.data?.children) return [];
-    
-    return data.data.children
-      .filter((child: any) => child.data?.selftext && child.data.selftext.length > 50)
-      .map((child: any) => ({
-        id: child.data.id,
-        title: child.data.title,
-        content: child.data.selftext?.substring(0, 1000) || '',
-        author: child.data.author,
-        upvotes: child.data.ups,
-        permalink: `https://reddit.com${child.data.permalink}`,
-        subreddit: child.data.subreddit,
-        created_utc: child.data.created_utc,
-      }));
+    const results = data.data || [];
+    console.log(`Firecrawl returned ${results.length} Reddit results`);
+
+    return results
+      .filter((r: any) => {
+        const url = r.url || '';
+        const content = r.markdown || r.description || '';
+        return url.includes('reddit.com') && content.length > 80;
+      })
+      .map((r: any) => {
+        const content = (r.markdown || r.description || '').substring(0, 1000);
+        // Strip markdown junk
+        const cleaned = content
+          .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+          .replace(/#{1,6}\s*/g, '')
+          .replace(/\*{1,3}/g, '')
+          .trim();
+
+        return {
+          id: r.url?.split('/').filter(Boolean).pop() || Math.random().toString(36).substr(2, 9),
+          title: (r.title || '').replace(/ : .+$/, '').substring(0, 200),
+          content: cleaned.substring(0, 800),
+          author: 'Reddit User',
+          upvotes: 0,
+          permalink: r.url || '',
+          subreddit: (r.url?.match(/reddit\.com\/r\/([^/]+)/) || [])[1] || 'diabetes',
+        };
+      });
   } catch (error) {
-    console.error(`Error fetching from r/${subreddit}:`, error);
+    console.error('Firecrawl Reddit search error:', error);
     return [];
   }
 }
@@ -295,24 +330,24 @@ serve(async (req) => {
 
       if (redditConfig) {
         console.log(`Fetching Reddit buzz for: ${medication.name}`);
-        // Only search first subreddit to save time
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
         
-        const posts = await fetchRedditPosts(redditConfig.subreddits[0], redditConfig.query, 5);
+        const posts = await fetchRedditPosts(redditConfig.query, 3);
         
         for (const post of posts) {
           const sentiment = analyzeSentiment(post.title + ' ' + post.content);
+          const now = new Date().toISOString();
           
           // Reddit goes to community buzz table
           communityBuzz.push({
             medication_id: medication.id,
-            source_platform: 'reddit',
-            content: `${post.title}\n\n${post.content.substring(0, 800)}`,
+            source: 'reddit',
+            post_content: `${post.title}\n\n${post.content.substring(0, 800)}`,
             sentiment,
-            source_url: post.permalink,
-            upvotes: post.upvotes || 0,
-            author_anonymous: post.author !== '[deleted]' ? `u/${post.author}` : 'Anonymous',
-            published_at: new Date(post.created_utc * 1000).toISOString(),
+            post_url: post.permalink,
+            engagement_score: post.upvotes || 0,
+            author_handle: post.author || 'Reddit User',
+            post_date: now,
           });
           
           // Also add to external_medication_reviews for backwards compatibility
@@ -320,12 +355,12 @@ serve(async (req) => {
             medication_id: medication.id,
             source: 'reddit',
             external_id: `reddit_${post.id}`,
-            author_anonymous: post.author !== '[deleted]' ? `u/${post.author}` : 'Anonymous',
+            author_anonymous: post.author || 'Reddit User',
             title: post.title.substring(0, 200),
             content: post.content.substring(0, 1000),
             sentiment,
             helpful_count: post.upvotes || 0,
-            published_at: new Date(post.created_utc * 1000).toISOString(),
+            published_at: now,
             source_url: post.permalink,
             subreddit: `r/${post.subreddit}`,
           });
