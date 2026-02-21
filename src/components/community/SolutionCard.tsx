@@ -142,6 +142,10 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
     <Card 
       className="hover:shadow-md transition-shadow cursor-pointer"
       onClick={handleCardClick}
+      role="article"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter') handleCardClick(); }}
+      aria-label={`Community post: ${post.title}`}
     >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">

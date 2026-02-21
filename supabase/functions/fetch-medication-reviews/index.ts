@@ -131,8 +131,21 @@ async function scrapeDrugsComReviews(medicationName: string, url: string): Promi
     // Try to extract any structured content
     const lines: string[] = markdown.split('\n').filter((l: string) => l.trim().length > 50);
     
-    // Take first 5 substantial paragraphs as reviews
-    lines.slice(0, 5).forEach((line: string, index: number) => {
+    // Content quality filter — skip scraped navigation/junk
+    const JUNK_MARKERS = [
+      'skip to main content', 'a-z list', 'pill identifier',
+      'page you were looking', 'find treatment options',
+      'keyboard shortcuts', 'save up to', 'drug interaction checker',
+      'sign up for', 'advertisement', 'cookie policy'
+    ];
+    
+    // Take first 5 substantial paragraphs as reviews, filtering junk
+    lines.slice(0, 10).forEach((line: string) => {
+      const lower = line.toLowerCase();
+      const isJunk = JUNK_MARKERS.some(marker => lower.includes(marker));
+      if (isJunk || line.length < 100) return;
+      if (reviews.length >= 5) return;
+      
       const sentiment = analyzeSentiment(line);
       reviews.push({
         title: `User review of ${medicationName}`,

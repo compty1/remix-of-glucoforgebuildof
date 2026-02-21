@@ -61,6 +61,7 @@ interface AppBuzz {
   id: string;
   content: string;
   source_platform: string;
+  source_url: string | null;
   sentiment: string | null;
   upvotes: number | null;
   category: string | null;
@@ -566,6 +567,18 @@ export default function AppCenter() {
                                 <div className="flex items-center gap-2">
                                   {post.category && (
                                     <Badge variant="secondary" className="text-[10px]">{post.category.replace('_', ' ')}</Badge>
+                                  )}
+                                  {(post as any).source_url && (
+                                    <a
+                                      href={(post as any).source_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-primary hover:underline flex items-center gap-1"
+                                      aria-label={`View original post on ${post.source_platform}`}
+                                    >
+                                      <ExternalLink className="h-3 w-3" />
+                                      View Post
+                                    </a>
                                   )}
                                 </div>
                               </div>
