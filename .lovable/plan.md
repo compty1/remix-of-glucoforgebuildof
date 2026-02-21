@@ -1,72 +1,93 @@
 
 
-# Fetch Real Device Reviews and Community Buzz via Firecrawl
+# Fix: Real Reviews Not Showing for Medications and Devices
 
-## Problem
+## Root Cause
 
-The device pages currently show only 55 seeded/fabricated reviews across 8 devices. The "Platform Reviews" tab and "Community Buzz" section lack real, sourced content. The medication side already has 894+ real Drugs.com reviews and 104 Reddit community posts fetched via Firecrawl, but nothing equivalent exists for devices.
+The current scraped data has two critical quality issues:
+
+1. **Junk content passes through**: Many reviews contain scraped navigation boilerplate ("Skip to main content", "Error 403", "Healthline - Health Conditions...") instead of actual review text. The frontend junk filter (`useExternalReviews.ts`) catches some but not enough -- and there is no equivalent filter on the medication side.
+
+2. **Low volume**: Only 151 device reviews and 364 medication reviews exist. The edge functions do only 2-3 Firecrawl searches per item, producing thin coverage.
+
+3. **No `onlyMainContent` flag**: The Firecrawl search scrape options don't request `onlyMainContent: true`, so full-page HTML boilerplate gets scraped alongside actual content.
 
 ## Solution
 
-Create a new `fetch-device-reviews` edge function that uses Firecrawl to:
-1. **Scrape Google review results** for each device (targeting sites like Reddit, Healthline, Verywell Health, JDRF, DiaTribe, etc.) to populate `external_device_reviews` as "Platform Reviews"
-2. **Search Reddit** for real community discussions to populate a new device community buzz flow
+### Step 1: Improve both edge functions to produce cleaner, higher-volume data
 
-This mirrors the existing `fetch-medication-reviews` pattern.
+**For `fetch-device-reviews/index.ts`:**
+- Add `onlyMainContent: true` to all Firecrawl `scrapeOptions`
+- Expand the `JUNK_MARKERS` list to match the frontend filter (add ~20 more markers like `go to main content`, `visit website`, `share - facebook`, `error 403`, `claimed profile`, `trustscore`, etc.)
+- Add a 3rd web search pass per device with different query angles to increase volume
+- Strip Reddit navigation boilerplate from scraped markdown (`Skip to main content`, `Skip to Navigation`)
 
-## Plan
+**For `fetch-medication-reviews/index.ts`:**
+- Add `onlyMainContent: true` to Reddit Firecrawl `scrapeOptions`
+- Add the same expanded `JUNK_MARKERS` filter to the Reddit post scraping (currently missing entirely)
+- Clean Reddit content by stripping "Skip to main content" and navigation text before inserting
+- Increase Reddit search `limit` from 3 to 5 per medication to boost community buzz volume
 
-### Step 1: Create `fetch-device-reviews` edge function
+### Step 2: Expand the frontend junk filter
 
-A new edge function at `supabase/functions/fetch-device-reviews/index.ts` that:
+**In `src/hooks/useExternalReviews.ts`:**
+- Add more junk markers: `go to main content`, `visit website`, `error 403`, `error 404`, `claimed profile`, `trustscore`, `share - facebook`, `logoproducts`, `dexcom logo`
+- This ensures any remaining junk in the database is hidden from the UI
 
-- Accepts `startIndex` and `batchSize` params for batch processing
-- For each device in the `devices` table:
-  - **Google/Web reviews**: Uses Firecrawl search (`site:reddit.com OR site:diatribe.org OR site:healthline.com OR site:verywellhealth.com {device name} review`) to find real review content. Scrapes each result for markdown content.
-  - **Reddit community buzz**: Uses Firecrawl search (`site:reddit.com {device name} experience review`) to find real Reddit posts, then inserts them into `external_device_reviews` with `source: 'reddit'`
-- Performs sentiment analysis on scraped content
-- Deduplicates by `external_id` before inserting
-- Targets 50+ reviews per popular device (Dexcom G7, Omnipod 5, etc.) to reach 400+ total across all 8 devices
+### Step 3: Purge existing junk data and re-fetch
 
-Device-specific search queries:
-- **Dexcom G7**: `"dexcom g7" review experience accuracy`
-- **Dexcom G6**: `"dexcom g6" review experience`
-- **Omnipod 5**: `"omnipod 5" review experience`
-- **Tandem t:slim X2**: `"tandem tslim" OR "t:slim x2" review`
-- **Medtronic 780G**: `"medtronic 780g" review experience`
-- **Freestyle Libre 3**: `"freestyle libre 3" review experience`
-- **Beta Bionics iLet**: `"ilet bionic pancreas" review experience`
-- **Tandem Mobi**: `"tandem mobi" review experience`
+- DELETE all records from `external_device_reviews`, `external_medication_reviews`, and `medication_community_buzz`
+- Re-run `fetch-device-reviews` for all 8 devices (1 batch)
+- Re-run `fetch-medication-reviews` in batches of 5 across all 44 medications
+- Target: 400+ clean device reviews, 600+ clean medication reviews, 150+ community buzz posts
 
-### Step 2: Clear existing seeded device reviews
+### Step 4: Verify
 
-Before running the new function, delete the 55 existing fabricated reviews from `external_device_reviews` so only real Firecrawl-sourced content remains.
-
-### Step 3: Run the edge function in batches
-
-Execute `fetch-device-reviews` in batches of 2-3 devices at a time to stay within edge function timeout limits. Each device will get multiple Firecrawl search calls to maximize review count.
-
-### Step 4: Verify data and UI
-
-- Confirm 400+ real reviews exist with proper `source` labels (reddit, diatribe, healthline, etc.)
-- Confirm `source_url` fields link to real pages
-- Confirm the device detail page shows reviews with source badges and "View source" links in both "Platform Reviews" and "Community Buzz" tabs
+- Query the database to confirm record counts and source diversity
+- Check that no junk content remains
+- Visually verify the device detail page shows real reviews with proper source badges
 
 ## Technical Details
 
-### Edge function structure
+### Edge function changes (fetch-device-reviews)
+
 ```text
-supabase/functions/fetch-device-reviews/index.ts
-  - DEVICE_SEARCH_QUERIES: Record<device_name, search_terms>
-  - fetchWebReviews(deviceName, searchQuery): uses Firecrawl search API
-  - fetchRedditBuzz(deviceName): uses Firecrawl search with site:reddit.com
-  - analyzeSentiment(text): reuses same keyword-based approach
-  - Main handler: iterates devices, fetches reviews, inserts into external_device_reviews
+- scrapeOptions: { formats: ['markdown'] }
++ scrapeOptions: { formats: ['markdown'], onlyMainContent: true }
+
+- JUNK_MARKERS: 10 entries
++ JUNK_MARKERS: 30+ entries (matching frontend filter)
+
++ Add 3rd search: "{device} diabetes user feedback forum"
 ```
 
-### Database operations
-- INSERT into `external_device_reviews` (existing table, no schema changes needed)
-- Fields used: `device_id`, `source`, `external_id`, `author_anonymous`, `rating`, `title`, `content`, `sentiment`, `helpful_count`, `published_at`, `source_url`, `device_mentioned`, `verified_purchase`, `subreddit`
+### Edge function changes (fetch-medication-reviews)
 
-### No UI changes needed
-The existing `DeviceReviewsTab` and `useExternalReviews` hook already read from `external_device_reviews` and display source badges, sentiment filters, and source links. Once the data is populated, it will render automatically.
+```text
+- scrapeOptions: { formats: ['markdown'] }
++ scrapeOptions: { formats: ['markdown'], onlyMainContent: true }
+
++ Add isJunkContent() filter to fetchRedditPosts results
++ Clean Reddit content: strip "Skip to main content" prefix
+
+- limit: 3 per medication
++ limit: 5 per medication
+```
+
+### Frontend filter expansion (useExternalReviews.ts)
+
+```text
+Add to JUNK_MARKERS:
+  'go to main content', 'visit website', 'error 403', 'error 404',
+  'claimed profile', 'trustscore', 'share - facebook',
+  'logoproducts', 'dexcom logo', 'products patients'
+```
+
+### Execution order
+
+1. Deploy updated edge functions
+2. Purge all 3 tables
+3. Run device fetch (1 batch of 8)
+4. Run medication fetch (9 batches of 5)
+5. Verify counts and content quality
+
