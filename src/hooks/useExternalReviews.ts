@@ -53,6 +53,14 @@ const JUNK_MARKERS = [
   'start over on our',
   'complete sitemap',
   'home page](https://',
+  'clipboard, search history',
+  'sale sold out in stock',
+  'filter your search',
+  'we are updating our terms',
+  'find a journal',
+  'publish with us',
+  'track your research',
+  'automated to help more patients',
 ];
 
 const isValidReviewContent = (content: string): boolean => {

@@ -302,7 +302,6 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                     <div className="space-y-4">
                       <div className="flex items-center gap-2">
                         <h4 className="font-medium">User Reviews ({reviews.length})</h4>
-                        <Badge variant="outline" className="text-[10px] text-muted-foreground">Demo Reviews</Badge>
                       </div>
                       {reviews.map((review) => (
                         <div key={review.id} className="p-4 border rounded-lg space-y-2"
@@ -379,18 +378,49 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                   </div>
                 )}
 
-                {/* External Reviews — show only Drugs.com reviews in Reviews tab */}
+                {/* External Reviews — show only official platform reviews in Reviews tab */}
                 {(() => {
-                   const drugsComReviews = externalReviews.filter(r => r.source?.toLowerCase() === 'drugs.com');
-                   if (drugsComReviews.length === 0) return null;
+                   const officialSources = ['drugs.com', 'webmd', 'healthline', 'google'];
+                   const officialReviews = externalReviews.filter(r => officialSources.includes(r.source?.toLowerCase()));
+                   if (officialReviews.length === 0) return (
+                     <div className="mt-4 p-4 border rounded-lg text-center">
+                       <p className="text-sm text-muted-foreground mb-2">No platform reviews yet.</p>
+                       <Button variant="outline" size="sm" asChild>
+                         <a href={`https://www.google.com/search?q=${encodeURIComponent((medication?.name || '') + ' medication reviews')}`}
+                           target="_blank" rel="noopener noreferrer">
+                           Search Google Reviews <ExternalLink className="h-3 w-3 ml-1" />
+                         </a>
+                       </Button>
+                     </div>
+                   );
+                   const getSourceDisplay = (s: string) => {
+                     const map: Record<string, string> = { 'drugs.com': 'Drugs.com', 'webmd': 'WebMD', 'healthline': 'Healthline', 'google': 'Google', 'reddit': 'Reddit' };
+                     return map[s.toLowerCase()] || s.charAt(0).toUpperCase() + s.slice(1);
+                   };
+                   const sanitize = (content: string) => content
+                     .replace(/\[]\([^)]*\)/g, '')
+                     .replace(/!\[.*?\]\(.*?\)/g, '')
+                     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+                     .replace(/#{1,6}\s/g, '')
+                     .replace(/\n{3,}/g, '\n\n')
+                     .trim();
                    return (
                      <div className="space-y-4 mt-4">
-                       <h4 className="font-medium flex items-center gap-2">From Drugs.com ({drugsComReviews.length}) <Badge variant="outline" className="text-[10px] text-muted-foreground font-normal">Demo Data</Badge></h4>
-                      {drugsComReviews.slice(0, externalVisible).map((review) => (
+                       <h4 className="font-medium flex items-center gap-2">From Review Platforms ({officialReviews.length})</h4>
+                      {officialReviews.slice(0, externalVisible).map((review) => (
                         <div key={review.id} className="p-4 border rounded-lg space-y-2"
-                          role="article" aria-label="Drugs.com review">
+                          role="article" aria-label="Platform review">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <Badge variant="outline" className="bg-accent text-accent-foreground border-border">Drugs.com</Badge>
+                            <Badge variant="outline" className="bg-accent text-accent-foreground border-border">
+                              {getSourceDisplay(review.source || '')}
+                            </Badge>
+                            {(review as any).rating && (
+                              <div className="flex items-center gap-0.5">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <Star key={i} className={`h-3 w-3 ${i < ((review as any).rating || 0) ? 'fill-warning text-warning' : 'text-muted-foreground'}`} />
+                                ))}
+                              </div>
+                            )}
                             {review.sentiment && (
                               <Badge variant={review.sentiment === 'positive' ? 'default' : review.sentiment === 'negative' ? 'destructive' : 'secondary'}>
                                 {review.sentiment}
@@ -403,12 +433,11 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                             )}
                           </div>
                           {review.title && <h5 className="font-medium text-sm">{review.title}</h5>}
-                          <p className="text-sm text-muted-foreground line-clamp-3">{review.content}</p>
+                          <p className="text-sm text-muted-foreground line-clamp-3">{sanitize(review.content)}</p>
                           <div className="flex items-center gap-3">
                             {review.source_url && (
                               <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
-                                <a href={review.source_url} target="_blank" rel="noopener noreferrer"
-                                  aria-label="View original review on Drugs.com">
+                                <a href={review.source_url} target="_blank" rel="noopener noreferrer">
                                   View source <ExternalLink className="h-3 w-3 ml-1" />
                                 </a>
                               </Button>
@@ -416,10 +445,10 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                           </div>
                         </div>
                       ))}
-                      {externalVisible < drugsComReviews.length && (
+                      {externalVisible < officialReviews.length && (
                         <Button variant="outline" className="w-full" onClick={() => setExternalVisible(v => v + 5)}>
                           <ChevronDown className="h-4 w-4 mr-2" />
-                          Load More ({drugsComReviews.length - externalVisible} remaining)
+                          Load More ({officialReviews.length - externalVisible} remaining)
                         </Button>
                       )}
                     </div>
@@ -437,9 +466,21 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                   <p className="text-sm text-muted-foreground">
                     Authentic discussions shared by people with diabetes across forums and social media.
                   </p>
-                  {/* Show only Reddit / community posts in Community tab (not Drugs.com) */}
+                   {/* Show only Reddit / community posts in Community tab (not official sources) */}
                   {(() => {
-                    const communityPosts = externalReviews.filter(r => r.source?.toLowerCase() !== 'drugs.com');
+                    const officialSources = ['drugs.com', 'webmd', 'healthline', 'google'];
+                    const communityPosts = externalReviews.filter(r => !officialSources.includes(r.source?.toLowerCase()));
+                    const getSourceDisplay = (s: string) => {
+                      const map: Record<string, string> = { 'reddit': 'Reddit', 'drugs.com': 'Drugs.com', 'webmd': 'WebMD' };
+                      return map[s.toLowerCase()] || s.charAt(0).toUpperCase() + s.slice(1);
+                    };
+                    const sanitize = (content: string) => content
+                      .replace(/\[]\([^)]*\)/g, '')
+                      .replace(/!\[.*?\]\(.*?\)/g, '')
+                      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+                      .replace(/#{1,6}\s/g, '')
+                      .replace(/\n{3,}/g, '\n\n')
+                      .trim();
                     return communityPosts.length > 0 ? (
                       <div className="space-y-3">
                         {communityPosts.map((review) => (
@@ -449,8 +490,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                               <div className="flex items-center gap-2">
                                 <Badge variant="outline" className={`text-xs ${
                                    review.source?.toLowerCase() === 'reddit' ? 'bg-warning/10 text-warning border-warning/20' : ''
-                                 }`}>{review.source?.toLowerCase() === 'reddit' ? 'Reddit' : review.source?.charAt(0).toUpperCase() + (review.source?.slice(1) || '')}</Badge>
-                                <Badge variant="outline" className="text-[10px] text-muted-foreground font-normal">Demo Data</Badge>
+                                 }`}>{getSourceDisplay(review.source || '')}</Badge>
                                 {review.sentiment && (
                                   <Badge variant={review.sentiment === 'positive' ? 'default' : review.sentiment === 'negative' ? 'destructive' : 'secondary'} className="text-xs">
                                     {review.sentiment}
@@ -459,7 +499,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                               </div>
                             </div>
                             {review.title && <h5 className="font-medium text-sm">{review.title}</h5>}
-                            <p className="text-sm">{review.content}</p>
+                            <p className="text-sm">{sanitize(review.content)}</p>
                              {review.source_url ? (
                                <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
                                  <a href={review.source_url} target="_blank" rel="noopener noreferrer"

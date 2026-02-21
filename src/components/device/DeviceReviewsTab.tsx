@@ -283,7 +283,6 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <ExternalLink className="h-5 w-5" />
                 From Review Platforms ({filteredExternalReviews.length})
-                <Badge variant="outline" className="text-[10px] text-muted-foreground font-normal ml-1">Demo Data</Badge>
               </h3>
               <div className="grid gap-4" role="list" aria-label="External reviews">
                 {filteredExternalReviews.map((review) => (
