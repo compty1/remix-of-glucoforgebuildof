@@ -32,6 +32,8 @@ export interface ExternalReviewStats {
 // Filter out scraped navigation/junk content from external reviews
 const JUNK_MARKERS = [
   'skip to main content',
+  'skip to navigation',
+  'skip to footer',
   'keyboard shortcuts',
   'save up to',
   'a-z list of drugs',
@@ -61,6 +63,22 @@ const JUNK_MARKERS = [
   'publish with us',
   'track your research',
   'automated to help more patients',
+  'go to main content',
+  'visit website',
+  'error 403',
+  'error 404',
+  'claimed profile',
+  'trustscore',
+  'share - facebook',
+  'logoproducts',
+  'dexcom logo',
+  'products patients',
+  'javascript is disabled',
+  'accept cookies',
+  'we use cookies',
+  'privacy policy',
+  'terms of service',
+  'subscribe to',
 ];
 
 const isValidReviewContent = (content: string): boolean => {

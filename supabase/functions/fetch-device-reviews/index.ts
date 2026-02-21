@@ -44,9 +44,22 @@ const DEVICE_SEARCH_QUERIES: Record<string, { webQuery: string; redditQuery: str
 
 // Junk content markers to filter out navigation/boilerplate
 const JUNK_MARKERS = [
-  'skip to main content', 'a-z list', 'cookie policy', 'advertisement',
+  'skip to main content', 'skip to navigation', 'skip to footer',
+  'skip to fda search', 'skip to in this section',
+  'a-z list', 'cookie policy', 'advertisement',
   'sign up for', 'subscribe to', 'privacy policy', 'terms of service',
   'accept cookies', 'we use cookies', 'javascript is disabled',
+  'go to main content', 'visit website', 'error 403', 'error 404',
+  'claimed profile', 'trustscore', 'share - facebook',
+  'logoproducts', 'dexcom logo', 'products patients',
+  'save up to', 'pill identifier', 'find treatment options',
+  'drug interaction checker', 'check for [drug interactions]',
+  'latest drug news', 'complete sitemap', 'clipboard, search history',
+  'sale sold out in stock', 'filter your search',
+  'we are updating our terms', 'find a journal', 'publish with us',
+  'track your research', 'automated to help more patients',
+  'page you were looking', 'in this section:',
+  'start over on our', 'home page](https://',
 ];
 
 function analyzeSentiment(text: string): 'positive' | 'neutral' | 'negative' {
@@ -113,7 +126,7 @@ async function fetchWebReviews(deviceName: string, searchQuery: string, limit = 
       body: JSON.stringify({
         query: searchQuery,
         limit,
-        scrapeOptions: { formats: ['markdown'] },
+        scrapeOptions: { formats: ['markdown'], onlyMainContent: true },
       }),
     });
 
@@ -176,7 +189,7 @@ async function fetchRedditBuzz(deviceName: string, searchQuery: string, limit = 
       body: JSON.stringify({
         query: searchQuery,
         limit,
-        scrapeOptions: { formats: ['markdown'] },
+        scrapeOptions: { formats: ['markdown'], onlyMainContent: true },
       }),
     });
 
@@ -269,11 +282,16 @@ serve(async (req) => {
       const webReviews2 = await fetchWebReviews(device.name, webQuery2, 10);
       await new Promise(resolve => setTimeout(resolve, 1000));
 
+      // Third search: forum/feedback angle
+      const webQuery3 = `"${device.name}" diabetes user feedback forum opinion`;
+      const webReviews3 = await fetchWebReviews(device.name, webQuery3, 8);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
       // Reddit community buzz
       const redditPosts = await fetchRedditBuzz(device.name, redditQuery, 10);
 
       // Combine all results, deduplicate by URL
-      const allResults = [...webReviews1, ...webReviews2, ...redditPosts];
+      const allResults = [...webReviews1, ...webReviews2, ...webReviews3, ...redditPosts];
       const uniqueByUrl = Array.from(new Map(allResults.map(r => [r.source_url, r])).values());
 
       console.log(`${device.name}: ${uniqueByUrl.length} unique results (from ${allResults.length} total)`);
