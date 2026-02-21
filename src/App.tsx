@@ -183,6 +183,7 @@ const AppContent = () => {
       <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<Index />} />
+        <Route path="/auth" element={<Auth />} />
         <Route path="/journey" element={<Journey />} />
         <Route path="/about" element={<About />} />
         <Route path="/fixes" element={<Fixes />} />
