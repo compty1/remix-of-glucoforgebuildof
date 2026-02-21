@@ -204,7 +204,7 @@ async function fetchRedditPosts(query: string, limit = 5): Promise<any[]> {
       body: JSON.stringify({
         query: searchQuery,
         limit,
-        scrapeOptions: { formats: ['markdown'] },
+        scrapeOptions: { formats: ['markdown'], onlyMainContent: true },
       }),
     });
 
@@ -218,14 +218,24 @@ async function fetchRedditPosts(query: string, limit = 5): Promise<any[]> {
     const results = data.data || [];
     console.log(`Firecrawl returned ${results.length} Reddit results`);
 
+    const REDDIT_JUNK = [
+      'skip to main content', 'skip to navigation', 'cookie policy',
+      'go to main content', 'javascript is disabled', 'accept cookies',
+      'privacy policy', 'terms of service', 'advertisement',
+    ];
+
     return results
       .filter((r: any) => {
         const url = r.url || '';
         const content = r.markdown || r.description || '';
-        return url.includes('reddit.com') && content.length > 80;
+        if (!url.includes('reddit.com') || content.length < 80) return false;
+        const lower = content.substring(0, 500).toLowerCase();
+        return !REDDIT_JUNK.some(m => lower.includes(m));
       })
       .map((r: any) => {
-        const content = (r.markdown || r.description || '').substring(0, 1000);
+        let content = (r.markdown || r.description || '').substring(0, 1000);
+        // Strip navigation boilerplate prefix
+        content = content.replace(/^.*?(Skip to|Go to).*?\n/gi, '');
         // Strip markdown junk
         const cleaned = content
           .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
@@ -332,7 +342,7 @@ serve(async (req) => {
         console.log(`Fetching Reddit buzz for: ${medication.name}`);
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        const posts = await fetchRedditPosts(redditConfig.query, 3);
+        const posts = await fetchRedditPosts(redditConfig.query, 5);
         
         for (const post of posts) {
           const sentiment = analyzeSentiment(post.title + ' ' + post.content);
