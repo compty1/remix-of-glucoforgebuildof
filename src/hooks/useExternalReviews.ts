@@ -48,6 +48,11 @@ const JUNK_MARKERS = [
   'cookie policy',
   'sign up for',
   'advertisement',
+  'check for [drug interactions]',
+  'latest drug news',
+  'start over on our',
+  'complete sitemap',
+  'home page](https://',
 ];
 
 const isValidReviewContent = (content: string): boolean => {

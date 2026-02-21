@@ -302,7 +302,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                     <div className="space-y-4">
                       <div className="flex items-center gap-2">
                         <h4 className="font-medium">User Reviews ({reviews.length})</h4>
-                        <Badge variant="outline" className="text-[10px] text-muted-foreground">Demo Data</Badge>
+                        <Badge variant="outline" className="text-[10px] text-muted-foreground">Demo Reviews</Badge>
                       </div>
                       {reviews.map((review) => (
                         <div key={review.id} className="p-4 border rounded-lg space-y-2"
@@ -381,11 +381,11 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
 
                 {/* External Reviews — show only Drugs.com reviews in Reviews tab */}
                 {(() => {
-                  const drugsComReviews = externalReviews.filter(r => r.source?.toLowerCase() === 'drugs.com');
-                  if (drugsComReviews.length === 0) return null;
-                  return (
-                    <div className="space-y-4 mt-4">
-                      <h4 className="font-medium">From Drugs.com ({drugsComReviews.length})</h4>
+                   const drugsComReviews = externalReviews.filter(r => r.source?.toLowerCase() === 'drugs.com');
+                   if (drugsComReviews.length === 0) return null;
+                   return (
+                     <div className="space-y-4 mt-4">
+                       <h4 className="font-medium flex items-center gap-2">From Drugs.com ({drugsComReviews.length}) <Badge variant="outline" className="text-[10px] text-muted-foreground font-normal">Demo Data</Badge></h4>
                       {drugsComReviews.slice(0, externalVisible).map((review) => (
                         <div key={review.id} className="p-4 border rounded-lg space-y-2"
                           role="article" aria-label="Drugs.com review">
@@ -448,8 +448,9 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <Badge variant="outline" className={`text-xs ${
-                                  review.source?.toLowerCase() === 'reddit' ? 'bg-warning/10 text-warning border-warning/20' : ''
-                                }`}>{review.source === 'reddit' ? 'Reddit' : review.source}</Badge>
+                                   review.source?.toLowerCase() === 'reddit' ? 'bg-warning/10 text-warning border-warning/20' : ''
+                                 }`}>{review.source?.toLowerCase() === 'reddit' ? 'Reddit' : review.source?.charAt(0).toUpperCase() + (review.source?.slice(1) || '')}</Badge>
+                                <Badge variant="outline" className="text-[10px] text-muted-foreground font-normal">Demo Data</Badge>
                                 {review.sentiment && (
                                   <Badge variant={review.sentiment === 'positive' ? 'default' : review.sentiment === 'negative' ? 'destructive' : 'secondary'} className="text-xs">
                                     {review.sentiment}
@@ -459,22 +460,22 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                             </div>
                             {review.title && <h5 className="font-medium text-sm">{review.title}</h5>}
                             <p className="text-sm">{review.content}</p>
-                            {review.source_url ? (
-                              <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
-                                <a href={review.source_url} target="_blank" rel="noopener noreferrer"
-                                  aria-label={`View original post on ${review.source}`}>
-                                  View original post <ExternalLink className="h-3 w-3 ml-1" />
-                                </a>
-                              </Button>
-                            ) : review.source === 'reddit' ? (
-                              <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
-                                <a href={`https://www.reddit.com/search/?q=${encodeURIComponent(review.title || review.content?.slice(0, 50) || '')}&type=link`}
-                                  target="_blank" rel="noopener noreferrer"
-                                  aria-label="Search Reddit for this discussion">
-                                  Search Reddit <ExternalLink className="h-3 w-3 ml-1" />
-                                </a>
-                              </Button>
-                            ) : null}
+                             {review.source_url ? (
+                               <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
+                                 <a href={review.source_url} target="_blank" rel="noopener noreferrer"
+                                   aria-label={`View original post on ${review.source}`}>
+                                   View original post <ExternalLink className="h-3 w-3 ml-1" />
+                                 </a>
+                               </Button>
+                             ) : review.source?.toLowerCase() === 'reddit' ? (
+                               <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
+                                 <a href={`https://www.reddit.com/search/?q=${encodeURIComponent(review.title || review.content?.slice(0, 50) || '')}&type=link`}
+                                   target="_blank" rel="noopener noreferrer"
+                                   aria-label="Search Reddit for this discussion">
+                                   Search Reddit <ExternalLink className="h-3 w-3 ml-1" />
+                                 </a>
+                               </Button>
+                             ) : null}
                           </div>
                         ))}
                       </div>
