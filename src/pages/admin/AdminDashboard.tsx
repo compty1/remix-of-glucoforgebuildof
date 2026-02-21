@@ -37,9 +37,9 @@ export default function AdminDashboard() {
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
-      // Fetch shifts count
-      const { count: shiftsCount } = await supabase
-        .from('shifts')
+      // Fetch uploads count
+      const { count: uploadsCount } = await supabase
+        .from('uploads')
         .select('*', { count: 'exact', head: true });
 
       // Fetch surveys count
@@ -52,13 +52,13 @@ export default function AdminDashboard() {
         .from('bounties')
         .select('*', { count: 'exact', head: true });
 
-      // Fetch actual active users (users with shifts in last 30 days)
+      // Fetch actual active users (users with uploads in last 30 days)
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const { count: activeCount } = await supabase
-        .from('shifts')
+        .from('uploads')
         .select('user_id', { count: 'exact', head: true })
-        .gte('created_at', thirtyDaysAgo.toISOString());
+        .gte('uploaded_at', thirtyDaysAgo.toISOString());
 
       // Fetch actual donation totals
       const { data: donationData } = await supabase
@@ -70,7 +70,7 @@ export default function AdminDashboard() {
       setStats({
         totalUsers: profileCount || 0,
         activeUsers: activeCount || 0,
-        totalShifts: shiftsCount || 0,
+        totalShifts: uploadsCount || 0,
         totalSurveys: surveysCount || 0,
         totalBounties: bountiesCount || 0,
         totalDonations: totalDonationCents / 100
