@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface Fix {
   id: string;
@@ -18,6 +19,7 @@ interface Fix {
 }
 
 export default function Fixes() {
+  usePageMeta('Community Fixes', 'User-submitted fixes and workarounds for diabetes device issues.');
   const [fixes, setFixes] = useState<Fix[]>([]);
   const [loading, setLoading] = useState(true);
 

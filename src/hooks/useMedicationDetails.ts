@@ -97,12 +97,15 @@ export const useMedicationDetails = (medicationId: string | undefined) => {
 
       // Filter out scraped navigation/junk content from external reviews (Issue #1)
       const JUNK_MARKERS = [
-        'skip to main content', 'a-z list of drugs', 'pill identifier',
+        'skip to main content', 'a-z list of drugs', 'a-z list', 'pill identifier',
         'page you were looking', 'find treatment options', 'keyboard shortcuts',
+        'skip to fda search', 'skip to footer links', 'skip to in this section',
+        'in this section:', 'drug interaction checker', 'cookie policy',
+        'sign up for', 'advertisement', 'save up to',
       ];
       const isValidContent = (content: string): boolean => {
         if (!content || content.length < 50) return false;
-        const lower = content.toLowerCase();
+        const lower = content.substring(0, 500).toLowerCase();
         return !JUNK_MARKERS.some(marker => lower.includes(marker));
       };
 

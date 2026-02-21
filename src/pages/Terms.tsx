@@ -1,7 +1,9 @@
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function Terms() {
+  usePageMeta('Terms of Service', 'GlucoForge terms, conditions, and usage policies.');
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">

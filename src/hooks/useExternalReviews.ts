@@ -31,20 +31,29 @@ export interface ExternalReviewStats {
 
 // Filter out scraped navigation/junk content from external reviews
 const JUNK_MARKERS = [
-  'Skip to main content',
-  'Keyboard shortcuts',
-  'Save up to',
-  'A-Z list of drugs',
+  'skip to main content',
+  'keyboard shortcuts',
+  'save up to',
+  'a-z list of drugs',
+  'a-z list',
   'pill identifier',
   'page you were looking',
-  'Find treatment options',
-  'The page you were looking could not be found',
+  'find treatment options',
+  'the page you were looking could not be found',
+  'skip to fda search',
+  'skip to footer links',
+  'skip to in this section',
+  'in this section:',
+  'drug interaction checker',
+  'cookie policy',
+  'sign up for',
+  'advertisement',
 ];
 
 const isValidReviewContent = (content: string): boolean => {
   if (!content || content.length < 50) return false;
-  const lower = content.toLowerCase();
-  return !JUNK_MARKERS.some(marker => lower.includes(marker.toLowerCase()));
+  const lower = content.substring(0, 500).toLowerCase();
+  return !JUNK_MARKERS.some(marker => lower.includes(marker));
 };
 
 const computeStats = (reviews: ExternalReview[]): ExternalReviewStats => {

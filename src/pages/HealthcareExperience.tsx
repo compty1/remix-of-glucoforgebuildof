@@ -25,6 +25,7 @@ import {
   Send
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface HealthcareExperiencePost {
   id: string;
@@ -115,6 +116,7 @@ const ExperienceCard: React.FC<{ experience: HealthcareExperiencePost }> = ({ ex
 };
 
 export default function HealthcareExperience() {
+  usePageMeta('Healthcare Experience', 'Share and read real healthcare experiences from the T1D community.');
   const [experiences, setExperiences] = useState<HealthcareExperiencePost[]>([]);
   const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
   const [loading, setLoading] = useState(true);

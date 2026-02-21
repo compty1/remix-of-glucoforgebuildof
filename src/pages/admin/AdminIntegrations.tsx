@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CreditCard, Webhook, Mail, Database, CheckCircle, XCircle, Info } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface Integration {
   name: string;
@@ -61,6 +62,7 @@ const getStatusBadge = (status: string) => {
 };
 
 export default function AdminIntegrations() {
+  usePageMeta('Admin - Integrations', 'GlucoForge admin panel.');
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">

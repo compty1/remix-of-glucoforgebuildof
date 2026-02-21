@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  ShoppingBag, 
+import { usePageMeta } from '@/hooks/usePageMeta';
+import {
+  ShoppingBag,
   Package, 
   Plus, 
   Edit, 
@@ -62,6 +63,7 @@ interface Order {
 }
 
 const AdminShop = () => {
+  usePageMeta('Admin - Shop', 'GlucoForge admin panel.');
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);

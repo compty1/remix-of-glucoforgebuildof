@@ -9,8 +9,10 @@ import { toast } from 'sonner';
 import { Shield, RefreshCw, CheckCircle, XCircle, AlertTriangle, Link2, BarChart3 } from 'lucide-react';
 import { QuarantineTable } from '@/components/admin/QuarantineTable';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const ContentModeration: React.FC = () => {
+  usePageMeta('Admin - Content Moderation', 'GlucoForge admin panel.');
   const queryClient = useQueryClient();
   const [isVerifying, setIsVerifying] = useState(false);
 

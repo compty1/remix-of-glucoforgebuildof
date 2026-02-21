@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/store/authStore';
 
@@ -32,6 +33,7 @@ interface ProjectSubmission {
 }
 
 export default function AdminProjects() {
+  usePageMeta('Admin - Projects', 'GlucoForge admin panel.');
   const [submissions, setSubmissions] = useState<ProjectSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pending');

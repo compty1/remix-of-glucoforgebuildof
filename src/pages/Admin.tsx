@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Users, Database, TrendingUp, Activity, RefreshCw } from 'lucide-react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface AdminStats {
   total_users: number;
@@ -17,6 +18,7 @@ interface AdminStats {
 }
 
 const Admin = () => {
+  usePageMeta('Admin', 'GlucoForge admin panel.');
   const { toast } = useToast();
   const [stats, setStats] = useState<AdminStats>({
     total_users: 0,

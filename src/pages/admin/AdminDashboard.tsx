@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Activity, TrendingUp, DollarSign, Info } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface AdminDashboardStats {
   totalUsers: number;
@@ -19,6 +20,7 @@ interface AdminDashboardStats {
 
 
 export default function AdminDashboard() {
+  usePageMeta('Admin - Dashboard', 'GlucoForge admin panel.');
   const [stats, setStats] = useState<AdminDashboardStats>({
     totalUsers: 0,
     activeUsers: 0,

@@ -10,6 +10,7 @@ import { Loader2, Lock, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import logoImage from '@/assets/glucoforge-logo.svg';
 import { z } from 'zod';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const passwordSchema = z.object({
   password: z.string()
@@ -24,6 +25,7 @@ const passwordSchema = z.object({
 });
 
 const ResetPassword = () => {
+  usePageMeta('Reset Password', 'Reset your GlucoForge account password.');
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [password, setPassword] = useState('');
