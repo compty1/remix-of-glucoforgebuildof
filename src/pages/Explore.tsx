@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { motion } from 'framer-motion';
 import { History, Search, Filter, Loader2, Calendar, Sparkles } from 'lucide-react';
 import Layout from '@/components/Layout';

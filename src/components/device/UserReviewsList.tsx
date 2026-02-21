@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -75,12 +76,22 @@ export const UserReviewsList: React.FC<UserReviewsListProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Demo Data Notice */}
+      {reviews.length > 0 && (
+        <div className="p-3 rounded-lg bg-muted/50 border border-border text-center">
+          <p className="text-sm text-muted-foreground">
+            📋 <strong>Demo Reviews</strong> — These are seeded sample reviews. Be the first to write a real review!
+          </p>
+        </div>
+      )}
+
       {/* Stats Card */}
       <Card className="command-center-widget">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Star className="h-5 w-5 text-warning" />
-            User Ratings Summary
+            Ratings Summary
+            <Badge variant="outline" className="text-xs text-muted-foreground ml-2">Demo Data</Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>

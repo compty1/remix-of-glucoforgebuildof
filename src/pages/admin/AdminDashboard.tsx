@@ -60,13 +60,20 @@ export default function AdminDashboard() {
         .select('user_id', { count: 'exact', head: true })
         .gte('created_at', thirtyDaysAgo.toISOString());
 
+      // Fetch actual donation totals
+      const { data: donationData } = await supabase
+        .from('donations')
+        .select('amount_cents')
+        .eq('status', 'completed');
+      const totalDonationCents = (donationData || []).reduce((sum, d) => sum + (d.amount_cents || 0), 0);
+
       setStats({
         totalUsers: profileCount || 0,
         activeUsers: activeCount || 0,
         totalShifts: shiftsCount || 0,
         totalSurveys: surveysCount || 0,
         totalBounties: bountiesCount || 0,
-        totalDonations: 0 // Will show actual data when donation tracking is implemented
+        totalDonations: totalDonationCents / 100
       });
     } catch (error) {
       // Stats fetch failed silently — dashboard shows zeros
@@ -147,7 +154,7 @@ export default function AdminDashboard() {
                   <TrendingUp className="h-8 w-8 text-chart-3" />
                   <div>
                     <p className="text-2xl font-bold">{stats.totalShifts}</p>
-                    <p className="text-sm text-muted-foreground">Journal Entries</p>
+                    <p className="text-sm text-muted-foreground">Data Uploads</p>
                   </div>
                 </div>
               </CardContent>
@@ -158,8 +165,10 @@ export default function AdminDashboard() {
                 <div className="flex items-center gap-4">
                   <DollarSign className="h-8 w-8 text-chart-4" />
                   <div>
-                    <p className="text-2xl font-bold">${stats.totalDonations.toLocaleString()}</p>
-                    <p className="text-sm text-muted-foreground">Total Donations</p>
+                    <p className="text-2xl font-bold">
+                      {stats.totalDonations > 0 ? `$${stats.totalDonations.toLocaleString()}` : 'None yet'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">Donations Tracked</p>
                   </div>
                 </div>
               </CardContent>
@@ -195,7 +204,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between p-4 bg-primary/5 rounded-lg">
                   <div>
                     <p className="font-medium">Edge Functions</p>
-                    <p className="text-sm text-muted-foreground">4/4 functions running</p>
+                    <p className="text-sm text-muted-foreground">Functions deployed</p>
                   </div>
                   <Badge variant="secondary">Operational</Badge>
                 </div>

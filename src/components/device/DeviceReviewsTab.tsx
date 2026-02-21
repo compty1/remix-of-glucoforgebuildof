@@ -110,6 +110,13 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
       'type1support': 'bg-success/10 text-success border-success/20',
       'childrenwithdiabetes': 'bg-chart-3/10 text-chart-3 border-chart-3/20',
       'embs': 'bg-chart-1/10 text-chart-1 border-chart-1/20',
+      'pubmed': 'bg-chart-2/10 text-chart-2 border-chart-2/20',
+      'fda': 'bg-destructive/10 text-destructive border-destructive/20',
+      'healthline': 'bg-success/10 text-success border-success/20',
+      'consumerguide': 'bg-primary/10 text-primary border-primary/20',
+      'medium': 'bg-chart-4/10 text-chart-4 border-chart-4/20',
+      'cbc': 'bg-chart-3/10 text-chart-3 border-chart-3/20',
+      'npr': 'bg-chart-1/10 text-chart-1 border-chart-1/20',
     };
     return colors[source.toLowerCase()] || 'bg-muted text-muted-foreground border-border';
   };
@@ -119,14 +126,21 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
       'omnipod': 'Omnipod',
       'dexcom': 'Dexcom',
       'tandem': 'Tandem',
-      'dom-pubs': 'Diabetes Journal',
+      'dom-pubs': 'Diabetes & Obesity Journal',
       'shericolberg': 'Sheri Colberg',
       'type1support': 'Type 1 Support',
       'childrenwithdiabetes': 'Children With Diabetes',
-      'embs': 'EMBS',
+      'embs': 'IEEE EMBS',
       'gdi-pc': 'GDI PC',
       'reddit': 'Reddit',
       'google': 'Google',
+      'consumerguide': 'ADA Consumer Guide',
+      'pubmed': 'PubMed',
+      'medium': 'Medium',
+      'cbc': 'CBC News',
+      'npr': 'NPR',
+      'fda': 'FDA',
+      'healthline': 'Healthline',
     };
     return sourceMap[source.toLowerCase()] || source.charAt(0).toUpperCase() + source.slice(1).replace(/-/g, ' ');
   };
@@ -148,11 +162,11 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="user" className="flex items-center gap-2">
             <Star className="h-4 w-4" />
-            User Reviews ({userReviewStats.totalReviews})
+            Platform Reviews ({userReviewStats.totalReviews})
           </TabsTrigger>
           <TabsTrigger value="community" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Community Buzz ({combinedStats.total})
+            Reviews &amp; Buzz ({combinedStats.total})
           </TabsTrigger>
         </TabsList>
 
@@ -223,6 +237,8 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
                 variant={sentimentFilter === filter ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setSentimentFilter(filter)}
+                aria-label={`Filter by ${filter === 'all' ? 'all' : filter} sentiment`}
+                aria-pressed={sentimentFilter === filter}
               >
                 {filter === 'all' ? `All` : filter.charAt(0).toUpperCase() + filter.slice(1)}
               </Button>
@@ -266,7 +282,7 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <ExternalLink className="h-5 w-5" />
-                External Reviews ({filteredExternalReviews.length})
+                From Review Platforms ({filteredExternalReviews.length})
               </h3>
               <div className="grid gap-4" role="list" aria-label="External reviews">
                 {filteredExternalReviews.map((review) => (
@@ -281,7 +297,7 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 <MessageSquare className="h-5 w-5" />
-                Community Posts ({filteredPosts.length})
+                Community Discussions ({filteredPosts.length})
               </h3>
               {visiblePosts.map((post) => (
                 // Issue 258: Use Link instead of navigate for semantic navigation
@@ -295,7 +311,7 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
                       <div className="flex items-start justify-between gap-4 mb-3">
                         <div className="flex items-center gap-2 flex-wrap">
                           <Badge variant="outline" className={getSourceBadge(post.source)}>
-                            {post.source}
+                            {getSourceDisplayName(post.source)}
                           </Badge>
                           {getSentimentBadge(post.sentiment)}
                         </div>

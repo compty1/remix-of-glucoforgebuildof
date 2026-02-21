@@ -389,6 +389,17 @@ const CommunityPostDetail: React.FC = () => {
                     View Original Post
                   </Button>
                 </a>
+              ) : post.source === 'reddit' || post.source?.startsWith('r/') ? (
+                <a
+                  href={`https://www.reddit.com/search/?q=${encodeURIComponent(post.title)}&type=link`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="outline" size="sm">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Search Reddit for This Post
+                  </Button>
+                </a>
               ) : (
                 <TooltipProvider>
                   <Tooltip>

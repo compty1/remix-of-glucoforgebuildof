@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { BackButton } from '@/components/ui/back-button';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -57,12 +58,12 @@ const DeviceDetail = () => {
 
   const scrollToSupport = () => {
     setActiveTab('support');
-    window.scrollTo({ top: 400, behavior: 'smooth' });
+    setTimeout(() => document.querySelector('[data-state="active"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
   };
 
   const scrollToIssues = () => {
     setActiveTab('issues');
-    window.scrollTo({ top: 400, behavior: 'smooth' });
+    setTimeout(() => document.querySelector('[data-state="active"]')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
   };
 
   // Invalid UUID path — show 404-style error instead of triggering Postgres error (Issue 107)
@@ -70,10 +71,7 @@ const DeviceDetail = () => {
     return (
       <Layout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Button variant="ghost" onClick={() => navigate('/devices')} className="mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Devices
-          </Button>
+          <BackButton fallbackPath="/devices" className="mb-4" />
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>Device not found. The link may be invalid or the device may have been removed.</AlertDescription>
@@ -87,10 +85,7 @@ const DeviceDetail = () => {
     return (
       <Layout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Button variant="ghost" onClick={() => navigate('/devices')} className="mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Devices
-          </Button>
+          <BackButton fallbackPath="/devices" className="mb-4" />
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="flex items-center justify-between">
@@ -109,10 +104,7 @@ const DeviceDetail = () => {
     return (
       <Layout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Button variant="ghost" disabled className="mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Devices
-          </Button>
+          <BackButton fallbackPath="/devices" className="mb-4" />
           
           {/* Hero Skeleton */}
           <div className="bg-card border border-border rounded-xl p-6 md:p-8 mb-8">
@@ -153,10 +145,7 @@ const DeviceDetail = () => {
     return (
       <Layout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Button variant="ghost" onClick={() => navigate('/devices')} className="mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Devices
-          </Button>
+          <BackButton fallbackPath="/devices" className="mb-4" />
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -174,10 +163,7 @@ const DeviceDetail = () => {
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
-        <Button variant="ghost" onClick={() => navigate('/devices')} className="mb-4">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Devices
-        </Button>
+        <BackButton fallbackPath="/devices" className="mb-4" />
 
         {/* Hero Section */}
         <section className="mb-8">

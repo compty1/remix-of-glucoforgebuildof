@@ -77,7 +77,7 @@ const Trends = () => {
 
   const handleRefresh = async () => {
     await refetch();
-    toast({ title: "Data Refreshed", description: "Showing latest available trend data" });
+    toast({ title: "Trends Updated", description: "Showing latest community tag trends" });
   };
 
   const calculateTrend = (sevenDay: number, thirtyDay: number) => {

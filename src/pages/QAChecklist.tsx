@@ -34,7 +34,7 @@ const qaItems: QAItem[] = [
   { id: 'dash-1', category: 'Dashboard', item: 'Dashboard loads', status: 'pass' },
   { id: 'dash-2', category: 'Dashboard', item: 'Widgets show real data from uploads', status: 'warning', description: 'Requires user to have uploaded CGM data; shows empty state otherwise' },
   { id: 'dash-3', category: 'Dashboard', item: 'Dashboard customization works', status: 'pass' },
-  { id: 'dash-4', category: 'Dashboard', item: 'Device status shows accurate connection state', status: 'warning', description: 'No CGM API integration yet — shows linked/unlinked based on user_preferences' },
+  { id: 'dash-4', category: 'Dashboard', item: 'Device status shows accurate connection state', status: 'warning', description: 'Reads device preference from user settings. No live CGM API integration (Dexcom Share, Nightscout, etc.) is implemented — simulated connection status only.' },
   
   // Data Features
   { id: 'data-1', category: 'Data Features', item: 'File upload works', status: 'pass' },
@@ -66,13 +66,13 @@ const qaItems: QAItem[] = [
   // Content
   { id: 'content-1', category: 'Content', item: 'Community posts display from DB', status: 'pass' },
   { id: 'content-2', category: 'Content', item: 'Device issues display from DB', status: 'pass' },
-  { id: 'content-3', category: 'Content', item: 'Trend analysis has data pipeline', status: 'warning', description: 'Table exists and is queried, but no automated ingestion pipeline fills it — data requires manual seeding.' },
+  { id: 'content-3', category: 'Content', item: 'Trend analysis has data pipeline', status: 'warning', description: 'Primary metrics table is empty. Fallback to community_posts topic tag aggregation is active and working. Direct ingestion pipeline not yet configured.' },
   { id: 'content-4', category: 'Content', item: 'Email digest sends on schedule', status: 'warning', description: 'Edge function deployed but no cron trigger is configured — must be manually triggered or scheduled externally.' },
   
   // Admin
   { id: 'admin-1', category: 'Admin', item: 'Admin role detection works', status: 'pass' },
   { id: 'admin-2', category: 'Admin', item: 'Admin routes protected', status: 'pass' },
-  { id: 'admin-3', category: 'Admin', item: 'Admin dashboard charts use real data', status: 'warning', description: 'Placeholder charts removed — analytics instrumentation not yet implemented. Stat cards use real database counts.' },
+  { id: 'admin-3', category: 'Admin', item: 'Admin dashboard charts use real data', status: 'pass', description: 'Placeholder charts removed. Real stat cards fetch from DB. Usage analytics not yet instrumented.' },
 ];
 
 export default function QAChecklist() {

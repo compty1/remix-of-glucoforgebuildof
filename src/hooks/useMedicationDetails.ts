@@ -95,22 +95,35 @@ export const useMedicationDetails = (medicationId: string | undefined) => {
           .limit(4),
       ]);
 
+      // Filter out scraped navigation/junk content from external reviews (Issue #1)
+      const JUNK_MARKERS = [
+        'skip to main content', 'a-z list of drugs', 'pill identifier',
+        'page you were looking', 'find treatment options', 'keyboard shortcuts',
+      ];
+      const isValidContent = (content: string): boolean => {
+        if (!content || content.length < 50) return false;
+        const lower = content.toLowerCase();
+        return !JUNK_MARKERS.some(marker => lower.includes(marker));
+      };
+
+      const cleanExternalReviews = (externalReviews || [])
+        .filter(r => isValidContent(r.content))
+        .map(r => r as ExternalMedicationReview);
+
       // Combine external reviews and community buzz — normalise engagement_score to 
       // a comparable scale so buzz posts don't dominate the sorted list
       const MAX_HELPFUL_COUNT = 100;
       const combinedReviews: ExternalMedicationReview[] = [
-        ...(externalReviews || []).map(r => r as ExternalMedicationReview),
+        ...cleanExternalReviews,
         ...(buzzPosts || []).map(buzz => ({
           id: buzz.id,
           medication_id: buzz.medication_id,
           source: buzz.source || 'Community',
           external_id: null,
           author_anonymous: buzz.author_handle,
-          // Use buzz post_content as title when no explicit title
           title: buzz.post_content ? buzz.post_content.slice(0, 80) + (buzz.post_content.length > 80 ? '…' : '') : null,
           content: buzz.post_content || '',
           sentiment: buzz.sentiment,
-          // Normalise engagement_score so buzz posts don't overwhelm user reviews
           helpful_count: buzz.engagement_score ? Math.min(buzz.engagement_score, MAX_HELPFUL_COUNT) : 0,
           published_at: buzz.post_date,
           source_url: buzz.post_url,

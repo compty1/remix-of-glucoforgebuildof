@@ -403,30 +403,43 @@ const FinancialTools = () => {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {drugPricing.map((item) => (
-                          <div key={item.id} className="p-4 border rounded-lg">
-                            <div className="flex justify-between items-start mb-2">
-                              <div>
-                                <h3 className="font-medium">{item.drug_name}</h3>
-                                <p className="text-sm text-muted-foreground">{item.manufacturer}</p>
+                        {(() => {
+                          const validPricing = drugPricing.filter(item => (item.unit_price && item.unit_price > 0) || item.medicare_price);
+                          if (validPricing.length === 0) {
+                            return (
+                              <div className="text-center py-8 text-muted-foreground">
+                                <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                <p className="font-medium">Drug pricing data is currently unavailable</p>
+                                <p className="text-sm mt-1">Our data feed is refreshing. Check back after the next update.</p>
+                                <Badge variant="outline" className="mt-2 text-xs">Reference Data</Badge>
                               </div>
-                              <Badge variant="outline">{item.year}</Badge>
+                            );
+                          }
+                          return validPricing.map((item) => (
+                            <div key={item.id} className="p-4 border rounded-lg">
+                              <div className="flex justify-between items-start mb-2">
+                                <div>
+                                  <h3 className="font-medium">{item.drug_name}</h3>
+                                  <p className="text-sm text-muted-foreground">{item.manufacturer}</p>
+                                </div>
+                                <Badge variant="outline">{item.year}</Badge>
+                              </div>
+                              <div className="grid grid-cols-2 gap-4 text-sm mt-3">
+                                <div>
+                                  <p className="text-muted-foreground">Retail Price</p>
+                                  <p className="font-semibold text-lg">${item.unit_price?.toFixed(2)}</p>
+                                </div>
+                                <div>
+                                  <p className="text-muted-foreground">Medicare Price</p>
+                                  <p className="font-semibold text-lg text-green-600">${item.medicare_price?.toFixed(2)}</p>
+                                </div>
+                              </div>
+                              {item.ndc_code && (
+                                <p className="text-xs text-muted-foreground mt-2">NDC: {item.ndc_code}</p>
+                              )}
                             </div>
-                            <div className="grid grid-cols-2 gap-4 text-sm mt-3">
-                              <div>
-                                <p className="text-muted-foreground">Retail Price</p>
-                                <p className="font-semibold text-lg">${item.unit_price?.toFixed(2)}</p>
-                              </div>
-                              <div>
-                                <p className="text-muted-foreground">Medicare Price</p>
-                                <p className="font-semibold text-lg text-green-600">${item.medicare_price?.toFixed(2)}</p>
-                              </div>
-                            </div>
-                            {item.ndc_code && (
-                              <p className="text-xs text-muted-foreground mt-2">NDC: {item.ndc_code}</p>
-                            )}
-                          </div>
-                        ))}
+                          ));
+                        })()}
                       </div>
                     )}
                   </CardContent>
