@@ -6,43 +6,43 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-// Drugs.com URL mappings for all 44 medications
+// Drugs.com URL mappings for all 44 medications (must use .html extension)
 const MEDICATION_URLS: Record<string, string> = {
-  'humalog': 'https://www.drugs.com/comments/insulin-lispro/humalog/',
-  'novolog': 'https://www.drugs.com/comments/insulin-aspart/novolog/',
-  'lantus': 'https://www.drugs.com/comments/insulin-glargine/lantus/',
-  'tresiba': 'https://www.drugs.com/comments/insulin-degludec/tresiba/',
-  'fiasp': 'https://www.drugs.com/comments/insulin-aspart/fiasp/',
-  'lyumjev': 'https://www.drugs.com/comments/insulin-lispro/lyumjev/',
-  'basaglar': 'https://www.drugs.com/comments/insulin-glargine/basaglar/',
-  'toujeo': 'https://www.drugs.com/comments/insulin-glargine/toujeo/',
-  'levemir': 'https://www.drugs.com/comments/insulin-detemir/levemir/',
-  'ozempic': 'https://www.drugs.com/comments/semaglutide/ozempic/',
-  'metformin': 'https://www.drugs.com/comments/metformin/',
-  'jardiance': 'https://www.drugs.com/comments/empagliflozin/jardiance/',
-  'farxiga': 'https://www.drugs.com/comments/dapagliflozin/farxiga/',
-  'invokana': 'https://www.drugs.com/comments/canagliflozin/invokana/',
-  'januvia': 'https://www.drugs.com/comments/sitagliptin/januvia/',
-  'tradjenta': 'https://www.drugs.com/comments/linagliptin/tradjenta/',
-  'trulicity': 'https://www.drugs.com/comments/dulaglutide/trulicity/',
-  'victoza': 'https://www.drugs.com/comments/liraglutide/victoza/',
-  'mounjaro': 'https://www.drugs.com/comments/tirzepatide/mounjaro/',
-  'rybelsus': 'https://www.drugs.com/comments/semaglutide/rybelsus/',
-  'afrezza': 'https://www.drugs.com/comments/insulin-human/afrezza/',
-  'symlin': 'https://www.drugs.com/comments/pramlintide/symlin/',
-  'actos': 'https://www.drugs.com/comments/pioglitazone/actos/',
-  'glipizide': 'https://www.drugs.com/comments/glipizide/',
-  'glimepiride': 'https://www.drugs.com/comments/glimepiride/',
-  'onglyza': 'https://www.drugs.com/comments/saxagliptin/onglyza/',
-  'precose': 'https://www.drugs.com/comments/acarbose/precose/',
-  'prandin': 'https://www.drugs.com/comments/repaglinide/prandin/',
-  'admelog': 'https://www.drugs.com/comments/insulin-lispro/admelog/',
-  'apidra': 'https://www.drugs.com/comments/insulin-glulisine/apidra/',
-  'semglee': 'https://www.drugs.com/comments/insulin-glargine/semglee/',
-  'zepbound': 'https://www.drugs.com/comments/tirzepatide/zepbound/',
-  'soliqua': 'https://www.drugs.com/comments/insulin-glargine-lixisenatide/soliqua/',
-  'xultophy': 'https://www.drugs.com/comments/insulin-degludec-liraglutide/xultophy/',
-  'starlix': 'https://www.drugs.com/comments/nateglinide/starlix/',
+  'humalog': 'https://www.drugs.com/comments/insulin-lispro/humalog.html',
+  'novolog': 'https://www.drugs.com/comments/insulin-aspart/novolog.html',
+  'lantus': 'https://www.drugs.com/comments/insulin-glargine/lantus.html',
+  'tresiba': 'https://www.drugs.com/comments/insulin-degludec/tresiba.html',
+  'fiasp': 'https://www.drugs.com/comments/insulin-aspart/fiasp.html',
+  'lyumjev': 'https://www.drugs.com/comments/insulin-lispro/lyumjev.html',
+  'basaglar': 'https://www.drugs.com/comments/insulin-glargine/basaglar.html',
+  'toujeo': 'https://www.drugs.com/comments/insulin-glargine/toujeo.html',
+  'levemir': 'https://www.drugs.com/comments/insulin-detemir/levemir.html',
+  'ozempic': 'https://www.drugs.com/comments/semaglutide/ozempic.html',
+  'metformin': 'https://www.drugs.com/comments/metformin.html',
+  'jardiance': 'https://www.drugs.com/comments/empagliflozin/jardiance.html',
+  'farxiga': 'https://www.drugs.com/comments/dapagliflozin/farxiga.html',
+  'invokana': 'https://www.drugs.com/comments/canagliflozin/invokana.html',
+  'januvia': 'https://www.drugs.com/comments/sitagliptin/januvia.html',
+  'tradjenta': 'https://www.drugs.com/comments/linagliptin/tradjenta.html',
+  'trulicity': 'https://www.drugs.com/comments/dulaglutide/trulicity.html',
+  'victoza': 'https://www.drugs.com/comments/liraglutide/victoza.html',
+  'mounjaro': 'https://www.drugs.com/comments/tirzepatide/mounjaro.html',
+  'rybelsus': 'https://www.drugs.com/comments/semaglutide/rybelsus.html',
+  'afrezza': 'https://www.drugs.com/comments/insulin-human/afrezza.html',
+  'symlin': 'https://www.drugs.com/comments/pramlintide/symlin.html',
+  'actos': 'https://www.drugs.com/comments/pioglitazone/actos.html',
+  'glipizide': 'https://www.drugs.com/comments/glipizide.html',
+  'glimepiride': 'https://www.drugs.com/comments/glimepiride.html',
+  'onglyza': 'https://www.drugs.com/comments/saxagliptin/onglyza.html',
+  'precose': 'https://www.drugs.com/comments/acarbose/precose.html',
+  'prandin': 'https://www.drugs.com/comments/repaglinide/prandin.html',
+  'admelog': 'https://www.drugs.com/comments/insulin-lispro/admelog.html',
+  'apidra': 'https://www.drugs.com/comments/insulin-glulisine/apidra.html',
+  'semglee': 'https://www.drugs.com/comments/insulin-glargine/semglee.html',
+  'zepbound': 'https://www.drugs.com/comments/tirzepatide/zepbound.html',
+  'soliqua': 'https://www.drugs.com/comments/insulin-glargine-lixisenatide/soliqua.html',
+  'xultophy': 'https://www.drugs.com/comments/insulin-degludec-liraglutide/xultophy.html',
+  'starlix': 'https://www.drugs.com/comments/nateglinide/starlix.html',
 };
 
 // Reddit search terms for all medications
@@ -97,7 +97,7 @@ function analyzeSentiment(text: string): 'positive' | 'neutral' | 'negative' {
   return 'neutral';
 }
 
-// Scrape Drugs.com reviews using Firecrawl JSON extraction (LLM-powered)
+// Scrape Drugs.com reviews using Firecrawl markdown + regex parsing
 async function scrapeDrugsComReviews(medicationName: string, url: string): Promise<any[]> {
   const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
   if (!firecrawlKey) {
@@ -116,28 +116,7 @@ async function scrapeDrugsComReviews(medicationName: string, url: string): Promi
       },
       body: JSON.stringify({
         url,
-        formats: ['json'],
-        jsonOptions: {
-          schema: {
-            type: 'object',
-            properties: {
-              reviews: { 
-                type: 'array', 
-                items: {
-                  type: 'object',
-                  properties: {
-                    rating: { type: 'number', description: 'Star rating out of 10 (Drugs.com uses 1-10 scale)' },
-                    content: { type: 'string', description: 'The full review text written by the user' },
-                    author: { type: 'string', description: 'Username or anonymous identifier' },
-                    date: { type: 'string', description: 'Date the review was posted' },
-                    condition: { type: 'string', description: 'The medical condition the reviewer is treating' }
-                  }
-                }
-              }
-            }
-          },
-          prompt: 'Extract all user reviews from this Drugs.com medication review page. Each review typically has a star rating (1-10), the review text, an anonymous username, date, and the condition being treated. Only extract actual user-submitted reviews, not editorial content or navigation elements.'
-        },
+        formats: ['markdown'],
         onlyMainContent: true,
         waitFor: 3000,
       }),
@@ -151,31 +130,53 @@ async function scrapeDrugsComReviews(medicationName: string, url: string): Promi
     }
     
     const data = await response.json();
-    const extractedJson = data.data?.json || data.json || {};
-    const extractedReviews = extractedJson?.reviews || [];
+    const markdown = data.data?.markdown || data.markdown || '';
+    console.log(`Got ${markdown.length} chars of markdown for ${medicationName}`);
+    if (markdown.length < 100) {
+      console.log('Markdown too short, likely blocked. Preview:', markdown.substring(0, 200));
+      return [];
+    }
     
-    console.log(`Extracted ${extractedReviews.length} structured reviews for ${medicationName}`);
+    // Parse reviews from Drugs.com markdown format:
+    // **For [Condition]** "[review text]"
+    // X / 10
+    const reviews: any[] = [];
     
-    return extractedReviews
-      .filter((r: any) => r.content && r.content.length >= 30)
-      .slice(0, 10) // Max 10 reviews per medication
-      .map((r: any) => {
-        // Convert Drugs.com 1-10 scale to 1-5
-        const rating10 = Number(r.rating) || 5;
-        const rating5 = Math.round((rating10 / 10) * 5 * 10) / 10;
-        const sentiment = rating10 >= 7 ? 'positive' : rating10 >= 4 ? 'neutral' : 'negative';
-        
-        return {
-          title: r.condition ? `${medicationName} for ${r.condition}` : `User review of ${medicationName}`,
-          content: r.content.substring(0, 1000),
-          rating: Math.max(1, Math.min(5, Math.round(rating5))),
-          sentiment,
-          source_url: url,
-          source: 'drugs.com',
-          author: r.author || 'Anonymous',
-          published_at: r.date ? new Date(r.date).toISOString() : null,
-        };
+    // Match pattern: **For Condition** "review text" followed by X / 10
+    const reviewRegex = /\*\*For\s+(.+?)\*\*\s*"(.+?)"\s*\n\s*\n\s*(\d{1,2})\s*\/\s*10/gs;
+    let match;
+    
+    while ((match = reviewRegex.exec(markdown)) !== null) {
+      const condition = match[1].trim();
+      const content = match[2].trim();
+      const rating10 = parseInt(match[3]);
+      
+      if (content.length < 30 || rating10 < 1 || rating10 > 10) continue;
+      
+      const lower = content.toLowerCase();
+      if (lower.includes('skip to') || lower.includes('cookie') || lower.includes('advertisement')) continue;
+      
+      const rating5 = Math.max(1, Math.min(5, Math.round((rating10 / 2))));
+      const sentiment = rating10 >= 7 ? 'positive' : rating10 >= 4 ? 'neutral' : 'negative';
+      
+      // Try to extract date from context above the review
+      const beforeMatch = markdown.substring(Math.max(0, match.index - 200), match.index);
+      const dateMatch = beforeMatch.match(/([A-Z][a-z]+\s+\d{1,2},\s+\d{4})/);
+      
+      reviews.push({
+        title: `${medicationName} for ${condition}`,
+        content: content.substring(0, 1000),
+        rating: rating5,
+        sentiment,
+        source_url: url,
+        source: 'drugs.com',
+        author: 'Anonymous',
+        published_at: dateMatch ? new Date(dateMatch[1]).toISOString() : null,
       });
+    }
+    
+    console.log(`Parsed ${reviews.length} reviews for ${medicationName}`);
+    return reviews.slice(0, 10);
   } catch (error) {
     console.error(`Error scraping Drugs.com for ${medicationName}:`, error);
     return [];
@@ -274,7 +275,7 @@ serve(async (req) => {
             author_anonymous: review.author || 'Anonymous User',
             title: review.title,
             content: review.content,
-            rating: review.rating,
+            // rating not in schema, skip
             sentiment: review.sentiment,
             helpful_count: 0,
             published_at: review.published_at || new Date().toISOString(),
