@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle, XCircle, AlertTriangle, Download } from 'lucide-react';
 import { useState } from 'react';
+import { AdminRoute } from '@/components/admin/AdminRoute';
 
 interface QAItem {
   id: string;
@@ -131,6 +132,7 @@ export default function QAChecklist() {
   };
 
   return (
+    <AdminRoute>
     <Layout>
       <div className="container mx-auto px-6 py-8">
         <div className="max-w-6xl mx-auto">
@@ -247,5 +249,6 @@ export default function QAChecklist() {
         </div>
       </div>
     </Layout>
+    </AdminRoute>
   );
 }

@@ -16,12 +16,12 @@ import CureProgressStats from '@/components/cure/CureProgressStats';
 import { motion } from 'framer-motion';
 
 function CureHeroAnimation() {
-  const phases = [
-    { label: 'Discovery', icon: Microscope, progress: 100, color: 'hsl(var(--chart-4))' },
-    { label: 'Phase 1', icon: FlaskConical, progress: 100, color: 'hsl(var(--chart-2))' },
-    { label: 'Phase 2', icon: Dna, progress: 75, color: 'hsl(var(--chart-5))' },
-    { label: 'Phase 3', icon: Beaker, progress: 40, color: 'hsl(var(--chart-3))' },
-    { label: 'Cure', icon: Heart, progress: 0, color: 'hsl(var(--success))' },
+    const phases = [
+    { label: 'Discovery', icon: Microscope, progress: 100, color: 'hsl(var(--chart-4))', source: 'NIH' },
+    { label: 'Phase 1', icon: FlaskConical, progress: 100, color: 'hsl(var(--chart-2))', source: 'TrialNet' },
+    { label: 'Phase 2', icon: Dna, progress: 75, color: 'hsl(var(--chart-5))', source: 'JDRF' },
+    { label: 'Phase 3', icon: Beaker, progress: 40, color: 'hsl(var(--chart-3))', source: 'ClinicalTrials.gov' },
+    { label: 'Cure', icon: Heart, progress: 0, color: 'hsl(var(--success))', source: 'JDRF' },
   ];
 
   return (
@@ -107,6 +107,7 @@ function CureHeroAnimation() {
                   <span className="text-[10px] md:text-xs font-medium text-muted-foreground text-center">
                     {phase.label}
                   </span>
+                  <span className="text-[8px] text-muted-foreground/60">{phase.source}</span>
                   {phase.progress > 0 && phase.progress < 100 && (
                     <motion.span
                       initial={{ opacity: 0 }}

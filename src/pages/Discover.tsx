@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { Search, Filter, SortDesc, Loader2, Sparkles, TrendingUp, FlaskConical, Cpu, Users, Pill, Database, FileText, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -106,9 +107,9 @@ const Discover = () => {
 
         {/* Live Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <QuickStatCard title="Research Papers" value={stats?.research || 0} icon={FileText} colorClass="bg-primary/10 text-primary" />
-          <QuickStatCard title="Clinical Trials" value={stats?.trials || 0} icon={FlaskConical} colorClass="bg-success/10 text-success" />
-          <QuickStatCard title="Devices Tracked" value={stats?.devices || 0} icon={Cpu} colorClass="bg-info/10 text-info" />
+          <Link to="/research-hub"><QuickStatCard title="Research Papers" value={stats?.research || 0} icon={FileText} colorClass="bg-primary/10 text-primary" /></Link>
+          <Link to="/cure-progress"><QuickStatCard title="Clinical Trials" value={stats?.trials || 0} icon={FlaskConical} colorClass="bg-success/10 text-success" /></Link>
+          <Link to="/devices"><QuickStatCard title="Devices Tracked" value={stats?.devices || 0} icon={Cpu} colorClass="bg-info/10 text-info" /></Link>
           <QuickStatCard title="Data Sources" value="6+" icon={Database} colorClass="bg-accent text-accent-foreground" />
         </div>
 

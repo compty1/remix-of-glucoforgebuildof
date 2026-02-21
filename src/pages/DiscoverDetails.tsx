@@ -237,7 +237,7 @@ export default function DiscoverDetails() {
             <Separator />
 
             {/* Sources */}
-            {discovery.sources && discovery.sources.length > 0 && (
+            {discovery.sources && discovery.sources.length > 0 ? (
               <div>
                 <h3 className="text-xl font-semibold mb-3">
                   Research Sources ({discovery.sources.length})
@@ -261,6 +261,11 @@ export default function DiscoverDetails() {
                     </a>
                   ))}
                 </div>
+              </div>
+            ) : (
+              <div>
+                <h3 className="text-xl font-semibold mb-3">Research Sources</h3>
+                <p className="text-sm text-muted-foreground">No sources listed for this discovery.</p>
               </div>
             )}
 
