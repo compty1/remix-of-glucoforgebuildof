@@ -123,10 +123,13 @@ export const ShoppingCart: React.FC<ShoppingCartProps> = ({
                   <span>Total</span>
                   <span className="text-primary">{formatPrice(totalPrice)}</span>
                 </div>
-                <Button className="w-full" size="lg" onClick={onCheckout}>
+                <Button className="w-full" size="lg" disabled>
                   <CreditCard className="h-4 w-4 mr-2" />
-                  Checkout
+                  Checkout Coming Soon
                 </Button>
+                <p className="text-xs text-muted-foreground text-center mt-2">
+                  Stripe checkout is being configured. Check back soon!
+                </p>
               </div>
             </>
           )}
