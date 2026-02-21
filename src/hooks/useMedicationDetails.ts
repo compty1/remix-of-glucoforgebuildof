@@ -102,6 +102,8 @@ export const useMedicationDetails = (medicationId: string | undefined) => {
         'skip to fda search', 'skip to footer links', 'skip to in this section',
         'in this section:', 'drug interaction checker', 'cookie policy',
         'sign up for', 'advertisement', 'save up to',
+        'check for [drug interactions]', 'latest drug news',
+        'start over on our', 'complete sitemap', 'home page](https://',
       ];
       const isValidContent = (content: string): boolean => {
         if (!content || content.length < 50) return false;
