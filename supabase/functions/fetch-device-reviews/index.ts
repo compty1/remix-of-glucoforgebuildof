@@ -44,7 +44,8 @@ const DEVICE_SEARCH_QUERIES: Record<string, { webQuery: string; redditQuery: str
 
 // Junk content markers to filter out navigation/boilerplate
 const JUNK_MARKERS = [
-  'skip to main content', 'skip to navigation', 'skip to footer',
+  'skip to main content', 'skip to content', 'skip to primary content',
+  'skip to navigation', 'skip to footer',
   'skip to fda search', 'skip to in this section',
   'a-z list', 'cookie policy', 'advertisement',
   'sign up for', 'subscribe to', 'privacy policy', 'terms of service',
