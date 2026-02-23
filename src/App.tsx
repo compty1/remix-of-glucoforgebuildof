@@ -202,11 +202,11 @@ const AppContent = () => {
         {/* Redirect legacy glucose upload route to the canonical data-upload page (Issue 104) */}
         <Route path="/glucose/upload" element={<Navigate to="/data-upload" replace />} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/cure" element={<ProtectedRoute><LiveCureMonitoring /></ProtectedRoute>} />
-        <Route path="/devices" element={<ProtectedRoute><DeviceAnalytics /></ProtectedRoute>} />
-        <Route path="/devices/:deviceId" element={<ProtectedRoute><DeviceDetail /></ProtectedRoute>} />
-        <Route path="/devices/compare" element={<ProtectedRoute><DeviceComparison /></ProtectedRoute>} />
-        <Route path="/research" element={<ProtectedRoute><ResearchHub /></ProtectedRoute>} />
+        <Route path="/cure" element={<LiveCureMonitoring />} />
+        <Route path="/devices" element={<DeviceAnalytics />} />
+        <Route path="/devices/:deviceId" element={<DeviceDetail />} />
+        <Route path="/devices/compare" element={<DeviceComparison />} />
+        <Route path="/research" element={<ResearchHub />} />
         <Route path="/surveys" element={<ProtectedRoute><CitizenScience /></ProtectedRoute>} />
         <Route path="/data-upload" element={<ProtectedRoute><DataUpload /></ProtectedRoute>} />
         <Route path="/journal" element={<ProtectedRoute><Journal /></ProtectedRoute>} />
@@ -220,31 +220,31 @@ const AppContent = () => {
         <Route path="/admin/settings" element={<ProtectedRoute><AdminRoute><AdminSettings /></AdminRoute></ProtectedRoute>} />
         <Route path="/admin/analytics" element={<ProtectedRoute><AdminRoute><AdminAnalytics /></AdminRoute></ProtectedRoute>} />
         <Route path="/admin/projects" element={<ProtectedRoute><AdminRoute><AdminProjects /></AdminRoute></ProtectedRoute>} />
-        <Route path="/mental-health" element={<ProtectedRoute><MentalHealthHub /></ProtectedRoute>} />
+        <Route path="/mental-health" element={<MentalHealthHub />} />
         <Route path="/scenario-lab" element={<ProtectedRoute><ScenarioLab /></ProtectedRoute>} />
-        <Route path="/trends" element={<ProtectedRoute><Trends /></ProtectedRoute>} />
+        <Route path="/trends" element={<Trends />} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="/help" element={<PrepareForVisit />} />
         <Route path="/discover" element={<Discover />} />
         <Route path="/discover/:id" element={<DiscoverDetails />} />
-        <Route path="/fda-safety" element={<ProtectedRoute><FDASafety /></ProtectedRoute>} />
-        <Route path="/innovation" element={<ProtectedRoute><InnovationHub /></ProtectedRoute>} />
-        <Route path="/research-funding" element={<ProtectedRoute><ResearchFunding /></ProtectedRoute>} />
-        <Route path="/research-insights" element={<ProtectedRoute><ResearchInsights /></ProtectedRoute>} />
-        <Route path="/t1d-companion" element={<ProtectedRoute><T1DCompanion /></ProtectedRoute>} />
-        <Route path="/community-solutions" element={<ProtectedRoute><CommunitySolutions /></ProtectedRoute>} />
-        <Route path="/community-solutions/:postId" element={<ProtectedRoute><CommunityPostDetail /></ProtectedRoute>} />
-        <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
-        <Route path="/projects/:slug" element={<ProtectedRoute><ProjectDetail /></ProtectedRoute>} />
-        <Route path="/companies" element={<ProtectedRoute><Companies /></ProtectedRoute>} />
-        <Route path="/companies/compare" element={<ProtectedRoute><CompanyComparison /></ProtectedRoute>} />
-        <Route path="/companies/:id" element={<ProtectedRoute><CompanyDetail /></ProtectedRoute>} />
+        <Route path="/fda-safety" element={<FDASafety />} />
+        <Route path="/innovation" element={<InnovationHub />} />
+        <Route path="/research-funding" element={<ResearchFunding />} />
+        <Route path="/research-insights" element={<ResearchInsights />} />
+        <Route path="/t1d-companion" element={<T1DCompanion />} />
+        <Route path="/community-solutions" element={<CommunitySolutions />} />
+        <Route path="/community-solutions/:postId" element={<CommunityPostDetail />} />
+        <Route path="/projects" element={<Projects />} />
+        <Route path="/projects/:slug" element={<ProjectDetail />} />
+        <Route path="/companies" element={<Companies />} />
+        <Route path="/companies/compare" element={<CompanyComparison />} />
+        <Route path="/companies/:id" element={<CompanyDetail />} />
         <Route path="/customizable-dashboard" element={<ProtectedRoute><CustomizableDashboard /></ProtectedRoute>} />
-        <Route path="/resources" element={<ProtectedRoute><Resources /></ProtectedRoute>} />
-        <Route path="/resources/state-forms" element={<ProtectedRoute><StateFormsFinder /></ProtectedRoute>} />
-        <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} />
-        <Route path="/medicines" element={<ProtectedRoute><MedicineHub /></ProtectedRoute>} />
-        <Route path="/medicines/compare" element={<ProtectedRoute><MedicineComparison /></ProtectedRoute>} />
+        <Route path="/resources" element={<Resources />} />
+        <Route path="/resources/state-forms" element={<StateFormsFinder />} />
+        <Route path="/news" element={<News />} />
+        <Route path="/medicines" element={<MedicineHub />} />
+        <Route path="/medicines/compare" element={<MedicineComparison />} />
         <Route path="/build-with-us" element={<BuildWithUs />} />
         <Route path="/build-with-us/:projectId" element={<DevelopmentProjectDetail />} />
         <Route path="/get-involved" element={<GetInvolved />} />
@@ -268,13 +268,13 @@ const AppContent = () => {
         <Route path="/shop" element={<Shop />} />
         <Route path="/shop/success" element={<ShopSuccess />} />
         <Route path="/shop/cancel" element={<ShopCancel />} />
-        <Route path="/public-glucose-data" element={<ProtectedRoute><PublicGlucoseData /></ProtectedRoute>} />
+        <Route path="/public-glucose-data" element={<PublicGlucoseData />} />
         
         {/* New Pages - Phases 1-8 */}
-        <Route path="/ai-center" element={<ProtectedRoute><AICenter /></ProtectedRoute>} />
+        <Route path="/ai-center" element={<AICenter />} />
         <Route path="/organizations" element={<DiabetesOrganizations />} />
         <Route path="/advocate" element={<ProtectedRoute><BecomeAdvocate /></ProtectedRoute>} />
-        <Route path="/events" element={<ProtectedRoute><EventsNearMe /></ProtectedRoute>} />
+        <Route path="/events" element={<EventsNearMe />} />
         <Route path="/future" element={<FutureOfT1D />} />
         <Route path="/explore" element={<Explore />} />
         <Route path="/your-experience" element={<ProtectedRoute><YourExperience /></ProtectedRoute>} />
