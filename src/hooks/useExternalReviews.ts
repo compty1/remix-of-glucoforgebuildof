@@ -32,6 +32,8 @@ export interface ExternalReviewStats {
 // Filter out scraped navigation/junk content from external reviews
 const JUNK_MARKERS = [
   'skip to main content',
+  'skip to content',
+  'skip to primary content',
   'skip to navigation',
   'skip to footer',
   'keyboard shortcuts',
