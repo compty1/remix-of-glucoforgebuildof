@@ -25,10 +25,12 @@ export const RelatedDevicesSection: React.FC<RelatedDevicesSectionProps> = ({
   const navigate = useNavigate();
 
   const getDeviceIcon = (category: string | null) => {
-    switch (category) {
-      case 'CGM': return <Droplets className="h-5 w-5" />;
-      case 'Insulin Pump': return <Syringe className="h-5 w-5" />;
-      case 'Smart Pen': return <Smartphone className="h-5 w-5" />;
+    switch (category?.toLowerCase()) {
+      case 'cgm': return <Droplets className="h-5 w-5" />;
+      case 'pump':
+      case 'insulin pump': return <Syringe className="h-5 w-5" />;
+      case 'smart_pen':
+      case 'smart pen': return <Smartphone className="h-5 w-5" />;
       default: return <Smartphone className="h-5 w-5" />;
     }
   };

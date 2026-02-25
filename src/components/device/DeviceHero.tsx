@@ -105,7 +105,7 @@ export const DeviceHero: React.FC<DeviceHeroProps> = ({
                 websiteUrl={device.website_url}
                 size="md"
               />
-              <Badge variant="outline">{device.category}</Badge>
+              <Badge variant="outline">{device.category?.toUpperCase() === 'CGM' ? 'CGM' : device.category === 'pump' ? 'Insulin Pump' : device.category === 'smart_pen' ? 'Smart Pen' : device.category}</Badge>
             </div>
 
             <h1 className="text-3xl md:text-4xl font-heading font-bold text-foreground mb-2">
