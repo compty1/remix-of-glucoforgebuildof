@@ -31,7 +31,7 @@ const DeviceAnalytics = () => {
   const navigate = useNavigate();
   const { data, loading, error, refreshCommunityFeed } = useDeviceAnalytics();
   const { data: fdaData, loading: fdaLoading, error: fdaError, refreshData: refreshFDA } = useFDAData();
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'CGM' | 'Insulin Pump' | 'Smart Pen'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<'all' | 'cgm' | 'pump' | 'smart_pen'>('all');
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [fdaEventType, setFdaEventType] = useState<string>('all');
@@ -78,11 +78,20 @@ const DeviceAnalytics = () => {
     return 'text-destructive';
   };
 
+  const getCategoryLabel = (category: string) => {
+    switch (category) {
+      case 'cgm': return 'CGM';
+      case 'pump': return 'Insulin Pump';
+      case 'smart_pen': return 'Smart Pen';
+      default: return category;
+    }
+  };
+
   const getDeviceIcon = (category: string) => {
     switch (category) {
-      case 'CGM': return <Droplets className="h-5 w-5" />;
-      case 'Insulin Pump': return <Syringe className="h-5 w-5" />;
-      case 'Smart Pen': return <Smartphone className="h-5 w-5" />;
+      case 'cgm': return <Droplets className="h-5 w-5" />;
+      case 'pump': return <Syringe className="h-5 w-5" />;
+      case 'smart_pen': return <Smartphone className="h-5 w-5" />;
       default: return <Smartphone className="h-5 w-5" />;
     }
   };
@@ -115,25 +124,25 @@ const DeviceAnalytics = () => {
                 All Devices ({devices.length})
               </Button>
               <Button 
-                variant={selectedCategory === 'CGM' ? 'default' : 'outline'}
-                onClick={() => setSelectedCategory('CGM')}
+                variant={selectedCategory === 'cgm' ? 'default' : 'outline'}
+                onClick={() => setSelectedCategory('cgm')}
               >
                 <Droplets className="h-4 w-4 mr-2" />
-                CGMs ({devices.filter(d => d.category === 'CGM').length})
+                CGMs ({devices.filter(d => d.category === 'cgm').length})
               </Button>
               <Button 
-                variant={selectedCategory === 'Insulin Pump' ? 'default' : 'outline'}
-                onClick={() => setSelectedCategory('Insulin Pump')}
+                variant={selectedCategory === 'pump' ? 'default' : 'outline'}
+                onClick={() => setSelectedCategory('pump')}
               >
                 <Syringe className="h-4 w-4 mr-2" />
-                Pumps ({devices.filter(d => d.category === 'Insulin Pump').length})
+                Pumps ({devices.filter(d => d.category === 'pump').length})
               </Button>
               <Button 
-                variant={selectedCategory === 'Smart Pen' ? 'default' : 'outline'}
-                onClick={() => setSelectedCategory('Smart Pen')}
+                variant={selectedCategory === 'smart_pen' ? 'default' : 'outline'}
+                onClick={() => setSelectedCategory('smart_pen')}
               >
                 <Smartphone className="h-4 w-4 mr-2" />
-                Smart Pens ({devices.filter(d => d.category === 'Smart Pen').length})
+                Smart Pens ({devices.filter(d => d.category === 'smart_pen').length})
               </Button>
             </div>
 
@@ -202,7 +211,7 @@ const DeviceAnalytics = () => {
                     <div className="flex items-center gap-2">
                       {getDeviceIcon(device.category)}
                       <Badge variant="outline" className="text-xs">
-                        {device.category}
+                        {getCategoryLabel(device.category)}
                       </Badge>
                     </div>
                     <div className="flex items-center gap-1">
