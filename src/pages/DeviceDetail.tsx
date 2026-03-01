@@ -167,10 +167,11 @@ const DeviceDetail = () => {
 
         {/* Hero Section */}
         <section className="mb-8">
+          {/* C10/C11: Pass device.review_count (combined reviews) instead of community posts count */}
           <DeviceHero
             device={device}
             metrics={metrics}
-            totalReviews={reviewStats.total}
+            totalReviews={(device as any).review_count ?? reviewStats.total}
             onReportIssue={scrollToIssues}
             onGetSupport={scrollToSupport}
           />
@@ -181,7 +182,7 @@ const DeviceDetail = () => {
           <DeviceMetricsCard
             metrics={metrics}
             issueCount={issues.length}
-            reviewCount={reviewStats.total}
+            reviewCount={(device as any).review_count ?? reviewStats.total}
           />
         </section>
 

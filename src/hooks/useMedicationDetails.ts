@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Medication } from "./useMedications";
+import { isValidReviewContent } from '@/utils/reviewSanitizer';
 
 export interface ExternalMedicationReview {
   id: string;
@@ -79,7 +80,7 @@ export const useMedicationDetails = (medicationId: string | undefined) => {
           .select("*")
           .eq("medication_id", medicationId)
           .order("helpful_count", { ascending: false })
-          .limit(50),
+          .limit(500), // C22/C44: increased from 50
         supabase
           .from("medication_community_buzz")
           .select("*")
@@ -95,24 +96,9 @@ export const useMedicationDetails = (medicationId: string | undefined) => {
           .limit(4),
       ]);
 
-      // Filter out scraped navigation/junk content from external reviews (Issue #1)
-      const JUNK_MARKERS = [
-        'skip to main content', 'a-z list of drugs', 'a-z list', 'pill identifier',
-        'page you were looking', 'find treatment options', 'keyboard shortcuts',
-        'skip to fda search', 'skip to footer links', 'skip to in this section',
-        'in this section:', 'drug interaction checker', 'cookie policy',
-        'sign up for', 'advertisement', 'save up to',
-        'check for [drug interactions]', 'latest drug news',
-        'start over on our', 'complete sitemap', 'home page](https://',
-      ];
-      const isValidContent = (content: string): boolean => {
-        if (!content || content.length < 50) return false;
-        const lower = content.substring(0, 500).toLowerCase();
-        return !JUNK_MARKERS.some(marker => lower.includes(marker));
-      };
-
+      // C21: Use shared isValidReviewContent instead of local duplicate
       const cleanExternalReviews = (externalReviews || [])
-        .filter(r => isValidContent(r.content))
+        .filter(r => isValidReviewContent(r.content))
         .map(r => r as ExternalMedicationReview);
 
       // Combine external reviews and community buzz — normalise engagement_score to 

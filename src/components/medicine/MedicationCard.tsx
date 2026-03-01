@@ -6,24 +6,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Star, Clock, DollarSign, Info, ChevronRight } from 'lucide-react';
 import { EntityLogo } from '@/components/ui/entity-logo';
 
-interface Medication {
-  id: string;
-  name: string;
-  generic_name: string | null;
-  category: string;
-  subcategory: string | null;
-  manufacturer: string | null;
-  description: string | null;
-  onset_time: string | null;
-  peak_time: string | null;
-  duration: string | null;
-  avg_price: number | null;
-  medicare_price: number | null;
-  rating_avg: number | null;
-  review_count: number | null;
-  key_features: string[] | null;
-  fda_status: string | null;
-}
+// C48: Import from useMedications instead of duplicating
+import type { Medication } from '@/hooks/useMedications';
 
 interface MedicationCardProps {
   medication: Medication;
@@ -110,11 +94,12 @@ export function MedicationCard({
         )}
 
         {/* Rating */}
-        {medication.rating_avg && (
+        {/* C5/C9: Use computed avg_rating with fallback to seed rating_avg */}
+        {((medication as any).avg_rating || medication.rating_avg) && (
           <div className="flex items-center gap-1.5">
-            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-            <span className="font-medium">{medication.rating_avg.toFixed(1)}</span>
-            {medication.review_count && (
+            <Star className="h-4 w-4 fill-warning text-warning" />
+            <span className="font-medium">{((medication as any).avg_rating ?? medication.rating_avg)?.toFixed(1)}</span>
+            {medication.review_count != null && medication.review_count > 0 && (
               <span className="text-sm text-muted-foreground">
                 ({medication.review_count} reviews)
               </span>

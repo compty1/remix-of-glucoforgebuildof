@@ -13,6 +13,7 @@ import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { 
   Star, 
   Clock, 
@@ -35,6 +36,8 @@ import { useMedicationReviews } from '@/hooks/useMedicationReviews';
 import { useAuthStore } from '@/store/authStore';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { getSourceDisplayName, getSourceBadgeColor, getSourceLogo, isOfficialSource } from '@/utils/sourceConfig';
+import { sanitizeContent } from '@/utils/reviewSanitizer';
 
 interface MedicationDetailModalProps {
   medicationId: string | null;
@@ -138,7 +141,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
               <TabsList className="flex w-max min-w-full sm:grid sm:grid-cols-6 gap-0">
                 <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
                 <TabsTrigger value="reviews" className="text-xs sm:text-sm">Reviews</TabsTrigger>
-                <TabsTrigger value="buzz" className="text-xs sm:text-sm">Community</TabsTrigger>
+                <TabsTrigger value="buzz" className="text-xs sm:text-sm">Community Buzz</TabsTrigger>
                 <TabsTrigger value="usage" className="text-xs sm:text-sm">Real Usage</TabsTrigger>
                 <TabsTrigger value="clinical" className="text-xs sm:text-sm">Clinical</TabsTrigger>
                 <TabsTrigger value="pricing" className="text-xs sm:text-sm">Pricing</TabsTrigger>
@@ -217,17 +220,21 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
               {/* REVIEWS TAB — moved to position 2, wired to real data */}
               <TabsContent value="reviews" className="space-y-4">
                 {/* Rating Summary */}
-                {medication.rating_avg && (
+                {/* C4/C9: Use computed avg_rating with fallback to seed rating_avg */}
+                {((medication as any).avg_rating || medication.rating_avg) && (
                   <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
                     <div className="text-center">
                       <div className="flex items-center gap-1">
                         <Star className="h-6 w-6 fill-warning text-warning" />
-                        <span className="text-3xl font-bold">{medication.rating_avg.toFixed(1)}</span>
+                        <span className="text-3xl font-bold">{((medication as any).avg_rating ?? medication.rating_avg)?.toFixed(1)}</span>
                       </div>
                       <p className="text-sm text-muted-foreground" aria-label={`${medication.review_count || 0} reviews`}>
                         {medication.review_count || 0} reviews
                       </p>
-                      <Badge variant="outline" className="text-[10px] mt-1 text-muted-foreground">Reference Data</Badge>
+                      {/* C6: Only show Reference Data badge if no computed rating */}
+                      {!(medication as any).avg_rating && (
+                        <Badge variant="outline" className="text-[10px] mt-1 text-muted-foreground">Reference Data</Badge>
+                      )}
                     </div>
                   </div>
                 )}
@@ -281,8 +288,8 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                             placeholder="Share your experience with this medication..." />
                         </div>
                         <div className="flex items-center gap-2">
-                          <input type="checkbox" id="recommend" checked={reviewForm.wouldRecommend}
-                            onChange={e => setReviewForm(f => ({ ...f, wouldRecommend: e.target.checked }))} />
+                          <Checkbox id="recommend" checked={reviewForm.wouldRecommend}
+                            onCheckedChange={(checked) => setReviewForm(f => ({ ...f, wouldRecommend: !!checked }))} />
                           <Label htmlFor="recommend">I would recommend this medication</Label>
                         </div>
                         <div className="flex gap-2">
@@ -380,8 +387,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
 
                 {/* External Reviews — show only official platform reviews in Reviews tab */}
                 {(() => {
-                   const officialSources = ['drugs.com', 'webmd', 'healthline', 'google'];
-                   const officialReviews = externalReviews.filter(r => officialSources.includes(r.source?.toLowerCase()));
+                   const officialReviews = externalReviews.filter(r => isOfficialSource(r.source?.toLowerCase() || ''));
                    if (officialReviews.length === 0) return (
                      <div className="mt-4 p-4 border rounded-lg text-center">
                        <p className="text-sm text-muted-foreground mb-2">No consumer reviews yet.</p>
@@ -393,26 +399,20 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                        </Button>
                      </div>
                    );
-                   const getSourceDisplay = (s: string) => {
-                     const map: Record<string, string> = { 'drugs.com': 'Drugs.com', 'webmd': 'WebMD', 'healthline': 'Healthline', 'google': 'Google', 'reddit': 'Reddit' };
-                     return map[s.toLowerCase()] || s.charAt(0).toUpperCase() + s.slice(1);
-                   };
-                   const sanitize = (content: string) => content
-                     .replace(/\[]\([^)]*\)/g, '')
-                     .replace(/!\[.*?\]\(.*?\)/g, '')
-                     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-                     .replace(/#{1,6}\s/g, '')
-                     .replace(/\n{3,}/g, '\n\n')
-                     .trim();
                    return (
                      <div className="space-y-4 mt-4">
                        <h4 className="font-medium flex items-center gap-2">Consumer Reviews ({officialReviews.length})</h4>
                       {officialReviews.slice(0, externalVisible).map((review) => (
                         <div key={review.id} className="p-4 border rounded-lg space-y-2"
-                          role="article" aria-label="Platform review">
+                          role="article" aria-label="Consumer review">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <Badge variant="outline" className="bg-accent text-accent-foreground border-border">
-                              {getSourceDisplay(review.source || '')}
+                            <Badge variant="outline" className={getSourceBadgeColor(review.source || '')}>
+                              <span className="flex items-center gap-1.5">
+                                {getSourceLogo(review.source || '', review.source_url) && (
+                                  <img src={getSourceLogo(review.source || '', review.source_url)!} alt="" className="h-3.5 w-3.5 rounded-sm object-contain" loading="lazy" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                )}
+                                {getSourceDisplayName(review.source || '', review.source_url)}
+                              </span>
                             </Badge>
                             {(review as any).rating && (
                               <div className="flex items-center gap-0.5">
@@ -433,7 +433,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                             )}
                           </div>
                           {review.title && <h5 className="font-medium text-sm">{review.title}</h5>}
-                          <p className="text-sm text-muted-foreground line-clamp-3">{sanitize(review.content)}</p>
+                          <p className="text-sm text-muted-foreground line-clamp-3">{sanitizeContent(review.content)}</p>
                           <div className="flex items-center gap-3">
                             {review.source_url && (
                               <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
@@ -468,19 +468,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                   </p>
                    {/* Show only Reddit / community posts in Community tab (not official sources) */}
                   {(() => {
-                    const officialSources = ['drugs.com', 'webmd', 'healthline', 'google'];
-                    const communityPosts = externalReviews.filter(r => !officialSources.includes(r.source?.toLowerCase()));
-                    const getSourceDisplay = (s: string) => {
-                      const map: Record<string, string> = { 'reddit': 'Reddit', 'drugs.com': 'Drugs.com', 'webmd': 'WebMD' };
-                      return map[s.toLowerCase()] || s.charAt(0).toUpperCase() + s.slice(1);
-                    };
-                    const sanitize = (content: string) => content
-                      .replace(/\[]\([^)]*\)/g, '')
-                      .replace(/!\[.*?\]\(.*?\)/g, '')
-                      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-                      .replace(/#{1,6}\s/g, '')
-                      .replace(/\n{3,}/g, '\n\n')
-                      .trim();
+                    const communityPosts = externalReviews.filter(r => !isOfficialSource(r.source?.toLowerCase() || ''));
                     return communityPosts.length > 0 ? (
                       <div className="space-y-3">
                         {communityPosts.map((review) => (
@@ -488,9 +476,14 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                             role="article" aria-label="Community post">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <Badge variant="outline" className={`text-xs ${
-                                   review.source?.toLowerCase() === 'reddit' ? 'bg-warning/10 text-warning border-warning/20' : ''
-                                 }`}>{getSourceDisplay(review.source || '')}</Badge>
+                                <Badge variant="outline" className={getSourceBadgeColor(review.source || '')}>
+                                  <span className="flex items-center gap-1.5">
+                                    {getSourceLogo(review.source || '', review.source_url) && (
+                                      <img src={getSourceLogo(review.source || '', review.source_url)!} alt="" className="h-3.5 w-3.5 rounded-sm object-contain" loading="lazy" onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                    )}
+                                    {getSourceDisplayName(review.source || '', review.source_url)}
+                                  </span>
+                                </Badge>
                                 {review.sentiment && (
                                   <Badge variant={review.sentiment === 'positive' ? 'default' : review.sentiment === 'negative' ? 'destructive' : 'secondary'} className="text-xs">
                                     {review.sentiment}
@@ -499,7 +492,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                               </div>
                             </div>
                             {review.title && <h5 className="font-medium text-sm">{review.title}</h5>}
-                            <p className="text-sm">{sanitize(review.content)}</p>
+                            <p className="text-sm line-clamp-4">{sanitizeContent(review.content)}</p>
                              {review.source_url ? (
                                <Button variant="link" size="sm" className="p-0 h-auto text-xs" asChild>
                                  <a href={review.source_url} target="_blank" rel="noopener noreferrer"

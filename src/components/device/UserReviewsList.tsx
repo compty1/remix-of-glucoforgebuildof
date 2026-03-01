@@ -76,11 +76,11 @@ export const UserReviewsList: React.FC<UserReviewsListProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Demo Data Notice */}
-      {reviews.length > 0 && (
+      {/* C31/C32: Only show sample notice if ALL reviews are from seed UUIDs */}
+      {reviews.length > 0 && reviews.every(r => r.user_id.startsWith('00000000-')) && (
         <div className="p-3 rounded-lg bg-muted/50 border border-border text-center">
           <p className="text-sm text-muted-foreground">
-            📋 <strong>Demo Reviews</strong> — These are seeded sample reviews. Be the first to write a real review!
+            📋 <strong>Sample Reviews</strong> — These are example reviews. Be the first to write a real review!
           </p>
         </div>
       )}
@@ -91,7 +91,9 @@ export const UserReviewsList: React.FC<UserReviewsListProps> = ({
           <CardTitle className="text-lg flex items-center gap-2">
             <Star className="h-5 w-5 text-warning" />
             Ratings Summary
-            <Badge variant="outline" className="text-xs text-muted-foreground ml-2">Demo Data</Badge>
+            {reviews.length > 0 && reviews.every(r => r.user_id.startsWith('00000000-')) && (
+              <Badge variant="outline" className="text-xs text-muted-foreground ml-2">Sample Data</Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
