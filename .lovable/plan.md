@@ -1,93 +1,127 @@
 
 
-# Fix: Real Reviews Not Showing for Medications and Devices
+# Rename "Platform Reviews" to "Consumer Reviews", Boost to 100+ Real Reviews per Product, Separate Social-Only Buzz, and Add Weekly Auto-Refresh
 
-## Root Cause
+## What Changes
 
-The current scraped data has two critical quality issues:
+### 1. Rename "Platform Reviews" to "Consumer Reviews" everywhere
 
-1. **Junk content passes through**: Many reviews contain scraped navigation boilerplate ("Skip to main content", "Error 403", "Healthline - Health Conditions...") instead of actual review text. The frontend junk filter (`useExternalReviews.ts`) catches some but not enough -- and there is no equivalent filter on the medication side.
+The first tab in the device and medication review sections currently says "Platform Reviews". This will be renamed to **"Consumer Reviews"** across all affected components:
+- `DeviceReviewsTab.tsx` -- tab label
+- `MedicationDetailModal.tsx` -- tab label and "From Review Platforms" heading
+- `AppCenter.tsx` -- tab label if applicable
 
-2. **Low volume**: Only 151 device reviews and 364 medication reviews exist. The edge functions do only 2-3 Firecrawl searches per item, producing thin coverage.
+### 2. Calculate accurate overall review scores from imported reviews
 
-3. **No `onlyMainContent` flag**: The Firecrawl search scrape options don't request `onlyMainContent: true`, so full-page HTML boilerplate gets scraped alongside actual content.
+Currently device `avg_rating` and `review_count` are based only on 32 seeded user reviews (fake user IDs like `00000000-...`). The real data lives in `external_device_reviews` (320 records) and `external_medication_reviews` (1,910 records) but isn't factored into any displayed rating.
 
-## Solution
+**Changes:**
+- **Devices:** Create a database function `recalculate_device_ratings()` that computes average sentiment score (positive=5, neutral=3, negative=1) from `external_device_reviews` combined with user `device_reviews`, then updates `devices.avg_rating` and `devices.review_count` with the combined total.
+- **Medications:** Add `avg_rating` and `review_count` columns to the `medications` table. Create a matching `recalculate_medication_ratings()` function that computes from `external_medication_reviews` sentiment + user `medication_reviews` ratings.
+- **Frontend:** Update `DeviceHero.tsx` to show the recalculated score, and `MedicationDetailModal.tsx` to display the computed average.
+- Run both recalculation functions after data refresh.
 
-### Step 1: Improve both edge functions to produce cleaner, higher-volume data
+### 3. Boost to 100+ real consumer reviews per product
 
-**For `fetch-device-reviews/index.ts`:**
-- Add `onlyMainContent: true` to all Firecrawl `scrapeOptions`
-- Expand the `JUNK_MARKERS` list to match the frontend filter (add ~20 more markers like `go to main content`, `visit website`, `share - facebook`, `error 403`, `claimed profile`, `trustscore`, etc.)
-- Add a 3rd web search pass per device with different query angles to increase volume
-- Strip Reddit navigation boilerplate from scraped markdown (`Skip to main content`, `Skip to Navigation`)
+Current state: devices average ~40 external reviews each, medications average ~43. Target is 100+ per product.
 
-**For `fetch-medication-reviews/index.ts`:**
-- Add `onlyMainContent: true` to Reddit Firecrawl `scrapeOptions`
-- Add the same expanded `JUNK_MARKERS` filter to the Reddit post scraping (currently missing entirely)
-- Clean Reddit content by stripping "Skip to main content" and navigation text before inserting
-- Increase Reddit search `limit` from 3 to 5 per medication to boost community buzz volume
+**Changes to edge functions:**
+- **`fetch-device-reviews`:** Add 2 more search passes per device (total 5 passes) with varied query angles: product comparison queries, "pros and cons" queries, and long-term user experience queries. Increase per-search limit from 10 to 15.
+- **`fetch-medication-reviews`:** Add more Drugs.com pagination (currently scrapes page 1 only -- add pages 2-5), and add a web search pass per medication for WebMD, Healthline, and other consumer review sources. Increase Reddit search limit from 5 to 8.
 
-### Step 2: Expand the frontend junk filter
+After deploying, re-run both scrapers to populate the database to 100+ reviews per product.
 
-**In `src/hooks/useExternalReviews.ts`:**
-- Add more junk markers: `go to main content`, `visit website`, `error 403`, `error 404`, `claimed profile`, `trustscore`, `share - facebook`, `logoproducts`, `dexcom logo`
-- This ensures any remaining junk in the database is hidden from the UI
+### 4. Make "Reviews & Buzz" only show social/community content
 
-### Step 3: Purge existing junk data and re-fetch
+Currently the second tab ("Reviews & Buzz" for devices, "Community" for medications) mixes official review sources with social content. This will be cleaned up:
 
-- DELETE all records from `external_device_reviews`, `external_medication_reviews`, and `medication_community_buzz`
-- Re-run `fetch-device-reviews` for all 8 devices (1 batch)
-- Re-run `fetch-medication-reviews` in batches of 5 across all 44 medications
-- Target: 400+ clean device reviews, 600+ clean medication reviews, 150+ community buzz posts
+**Devices (`DeviceReviewsTab.tsx`):**
+- Rename tab from "Reviews & Buzz" to "Community Buzz"
+- Filter `externalReviews` to only show social sources (reddit, forum, facebook, youtube, medium, etc.) -- exclude official review sites (healthline, webmd, drugs.com, etc.)
+- Move official-source external reviews into the "Consumer Reviews" tab alongside user reviews
 
-### Step 4: Verify
+**Medications (`MedicationDetailModal.tsx`):**
+- Already mostly correct (official in Reviews tab, community in Buzz tab)
+- Verify the source filter lists are comprehensive and consistent
 
-- Query the database to confirm record counts and source diversity
-- Check that no junk content remains
-- Visually verify the device detail page shows real reviews with proper source badges
+### 5. Weekly auto-refresh of all reviews
+
+Currently there is NO cron job to refresh review data. The `scheduled-maintenance` cron only verifies community post links.
+
+**Changes:**
+- Create a new edge function `refresh-reviews/index.ts` that:
+  1. Calls `fetch-device-reviews` for all devices in batches
+  2. Calls `fetch-medication-reviews` for all medications in batches
+  3. Runs `recalculate_device_ratings()` and `recalculate_medication_ratings()`
+  4. Logs results to `data_refresh_logs`
+- Add a weekly cron job (Sundays 4 AM UTC) to invoke `refresh-reviews`
 
 ## Technical Details
 
-### Edge function changes (fetch-device-reviews)
+### Database migrations
 
 ```text
-- scrapeOptions: { formats: ['markdown'] }
-+ scrapeOptions: { formats: ['markdown'], onlyMainContent: true }
+-- Add rating columns to medications table
+ALTER TABLE medications ADD COLUMN IF NOT EXISTS avg_rating NUMERIC(3,2);
+ALTER TABLE medications ADD COLUMN IF NOT EXISTS review_count INTEGER DEFAULT 0;
 
-- JUNK_MARKERS: 10 entries
-+ JUNK_MARKERS: 30+ entries (matching frontend filter)
+-- Function: recalculate_device_ratings
+CREATE OR REPLACE FUNCTION recalculate_device_ratings() ...
+  - For each device: count external reviews by sentiment, combine with device_reviews avg
+  - Sentiment mapping: positive=4.5, neutral=3.0, negative=1.5
+  - Update devices.avg_rating and devices.review_count
 
-+ Add 3rd search: "{device} diabetes user feedback forum"
+-- Function: recalculate_medication_ratings() 
+  - Same pattern for medications table
 ```
 
-### Edge function changes (fetch-medication-reviews)
+### Edge function changes
 
-```text
-- scrapeOptions: { formats: ['markdown'] }
-+ scrapeOptions: { formats: ['markdown'], onlyMainContent: true }
+**`fetch-device-reviews/index.ts`:**
+- Add search queries: `"{device}" pros cons comparison 2024 2025` and `"{device}" long term review diabetes experience`
+- Increase limit per search from 10 to 15
 
-+ Add isJunkContent() filter to fetchRedditPosts results
-+ Clean Reddit content: strip "Skip to main content" prefix
+**`fetch-medication-reviews/index.ts`:**
+- Scrape Drugs.com pages 2-5 (currently only page 1)
+- Add WebMD/Healthline web search pass per medication
 
-- limit: 3 per medication
-+ limit: 5 per medication
-```
+**New `refresh-reviews/index.ts`:**
+- Orchestrator that calls both fetch functions in batches with delays
+- Calls rating recalculation RPCs
+- Logs to data_refresh_logs
 
-### Frontend filter expansion (useExternalReviews.ts)
+### Frontend changes
 
-```text
-Add to JUNK_MARKERS:
-  'go to main content', 'visit website', 'error 403', 'error 404',
-  'claimed profile', 'trustscore', 'share - facebook',
-  'logoproducts', 'dexcom logo', 'products patients'
+**`DeviceReviewsTab.tsx`:**
+- Line 165: "Platform Reviews" -> "Consumer Reviews"  
+- Line 169: "Reviews & Buzz" -> "Community Buzz"
+- Add official-source external reviews to the Consumer Reviews tab
+- Filter community tab to social-only sources
+
+**`MedicationDetailModal.tsx`:**
+- Line 409: "From Review Platforms" -> "Consumer Reviews"
+- Ensure tab labels say "Consumer Reviews" not "Reviews"
+
+**`AppCenter.tsx`:**
+- Update any "Platform Reviews" labels to "Consumer Reviews"
+
+### Cron job
+
+```sql
+SELECT cron.schedule(
+  'weekly-review-refresh',
+  '0 4 * * 0',  -- Sundays 4 AM UTC
+  $$ SELECT net.http_post(...refresh-reviews...) $$
+);
 ```
 
 ### Execution order
 
-1. Deploy updated edge functions
-2. Purge all 3 tables
-3. Run device fetch (1 batch of 8)
-4. Run medication fetch (9 batches of 5)
-5. Verify counts and content quality
+1. Deploy database migrations (add columns, create functions)
+2. Update and deploy all 3 edge functions
+3. Run scrapers to boost review counts to 100+
+4. Run rating recalculation
+5. Update frontend components
+6. Add cron job
+7. Verify end-to-end
 
