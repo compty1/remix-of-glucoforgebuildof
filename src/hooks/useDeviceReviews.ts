@@ -249,31 +249,36 @@ export const useDeviceReviews = (deviceId: string | undefined): UseDeviceReviews
     const review = reviews.find(r => r.id === reviewId);
     if (!review) return false;
 
+    // C50: Optimistic update instead of full re-fetch
+    const wasVoted = review.user_has_voted;
+    setReviews(prev => prev.map(r =>
+      r.id === reviewId
+        ? { ...r, user_has_voted: !wasVoted, helpful_count: r.helpful_count + (wasVoted ? -1 : 1) }
+        : r
+    ));
+
     try {
-      if (review.user_has_voted) {
-        // Remove vote
+      if (wasVoted) {
         const { error } = await supabase
           .from('review_helpful_votes')
           .delete()
           .eq('review_id', reviewId)
           .eq('user_id', user.id);
-
         if (error) throw error;
       } else {
-        // Add vote
         const { error } = await supabase
           .from('review_helpful_votes')
-          .insert({
-            review_id: reviewId,
-            user_id: user.id
-          });
-
+          .insert({ review_id: reviewId, user_id: user.id });
         if (error) throw error;
       }
-
-      await fetchReviews();
       return true;
     } catch (err) {
+      // Revert optimistic update on failure
+      setReviews(prev => prev.map(r =>
+        r.id === reviewId
+          ? { ...r, user_has_voted: wasVoted, helpful_count: r.helpful_count + (wasVoted ? 1 : -1) }
+          : r
+      ));
       toast.error('Failed to update vote');
       return false;
     }
