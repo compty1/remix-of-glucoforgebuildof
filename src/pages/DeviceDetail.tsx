@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { BackButton } from '@/components/ui/back-button';
 import Layout from '@/components/Layout';
@@ -33,6 +33,7 @@ import {
   Wrench
 } from 'lucide-react';
 import { DeviceAIChat } from '@/components/device/DeviceAIChat';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -252,41 +253,43 @@ const DeviceDetail = () => {
             </div>
 
             <TabsContent value="overview">
-              <DeviceOverviewTab device={device} />
+              <ErrorBoundary><DeviceOverviewTab device={device} /></ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="reviews">
-              <DeviceReviewsTab posts={communityPosts} reviewStats={reviewStats} deviceId={deviceId} />
+              <ErrorBoundary><DeviceReviewsTab posts={communityPosts} reviewStats={reviewStats} deviceId={deviceId} /></ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="issues">
-              <DeviceIssuesTab issues={issues} onReportIssue={scrollToSupport} deviceName={device.name} />
+              <ErrorBoundary><DeviceIssuesTab issues={issues} onReportIssue={scrollToSupport} deviceName={device.name} /></ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="fixes">
-              <DeviceUserFixesTab deviceId={deviceId} deviceName={device.name} />
+              <ErrorBoundary><DeviceUserFixesTab deviceId={deviceId} deviceName={device.name} /></ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="solutions">
-              <DeviceSolutionsTab deviceId={deviceId || ''} deviceName={device.name} />
+              <ErrorBoundary><DeviceSolutionsTab deviceId={deviceId || ''} deviceName={device.name} /></ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="fda">
-              <DeviceFDATab events={fdaEvents} />
+              <ErrorBoundary><DeviceFDATab events={fdaEvents} /></ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="support">
-              <DeviceSupportTab resources={supportResources} device={device} />
+              <ErrorBoundary><DeviceSupportTab resources={supportResources} device={device} /></ErrorBoundary>
             </TabsContent>
 
             <TabsContent value="ai-assistant">
-              <DeviceAIChat
-                deviceId={deviceId || ''}
-                deviceName={device.name}
-                deviceCategory={device.category}
-                deviceManufacturer={device.manufacturer}
-                deviceIssues={issues}
-              />
+              <ErrorBoundary>
+                <DeviceAIChat
+                  deviceId={deviceId || ''}
+                  deviceName={device.name}
+                  deviceCategory={device.category}
+                  deviceManufacturer={device.manufacturer}
+                  deviceIssues={issues}
+                />
+              </ErrorBoundary>
             </TabsContent>
           </Tabs>
         </section>
