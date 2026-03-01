@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom'; // Issue 258: Use Link instead of navigate for navigation
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { useDeviceReviews } from '@/hooks/useDeviceReviews';
 import { useExternalReviews } from '@/hooks/useExternalReviews';
 import { UserReviewsList } from './UserReviewsList';
 import { ExternalReviewCard } from './ExternalReviewCard';
+import { getSourceDisplayName, getSourceBadgeColor, getSourceLogo, isOfficialSource, isSocialSource } from '@/utils/sourceConfig';
 import { 
   MessageSquare, 
   ThumbsUp, 
@@ -41,11 +42,11 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
   reviewStats,
   deviceId
 }) => {
-  // Issue 258: removed useNavigate — handlePostClick now uses Link component below
   const [sentimentFilter, setSentimentFilter] = useState<'all' | 'positive' | 'neutral' | 'negative'>('all');
   const [visibleCount, setVisibleCount] = useState(10);
   const [activeSection, setActiveSection] = useState<'user' | 'community'>('user');
   const [externalSourceFilter, setExternalSourceFilter] = useState<string>('all');
+  const [officialVisible, setOfficialVisible] = useState(10); // C26: pagination for official reviews
 
   const {
     reviews,
@@ -63,8 +64,6 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
     stats: externalStats,
     loading: externalLoading,
     error: externalError,
-    filterBySource,
-    filterBySentiment
   } = useExternalReviews(deviceId);
 
   const filteredPosts = posts.filter(post => 
@@ -73,9 +72,20 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
 
   const visiblePosts = filteredPosts.slice(0, visibleCount);
 
-  // Filter external reviews based on current filters
-  const filteredExternalReviews = React.useMemo(() => {
-    let filtered = externalReviews;
+  // Split external reviews into official and social using shared utility (C16, C17)
+  const officialExternalReviews = React.useMemo(() => 
+    externalReviews.filter(r => isOfficialSource(r.source?.toLowerCase() || '')),
+    [externalReviews]
+  );
+
+  const socialExternalReviews = React.useMemo(() =>
+    externalReviews.filter(r => isSocialSource(r.source?.toLowerCase() || '')),
+    [externalReviews]
+  );
+
+  // Apply filters to social reviews
+  const filteredSocialReviews = React.useMemo(() => {
+    let filtered = socialExternalReviews;
     if (externalSourceFilter !== 'all') {
       filtered = filtered.filter(r => r.source === externalSourceFilter);
     }
@@ -83,7 +93,7 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
       filtered = filtered.filter(r => r.sentiment === sentimentFilter);
     }
     return filtered;
-  }, [externalReviews, externalSourceFilter, sentimentFilter]);
+  }, [socialExternalReviews, externalSourceFilter, sentimentFilter]);
 
   const getSentimentBadge = (sentiment: string | null) => {
     switch (sentiment) {
@@ -96,64 +106,22 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
     }
   };
 
-  const getSourceBadge = (source: string) => {
-    const colors: Record<string, string> = {
-      'reddit': 'bg-warning/10 text-warning border-warning/20',
-      'twitter': 'bg-chart-1/10 text-chart-1 border-chart-1/20',
-      'facebook': 'bg-primary/10 text-primary border-primary/20',
-      'google': 'bg-success/10 text-success border-success/20',
-      'omnipod': 'bg-primary/10 text-primary border-primary/20',
-      'dexcom': 'bg-chart-2/10 text-chart-2 border-chart-2/20',
-      'tandem': 'bg-accent text-accent-foreground border-border',
-      'dom-pubs': 'bg-chart-5/10 text-chart-5 border-chart-5/20',
-      'shericolberg': 'bg-chart-4/10 text-chart-4 border-chart-4/20',
-      'type1support': 'bg-success/10 text-success border-success/20',
-      'childrenwithdiabetes': 'bg-chart-3/10 text-chart-3 border-chart-3/20',
-      'embs': 'bg-chart-1/10 text-chart-1 border-chart-1/20',
-      'pubmed': 'bg-chart-2/10 text-chart-2 border-chart-2/20',
-      'fda': 'bg-destructive/10 text-destructive border-destructive/20',
-      'healthline': 'bg-success/10 text-success border-success/20',
-      'consumerguide': 'bg-primary/10 text-primary border-primary/20',
-      'medium': 'bg-chart-4/10 text-chart-4 border-chart-4/20',
-      'cbc': 'bg-chart-3/10 text-chart-3 border-chart-3/20',
-      'npr': 'bg-chart-1/10 text-chart-1 border-chart-1/20',
-    };
-    return colors[source.toLowerCase()] || 'bg-muted text-muted-foreground border-border';
-  };
+  // N24: Compute community buzz stats only from social reviews, not all external
+  const socialStats = React.useMemo(() => ({
+    positive: socialExternalReviews.filter(r => r.sentiment === 'positive').length + reviewStats.positive,
+    neutral: socialExternalReviews.filter(r => r.sentiment === 'neutral').length + reviewStats.neutral,
+    negative: socialExternalReviews.filter(r => r.sentiment === 'negative').length + reviewStats.negative,
+    total: socialExternalReviews.length + reviewStats.total,
+  }), [socialExternalReviews, reviewStats]);
 
-  const getSourceDisplayName = (source: string): string => {
-    const sourceMap: Record<string, string> = {
-      'omnipod': 'Omnipod',
-      'dexcom': 'Dexcom',
-      'tandem': 'Tandem',
-      'dom-pubs': 'Diabetes & Obesity Journal',
-      'shericolberg': 'Sheri Colberg',
-      'type1support': 'Type 1 Support',
-      'childrenwithdiabetes': 'Children With Diabetes',
-      'embs': 'IEEE EMBS',
-      'gdi-pc': 'GDI PC',
-      'reddit': 'Reddit',
-      'google': 'Google',
-      'consumerguide': 'ADA Consumer Guide',
-      'pubmed': 'PubMed',
-      'medium': 'Medium',
-      'cbc': 'CBC News',
-      'npr': 'NPR',
-      'fda': 'FDA',
-      'healthline': 'Healthline',
-    };
-    return sourceMap[source.toLowerCase()] || source.charAt(0).toUpperCase() + source.slice(1).replace(/-/g, ' ');
-  };
-
-  // Combine external stats with community post stats for total
-  const combinedStats = {
-    positive: reviewStats.positive + externalStats.positive,
-    neutral: reviewStats.neutral + externalStats.neutral,
-    negative: reviewStats.negative + externalStats.negative,
-    total: reviewStats.total + externalStats.total
-  };
-
-  // Issue 258: handlePostClick is no longer needed — posts now use Link component
+  // Source breakdown for social reviews only
+  const socialSourceBreakdown = React.useMemo(() => {
+    const counts: Record<string, number> = {};
+    socialExternalReviews.forEach(r => {
+      counts[r.source] = (counts[r.source] || 0) + 1;
+    });
+    return Object.entries(counts).map(([source, count]) => ({ source, count }));
+  }, [socialExternalReviews]);
 
   return (
     <div className="space-y-6">
@@ -162,49 +130,63 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="user" className="flex items-center gap-2">
             <Star className="h-4 w-4" />
-            Consumer Reviews ({userReviewStats.totalReviews + (externalReviews.filter(r => !['reddit', 'forum', 'facebook', 'youtube', 'medium', 'twitter'].includes(r.source?.toLowerCase())).length)})
+            Consumer Reviews ({userReviewStats.totalReviews + officialExternalReviews.length})
           </TabsTrigger>
           <TabsTrigger value="community" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Community Buzz ({posts.length + externalReviews.filter(r => ['reddit', 'forum', 'facebook', 'youtube', 'medium', 'twitter'].includes(r.source?.toLowerCase())).length})
+            Community Buzz ({posts.length + socialExternalReviews.length})
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="user" className="mt-6 space-y-6">
-          <UserReviewsList
-            reviews={reviews}
-            stats={userReviewStats}
-            loading={reviewsLoading}
-            userReview={userReview}
-            onSubmitReview={submitReview}
-            onUpdateReview={updateReview}
-            onDeleteReview={deleteReview}
-            onToggleHelpful={toggleHelpful}
-          />
+          {/* C34: Loading state for Consumer Reviews */}
+          {(reviewsLoading || externalLoading) && (
+            <Card className="command-center-widget">
+              <CardContent className="p-8 text-center">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+                <p className="text-muted-foreground">Loading reviews...</p>
+              </CardContent>
+            </Card>
+          )}
 
-          {/* Official-source external reviews in Consumer Reviews tab */}
-          {(() => {
-            const socialSources = ['reddit', 'forum', 'facebook', 'youtube', 'medium', 'twitter'];
-            const officialExternalReviews = externalReviews.filter(r => !socialSources.includes(r.source?.toLowerCase()));
-            if (officialExternalReviews.length === 0) return null;
-            return (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <ExternalLink className="h-5 w-5" />
-                  Consumer Reviews ({officialExternalReviews.length})
-                </h3>
-                <div className="grid gap-4" role="list" aria-label="Consumer reviews">
-                  {officialExternalReviews.map((review) => (
-                    <ExternalReviewCard key={review.id} review={review} />
-                  ))}
-                </div>
+          {!reviewsLoading && (
+            <UserReviewsList
+              reviews={reviews}
+              stats={userReviewStats}
+              loading={reviewsLoading}
+              userReview={userReview}
+              onSubmitReview={submitReview}
+              onUpdateReview={updateReview}
+              onDeleteReview={deleteReview}
+              onToggleHelpful={toggleHelpful}
+            />
+          )}
+
+          {/* Official-source external reviews in Consumer Reviews tab — C26: with pagination */}
+          {!externalLoading && officialExternalReviews.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <ExternalLink className="h-5 w-5" />
+                Consumer Reviews ({officialExternalReviews.length})
+              </h3>
+              <div className="grid gap-4" role="list" aria-label="Consumer reviews">
+                {officialExternalReviews.slice(0, officialVisible).map((review) => (
+                  <ExternalReviewCard key={review.id} review={review} />
+                ))}
               </div>
-            );
-          })()}
+              {officialVisible < officialExternalReviews.length && (
+                <div className="text-center">
+                  <Button variant="outline" onClick={() => setOfficialVisible(prev => prev + 10)}>
+                    Load More ({officialExternalReviews.length - officialVisible} remaining)
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="community" className="mt-6 space-y-6">
-          {/* Sentiment Stats */}
+          {/* Sentiment Stats — N24: only social stats */}
           <Card className="command-center-widget">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -216,29 +198,29 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className="text-center p-4 bg-success/10 rounded-lg">
                   <Smile className="h-6 w-6 text-success mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-success">{combinedStats.positive}</div>
+                  <div className="text-2xl font-bold text-success">{socialStats.positive}</div>
                   <p className="text-xs text-muted-foreground">Positive</p>
                 </div>
                 <div className="text-center p-4 bg-warning/10 rounded-lg">
                   <Meh className="h-6 w-6 text-warning mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-warning">{combinedStats.neutral}</div>
+                  <div className="text-2xl font-bold text-warning">{socialStats.neutral}</div>
                   <p className="text-xs text-muted-foreground">Neutral</p>
                 </div>
                 <div className="text-center p-4 bg-destructive/10 rounded-lg">
                   <Frown className="h-6 w-6 text-destructive mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-destructive">{combinedStats.negative}</div>
+                  <div className="text-2xl font-bold text-destructive">{socialStats.negative}</div>
                   <p className="text-xs text-muted-foreground">Negative</p>
                 </div>
               </div>
               
-              {/* Source breakdown */}
-              {externalStats.sources.length > 0 && (
+              {/* Source breakdown — social only */}
+              {socialSourceBreakdown.length > 0 && (
                 <div className="mt-4 pt-4 border-t">
                   <p className="text-sm text-muted-foreground mb-2">Sources:</p>
                   <div className="flex flex-wrap gap-2">
-                    {externalStats.sources.map(({ source, count }) => (
-                      <Badge key={source} variant="outline" className={getSourceBadge(source)}>
-                        {getSourceDisplayName(source)}: {count} reviews
+                    {socialSourceBreakdown.map(({ source, count }) => (
+                      <Badge key={source} variant="outline" className={getSourceBadgeColor(source)}>
+                        {getSourceDisplayName(source)}: {count}
                       </Badge>
                     ))}
                   </div>
@@ -247,7 +229,7 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
             </CardContent>
           </Card>
 
-          {/* Filters */}
+          {/* Filters — N9: flex-wrap */}
           <div className="flex flex-wrap items-center gap-2">
             <Filter className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground mr-2">Sentiment:</span>
@@ -269,15 +251,17 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
               variant={externalSourceFilter === 'all' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setExternalSourceFilter('all')}
+              aria-pressed={externalSourceFilter === 'all'}
             >
               All Sources
             </Button>
-            {externalStats.sources.map(({ source }) => (
+            {socialSourceBreakdown.map(({ source }) => (
               <Button
                 key={source}
                 variant={externalSourceFilter === source ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setExternalSourceFilter(source)}
+                aria-pressed={externalSourceFilter === source}
               >
                 {getSourceDisplayName(source)}
               </Button>
@@ -285,42 +269,34 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
           </div>
 
           {/* Social-only external reviews in Community Buzz tab */}
-          {(() => {
-            const socialSources = ['reddit', 'forum', 'facebook', 'youtube', 'medium', 'twitter'];
-            const socialReviews = filteredExternalReviews.filter(r => socialSources.includes(r.source?.toLowerCase()));
-            
-            if (externalLoading) return (
-              <Card className="command-center-widget">
-                <CardContent className="p-8 text-center">
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-                  <p className="text-muted-foreground">Loading community buzz...</p>
-                </CardContent>
-              </Card>
-            );
-            if (externalError) return (
-              <Card className="command-center-widget">
-                <CardContent className="p-6 text-center">
-                  <p className="text-sm text-destructive">Failed to load community buzz. Please try again.</p>
-                </CardContent>
-              </Card>
-            );
-            if (socialReviews.length === 0) return null;
-            return (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold flex items-center gap-2">
-                  <ExternalLink className="h-5 w-5" />
-                  Social Buzz ({socialReviews.length})
-                </h3>
-                <div className="grid gap-4" role="list" aria-label="Social reviews">
-                  {socialReviews.map((review) => (
-                    <ExternalReviewCard key={review.id} review={review} />
-                  ))}
-                </div>
+          {externalLoading ? (
+            <Card className="command-center-widget">
+              <CardContent className="p-8 text-center">
+                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+                <p className="text-muted-foreground">Loading community buzz...</p>
+              </CardContent>
+            </Card>
+          ) : externalError ? (
+            <Card className="command-center-widget">
+              <CardContent className="p-6 text-center">
+                <p className="text-sm text-destructive">Failed to load community buzz. Please try again.</p>
+              </CardContent>
+            </Card>
+          ) : filteredSocialReviews.length > 0 ? (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <ExternalLink className="h-5 w-5" />
+                Social Buzz ({filteredSocialReviews.length})
+              </h3>
+              <div className="grid gap-4" role="list" aria-label="Social reviews">
+                {filteredSocialReviews.map((review) => (
+                  <ExternalReviewCard key={review.id} review={review} />
+                ))}
               </div>
-            );
-          })()}
+            </div>
+          ) : null}
 
-          {/* Community Posts List - Now Clickable */}
+          {/* Community Posts List */}
           {visiblePosts.length > 0 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center gap-2">
@@ -328,7 +304,6 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
                 Community Discussions ({filteredPosts.length})
               </h3>
               {visiblePosts.map((post) => (
-                // Issue 258: Use Link instead of navigate for semantic navigation
                 <Link
                   key={post.id}
                   to={`/community-solutions/${post.post_id}`}
@@ -338,7 +313,7 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-4 mb-3">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <Badge variant="outline" className={getSourceBadge(post.source)}>
+                          <Badge variant="outline" className={getSourceBadgeColor(post.source)}>
                             {getSourceDisplayName(post.source)}
                           </Badge>
                           {getSentimentBadge(post.sentiment)}
@@ -384,30 +359,27 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
           )}
           
           {/* No content state */}
-          {filteredExternalReviews.length === 0 && visiblePosts.length === 0 && !externalLoading && (
+          {filteredSocialReviews.length === 0 && visiblePosts.length === 0 && !externalLoading && (
             <Card className="command-center-widget">
               <CardContent className="p-8 text-center">
                 <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-semibold mb-2">
-                  {externalReviews.length > 0 || posts.length > 0 
+                  {socialExternalReviews.length > 0 || posts.length > 0 
                     ? 'No Reviews Match Your Filters' 
-                    : 'No Reviews Yet'}
+                    : 'No Community Buzz Yet'}
                 </h3>
                 <p className="text-muted-foreground">
-                  {externalReviews.length > 0 || posts.length > 0
+                  {socialExternalReviews.length > 0 || posts.length > 0
                     ? 'Try adjusting your sentiment or source filters to see more results.'
-                    : 'No community posts or reviews are available for this device yet.'}
+                    : 'No community posts or social reviews are available for this device yet.'}
                 </p>
-                {(externalReviews.length > 0 || posts.length > 0) && (
+                {(socialExternalReviews.length > 0 || posts.length > 0) && (
                   <Button 
                     variant="outline" 
                     className="mt-4"
-                    onClick={() => {
-                      setSentimentFilter('all');
-                      setExternalSourceFilter('all');
-                    }}
+                    onClick={() => { setSentimentFilter('all'); setExternalSourceFilter('all'); }}
                   >
-                    Clear All Filters
+                    Reset Filters
                   </Button>
                 )}
               </CardContent>

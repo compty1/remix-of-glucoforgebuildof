@@ -29,65 +29,8 @@ export interface ExternalReviewStats {
   sources: { source: string; count: number }[];
 }
 
-// Filter out scraped navigation/junk content from external reviews
-const JUNK_MARKERS = [
-  'skip to main content',
-  'skip to content',
-  'skip to primary content',
-  'skip to navigation',
-  'skip to footer',
-  'keyboard shortcuts',
-  'save up to',
-  'a-z list of drugs',
-  'a-z list',
-  'pill identifier',
-  'page you were looking',
-  'find treatment options',
-  'the page you were looking could not be found',
-  'skip to fda search',
-  'skip to footer links',
-  'skip to in this section',
-  'in this section:',
-  'drug interaction checker',
-  'cookie policy',
-  'sign up for',
-  'advertisement',
-  'check for [drug interactions]',
-  'latest drug news',
-  'start over on our',
-  'complete sitemap',
-  'home page](https://',
-  'clipboard, search history',
-  'sale sold out in stock',
-  'filter your search',
-  'we are updating our terms',
-  'find a journal',
-  'publish with us',
-  'track your research',
-  'automated to help more patients',
-  'go to main content',
-  'visit website',
-  'error 403',
-  'error 404',
-  'claimed profile',
-  'trustscore',
-  'share - facebook',
-  'logoproducts',
-  'dexcom logo',
-  'products patients',
-  'javascript is disabled',
-  'accept cookies',
-  'we use cookies',
-  'privacy policy',
-  'terms of service',
-  'subscribe to',
-];
-
-const isValidReviewContent = (content: string): boolean => {
-  if (!content || content.length < 50) return false;
-  const lower = content.substring(0, 500).toLowerCase();
-  return !JUNK_MARKERS.some(marker => lower.includes(marker));
-};
+// Use shared sanitizer instead of duplicated markers (C21)
+import { isValidReviewContent } from '@/utils/reviewSanitizer';
 
 const computeStats = (reviews: ExternalReview[]): ExternalReviewStats => {
   const positive = reviews.filter(r => r.sentiment === 'positive').length;

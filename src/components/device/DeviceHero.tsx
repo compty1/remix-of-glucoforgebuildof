@@ -69,9 +69,8 @@ export const DeviceHero: React.FC<DeviceHeroProps> = ({
     return 'bg-muted text-muted-foreground';
   };
 
-  const averageRating = metrics 
-    ? ((metrics.reliability_score || 0) + (metrics.social_setting_score || 0)) / 20 
-    : 0;
+  // C1: Use device.avg_rating from recalculate_device_ratings() instead of wrong formula
+  const averageRating = (device as any).avg_rating ?? 0;
 
   const deviceType = getDeviceTypeLabel(device.category, device.device_type);
   const fdaStatus = device.fda_status || (device.fda_clearance_date ? 'FDA Cleared' : null);
