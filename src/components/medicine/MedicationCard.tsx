@@ -94,17 +94,17 @@ export function MedicationCard({
         )}
 
         {/* Rating */}
-        {medication.avg_rating && (
+        {medication.avg_rating && medication.review_count != null && medication.review_count >= 5 ? (
           <div className="flex items-center gap-1.5">
             <Star className="h-4 w-4 fill-warning text-warning" />
             <span className="font-medium">{medication.avg_rating?.toFixed(1)}</span>
-            {medication.review_count != null && medication.review_count > 0 && (
-              <span className="text-sm text-muted-foreground">
-                ({medication.review_count} reviews)
-              </span>
-            )}
+            <span className="text-sm text-muted-foreground">
+              ({medication.review_count} reviews)
+            </span>
           </div>
-        )}
+        ) : medication.review_count != null && medication.review_count > 0 && medication.review_count < 5 ? (
+          <p className="text-sm text-muted-foreground italic">Not enough reviews</p>
+        ) : null}
 
         {/* Timing Data for Insulins */}
         {hasTimingData && (

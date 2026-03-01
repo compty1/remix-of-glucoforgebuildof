@@ -36,16 +36,30 @@ const JUNK_MARKERS = [
 ];
 
 function analyzeSentiment(text: string): 'positive' | 'neutral' | 'negative' {
-  const positiveWords = ['love', 'amazing', 'great', 'excellent', 'perfect', 'best', 'awesome', 'fantastic', 'improved', 'recommend', 'happy', 'life-changing', 'game changer', 'works great', 'accurate', 'reliable', 'helpful', 'wonderful', 'smooth', 'easy', 'better'];
-  const negativeWords = ['hate', 'terrible', 'awful', 'worst', 'horrible', 'broken', 'failed', 'frustrating', 'disappointed', 'useless', 'problem', 'issue', 'error', 'unreliable', 'inaccurate', 'annoying', 'painful', 'difficult', 'worse', 'bad'];
+  const positiveWords = [
+    'love', 'amazing', 'great', 'excellent', 'perfect', 'best', 'awesome', 'fantastic',
+    'improved', 'recommend', 'happy', 'life-changing', 'game changer', 'works great',
+    'accurate', 'reliable', 'helpful', 'wonderful', 'smooth', 'easy', 'better',
+    'stable', 'consistent', 'effective', 'controlled', 'a1c dropped', 'life saver',
+    'lifesaver', 'worth it', 'no issues', 'satisfied', 'convenient', 'comfortable',
+  ];
+  const negativeWords = [
+    'hate', 'terrible', 'awful', 'worst', 'horrible', 'broken', 'failed', 'frustrating',
+    'disappointed', 'useless', 'problem', 'issue', 'error', 'unreliable', 'inaccurate',
+    'annoying', 'painful', 'difficult', 'worse', 'bad',
+    'side effects', 'nausea', 'weight gain', 'expensive', 'stopped working', 'switched',
+    'rash', 'allergic', 'recall', 'malfunction', 'dangerous', 'uncomfortable',
+  ];
   
   const lowerText = text.toLowerCase();
   let pos = 0, neg = 0;
   positiveWords.forEach(w => { if (lowerText.includes(w)) pos++; });
   negativeWords.forEach(w => { if (lowerText.includes(w)) neg++; });
   
-  if (pos > neg + 1) return 'positive';
-  if (neg > pos + 1) return 'negative';
+  const total = pos + neg;
+  if (total < 2) return 'neutral';
+  if (pos > neg * 1.5) return 'positive';
+  if (neg > pos * 1.5) return 'negative';
   return 'neutral';
 }
 
