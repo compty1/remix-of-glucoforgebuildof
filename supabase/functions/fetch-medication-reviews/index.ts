@@ -99,16 +99,28 @@ const MEDICATION_REDDIT_TERMS: Record<string, { query: string; subreddits: strin
 };
 
 function analyzeSentiment(text: string): 'positive' | 'neutral' | 'negative' {
-  const positiveWords = ['love', 'amazing', 'great', 'excellent', 'works', 'helped', 'better', 'recommend', 'effective', 'game changer', 'life changing', 'wonderful', 'fantastic', 'improved', 'perfect', 'happy'];
-  const negativeWords = ['hate', 'terrible', 'horrible', 'useless', 'failed', 'side effects', 'nausea', 'problem', 'issue', 'stopped working', 'awful', 'worst', 'pain', 'dangerous', 'disappointed', 'frustrated'];
+  const positiveWords = [
+    'love', 'amazing', 'great', 'excellent', 'works', 'helped', 'better', 'recommend',
+    'effective', 'game changer', 'life changing', 'wonderful', 'fantastic', 'improved',
+    'perfect', 'happy', 'stable', 'consistent', 'controlled', 'a1c dropped', 'life saver',
+    'lifesaver', 'worth it', 'no issues', 'satisfied', 'convenient', 'comfortable',
+  ];
+  const negativeWords = [
+    'hate', 'terrible', 'horrible', 'useless', 'failed', 'side effects', 'nausea',
+    'problem', 'issue', 'stopped working', 'awful', 'worst', 'pain', 'dangerous',
+    'disappointed', 'frustrated', 'weight gain', 'expensive', 'switched', 'rash',
+    'allergic', 'recall', 'malfunction', 'uncomfortable', 'diarrhea', 'vomiting',
+  ];
   
   const lowerText = text.toLowerCase();
   let pos = 0, neg = 0;
   positiveWords.forEach(w => { if (lowerText.includes(w)) pos++; });
   negativeWords.forEach(w => { if (lowerText.includes(w)) neg++; });
   
-  if (pos > neg + 1) return 'positive';
-  if (neg > pos + 1) return 'negative';
+  const total = pos + neg;
+  if (total < 2) return 'neutral';
+  if (pos > neg * 1.5) return 'positive';
+  if (neg > pos * 1.5) return 'negative';
   return 'neutral';
 }
 

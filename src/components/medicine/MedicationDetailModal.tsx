@@ -220,19 +220,23 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
               {/* REVIEWS TAB — moved to position 2, wired to real data */}
               <TabsContent value="reviews" className="space-y-4">
                 {/* Rating Summary */}
-                {medication.avg_rating && (
+                {medication.avg_rating && medication.review_count != null && medication.review_count >= 5 ? (
                   <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
                     <div className="text-center">
                       <div className="flex items-center gap-1">
                         <Star className="h-6 w-6 fill-warning text-warning" />
                         <span className="text-3xl font-bold">{medication.avg_rating?.toFixed(1)}</span>
                       </div>
-                      <p className="text-sm text-muted-foreground" aria-label={`${medication.review_count || 0} reviews`}>
-                        {medication.review_count || 0} reviews
+                      <p className="text-sm text-muted-foreground" aria-label={`${medication.review_count} reviews`}>
+                        {medication.review_count} reviews
                       </p>
                     </div>
                   </div>
-                )}
+                ) : medication.review_count != null && medication.review_count > 0 && medication.review_count < 5 ? (
+                  <div className="p-4 bg-muted rounded-lg">
+                    <p className="text-sm text-muted-foreground italic">Not enough reviews to display a rating</p>
+                  </div>
+                ) : null}
 
                 {/* Sort controls */}
                 {reviews.length > 1 && (
