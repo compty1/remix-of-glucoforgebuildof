@@ -103,6 +103,8 @@ function extractSource(url: string): string {
   if (url.includes('diabetesmine.com')) return 'diabetesmine';
   if (url.includes('asweetlife.org')) return 'asweetlife';
   if (url.includes('t1dexchange.org')) return 't1dexchange';
+  if (url.includes('webmd.com')) return 'webmd';
+  if (url.includes('drugs.com')) return 'drugs.com';
   try {
     return new URL(url).hostname.replace('www.', '').split('.')[0];
   } catch {
@@ -111,7 +113,7 @@ function extractSource(url: string): string {
 }
 
 // Fetch web reviews via Firecrawl search with scrape
-async function fetchWebReviews(deviceName: string, searchQuery: string, limit = 10): Promise<any[]> {
+async function fetchWebReviews(deviceName: string, searchQuery: string, limit = 15): Promise<any[]> {
   const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
   if (!firecrawlKey) return [];
 
@@ -153,7 +155,6 @@ async function fetchWebReviews(deviceName: string, searchQuery: string, limit = 
         const source = extractSource(url);
         const sentiment = analyzeSentiment(cleaned);
 
-        // Try to extract a meaningful title
         const title = (r.title || '').replace(/ - .+$/, '').replace(/ \| .+$/, '').substring(0, 200)
           || `${deviceName} Review`;
 
@@ -174,7 +175,7 @@ async function fetchWebReviews(deviceName: string, searchQuery: string, limit = 
 }
 
 // Fetch Reddit community posts via Firecrawl search
-async function fetchRedditBuzz(deviceName: string, searchQuery: string, limit = 8): Promise<any[]> {
+async function fetchRedditBuzz(deviceName: string, searchQuery: string, limit = 10): Promise<any[]> {
   const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
   if (!firecrawlKey) return [];
 
@@ -254,7 +255,6 @@ serve(async (req) => {
 
     console.log(`Starting device reviews fetch (start: ${startIndex}, batch: ${batchSize})...`);
 
-    // Fetch devices
     const { data: devices, error: devError } = await supabase
       .from('devices')
       .select('id, name')
@@ -274,25 +274,35 @@ serve(async (req) => {
       const webQuery = config?.webQuery || `"${device.name}" review experience`;
       const redditQuery = config?.redditQuery || `site:reddit.com "${device.name}" review experience`;
 
-      // Fetch web reviews (2 searches to stay within timeout)
-      const webReviews1 = await fetchWebReviews(device.name, webQuery, 10);
+      // Pass 1: Primary web reviews
+      const webReviews1 = await fetchWebReviews(device.name, webQuery, 15);
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Second search with different angle
+      // Pass 2: Alternative sources
       const webQuery2 = `${device.name} user review diabetes experience site:reddit.com OR site:diatribe.org OR site:healthline.com`;
-      const webReviews2 = await fetchWebReviews(device.name, webQuery2, 10);
+      const webReviews2 = await fetchWebReviews(device.name, webQuery2, 15);
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Third search: forum/feedback angle
+      // Pass 3: Forum/feedback angle
       const webQuery3 = `"${device.name}" diabetes user feedback forum opinion`;
-      const webReviews3 = await fetchWebReviews(device.name, webQuery3, 8);
+      const webReviews3 = await fetchWebReviews(device.name, webQuery3, 10);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Pass 4: Pros/cons comparison
+      const webQuery4 = `"${device.name}" pros cons comparison 2024 2025 diabetes`;
+      const webReviews4 = await fetchWebReviews(device.name, webQuery4, 10);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Pass 5: Long-term experience
+      const webQuery5 = `"${device.name}" long term review experience months years diabetes`;
+      const webReviews5 = await fetchWebReviews(device.name, webQuery5, 10);
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Reddit community buzz
       const redditPosts = await fetchRedditBuzz(device.name, redditQuery, 10);
 
       // Combine all results, deduplicate by URL
-      const allResults = [...webReviews1, ...webReviews2, ...webReviews3, ...redditPosts];
+      const allResults = [...webReviews1, ...webReviews2, ...webReviews3, ...webReviews4, ...webReviews5, ...redditPosts];
       const uniqueByUrl = Array.from(new Map(allResults.map(r => [r.source_url, r])).values());
 
       console.log(`${device.name}: ${uniqueByUrl.length} unique results (from ${allResults.length} total)`);

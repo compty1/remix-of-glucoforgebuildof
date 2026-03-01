@@ -3459,6 +3459,7 @@ export type Database = {
         Row: {
           administration_route: string | null
           avg_price: number | null
+          avg_rating: number | null
           brand_names: string[] | null
           category: string
           clinical_notes: string | null
@@ -3503,6 +3504,7 @@ export type Database = {
         Insert: {
           administration_route?: string | null
           avg_price?: number | null
+          avg_rating?: number | null
           brand_names?: string[] | null
           category: string
           clinical_notes?: string | null
@@ -3547,6 +3549,7 @@ export type Database = {
         Update: {
           administration_route?: string | null
           avg_price?: number | null
+          avg_rating?: number | null
           brand_names?: string[] | null
           category?: string
           clinical_notes?: string | null
@@ -6137,6 +6140,8 @@ export type Database = {
         Returns: undefined
       }
       is_admin: { Args: { check_user_id: string }; Returns: boolean }
+      recalculate_device_ratings: { Args: never; Returns: undefined }
+      recalculate_medication_ratings: { Args: never; Returns: undefined }
       update_trends: { Args: never; Returns: undefined }
     }
     Enums: {
