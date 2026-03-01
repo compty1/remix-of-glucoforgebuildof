@@ -220,21 +220,16 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
               {/* REVIEWS TAB — moved to position 2, wired to real data */}
               <TabsContent value="reviews" className="space-y-4">
                 {/* Rating Summary */}
-                {/* C4/C9: Use computed avg_rating with fallback to seed rating_avg */}
-                {((medication as any).avg_rating || medication.rating_avg) && (
+                {(medication as any).avg_rating && (
                   <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
                     <div className="text-center">
                       <div className="flex items-center gap-1">
                         <Star className="h-6 w-6 fill-warning text-warning" />
-                        <span className="text-3xl font-bold">{((medication as any).avg_rating ?? medication.rating_avg)?.toFixed(1)}</span>
+                        <span className="text-3xl font-bold">{(medication as any).avg_rating?.toFixed(1)}</span>
                       </div>
                       <p className="text-sm text-muted-foreground" aria-label={`${medication.review_count || 0} reviews`}>
                         {medication.review_count || 0} reviews
                       </p>
-                      {/* C6: Only show Reference Data badge if no computed rating */}
-                      {!(medication as any).avg_rating && (
-                        <Badge variant="outline" className="text-[10px] mt-1 text-muted-foreground">Reference Data</Badge>
-                      )}
                     </div>
                   </div>
                 )}

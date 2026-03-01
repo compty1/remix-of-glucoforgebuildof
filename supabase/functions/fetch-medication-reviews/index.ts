@@ -43,6 +43,13 @@ const MEDICATION_URLS: Record<string, string> = {
   'soliqua': 'https://www.drugs.com/comments/insulin-glargine-lixisenatide/soliqua.html',
   'xultophy': 'https://www.drugs.com/comments/insulin-degludec-liraglutide/xultophy.html',
   'starlix': 'https://www.drugs.com/comments/nateglinide/starlix.html',
+  'humulin n': 'https://www.drugs.com/comments/insulin-isophane/humulin-n.html',
+  'novolin n': 'https://www.drugs.com/comments/insulin-isophane/novolin-n.html',
+  'humulin r u-500': 'https://www.drugs.com/comments/insulin-regular/humulin-r-u-500.html',
+  'baqsimi': 'https://www.drugs.com/comments/glucagon/baqsimi.html',
+  'gvoke': 'https://www.drugs.com/comments/glucagon/gvoke.html',
+  'tresiba u-200': 'https://www.drugs.com/comments/insulin-degludec/tresiba.html',
+  'humalog u-200': 'https://www.drugs.com/comments/insulin-lispro/humalog.html',
 };
 
 // Reddit search terms for all medications
@@ -81,6 +88,14 @@ const MEDICATION_REDDIT_TERMS: Record<string, { query: string; subreddits: strin
   'xultophy': { query: 'xultophy review experience', subreddits: ['diabetes', 'diabetes_t2'] },
   'baqsimi': { query: 'baqsimi glucagon nasal review', subreddits: ['diabetes_t1', 'diabetes'] },
   'gvoke': { query: 'gvoke glucagon review', subreddits: ['diabetes_t1', 'diabetes'] },
+  'precose': { query: 'precose acarbose review experience', subreddits: ['diabetes', 'diabetes_t2'] },
+  'humulin n': { query: 'humulin N NPH insulin review', subreddits: ['diabetes_t1', 'diabetes'] },
+  'novolin n': { query: 'novolin N NPH insulin review', subreddits: ['diabetes_t1', 'diabetes'] },
+  'humulin r u-500': { query: 'humulin U500 insulin review', subreddits: ['diabetes', 'diabetes_t2'] },
+  'retatrutide': { query: 'retatrutide review experience trial', subreddits: ['diabetes', 'Ozempic'] },
+  'zynquista': { query: 'zynquista sotagliflozin review', subreddits: ['diabetes_t1', 'diabetes'] },
+  'starlix': { query: 'starlix nateglinide review', subreddits: ['diabetes', 'diabetes_t2'] },
+  'prandin': { query: 'prandin repaglinide review', subreddits: ['diabetes', 'diabetes_t2'] },
 };
 
 function analyzeSentiment(text: string): 'positive' | 'neutral' | 'negative' {
@@ -97,8 +112,8 @@ function analyzeSentiment(text: string): 'positive' | 'neutral' | 'negative' {
   return 'neutral';
 }
 
-// Scrape Drugs.com reviews - now supports pagination (pages 1-5)
-async function scrapeDrugsComReviews(medicationName: string, baseUrl: string, maxPages = 5): Promise<any[]> {
+// Scrape Drugs.com reviews - supports pagination (pages 1-10)
+async function scrapeDrugsComReviews(medicationName: string, baseUrl: string, maxPages = 10): Promise<any[]> {
   const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
   if (!firecrawlKey) return [];
   
@@ -363,10 +378,10 @@ serve(async (req) => {
       }
 
       if (drugsComUrl) {
-        console.log(`Scraping Drugs.com (pages 1-5) for: ${medication.name}`);
+        console.log(`Scraping Drugs.com (pages 1-10) for: ${medication.name}`);
         await new Promise(resolve => setTimeout(resolve, 2000));
         
-        const drugsReviews = await scrapeDrugsComReviews(medication.name, drugsComUrl, 5);
+        const drugsReviews = await scrapeDrugsComReviews(medication.name, drugsComUrl, 10);
         for (const review of drugsReviews) {
           platformReviews.push({
             medication_id: medication.id,
@@ -385,7 +400,27 @@ serve(async (req) => {
 
       // --- Web consumer reviews (WebMD, Healthline, etc.) ---
       await new Promise(resolve => setTimeout(resolve, 1000));
-      const webReviews = await fetchWebConsumerReviews(medication.name, 10);
+      const webReviews = await fetchWebConsumerReviews(medication.name, 15);
+
+      // --- Additional web search for medications with generic names ---
+      if (medication.generic_name) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const genericReviews = await fetchWebConsumerReviews(medication.generic_name, 10);
+        for (const review of genericReviews) {
+          platformReviews.push({
+            medication_id: medication.id,
+            source: review.source,
+            external_id: `web_${medication.id}_${review.source}_gen_${Math.random().toString(36).substr(2, 9)}`,
+            author_anonymous: review.author || 'Anonymous',
+            title: review.title,
+            content: review.content,
+            sentiment: review.sentiment,
+            helpful_count: 0,
+            published_at: new Date().toISOString(),
+            source_url: review.source_url,
+          });
+        }
+      }
       for (const review of webReviews) {
         platformReviews.push({
           medication_id: medication.id,

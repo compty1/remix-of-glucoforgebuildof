@@ -35,7 +35,7 @@ export interface Medication {
   image_url: string | null;
   manufacturer_website: string | null;
   prescribing_info_url: string | null;
-  rating_avg: number | null;
+  rating_avg: number | null; // DEPRECATED: use avg_rating instead
   review_count: number | null;
   popularity_rank: number | null;
   featured: boolean | null;
@@ -100,7 +100,7 @@ export const useMedications = (options: UseMedicationsOptions = {}) => {
           query = query.order("name", { ascending: true });
           break;
         case "rating":
-          query = query.order("rating_avg", { ascending: false, nullsFirst: false });
+          query = query.order("avg_rating", { ascending: false, nullsFirst: false });
           break;
         case "price":
           query = query.order("avg_price", { ascending: asc, nullsFirst: false });
