@@ -76,14 +76,6 @@ export const UserReviewsList: React.FC<UserReviewsListProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* C31/C32: Only show sample notice if ALL reviews are from seed UUIDs */}
-      {reviews.length > 0 && reviews.every(r => r.user_id.startsWith('00000000-')) && (
-        <div className="p-3 rounded-lg bg-muted/50 border border-border text-center">
-          <p className="text-sm text-muted-foreground">
-            📋 <strong>Sample Reviews</strong> — These are example reviews. Be the first to write a real review!
-          </p>
-        </div>
-      )}
 
       {/* Stats Card */}
       <Card className="command-center-widget">
@@ -91,9 +83,6 @@ export const UserReviewsList: React.FC<UserReviewsListProps> = ({
           <CardTitle className="text-lg flex items-center gap-2">
             <Star className="h-5 w-5 text-warning" />
             Ratings Summary
-            {reviews.length > 0 && reviews.every(r => r.user_id.startsWith('00000000-')) && (
-              <Badge variant="outline" className="text-xs text-muted-foreground ml-2">Sample Data</Badge>
-            )}
           </CardTitle>
         </CardHeader>
         <CardContent>

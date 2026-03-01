@@ -94,11 +94,10 @@ export function MedicationCard({
         )}
 
         {/* Rating */}
-        {/* C5/C9: Use computed avg_rating with fallback to seed rating_avg */}
-        {((medication as any).avg_rating || medication.rating_avg) && (
+        {(medication as any).avg_rating && (
           <div className="flex items-center gap-1.5">
             <Star className="h-4 w-4 fill-warning text-warning" />
-            <span className="font-medium">{((medication as any).avg_rating ?? medication.rating_avg)?.toFixed(1)}</span>
+            <span className="font-medium">{(medication as any).avg_rating?.toFixed(1)}</span>
             {medication.review_count != null && medication.review_count > 0 && (
               <span className="text-sm text-muted-foreground">
                 ({medication.review_count} reviews)
