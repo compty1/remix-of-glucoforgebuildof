@@ -384,7 +384,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                    const officialReviews = externalReviews.filter(r => officialSources.includes(r.source?.toLowerCase()));
                    if (officialReviews.length === 0) return (
                      <div className="mt-4 p-4 border rounded-lg text-center">
-                       <p className="text-sm text-muted-foreground mb-2">No platform reviews yet.</p>
+                       <p className="text-sm text-muted-foreground mb-2">No consumer reviews yet.</p>
                        <Button variant="outline" size="sm" asChild>
                          <a href={`https://www.google.com/search?q=${encodeURIComponent((medication?.name || '') + ' medication reviews')}`}
                            target="_blank" rel="noopener noreferrer">
@@ -406,7 +406,7 @@ export function MedicationDetailModal({ medicationId, onClose }: MedicationDetai
                      .trim();
                    return (
                      <div className="space-y-4 mt-4">
-                       <h4 className="font-medium flex items-center gap-2">From Review Platforms ({officialReviews.length})</h4>
+                       <h4 className="font-medium flex items-center gap-2">Consumer Reviews ({officialReviews.length})</h4>
                       {officialReviews.slice(0, externalVisible).map((review) => (
                         <div key={review.id} className="p-4 border rounded-lg space-y-2"
                           role="article" aria-label="Platform review">

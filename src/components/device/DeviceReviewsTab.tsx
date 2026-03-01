@@ -162,15 +162,15 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="user" className="flex items-center gap-2">
             <Star className="h-4 w-4" />
-            Platform Reviews ({userReviewStats.totalReviews})
+            Consumer Reviews ({userReviewStats.totalReviews + (externalReviews.filter(r => !['reddit', 'forum', 'facebook', 'youtube', 'medium', 'twitter'].includes(r.source?.toLowerCase())).length)})
           </TabsTrigger>
           <TabsTrigger value="community" className="flex items-center gap-2">
             <Users className="h-4 w-4" />
-            Reviews &amp; Buzz ({combinedStats.total})
+            Community Buzz ({posts.length + externalReviews.filter(r => ['reddit', 'forum', 'facebook', 'youtube', 'medium', 'twitter'].includes(r.source?.toLowerCase())).length})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="user" className="mt-6">
+        <TabsContent value="user" className="mt-6 space-y-6">
           <UserReviewsList
             reviews={reviews}
             stats={userReviewStats}
@@ -181,6 +181,26 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
             onDeleteReview={deleteReview}
             onToggleHelpful={toggleHelpful}
           />
+
+          {/* Official-source external reviews in Consumer Reviews tab */}
+          {(() => {
+            const socialSources = ['reddit', 'forum', 'facebook', 'youtube', 'medium', 'twitter'];
+            const officialExternalReviews = externalReviews.filter(r => !socialSources.includes(r.source?.toLowerCase()));
+            if (officialExternalReviews.length === 0) return null;
+            return (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <ExternalLink className="h-5 w-5" />
+                  Consumer Reviews ({officialExternalReviews.length})
+                </h3>
+                <div className="grid gap-4" role="list" aria-label="Consumer reviews">
+                  {officialExternalReviews.map((review) => (
+                    <ExternalReviewCard key={review.id} review={review} />
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </TabsContent>
 
         <TabsContent value="community" className="mt-6 space-y-6">
@@ -264,33 +284,41 @@ export const DeviceReviewsTab: React.FC<DeviceReviewsTabProps> = ({
             ))}
           </div>
 
-          {/* External Reviews Section */}
-          {externalLoading ? (
-            <Card className="command-center-widget">
-              <CardContent className="p-8 text-center">
-                <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
-                <p className="text-muted-foreground">Loading external reviews...</p>
-              </CardContent>
-            </Card>
-          ) : externalError ? (
-            <Card className="command-center-widget">
-              <CardContent className="p-6 text-center">
-                <p className="text-sm text-destructive">Failed to load external reviews. Please try again.</p>
-              </CardContent>
-            </Card>
-          ) : filteredExternalReviews.length > 0 && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold flex items-center gap-2">
-                <ExternalLink className="h-5 w-5" />
-                From Review Platforms ({filteredExternalReviews.length})
-              </h3>
-              <div className="grid gap-4" role="list" aria-label="External reviews">
-                {filteredExternalReviews.map((review) => (
-                  <ExternalReviewCard key={review.id} review={review} />
-                ))}
+          {/* Social-only external reviews in Community Buzz tab */}
+          {(() => {
+            const socialSources = ['reddit', 'forum', 'facebook', 'youtube', 'medium', 'twitter'];
+            const socialReviews = filteredExternalReviews.filter(r => socialSources.includes(r.source?.toLowerCase()));
+            
+            if (externalLoading) return (
+              <Card className="command-center-widget">
+                <CardContent className="p-8 text-center">
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+                  <p className="text-muted-foreground">Loading community buzz...</p>
+                </CardContent>
+              </Card>
+            );
+            if (externalError) return (
+              <Card className="command-center-widget">
+                <CardContent className="p-6 text-center">
+                  <p className="text-sm text-destructive">Failed to load community buzz. Please try again.</p>
+                </CardContent>
+              </Card>
+            );
+            if (socialReviews.length === 0) return null;
+            return (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <ExternalLink className="h-5 w-5" />
+                  Social Buzz ({socialReviews.length})
+                </h3>
+                <div className="grid gap-4" role="list" aria-label="Social reviews">
+                  {socialReviews.map((review) => (
+                    <ExternalReviewCard key={review.id} review={review} />
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Community Posts List - Now Clickable */}
           {visiblePosts.length > 0 && (

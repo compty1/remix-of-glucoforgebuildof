@@ -97,104 +97,99 @@ function analyzeSentiment(text: string): 'positive' | 'neutral' | 'negative' {
   return 'neutral';
 }
 
-// Scrape Drugs.com reviews using Firecrawl markdown + regex parsing
-async function scrapeDrugsComReviews(medicationName: string, url: string): Promise<any[]> {
+// Scrape Drugs.com reviews - now supports pagination (pages 1-5)
+async function scrapeDrugsComReviews(medicationName: string, baseUrl: string, maxPages = 5): Promise<any[]> {
   const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
-  if (!firecrawlKey) {
-    console.log('Firecrawl API key not available, skipping Drugs.com scraping');
-    return [];
+  if (!firecrawlKey) return [];
+  
+  const allReviews: any[] = [];
+  
+  for (let page = 1; page <= maxPages; page++) {
+    try {
+      // Drugs.com pagination: ?page=2, ?page=3, etc.
+      const url = page === 1 ? baseUrl : `${baseUrl}?page=${page}`;
+      console.log(`Scraping Drugs.com page ${page} for ${medicationName}: ${url}`);
+      
+      const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${firecrawlKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          url,
+          formats: ['markdown'],
+          onlyMainContent: true,
+          waitFor: 3000,
+        }),
+      });
+      
+      if (!response.ok) {
+        console.error(`Firecrawl error for ${medicationName} page ${page}: ${response.status}`);
+        await response.text();
+        break; // Stop pagination on error
+      }
+      
+      const data = await response.json();
+      const markdown = data.data?.markdown || data.markdown || '';
+      if (markdown.length < 100) {
+        console.log(`Page ${page} too short for ${medicationName}, stopping pagination`);
+        break;
+      }
+      
+      const reviewRegex = /\*\*For\s+(.+?)\*\*\s*"(.+?)"\s*\n\s*\n\s*(\d{1,2})\s*\/\s*10/gs;
+      let match;
+      let pageCount = 0;
+      
+      while ((match = reviewRegex.exec(markdown)) !== null) {
+        const condition = match[1].trim();
+        const content = match[2].trim();
+        const rating10 = parseInt(match[3]);
+        
+        if (content.length < 30 || rating10 < 1 || rating10 > 10) continue;
+        const lower = content.toLowerCase();
+        if (lower.includes('skip to') || lower.includes('cookie') || lower.includes('advertisement')) continue;
+        
+        const rating5 = Math.max(1, Math.min(5, Math.round((rating10 / 2))));
+        const sentiment = rating10 >= 7 ? 'positive' : rating10 >= 4 ? 'neutral' : 'negative';
+        
+        const beforeMatch = markdown.substring(Math.max(0, match.index - 200), match.index);
+        const dateMatch = beforeMatch.match(/([A-Z][a-z]+\s+\d{1,2},\s+\d{4})/);
+        
+        allReviews.push({
+          title: `${medicationName} for ${condition}`,
+          content: content.substring(0, 1000),
+          rating: rating5,
+          sentiment,
+          source_url: url,
+          source: 'drugs.com',
+          author: 'Anonymous',
+          published_at: dateMatch ? new Date(dateMatch[1]).toISOString() : null,
+        });
+        pageCount++;
+      }
+      
+      console.log(`Page ${page}: parsed ${pageCount} reviews for ${medicationName}`);
+      if (pageCount === 0) break; // No more reviews on this page
+      
+      await new Promise(resolve => setTimeout(resolve, 2000));
+    } catch (error) {
+      console.error(`Error scraping page ${page} for ${medicationName}:`, error);
+      break;
+    }
   }
   
-  try {
-    console.log(`Scraping Drugs.com for ${medicationName}: ${url}`);
-    
-    const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${firecrawlKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        url,
-        formats: ['markdown'],
-        onlyMainContent: true,
-        waitFor: 3000,
-      }),
-    });
-    
-    if (!response.ok) {
-      console.error(`Firecrawl error for ${medicationName}: ${response.status}`);
-      const errText = await response.text();
-      console.error('Details:', errText);
-      return [];
-    }
-    
-    const data = await response.json();
-    const markdown = data.data?.markdown || data.markdown || '';
-    console.log(`Got ${markdown.length} chars of markdown for ${medicationName}`);
-    if (markdown.length < 100) {
-      console.log('Markdown too short, likely blocked. Preview:', markdown.substring(0, 200));
-      return [];
-    }
-    
-    // Parse reviews from Drugs.com markdown format:
-    // **For [Condition]** "[review text]"
-    // X / 10
-    const reviews: any[] = [];
-    
-    // Match pattern: **For Condition** "review text" followed by X / 10
-    const reviewRegex = /\*\*For\s+(.+?)\*\*\s*"(.+?)"\s*\n\s*\n\s*(\d{1,2})\s*\/\s*10/gs;
-    let match;
-    
-    while ((match = reviewRegex.exec(markdown)) !== null) {
-      const condition = match[1].trim();
-      const content = match[2].trim();
-      const rating10 = parseInt(match[3]);
-      
-      if (content.length < 30 || rating10 < 1 || rating10 > 10) continue;
-      
-      const lower = content.toLowerCase();
-      if (lower.includes('skip to') || lower.includes('cookie') || lower.includes('advertisement')) continue;
-      
-      const rating5 = Math.max(1, Math.min(5, Math.round((rating10 / 2))));
-      const sentiment = rating10 >= 7 ? 'positive' : rating10 >= 4 ? 'neutral' : 'negative';
-      
-      // Try to extract date from context above the review
-      const beforeMatch = markdown.substring(Math.max(0, match.index - 200), match.index);
-      const dateMatch = beforeMatch.match(/([A-Z][a-z]+\s+\d{1,2},\s+\d{4})/);
-      
-      reviews.push({
-        title: `${medicationName} for ${condition}`,
-        content: content.substring(0, 1000),
-        rating: rating5,
-        sentiment,
-        source_url: url,
-        source: 'drugs.com',
-        author: 'Anonymous',
-        published_at: dateMatch ? new Date(dateMatch[1]).toISOString() : null,
-      });
-    }
-    
-    console.log(`Parsed ${reviews.length} reviews for ${medicationName}`);
-    return reviews.slice(0, 10);
-  } catch (error) {
-    console.error(`Error scraping Drugs.com for ${medicationName}:`, error);
-    return [];
-  }
+  console.log(`Total Drugs.com reviews for ${medicationName}: ${allReviews.length}`);
+  return allReviews;
 }
 
-// Fetch Reddit posts via Firecrawl search (direct Reddit API blocked with 403)
-async function fetchRedditPosts(query: string, limit = 5): Promise<any[]> {
+// Fetch Reddit posts via Firecrawl search
+async function fetchRedditPosts(query: string, limit = 8): Promise<any[]> {
   const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
-  if (!firecrawlKey) {
-    console.log('Firecrawl API key not available, skipping Reddit search');
-    return [];
-  }
+  if (!firecrawlKey) return [];
 
   try {
     const searchQuery = `site:reddit.com ${query}`;
-    console.log(`Firecrawl search: "${searchQuery}"`);
-
     const response = await fetch('https://api.firecrawl.dev/v1/search', {
       method: 'POST',
       headers: {
@@ -216,7 +211,6 @@ async function fetchRedditPosts(query: string, limit = 5): Promise<any[]> {
 
     const data = await response.json();
     const results = data.data || [];
-    console.log(`Firecrawl returned ${results.length} Reddit results`);
 
     const REDDIT_JUNK = [
       'skip to main content', 'skip to navigation', 'cookie policy',
@@ -234,9 +228,7 @@ async function fetchRedditPosts(query: string, limit = 5): Promise<any[]> {
       })
       .map((r: any) => {
         let content = (r.markdown || r.description || '').substring(0, 1000);
-        // Strip navigation boilerplate prefix
         content = content.replace(/^.*?(Skip to|Go to).*?\n/gi, '');
-        // Strip markdown junk
         const cleaned = content
           .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
           .replace(/#{1,6}\s*/g, '')
@@ -259,6 +251,71 @@ async function fetchRedditPosts(query: string, limit = 5): Promise<any[]> {
   }
 }
 
+// Web search for additional consumer review sources (WebMD, Healthline, etc.)
+async function fetchWebConsumerReviews(medicationName: string, limit = 10): Promise<any[]> {
+  const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
+  if (!firecrawlKey) return [];
+
+  try {
+    const searchQuery = `"${medicationName}" review experience diabetes site:webmd.com OR site:healthline.com OR site:verywellhealth.com OR site:everydayhealth.com`;
+    console.log(`Web consumer search for ${medicationName}`);
+
+    const response = await fetch('https://api.firecrawl.dev/v1/search', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${firecrawlKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: searchQuery,
+        limit,
+        scrapeOptions: { formats: ['markdown'], onlyMainContent: true },
+      }),
+    });
+
+    if (!response.ok) {
+      await response.text();
+      return [];
+    }
+
+    const data = await response.json();
+    const results = data.data || [];
+
+    return results
+      .filter((r: any) => {
+        const content = r.markdown || r.description || '';
+        return content.length > 100;
+      })
+      .map((r: any) => {
+        const rawContent = r.markdown || r.description || '';
+        const cleaned = rawContent
+          .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+          .replace(/#{1,6}\s*/g, '')
+          .replace(/\*{1,3}/g, '')
+          .trim()
+          .substring(0, 1000);
+        const url = r.url || '';
+        let source = 'web';
+        if (url.includes('webmd.com')) source = 'webmd';
+        else if (url.includes('healthline.com')) source = 'healthline';
+        else if (url.includes('verywellhealth.com')) source = 'verywellhealth';
+        else if (url.includes('everydayhealth.com')) source = 'everydayhealth';
+
+        return {
+          title: (r.title || '').replace(/ - .+$/, '').replace(/ \| .+$/, '').substring(0, 200) || `${medicationName} Review`,
+          content: cleaned,
+          sentiment: analyzeSentiment(cleaned),
+          source_url: url,
+          source,
+          author: `${source} reviewer`,
+        };
+      });
+  } catch (error) {
+    console.error(`Web consumer search error for ${medicationName}:`, error);
+    return [];
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -269,7 +326,6 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Support batch processing
     let startIndex = 0;
     let batchSize = 20;
     try {
@@ -296,9 +352,8 @@ serve(async (req) => {
 
     for (const medication of medications || []) {
       const medNameLower = medication.name.toLowerCase();
-      const genericLower = medication.generic_name?.toLowerCase() || '';
 
-      // --- Drugs.com (platform reviews) ---
+      // --- Drugs.com (platform reviews) with pagination ---
       let drugsComUrl: string | null = null;
       for (const [key, url] of Object.entries(MEDICATION_URLS)) {
         if (medNameLower.includes(key) || key.includes(medNameLower)) {
@@ -308,10 +363,10 @@ serve(async (req) => {
       }
 
       if (drugsComUrl) {
-        console.log(`Scraping Drugs.com for: ${medication.name}`);
+        console.log(`Scraping Drugs.com (pages 1-5) for: ${medication.name}`);
         await new Promise(resolve => setTimeout(resolve, 2000));
         
-        const drugsReviews = await scrapeDrugsComReviews(medication.name, drugsComUrl);
+        const drugsReviews = await scrapeDrugsComReviews(medication.name, drugsComUrl, 5);
         for (const review of drugsReviews) {
           platformReviews.push({
             medication_id: medication.id,
@@ -320,13 +375,30 @@ serve(async (req) => {
             author_anonymous: review.author || 'Anonymous User',
             title: review.title,
             content: review.content,
-            // rating not in schema, skip
             sentiment: review.sentiment,
             helpful_count: 0,
             published_at: review.published_at || new Date().toISOString(),
             source_url: review.source_url,
           });
         }
+      }
+
+      // --- Web consumer reviews (WebMD, Healthline, etc.) ---
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const webReviews = await fetchWebConsumerReviews(medication.name, 10);
+      for (const review of webReviews) {
+        platformReviews.push({
+          medication_id: medication.id,
+          source: review.source,
+          external_id: `web_${medication.id}_${review.source}_${Math.random().toString(36).substr(2, 9)}`,
+          author_anonymous: review.author || 'Anonymous',
+          title: review.title,
+          content: review.content,
+          sentiment: review.sentiment,
+          helpful_count: 0,
+          published_at: new Date().toISOString(),
+          source_url: review.source_url,
+        });
       }
 
       // --- Reddit (community buzz) ---
@@ -339,16 +411,13 @@ serve(async (req) => {
       }
 
       if (redditConfig) {
-        console.log(`Fetching Reddit buzz for: ${medication.name}`);
         await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        const posts = await fetchRedditPosts(redditConfig.query, 5);
+        const posts = await fetchRedditPosts(redditConfig.query, 8);
         
         for (const post of posts) {
           const sentiment = analyzeSentiment(post.title + ' ' + post.content);
           const now = new Date().toISOString();
           
-          // Reddit goes to community buzz table
           communityBuzz.push({
             medication_id: medication.id,
             source: 'reddit',
@@ -360,7 +429,6 @@ serve(async (req) => {
             post_date: now,
           });
           
-          // Also add to external_medication_reviews for backwards compatibility
           platformReviews.push({
             medication_id: medication.id,
             source: 'reddit',
