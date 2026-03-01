@@ -187,10 +187,10 @@ export default function MedicineComparison() {
                       <TableCell className="font-medium">Rating</TableCell>
                       {medications.map(med => (
                         <TableCell key={med.id}>
-                          {(med as any).avg_rating ? (
+                          {med.avg_rating ? (
                             <div className="flex items-center gap-1">
                               <Star className="h-4 w-4 fill-warning text-warning" />
-                              <span className="font-medium">{(med as any).avg_rating.toFixed(1)}</span>
+                              <span className="font-medium">{med.avg_rating.toFixed(1)}</span>
                               <span className="text-muted-foreground text-sm">
                                 ({med.review_count || 0})
                               </span>

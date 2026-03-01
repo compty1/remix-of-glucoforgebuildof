@@ -35,6 +35,7 @@ export interface Medication {
   image_url: string | null;
   manufacturer_website: string | null;
   prescribing_info_url: string | null;
+  avg_rating: number | null;
   rating_avg: number | null; // DEPRECATED: use avg_rating instead
   review_count: number | null;
   popularity_rank: number | null;
