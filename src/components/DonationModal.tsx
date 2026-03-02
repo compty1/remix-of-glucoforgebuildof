@@ -30,7 +30,10 @@ export const DonationModal = ({ open, onOpenChange }: DonationModalProps) => {
 
   const predefinedAmounts = [5, 25, 50, 100];
 
+  // Phase 9.7: Double-click prevention
   const handleDonation = async () => {
+    if (loading) return; // Prevent double-click
+    
     const donationAmount = parseFloat(amount);
     
     if (!donationAmount || donationAmount < 5) {
@@ -51,6 +54,9 @@ export const DonationModal = ({ open, onOpenChange }: DonationModalProps) => {
       return;
     }
 
+    // Phase 9.1: Float-to-cents conversion at client boundary
+    const amountCents = Math.round(donationAmount * 100);
+    
     setLoading(true);
 
     try {
@@ -70,8 +76,10 @@ export const DonationModal = ({ open, onOpenChange }: DonationModalProps) => {
       }
 
       // Call our edge function to create the donation session
+      // Phase 9.6: Idempotency key for checkout
+      const idempotencyKey = crypto.randomUUID();
       const { data, error } = await supabase.functions.invoke('create-donation', {
-        body: { amount: donationAmount }
+        body: { amount: donationAmount, idempotencyKey }
       });
 
       if (error) {

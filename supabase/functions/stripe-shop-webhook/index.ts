@@ -38,6 +38,7 @@ serve(async (req) => {
       event = JSON.parse(body);
     }
 
+    // Phase 9.5: Extended webhook event coverage
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
@@ -50,6 +51,7 @@ serve(async (req) => {
           .maybeSingle();
 
         if (findError || !order) {
+          console.log("Order not found for session:", session.id);
           break;
         }
 
@@ -74,7 +76,9 @@ serve(async (req) => {
           .update(updateData)
           .eq("id", order.id);
 
-        // Update error is non-critical — order will still be marked paid by Stripe
+        if (updateError) {
+          console.error("Failed to update order:", updateError);
+        }
 
         break;
       }
@@ -82,7 +86,6 @@ serve(async (req) => {
       case "checkout.session.expired": {
         const session = event.data.object as Stripe.Checkout.Session;
         
-        // Mark order as expired
         await supabase
           .from("shop_orders")
           .update({ status: "expired" })
@@ -102,8 +105,32 @@ serve(async (req) => {
         break;
       }
 
+      // Phase 9.5: Handle refunds
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge;
+        if (charge.payment_intent) {
+          await supabase
+            .from("shop_orders")
+            .update({ status: "refunded" })
+            .eq("stripe_payment_intent", charge.payment_intent as string);
+        }
+        break;
+      }
+
+      // Phase 9.5: Handle disputes
+      case "charge.dispute.created": {
+        const dispute = event.data.object as Stripe.Dispute;
+        if (dispute.payment_intent) {
+          await supabase
+            .from("shop_orders")
+            .update({ status: "disputed" })
+            .eq("stripe_payment_intent", dispute.payment_intent as string);
+        }
+        break;
+      }
+
       default:
-        // Unhandled event type — no action needed
+        console.log("Unhandled event type:", event.type);
     }
 
     return jsonResponse({ received: true });
