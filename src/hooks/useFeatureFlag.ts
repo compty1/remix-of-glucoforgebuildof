@@ -22,6 +22,14 @@ const DEFAULT_FLAGS: Record<string, boolean> = {
   agp_export: true,
   device_eol_tracker: false,
   nightscout_sync: false,
+  local_ai: false,
+  bluetooth_pairing: false,
+  nfc_scanning: false,
+  hormonal_tracker: false,
+  digital_companion: false,
+  charity_points: false,
+  mentor_matching: false,
+  retinopathy_mode: false,
 };
 
 /**
