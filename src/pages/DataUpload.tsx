@@ -382,6 +382,22 @@ const DataUpload = () => {
           </p>
         </section>
 
+        {/* Nightscout Sync CTA */}
+        <Card className="mb-6 border-primary/20 bg-primary/5">
+          <CardContent className="flex items-center justify-between py-4">
+            <div className="flex items-center gap-3">
+              <Cloud className="h-5 w-5 text-primary" />
+              <div>
+                <p className="font-medium text-sm">Or sync from Nightscout</p>
+                <p className="text-xs text-muted-foreground">Automatically import CGM data from your Nightscout instance</p>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <a href="/settings?tab=integrations">Connect Nightscout</a>
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Prominent medical disclaimer (Issue 201) */}
         <div className="mb-6 p-4 rounded-lg border border-warning/40 bg-warning/10 flex gap-3 items-start">
           <AlertCircle className="h-5 w-5 text-warning flex-shrink-0 mt-0.5" />
