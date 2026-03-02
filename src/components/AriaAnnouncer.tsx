@@ -1,6 +1,6 @@
 /**
- * Phase 14.6: Aria-live region announcer for dynamic content updates
- * Provides a global announcer for screen readers.
+ * Phase 14.6 + Wave 6.1: Aria-live region announcer with queueing
+ * Prevents screen reader stutter from simultaneous announcements.
  */
 import { createContext, useContext, useState, useCallback, useRef, useEffect, ReactNode } from 'react';
 
@@ -16,32 +16,57 @@ export function useAriaAnnounce() {
   return useContext(AriaAnnouncerContext);
 }
 
+interface QueuedAnnouncement {
+  message: string;
+  priority: 'polite' | 'assertive';
+}
+
+const ANNOUNCE_DEBOUNCE_MS = 500;
+
 export function AriaAnnouncerProvider({ children }: { children: ReactNode }) {
   const [politeMessage, setPoliteMessage] = useState('');
   const [assertiveMessage, setAssertiveMessage] = useState('');
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const queueRef = useRef<QueuedAnnouncement[]>([]);
+  const processingRef = useRef(false);
+  const clearTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
-  const announce = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    
-    if (priority === 'assertive') {
+  const processQueue = useCallback(() => {
+    if (processingRef.current || queueRef.current.length === 0) return;
+    processingRef.current = true;
+
+    const item = queueRef.current.shift()!;
+
+    if (item.priority === 'assertive') {
       setAssertiveMessage('');
-      // Force re-render so screen reader picks up change
-      requestAnimationFrame(() => setAssertiveMessage(message));
+      requestAnimationFrame(() => setAssertiveMessage(item.message));
     } else {
       setPoliteMessage('');
-      requestAnimationFrame(() => setPoliteMessage(message));
+      requestAnimationFrame(() => setPoliteMessage(item.message));
     }
 
-    timeoutRef.current = setTimeout(() => {
+    // Clear after 5s and process next after debounce
+    if (clearTimeoutRef.current) clearTimeout(clearTimeoutRef.current);
+    clearTimeoutRef.current = setTimeout(() => {
       setPoliteMessage('');
       setAssertiveMessage('');
-    }, 5000);
+      processingRef.current = false;
+      // Process next item in queue after debounce
+      setTimeout(() => processQueue(), ANNOUNCE_DEBOUNCE_MS);
+    }, 3000);
   }, []);
+
+  const announce = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
+    // Deduplicate: don't queue the same message twice in a row
+    const last = queueRef.current[queueRef.current.length - 1];
+    if (last?.message === message && last?.priority === priority) return;
+
+    queueRef.current.push({ message, priority });
+    processQueue();
+  }, [processQueue]);
 
   useEffect(() => {
     return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (clearTimeoutRef.current) clearTimeout(clearTimeoutRef.current);
     };
   }, []);
 

@@ -66,10 +66,34 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Still clear local state even if server request failed
       set({ user: null, session: null });
     }
-    // Fix 5.8/5.10: Clear stale session storage
+
+    // Wave 2.4: Purge all cached PHI on sign-out
     try {
-      sessionStorage.removeItem('gf_was_logged_in');
-    } catch { /* Brave/Safari strict mode — ignore */ }
+      // Clear CacheStorage (medical image cache, etc.)
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.allSettled(cacheNames.map(name => caches.delete(name)));
+      }
+      // Clear IndexedDB databases
+      if ('indexedDB' in window) {
+        const dbs = await indexedDB.databases?.() || [];
+        for (const db of dbs) {
+          if (db.name) indexedDB.deleteDatabase(db.name);
+        }
+      }
+      // Clear all local/session storage
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch {
+      // Best-effort cache purge — some browsers restrict these APIs
+    }
+
+    // Wave 5.5: Broadcast sign-out to other tabs
+    try {
+      const bc = new BroadcastChannel('auth');
+      bc.postMessage({ type: 'SIGN_OUT' });
+      bc.close();
+    } catch { /* BroadcastChannel not supported */ }
   },
 
   initialize: () => {
@@ -86,6 +110,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch { /* ignore */ }
 
     let isMounted = true; // Fix 5.9: Prevent state updates after unmount
+
+    // Wave 5.5: Listen for sign-out broadcasts from other tabs
+    let broadcastChannel: BroadcastChannel | null = null;
+    try {
+      broadcastChannel = new BroadcastChannel('auth');
+      broadcastChannel.onmessage = (event) => {
+        if (event.data?.type === 'SIGN_OUT' && isMounted) {
+          set({ user: null, session: null, _manualSignOut: true });
+        }
+      };
+    } catch { /* BroadcastChannel not supported */ }
 
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -147,6 +182,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       isMounted = false; // Fix 5.9
       _initGuard = false;
       subscription.unsubscribe();
+      // Wave 5.5: Close broadcast channel
+      try { broadcastChannel?.close(); } catch { /* ignore */ }
     };
   },
 }));
