@@ -448,3 +448,45 @@
 :root {
   --dvh: 1vh;
 }
+
+/* Phase 14.7: Minimum touch targets (44x44px) */
+@media (pointer: coarse) {
+  button, [role="button"], a, input[type="checkbox"], input[type="radio"], select {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Phase 14.8: Focus-visible rings for keyboard navigation */
+:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Phase 14.12: Prevent overscroll bounce on app shell */
+html, body {
+  overscroll-behavior: none;
+}
+
+/* Phase 14.17: Touch-action for slider elements */
+input[type="range"], [role="slider"] {
+  touch-action: none;
+}
+
+/* Phase 14.9: Skeleton loader delay — avoid flash for fast loads */
+@keyframes skeletonDelay {
+  0%, 80% { opacity: 0; }
+  100% { opacity: 1; }
+}
+.skeleton-delayed {
+  animation: skeletonDelay 0.3s ease-in forwards;
+}
+
+/* Phase 13.19: Radix Portal z-index management */
+[data-radix-popper-content-wrapper] {
+  z-index: 50 !important;
+}
+[data-radix-portal] [role="dialog"] {
+  z-index: 100;
+}
