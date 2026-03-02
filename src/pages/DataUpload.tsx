@@ -160,11 +160,15 @@ const DataUpload = () => {
     }
   };
 
+  // Fix 6.8: Reset pagination after delete to prevent offset drift
   const handleDeleteUpload = async (fileId: string) => {
     const { error } = await supabase.from('uploads').delete().eq('id', fileId).eq('user_id', user!.id);
     if (!error) {
       setUploadedFiles(prev => prev.filter(f => f.id !== fileId));
+      setUploadPage(0);
       toast.success('Upload deleted');
+      // Refetch to fill gaps from pagination
+      fetchUploads(0);
     } else {
       toast.error('Failed to delete upload');
     }
@@ -401,12 +405,30 @@ const DataUpload = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
+                {/* Fix 6.3: Accessible drop zone with keyboard support */}
                 <div
                   className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                     dragActive 
                       ? 'border-primary bg-primary/5' 
                       : 'border-border hover:border-primary/50'
                   }`}
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Upload area. Drop files here or press Enter to choose files."
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      const input = document.createElement('input');
+                      input.type = 'file';
+                      input.accept = '.csv,.json,.pdf,.xlsx,.xls,.xml,.png,.jpg,.jpeg,.webp';
+                      input.multiple = true;
+                      input.onchange = async (ev) => {
+                        const files = Array.from((ev.target as HTMLInputElement).files || []);
+                        await Promise.allSettled(files.map(f => processFile(f)));
+                      };
+                      input.click();
+                    }
+                  }}
                   onDragEnter={handleDrag}
                   onDragLeave={handleDrag}
                   onDragOver={handleDrag}
@@ -480,8 +502,14 @@ const DataUpload = () => {
                       
                       <div className="flex-1 min-w-0">
                         <p className="font-medium truncate">{file.name}</p>
+                        {/* Fix 6.6: Show data coverage dates when available */}
                         <p className="text-sm text-muted-foreground">
                           {file.size} • {file.uploadDate}
+                          {file.detailedAnalysis?.dataStart && file.detailedAnalysis?.dataEnd && (
+                            <span className="ml-1">
+                              • Data: {new Date(file.detailedAnalysis.dataStart).toLocaleDateString()} – {new Date(file.detailedAnalysis.dataEnd).toLocaleDateString()}
+                            </span>
+                          )}
                         </p>
                         
                         {file.status === 'processing' && (
