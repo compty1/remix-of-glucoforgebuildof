@@ -516,6 +516,45 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_trail: {
+        Row: {
+          action: Database["public"]["Enums"]["audit_action"]
+          created_at: string
+          id: string
+          ip_address: string | null
+          new_value: Json | null
+          old_value: Json | null
+          reason: string | null
+          record_id: string
+          table_name: string
+          user_id: string | null
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["audit_action"]
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
+          reason?: string | null
+          record_id: string
+          table_name: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["audit_action"]
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          new_value?: Json | null
+          old_value?: Json | null
+          reason?: string | null
+          record_id?: string
+          table_name?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       backfill_audit: {
         Row: {
           field_name: string
@@ -811,6 +850,36 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      clinic_tenants: {
+        Row: {
+          clinic_name: string
+          created_at: string
+          id: string
+          logo_url: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          slug: string
+        }
+        Insert: {
+          clinic_name: string
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          slug: string
+        }
+        Update: {
+          clinic_name?: string
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          slug?: string
         }
         Relationships: []
       }
@@ -1379,6 +1448,42 @@ export type Database = {
           status?: string | null
           updated_at?: string
           website_url?: string | null
+        }
+        Relationships: []
+      }
+      data_license_consents: {
+        Row: {
+          anonymization_level: string
+          consented_at: string
+          demographics: boolean | null
+          device_data: boolean | null
+          glucose_data: boolean | null
+          id: string
+          license_tier: string
+          revoked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          anonymization_level?: string
+          consented_at?: string
+          demographics?: boolean | null
+          device_data?: boolean | null
+          glucose_data?: boolean | null
+          id?: string
+          license_tier?: string
+          revoked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          anonymization_level?: string
+          consented_at?: string
+          demographics?: boolean | null
+          device_data?: boolean | null
+          glucose_data?: boolean | null
+          id?: string
+          license_tier?: string
+          revoked_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -2827,6 +2932,42 @@ export type Database = {
         }
         Relationships: []
       }
+      feature_flags: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          flag_name: string
+          id: string
+          metadata: Json | null
+          rollout_percentage: number | null
+          target_roles: string[] | null
+          target_tiers: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          flag_name: string
+          id?: string
+          metadata?: Json | null
+          rollout_percentage?: number | null
+          target_roles?: string[] | null
+          target_tiers?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          flag_name?: string
+          id?: string
+          metadata?: Json | null
+          rollout_percentage?: number | null
+          target_roles?: string[] | null
+          target_tiers?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       financial_resources: {
         Row: {
           category: string | null
@@ -4106,6 +4247,30 @@ export type Database = {
         }
         Relationships: []
       }
+      provider_patient_links: {
+        Row: {
+          consent_status: string
+          id: string
+          linked_at: string
+          patient_id: string
+          provider_id: string
+        }
+        Insert: {
+          consent_status?: string
+          id?: string
+          linked_at?: string
+          patient_id: string
+          provider_id: string
+        }
+        Update: {
+          consent_status?: string
+          id?: string
+          linked_at?: string
+          patient_id?: string
+          provider_id?: string
+        }
+        Relationships: []
+      }
       public_glucose_data: {
         Row: {
           age_range: string | null
@@ -4301,6 +4466,39 @@ export type Database = {
           success_stories?: Json | null
           updated_at?: string
           user_tips?: string[] | null
+        }
+        Relationships: []
+      }
+      request_traces: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          function_name: string
+          id: string
+          status_code: number | null
+          trace_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          function_name: string
+          id?: string
+          status_code?: number | null
+          trace_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          function_name?: string
+          id?: string
+          status_code?: number | null
+          trace_id?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -5876,6 +6074,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          stripe_subscription_id: string | null
+          tier: Database["public"]["Enums"]["subscription_tier"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          stripe_subscription_id?: string | null
+          tier?: Database["public"]["Enums"]["subscription_tier"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          stripe_subscription_id?: string | null
+          tier?: Database["public"]["Enums"]["subscription_tier"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_view_history: {
         Row: {
           id: string
@@ -6163,7 +6391,8 @@ export type Database = {
       update_trends: { Args: never; Returns: undefined }
     }
     Enums: {
-      [_ in never]: never
+      audit_action: "INSERT" | "UPDATE" | "DELETE"
+      subscription_tier: "free" | "premium" | "provider"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6290,6 +6519,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      audit_action: ["INSERT", "UPDATE", "DELETE"],
+      subscription_tier: ["free", "premium", "provider"],
+    },
   },
 } as const
