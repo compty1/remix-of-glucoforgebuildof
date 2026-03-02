@@ -95,7 +95,7 @@ export async function generateAnalysisPDF(data: AnalysisPDFData): Promise<void> 
       `Time Below 70: ${detailedAnalysis.timeBelow70?.toFixed(1) ?? 'N/A'}%`,
       `Time Above 180: ${detailedAnalysis.timeAbove180?.toFixed(1) ?? 'N/A'}%`,
       `CV (Variability): ${detailedAnalysis.cv?.toFixed(1) ?? 'N/A'}%`,
-      `GMI (Est. A1C): ${gmiDisplay}`,
+      `GMI (Glucose Management Indicator): ${gmiDisplay}`,
       `MAGE: ${detailedAnalysis.mage?.toFixed(0) ?? 'N/A'} mg/dL`,
     ];
 

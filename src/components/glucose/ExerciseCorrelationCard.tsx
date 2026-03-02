@@ -2,7 +2,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Dumbbell, TrendingUp, Clock, Activity } from 'lucide-react';
+import { Dumbbell, TrendingUp, Clock, Activity, AlertTriangle } from 'lucide-react';
+import { EXERCISE_IMPACTS, type ExerciseType } from '@/utils/exerciseModels';
 
 interface ExerciseData {
   activityLevel: string;
@@ -10,6 +11,8 @@ interface ExerciseData {
   avgGlucose: number;
   count: number;
   percentOfUsers: number;
+  /** Phase 15.4: Optional exercise type for stratification */
+  exerciseType?: ExerciseType;
 }
 
 interface ExerciseCorrelationCardProps {
@@ -48,25 +51,40 @@ export function ExerciseCorrelationCard({ data }: ExerciseCorrelationCardProps) 
 
         {/* Activity level breakdown */}
         <div className="space-y-3">
-          {data.map((level, index) => (
-            <div key={level.activityLevel} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">{level.activityLevel}</span>
+          {data.map((level, index) => {
+            const impact = level.exerciseType ? EXERCISE_IMPACTS[level.exerciseType] : null;
+            return (
+              <div key={level.activityLevel} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">{level.activityLevel}</span>
+                    {impact && impact.hypoRisk !== 'low' && (
+                      <Badge variant="outline" className="text-xs text-warning border-warning/30">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        {impact.hypoRisk} hypo risk
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge variant={level.avgTir >= 70 ? 'default' : 'secondary'}>
+                      {level.avgTir.toFixed(1)}% TIR
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      ({level.percentOfUsers}% of users)
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant={level.avgTir >= 70 ? 'default' : 'secondary'}>
-                    {level.avgTir.toFixed(1)}% TIR
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    ({level.percentOfUsers}% of users)
-                  </span>
-                </div>
+                <Progress value={level.avgTir} className="h-2" />
+                {/* Phase 15.4: Show exercise-type-specific guidance */}
+                {impact && (
+                  <p className="text-xs text-muted-foreground pl-6">
+                    During: glucose tends to {impact.duringExercise} · After: tends to {impact.afterExercise}
+                  </p>
+                )}
               </div>
-              <Progress value={level.avgTir} className="h-2" />
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Research citation */}
@@ -75,6 +93,7 @@ export function ExerciseCorrelationCard({ data }: ExerciseCorrelationCardProps) 
           <p>
             Studies show 30 minutes of daily walking can improve Time in Range by 8-12% 
             (ADA Standards of Care 2024). Post-meal walks within 30 minutes are particularly effective.
+            Anaerobic exercise may temporarily raise glucose due to hepatic glucose release.
           </p>
         </div>
       </CardContent>
