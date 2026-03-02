@@ -20,9 +20,10 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  public componentDidCatch(_error: Error, _errorInfo: ErrorInfo) {
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Error reporting service integration point (e.g., Sentry)
-    // Intentionally not logging to console in production (Item 1953)
+    console.error('[ErrorBoundary] Caught error:', error.message, error.stack);
+    console.error('[ErrorBoundary] Component stack:', errorInfo.componentStack);
   }
 
   private handleReset = () => {

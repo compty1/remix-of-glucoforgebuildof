@@ -40,14 +40,15 @@ export const LOCAL_MODEL_CONFIG = {
 
 /**
  * Dynamically load WebLLM engine from CDN.
- * Returns the engine instance or null if loading fails.
+ * Uses Function constructor to fully bypass Vite's import analysis.
  */
 export async function loadWebLLMEngine(
   onProgress?: (progress: { text: string; progress: number }) => void
 ): Promise<any | null> {
   try {
-    // @ts-ignore - dynamically loaded from CDN at runtime
-    const webllm = await import(/* @vite-ignore */ 'https://esm.run/@mlc-ai/web-llm');
+    // Use Function constructor to completely bypass Vite's static import analysis
+    const dynamicImport = new Function('url', 'return import(url)');
+    const webllm = await dynamicImport('https://esm.run/@mlc-ai/web-llm');
 
     const engine = await webllm.CreateMLCEngine(LOCAL_MODEL_CONFIG.modelId, {
       initProgressCallback: (report: any) => {
