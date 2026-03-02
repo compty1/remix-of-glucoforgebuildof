@@ -18,7 +18,7 @@ serve(async (req) => {
     const sizeErr = await validateBodySize(req);
     if (sizeErr) return sizeErr;
 
-    const { amount, isRecurring, recurringFrequency } = await req.json();
+    const { amount, isRecurring, recurringFrequency, idempotencyKey } = await req.json();
     
     // Strict input validation
     if (typeof amount !== 'number' || isNaN(amount) || !isFinite(amount)) {
@@ -74,6 +74,7 @@ serve(async (req) => {
         name: isRecurring ? 'Recurring Donation to GlucoForge' : 'Donation to GlucoForge',
         description: 'Support Type 1 Diabetes research and development',
       },
+      // Phase 9.1: Use integer cents to avoid float math issues
       unit_amount: Math.round(amount * 100),
     };
 
@@ -83,8 +84,8 @@ serve(async (req) => {
       (priceData as any).recurring = { interval };
     }
 
-    // Create checkout session
-    const session = await stripe.checkout.sessions.create({
+    // Create checkout session with idempotency key (Phase 9.6)
+    const sessionParams: Record<string, unknown> = {
       customer: customerId,
       customer_email: customerId ? undefined : userEmail,
       line_items: [
@@ -101,8 +102,16 @@ serve(async (req) => {
         amount: amount.toString(),
         recurring: isRecurring ? 'true' : 'false',
         frequency: recurringFrequency || 'one-time',
+        idempotency_key: idempotencyKey || '',
       },
-    });
+    };
+
+    const requestOptions: Record<string, unknown> = {};
+    if (idempotencyKey) {
+      requestOptions.idempotencyKey = idempotencyKey;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams as any, requestOptions as any);
 
     return jsonResponse({ url: session.url, sessionId: session.id });
   } catch (error) {
