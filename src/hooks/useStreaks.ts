@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
+import { todayLocalString, yesterdayLocalString } from '@/utils/tzSafeGrouping';
 
 export interface UserStreak {
   id: string;
@@ -65,7 +66,7 @@ export function useStreaks() {
     mutationFn: async (streakType: StreakType) => {
       if (!user?.id) throw new Error('Not authenticated');
 
-      const today = new Date().toISOString().split('T')[0];
+      const today = todayLocalString();
 
       // Fetch fresh streak data inside mutation to avoid stale closure
       const { data: freshStreaks } = await supabase
@@ -88,9 +89,7 @@ export function useStreaks() {
           return existing;
         }
 
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().split('T')[0];
+        const yesterdayStr = yesterdayLocalString();
 
         if (lastDate === yesterdayStr) {
           // Continue streak
@@ -136,7 +135,7 @@ export function useStreaks() {
       currentStreak: streak?.current_streak || 0,
       longestStreak: streak?.longest_streak || 0,
       lastActivity: streak?.last_activity_date || null,
-      isActive: streak?.last_activity_date === new Date().toISOString().split('T')[0],
+      isActive: streak?.last_activity_date === todayLocalString(),
     };
   };
 

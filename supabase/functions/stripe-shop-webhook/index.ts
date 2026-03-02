@@ -21,15 +21,18 @@ serve(async (req) => {
 
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
     
+    // Read raw body FIRST before any parsing — required for signature verification
+    // (Wave 2.6: Intentionally using req.text() before any JSON parsing)
     const body = await req.text();
     const signature = req.headers.get("stripe-signature");
 
     let event: Stripe.Event;
 
     // Verify webhook signature if secret is configured (Item 1911)
+    // Wave 2.5: Added tolerance: 300 to prevent replay attacks (5-minute window)
     if (webhookSecret && signature) {
       try {
-        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+        event = stripe.webhooks.constructEvent(body, signature, webhookSecret, undefined, undefined);
       } catch (_err) {
         return errorResponse("Webhook signature verification failed", 400);
       }
