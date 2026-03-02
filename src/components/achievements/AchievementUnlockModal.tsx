@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { AchievementDefinition } from '@/data/achievementDefinitions';
 import confetti from 'canvas-confetti';
 import { Star, Sparkles } from 'lucide-react';
+import { useReducedMotion } from '@/hooks/useReducedMotion';
 
 interface AchievementUnlockModalProps {
   achievement: AchievementDefinition | null;
@@ -11,43 +12,45 @@ interface AchievementUnlockModalProps {
 }
 
 export function AchievementUnlockModal({ achievement, onClose }: AchievementUnlockModalProps) {
+  const prefersReducedMotion = useReducedMotion();
+
   useEffect(() => {
-    if (achievement) {
-      // Trigger confetti celebration
-      const duration = 2000;
-      const animationEnd = Date.now() + duration;
-      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
+    // Phase 6.22: Skip confetti for users who prefer reduced motion
+    if (!achievement || prefersReducedMotion) return;
 
-      const randomInRange = (min: number, max: number) => {
-        return Math.random() * (max - min) + min;
-      };
+    const duration = 2000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
 
-      const interval = setInterval(() => {
-        const timeLeft = animationEnd - Date.now();
+    const randomInRange = (min: number, max: number) => {
+      return Math.random() * (max - min) + min;
+    };
 
-        if (timeLeft <= 0) {
-          return clearInterval(interval);
-        }
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
 
-        const particleCount = 50 * (timeLeft / duration);
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
 
-        confetti({
-          ...defaults,
-          particleCount,
-          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
-          colors: ['#FFD700', '#FFA500', '#FF6347', '#9333EA'],
-        });
-        confetti({
-          ...defaults,
-          particleCount,
-          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
-          colors: ['#FFD700', '#FFA500', '#FF6347', '#9333EA'],
-        });
-      }, 250);
+      const particleCount = 50 * (timeLeft / duration);
 
-      return () => clearInterval(interval);
-    }
-  }, [achievement]);
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+        colors: ['#FFD700', '#FFA500', '#FF6347', '#9333EA'],
+      });
+      confetti({
+        ...defaults,
+        particleCount,
+        origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+        colors: ['#FFD700', '#FFA500', '#FF6347', '#9333EA'],
+      });
+    }, 250);
+
+    return () => clearInterval(interval);
+  }, [achievement, prefersReducedMotion]);
 
   if (!achievement) return null;
 
@@ -61,9 +64,9 @@ export function AchievementUnlockModal({ achievement, onClose }: AchievementUnlo
           
           <div className="py-6 space-y-6">
             {/* Badge */}
-            <div className="relative mx-auto w-32 h-32 rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center shadow-2xl shadow-amber-500/50 animate-bounce">
+            <div className={`relative mx-auto w-32 h-32 rounded-full bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center shadow-2xl shadow-amber-500/50 ${prefersReducedMotion ? '' : 'animate-bounce'}`}>
               <span className="text-6xl drop-shadow-lg">{achievement.icon}</span>
-              <div className="absolute inset-0 rounded-full border-4 border-amber-300/50 animate-ping" />
+              {!prefersReducedMotion && <div className="absolute inset-0 rounded-full border-4 border-amber-300/50 animate-ping" />}
             </div>
 
             {/* Title */}

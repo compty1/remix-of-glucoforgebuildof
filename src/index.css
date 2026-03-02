@@ -421,12 +421,30 @@
   animation: bloodDropFall 1s ease-out, dropBounce 2.5s ease-in-out 1s infinite, dropPulse 4s ease-in-out 1s infinite;
 }
 
-/* Respect reduced motion preference */
+/* Phase 6.22/6.23: Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
   .logo-animated-drop,
   .animate-drop-fall,
   .animate-drop-bounce,
-  .animate-drop-pulse {
-    animation: none;
+  .animate-drop-pulse,
+  .animate-pulse,
+  .animate-ping,
+  .animate-bounce,
+  .animate-spin {
+    animation: none !important;
   }
+  
+  /* Disable framer-motion and CSS transitions */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Phase 6.27: Dynamic viewport height fallback */
+:root {
+  --dvh: 1vh;
 }
