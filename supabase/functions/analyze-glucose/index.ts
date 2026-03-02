@@ -1,11 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.4";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
+import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
 
 // Rate limiting config
 const RATE_LIMIT_REQUESTS = 30;
@@ -2351,6 +2348,20 @@ serve(async (req) => {
   }
 
   try {
+    // 1. Validate Content-Type
+    const contentTypeError = requireJsonContentType(req);
+    if (contentTypeError) return contentTypeError;
+
+    // 2. Validate Body Size (Max 6MB)
+    const sizeError = await validateBodySize(req, 6_291_456);
+    if (sizeError) return sizeError;
+
+    // 3. Verify Authentication (JWT)
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
+    const { userId } = authResult;
+
+    // 4. Rate Limiting (Database-backed would be better, but keeping simple IP check as fallback for now)
     const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
     if (!checkRateLimit(clientIp)) {
       return new Response(
@@ -2359,9 +2370,12 @@ serve(async (req) => {
       );
     }
 
+    // Use User's Auth Context for RLS where possible
+    const authHeader = req.headers.get('Authorization')!;
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
     );
 
     const requestBody = await req.json();

@@ -1,11 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
+import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
 
 // Input validation schema
 const dailyBriefingRequestSchema = z.object({
@@ -19,9 +16,17 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    const contentTypeError = requireJsonContentType(req);
+    if (contentTypeError) return contentTypeError;
+
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
+    const { userId: authUserId } = authResult;
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
     );
 
     const requestBody = await req.json();

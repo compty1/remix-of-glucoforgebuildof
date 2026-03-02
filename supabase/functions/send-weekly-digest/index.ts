@@ -1,11 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
+import { requireAdmin, requireJsonContentType } from "../_shared/auth.ts";
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -13,6 +10,8 @@ serve(async (req) => {
   }
 
   try {
+    const authResult = await requireAdmin(req);
+    if (authResult instanceof Response) return authResult;
     const resendKey = Deno.env.get("RESEND_API_KEY");
     if (!resendKey) {
       return new Response(JSON.stringify({ error: "RESEND_API_KEY not configured" }), {

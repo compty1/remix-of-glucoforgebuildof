@@ -1,10 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
+import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
 
 interface DiscoveredConnection {
   title: string;
@@ -32,15 +29,24 @@ serve(async (req) => {
   }
 
   try {
+    const contentTypeError = requireJsonContentType(req);
+    if (contentTypeError) return contentTypeError;
+
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    // Use user auth context for RLS
+    const authHeader = req.headers.get('Authorization')!;
+    const supabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
     if (!lovableApiKey) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
-
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     console.log('Fetching research data for analysis...');
 
