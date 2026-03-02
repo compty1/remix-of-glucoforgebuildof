@@ -2,11 +2,12 @@ import React, { useEffect, Suspense, lazy } from "react";
 // Fix 7.5: Removed duplicate Toaster (radix) — keeping only Sonner
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { useEngagementTracking } from "@/hooks/useEngagementTracking";
 import { useIdleLogout } from "@/hooks/useIdleLogout";
+import { useDynamicViewportHeight } from "@/hooks/useDynamicViewportHeight";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ScrollToTop } from "@/components/ScrollToTop";
@@ -147,12 +148,24 @@ const queryClient = new QueryClient({
 // Inner component that uses hooks requiring QueryClient
 const AppContent = () => {
   const initialize = useAuthStore((state) => state.initialize);
+  const user = useAuthStore((state) => state.user);
+  const queryClient = useQueryClient();
   
   // Track user engagement (visits, streaks) - must be inside QueryClientProvider
   useEngagementTracking();
 
   // Fix 8.1: Auto-logout after 30 minutes of inactivity (medical data security)
   useIdleLogout();
+
+  // Phase 6.27: Dynamic viewport height for mobile browser chrome
+  useDynamicViewportHeight();
+
+  // Phase 5.8 / 7.28: Clear query cache on logout
+  useEffect(() => {
+    if (!user) {
+      queryClient.clear();
+    }
+  }, [user, queryClient]);
 
   useEffect(() => {
     const cleanup = initialize();
