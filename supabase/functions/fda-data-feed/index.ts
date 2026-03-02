@@ -1,33 +1,10 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-// Rate limiting config
-const RATE_LIMIT_REQUESTS = 20;
-const RATE_LIMIT_WINDOW_MS = 60000;
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
-
-function checkRateLimit(clientIp: string): boolean {
-  const now = Date.now();
-  const clientData = rateLimitStore.get(clientIp);
-
-  if (!clientData || now > clientData.resetTime) {
-    rateLimitStore.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
-    return true;
-  }
-
-  if (clientData.count >= RATE_LIMIT_REQUESTS) {
-    return false;
-  }
-
-  clientData.count++;
-  return true;
-}
+import { corsHeaders, handleCors, jsonResponse, errorResponse } from "../_shared/cors.ts";
+import { createLogger, generateRequestId } from "../_shared/logging.ts";
+import { handleHealthCheck } from "../_shared/health.ts";
+import { withRetry } from "../_shared/health.ts";
+import { processBatch } from "../_shared/batch.ts";
 
 interface FDADeviceEvent {
   fda_event_id: string;
@@ -51,27 +28,22 @@ const FDA_ENDPOINTS = {
 };
 
 serve(async (req) => {
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResp = handleCors(req);
+  if (corsResp) return corsResp;
+
+  const reqId = generateRequestId();
+  const log = createLogger('fda-data-feed', reqId);
+
+  const healthResp = handleHealthCheck(req, 'fda-data-feed');
+  if (healthResp) return healthResp;
 
   try {
-    // Rate limiting
-    const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-    if (!checkRateLimit(clientIp)) {
-      return new Response(
-        JSON.stringify({ error: 'Too many requests. Please try again later.' }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    console.log('Starting FDA data feed fetch process');
+    log.info('Starting FDA data feed fetch process');
 
     const allEvents: FDADeviceEvent[] = [];
 

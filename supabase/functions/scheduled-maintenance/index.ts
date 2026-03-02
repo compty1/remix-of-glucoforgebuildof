@@ -1,15 +1,18 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders, handleCors, jsonResponse, errorResponse } from "../_shared/cors.ts";
+import { createLogger, generateRequestId } from "../_shared/logging.ts";
+import { handleHealthCheck } from "../_shared/health.ts";
+import { processBatch } from "../_shared/batch.ts";
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResp = handleCors(req);
+  if (corsResp) return corsResp;
+
+  const reqId = generateRequestId();
+  const log = createLogger('scheduled-maintenance', reqId);
+
+  const healthResp = handleHealthCheck(req, 'scheduled-maintenance');
+  if (healthResp) return healthResp;
 
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -19,9 +22,9 @@ Deno.serve(async (req) => {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    // Fetch posts that need re-verification:
-    // 1. link_status IS NULL (never checked)
-    // 2. last_checked older than 7 days
+    log.info('Starting scheduled maintenance');
+
+    // Fetch posts that need re-verification
     const { data: posts, error: fetchError } = await supabase
       .from("community_posts")
       .select("id, url, canonical_url, link_status, source")
@@ -37,120 +40,103 @@ Deno.serve(async (req) => {
       return new Date(lastChecked) < sevenDaysAgo;
     });
 
-    let checked = 0;
+    log.info('Posts needing verification', { total: posts?.length, needsCheck: needsVerification.length });
+
     let ok = 0;
     let dead = 0;
     let skipped = 0;
 
-    for (const post of needsVerification) {
-      const url = post.canonical_url || post.url;
+    // 4.13: Process in batches to prevent deadlocks
+    const { results } = await processBatch(
+      needsVerification,
+      async (post: any) => {
+        const url = post.canonical_url || post.url;
+        if (!url) { skipped++; return 'skipped'; }
 
-      if (!url) {
-        skipped++;
-        continue;
-      }
+        // Reddit structural validation
+        const isRedditSearch = url.includes("reddit.com/search") || url.includes("reddit.com/r/");
+        if (isRedditSearch) {
+          const isValid = url.startsWith("https://") && url.includes("reddit.com");
+          await supabase
+            .from("community_posts")
+            .update({
+              link_status: {
+                status: isValid ? "ok_fallback" : "dead",
+                method: "structural",
+                last_checked: new Date().toISOString(),
+                url,
+              },
+              source_link_verified: isValid,
+              source_link_verified_at: new Date().toISOString(),
+            })
+            .eq("id", post.id);
+          if (isValid) ok++; else dead++;
+          return isValid ? 'ok' : 'dead';
+        }
 
-      // Reddit structural validation (can't HTTP-verify)
-      const isRedditSearch = url.includes("reddit.com/search") || url.includes("reddit.com/r/");
-      if (isRedditSearch) {
-        const isValid = url.startsWith("https://") && url.includes("reddit.com");
-        const status = isValid ? "ok_fallback" : "dead";
+        // HTTP verification
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 8000);
+          const response = await fetch(url, {
+            method: "HEAD",
+            signal: controller.signal,
+            redirect: "follow",
+          });
+          clearTimeout(timeout);
 
-        await supabase
-          .from("community_posts")
-          .update({
-            link_status: {
-              status,
-              method: "structural",
-              last_checked: new Date().toISOString(),
-              url,
-            },
-            source_link_verified: isValid,
-            source_link_verified_at: new Date().toISOString(),
-          })
-          .eq("id", post.id);
-
-        checked++;
-        if (isValid) ok++;
-        else dead++;
-        continue;
-      }
-
-      // HTTP verification for non-Reddit URLs
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 8000);
-
-        const response = await fetch(url, {
-          method: "HEAD",
-          signal: controller.signal,
-          redirect: "follow",
-        });
-
-        clearTimeout(timeout);
-
-        const isOk = response.status >= 200 && response.status < 400;
-
-        await supabase
-          .from("community_posts")
-          .update({
-            link_status: {
-              status: isOk ? "ok" : "dead",
-              http_code: response.status,
-              last_checked: new Date().toISOString(),
-              url,
-            },
-            source_link_verified: isOk,
-            source_link_verified_at: new Date().toISOString(),
-          })
-          .eq("id", post.id);
-
-        checked++;
-        if (isOk) ok++;
-        else dead++;
-      } catch (_err) {
-        await supabase
-          .from("community_posts")
-          .update({
-            link_status: {
-              status: "dead",
-              error: "timeout_or_network",
-              last_checked: new Date().toISOString(),
-              url,
-            },
-            source_link_verified: false,
-            source_link_verified_at: new Date().toISOString(),
-          })
-          .eq("id", post.id);
-
-        checked++;
-        dead++;
-      }
-    }
+          const isOk = response.status >= 200 && response.status < 400;
+          await supabase
+            .from("community_posts")
+            .update({
+              link_status: {
+                status: isOk ? "ok" : "dead",
+                http_code: response.status,
+                last_checked: new Date().toISOString(),
+                url,
+              },
+              source_link_verified: isOk,
+              source_link_verified_at: new Date().toISOString(),
+            })
+            .eq("id", post.id);
+          if (isOk) ok++; else dead++;
+          return isOk ? 'ok' : 'dead';
+        } catch {
+          await supabase
+            .from("community_posts")
+            .update({
+              link_status: {
+                status: "dead",
+                error: "timeout_or_network",
+                last_checked: new Date().toISOString(),
+                url,
+              },
+              source_link_verified: false,
+              source_link_verified_at: new Date().toISOString(),
+            })
+            .eq("id", post.id);
+          dead++;
+          return 'dead';
+        }
+      },
+      { batchSize: 10, delayMs: 200, onError: 'skip' }
+    );
 
     const summary = {
       totalPosts: posts?.length || 0,
       needsVerification: needsVerification.length,
-      checked,
+      checked: results.length,
       ok,
       dead,
       skipped,
       timestamp: new Date().toISOString(),
     };
 
-    console.log("Scheduled maintenance complete:", summary);
+    log.info('Scheduled maintenance complete', summary);
 
-    return new Response(JSON.stringify(summary), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse(summary);
   } catch (error) {
-    console.error("Scheduled maintenance error:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    log.error('Scheduled maintenance error', { error: String(error) });
+    return errorResponse(error instanceof Error ? error.message : 'Unknown error', 500);
   }
 });
