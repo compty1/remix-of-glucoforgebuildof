@@ -405,7 +405,10 @@ function calculateDayNightMetrics(readings: GlucoseReading[]): DayNightMetrics |
     if (values.length === 0) return { timeInRange: 0, avgGlucose: 0, cv: 0, lowEvents: 0, highEvents: 0, readingsCount: 0 };
     const avg = values.reduce((a, b) => a + b, 0) / values.length;
     const inRange = values.filter(v => v >= 70 && v <= 180).length;
-    const stdDev = Math.sqrt(values.reduce((sum, v) => sum + Math.pow(v - avg, 2), 0) / values.length);
+    // Fix 1.1: Use Bessel's correction (N-1) for sample standard deviation
+    const stdDev = values.length > 1
+      ? Math.sqrt(values.reduce((sum, v) => sum + Math.pow(v - avg, 2), 0) / (values.length - 1))
+      : 0;
     return {
       timeInRange: (inRange / values.length) * 100,
       avgGlucose: Math.round(avg),
@@ -596,14 +599,15 @@ function generateExecutiveSummary(
 ): ExecutiveSummary {
   const topRisks: ExecutiveSummary['topRisks'] = [];
   
-  // Prioritize hypoglycemia
+  // Fix 1.12: Accumulate ALL risks independently (no else-if masking)
   if (analysis.timeBelow54 > 1) {
     topRisks.push({
       title: 'Severe Hypoglycemia Risk',
       severity: 'critical',
       description: `${analysis.timeBelow54.toFixed(1)}% time below 54 mg/dL requires immediate attention`
     });
-  } else if (analysis.timeBelow70 > 4) {
+  }
+  if (analysis.timeBelow70 > 4) {
     topRisks.push({
       title: 'Hypoglycemia Frequency',
       severity: 'warning',
@@ -611,14 +615,14 @@ function generateExecutiveSummary(
     });
   }
   
-  // High glucose
   if (analysis.timeAbove250 > 10) {
     topRisks.push({
       title: 'Very High Glucose',
       severity: 'critical',
       description: `${analysis.timeAbove250.toFixed(1)}% time above 250 mg/dL`
     });
-  } else if (analysis.timeAbove180 > 25) {
+  }
+  if (analysis.timeAbove180 > 25) {
     topRisks.push({
       title: 'Hyperglycemia',
       severity: 'warning',
@@ -670,7 +674,8 @@ function generateExecutiveSummary(
   return {
     overallTIR: Math.round(analysis.timeInRange * 10) / 10,
     tirTarget: 70,
-    topRisks: topRisks.slice(0, 3),
+    // Fix 1.12: Show all critical risks, cap warnings at 5
+    topRisks: topRisks.filter(r => r.severity === 'critical').concat(topRisks.filter(r => r.severity !== 'critical').slice(0, 5)),
     confidencePercent: confidenceScore,
     encouragement,
     keyMetrics: {
@@ -1316,14 +1321,16 @@ function detectCSVFormat(content: string): 'dexcom' | 'libre' | 'generic' {
 }
 
 function parseCSV(content: string): GlucoseReading[] {
-  const lines = content.split('\n').filter(line => line.trim());
+  // Fix 3.1: Handle \r\n line endings
+  const lines = content.split(/\r?\n/).filter(line => line.trim());
   const readings: GlucoseReading[] = [];
   const format = detectCSVFormat(content);
   
   console.log(`Detected CSV format: ${format}`);
   
   let headerIndex = 0;
-  for (let i = 0; i < Math.min(lines.length, 20); i++) {
+  // Fix 3.1: Extend header search to 50 rows (LibreView/Dexcom metadata can be 25+ rows)
+  for (let i = 0; i < Math.min(lines.length, 50); i++) {
     const line = lines[i].toLowerCase();
     if (line.includes('timestamp') || line.includes('date') || line.includes('time') || 
         line.includes('glucose') || line.includes('egv') || line.includes('historic')) {
@@ -1357,7 +1364,18 @@ function parseCSV(content: string): GlucoseReading[] {
   });
   
   if (timestampCol === -1 && dateCol === -1) timestampCol = 0;
-  if (valueCol === -1) valueCol = headers.length > 1 ? 1 : 0;
+  // Fix 3.1/8.25: Don't blindly default valueCol=1 if no glucose header match found
+  if (valueCol === -1) {
+    // Only default to column 1 if it looks numeric in the first data row
+    const firstDataRow = lines[headerIndex + 1]?.split(',');
+    if (firstDataRow && firstDataRow.length > 1) {
+      const testVal = parseFloat(firstDataRow[1]?.replace(/[^\d.]/g, '') || '');
+      if (!isNaN(testVal) && testVal > 0 && testVal < 600) {
+        valueCol = 1;
+      }
+    }
+    if (valueCol === -1) valueCol = 0; // last resort
+  }
   
   console.log(`CSV columns - timestamp: ${timestampCol}, date: ${dateCol}, time: ${timeCol}, value: ${valueCol}`);
   
@@ -1394,10 +1412,28 @@ function parseCSV(content: string): GlucoseReading[] {
       continue;
     }
     
-    const valueStr = parts[valueCol]?.replace(/[^\d.]/g, '') || '';
-    const value = parseFloat(valueStr);
+    const rawValueStr = parts[valueCol]?.trim().replace(/"/g, '') || '';
+    
+    // Fix 3.7: Handle Dexcom "Low"/"High" sensor extremes
+    let value: number;
+    if (rawValueStr.toLowerCase() === 'low') {
+      value = 40; // Map "Low" to 40 mg/dL
+    } else if (rawValueStr.toLowerCase() === 'high') {
+      value = 400; // Map "High" to 400 mg/dL
+    } else {
+      value = parseFloat(rawValueStr.replace(/[^\d.]/g, ''));
+    }
     
     if (!isNaN(timestamp.getTime()) && !isNaN(value) && value > 0 && value < 600) {
+      // Fix 1.6: Auto-detect mmol/L and convert to mg/dL
+      if (value > 0 && value < 33.4) {
+        // Heuristic: if value is in mmol/L range, convert
+        // Check if headers suggest mmol
+        const headerLine = lines[headerIndex]?.toLowerCase() || '';
+        if (headerLine.includes('mmol') || value < 30) {
+          value = Math.round(value * 18.018 * 10) / 10;
+        }
+      }
       readings.push({ timestamp, value });
     }
   }
@@ -1772,6 +1808,8 @@ function percentile(arr: number[], p: number): number {
   const index = (p / 100) * (sorted.length - 1);
   const lower = Math.floor(index);
   const upper = Math.ceil(index);
+  // Fix 1.24: bounds check for interpolation
+  if (upper >= sorted.length) return sorted[sorted.length - 1];
   if (lower === upper) return sorted[lower];
   return sorted[lower] + (sorted[upper] - sorted[lower]) * (index - lower);
 }
@@ -1815,15 +1853,26 @@ function calculateHourlyStatistics(readings: GlucoseReading[]): HourlyStats[] {
   return stats;
 }
 
-function generateAGPData(hourlyStats: HourlyStats[]): AGPDataPoint[] {
-  return hourlyStats.map(stat => ({
-    time: `${stat.hour.toString().padStart(2, '0')}:00`,
-    p5: percentile(Array(stat.count).fill(stat.avg), 5) * 0.85,
-    p25: stat.p25,
-    p50: stat.p50,
-    p75: stat.p75,
-    p95: stat.p90 * 1.1
-  }));
+// Fix 1.2: generateAGPData now receives raw per-hour values for real percentile computation
+function generateAGPData(hourlyStats: HourlyStats[], readings: GlucoseReading[]): AGPDataPoint[] {
+  // Build a map of raw values per hour for accurate p5/p95
+  const hourlyRaw: Map<number, number[]> = new Map();
+  for (let h = 0; h < 24; h++) hourlyRaw.set(h, []);
+  for (const r of readings) {
+    hourlyRaw.get(r.timestamp.getHours())?.push(r.value);
+  }
+
+  return hourlyStats.map(stat => {
+    const rawValues = hourlyRaw.get(stat.hour) || [];
+    return {
+      time: `${stat.hour.toString().padStart(2, '0')}:00`,
+      p5: rawValues.length > 0 ? percentile(rawValues, 5) : 0,
+      p25: stat.p25,
+      p50: stat.p50,
+      p75: stat.p75,
+      p95: rawValues.length > 0 ? percentile(rawValues, 95) : 0
+    };
+  });
 }
 
 function calculateDailyStatistics(readings: GlucoseReading[]): DailyStats[] {
@@ -1865,31 +1914,48 @@ function calculateDailyStatistics(readings: GlucoseReading[]): DailyStats[] {
   return stats;
 }
 
+// Fix 1.3 & 1.11: Corrected MAGE algorithm with proper direction changes and gap handling
 function calculateMAGE(readings: GlucoseReading[], stdDev: number): number {
-  if (readings.length < 10) return 0;
+  if (readings.length < 10 || stdDev === 0) return 0;
   
-  const values = readings.map(r => r.value);
+  const sorted = [...readings].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
   const excursions: number[] = [];
   
-  let peak = values[0];
-  let nadir = values[0];
-  let direction: 'up' | 'down' = 'up';
+  let peak = sorted[0].value;
+  let nadir = sorted[0].value;
+  let direction: 'up' | 'down' = sorted.length > 1 && sorted[1].value >= sorted[0].value ? 'up' : 'down';
+  let lastTimestamp = sorted[0].timestamp.getTime();
   
-  for (let i = 1; i < values.length; i++) {
+  for (let i = 1; i < sorted.length; i++) {
+    const currentTime = sorted[i].timestamp.getTime();
+    const gapMinutes = (currentTime - lastTimestamp) / 60000;
+    lastTimestamp = currentTime;
+    
+    // Fix 1.11: Skip excursion if gap > 30 minutes (data gap boundary)
+    if (gapMinutes > 30) {
+      peak = sorted[i].value;
+      nadir = sorted[i].value;
+      continue;
+    }
+    
     if (direction === 'up') {
-      if (values[i] > peak) {
-        peak = values[i];
-      } else if (peak - values[i] > stdDev) {
-        excursions.push(peak - nadir);
-        nadir = values[i];
+      if (sorted[i].value > peak) {
+        peak = sorted[i].value;
+      } else if (peak - sorted[i].value > stdDev) {
+        // Fix 1.3: Record excursion as peak - nadir on confirmed direction change
+        const excursion = peak - nadir;
+        if (excursion > stdDev) excursions.push(excursion);
+        nadir = sorted[i].value;
         direction = 'down';
       }
     } else {
-      if (values[i] < nadir) {
-        nadir = values[i];
-      } else if (values[i] - nadir > stdDev) {
-        excursions.push(peak - nadir);
-        peak = values[i];
+      if (sorted[i].value < nadir) {
+        nadir = sorted[i].value;
+      } else if (sorted[i].value - nadir > stdDev) {
+        // Fix 1.3: Record excursion as peak - nadir on confirmed direction change
+        const excursion = peak - nadir;
+        if (excursion > stdDev) excursions.push(excursion);
+        peak = sorted[i].value;
         direction = 'up';
       }
     }
@@ -1955,12 +2021,22 @@ function detectPatterns(readings: GlucoseReading[], hourlyStats: HourlyStats[]):
     const overnightValues = overnightHours.map(h => h.avg).filter(v => v > 0);
     if (overnightValues.length > 0) {
       const overnightMean = overnightValues.reduce((a, b) => a + b, 0) / overnightValues.length;
-      const overnightStdDev = Math.sqrt(
-        overnightValues.reduce((sum, v) => sum + Math.pow(v - overnightMean, 2), 0) / overnightValues.length
-      );
+      // Fix 1.1: Bessel's correction for overnight CV
+      const overnightStdDev = overnightValues.length > 1
+        ? Math.sqrt(overnightValues.reduce((sum, v) => sum + Math.pow(v - overnightMean, 2), 0) / (overnightValues.length - 1))
+        : 0;
       const overnightCV = overnightMean > 0 ? (overnightStdDev / overnightMean) * 100 : 0;
       
-      if (overnightCV > 0 && overnightCV < 20) {
+      // Fix 1.8: Check if overnight average is dangerously low before praising stability
+      if (overnightMean < 70) {
+        patterns.push({
+          type: 'overnight_hypoglycemia',
+          severity: 'critical',
+          title: 'Overnight Hypoglycemia',
+          description: `Your overnight average glucose is ${Math.round(overnightMean)} mg/dL — dangerously low. Review overnight basal rates.`,
+          timeOfDay: '11:00 PM - 4:00 AM'
+        });
+      } else if (overnightCV > 0 && overnightCV < 20) {
         patterns.push({
           type: 'overnight_stability',
           severity: 'info',
@@ -2150,8 +2226,12 @@ function analyzeGlucoseDataComprehensive(readings: GlucoseReading[]): {
   
   const avgGlucose = values.reduce((sum, v) => sum + v, 0) / values.length;
   const medianGlucose = percentile(values, 50);
-  const stdDev = Math.sqrt(values.reduce((sum, v) => sum + Math.pow(v - avgGlucose, 2), 0) / values.length);
-  const cv = (stdDev / avgGlucose) * 100;
+  // Fix 1.1: Use Bessel's correction (N-1) for sample standard deviation
+  const stdDev = values.length > 1
+    ? Math.sqrt(values.reduce((sum, v) => sum + Math.pow(v - avgGlucose, 2), 0) / (values.length - 1))
+    : 0;
+  // Fix 1.10: Guard against zero avgGlucose
+  const cv = avgGlucose > 0 ? (stdDev / avgGlucose) * 100 : 0;
   
   const inRange = values.filter(v => v >= 70 && v <= 180).length;
   const inTightRange = values.filter(v => v >= 70 && v <= 140).length;
@@ -2167,31 +2247,44 @@ function analyzeGlucoseDataComprehensive(readings: GlucoseReading[]): {
   const timeBelow70 = (below70 / values.length) * 100;
   const timeBelow54 = (below54 / values.length) * 100;
   
-  const gmi = 3.31 + (0.02392 * avgGlucose);
+  // Fix 1.5: GMI constants with citation; enforce 10-day minimum
+  // Bergenstal et al. 2018: GMI (%) = 3.31 + (0.02392 × mean glucose in mg/dL)
+  const GMI_INTERCEPT = 3.31;
+  const GMI_SLOPE = 0.02392;
+  const GMI_MIN_DAYS = 10;
+  const daysOfData = Math.ceil((readings[readings.length - 1].timestamp.getTime() - readings[0].timestamp.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const gmi = daysOfData >= GMI_MIN_DAYS ? GMI_INTERCEPT + (GMI_SLOPE * avgGlucose) : 0;
   
-  const idealDelta = 5;
-  let actualDeltas = 0;
+  // Fix 1.4: Proper GVI — actual path length vs ideal straight-line path length
+  let actualPathLength = 0;
   for (let i = 1; i < readings.length; i++) {
-    actualDeltas += Math.abs(readings[i].value - readings[i-1].value);
+    actualPathLength += Math.abs(readings[i].value - readings[i-1].value);
   }
-  const gvi = actualDeltas / ((readings.length - 1) * idealDelta);
+  const idealPathLength = Math.abs(readings[readings.length - 1].value - readings[0].value);
+  const gvi = idealPathLength > 0 ? actualPathLength / idealPathLength : 1;
   
   const mage = calculateMAGE(readings, stdDev);
   const events = countGlucoseEvents(readings);
   
   const hourlyData = calculateHourlyStatistics(readings);
   const dailyData = calculateDailyStatistics(readings);
-  const agpData = generateAGPData(hourlyData);
+  // Fix 1.2: Pass readings for real p5/p95 computation
+  const agpData = generateAGPData(hourlyData, readings);
   const patterns = detectPatterns(readings, hourlyData);
   
   const dataStart = readings[0].timestamp.toISOString().split('T')[0];
   const dataEnd = readings[readings.length - 1].timestamp.toISOString().split('T')[0];
-  const daysOfData = Math.ceil((readings[readings.length - 1].timestamp.getTime() - readings[0].timestamp.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  // daysOfData already computed above for GMI check
   
   insights.push(`📊 Analyzed ${readings.length.toLocaleString()} readings over ${daysOfData} days (${dataStart} to ${dataEnd})`);
   insights.push(`📈 Average glucose: ${avgGlucose.toFixed(0)} mg/dL | Median: ${medianGlucose.toFixed(0)} mg/dL`);
   insights.push(`🎯 Time in Range (70-180): ${timeInRange.toFixed(1)}% ${timeInRange >= 70 ? '✓ Target met!' : '(Target: ≥70%)'}`);
-  insights.push(`🔬 GMI (Glucose Management Indicator): ${gmi.toFixed(1)}%`);
+  // Fix 1.5: Show GMI only if sufficient data
+  if (gmi > 0) {
+    insights.push(`🔬 GMI (Glucose Management Indicator): ${gmi.toFixed(1)}%`);
+  } else {
+    insights.push(`🔬 GMI: Insufficient data (need ${GMI_MIN_DAYS}+ days for reliable GMI)`);
+  }
   
   if (cv < 36) {
     insights.push(`📉 Glucose Variability: ${cv.toFixed(1)}% CV - Excellent stability!`);
@@ -2199,10 +2292,13 @@ function analyzeGlucoseDataComprehensive(readings: GlucoseReading[]): {
     insights.push(`📉 Glucose Variability: ${cv.toFixed(1)}% CV - Room for improvement (Target: <36%)`);
   }
   
+  // Fix 1.13: Distinguish 0% (perfect) from 0-4% (within target) from >4% (needs attention)
   if (timeBelow70 > 4) {
     insights.push(`⚠️ Time Below Range: ${timeBelow70.toFixed(1)}% - Higher than recommended (Target: <4%)`);
   } else if (timeBelow70 > 0) {
-    insights.push(`⚡ Time Below Range: ${timeBelow70.toFixed(1)}% - Within target`);
+    insights.push(`⚡ Time Below Range: ${timeBelow70.toFixed(1)}% - Within target (<4%)`);
+  } else {
+    insights.push(`✅ Time Below Range: 0% - No lows detected, excellent!`);
   }
   
   if (timeAbove250 > 5) {
