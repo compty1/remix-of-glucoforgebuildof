@@ -1,5 +1,5 @@
 import React, { useEffect, Suspense, lazy } from "react";
-import { Toaster } from "@/components/ui/toaster";
+// Fix 7.5: Removed duplicate Toaster (radix) — keeping only Sonner
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -129,7 +129,19 @@ const PageLoader = () => (
   </div>
 );
 
-const queryClient = new QueryClient();
+// Fix 7.1: Configure QueryClient with sensible defaults
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      retry: 2,
+      refetchOnWindowFocus: false, // Fix 7.4: Prevent refetch spam on tab switch
+    },
+    mutations: {
+      onError: (err: Error) => toast.error(err.message),
+    },
+  },
+});
 
 // Inner component that uses hooks requiring QueryClient
 const AppContent = () => {
@@ -144,31 +156,49 @@ const AppContent = () => {
   }, [initialize]);
 
   // Session expiry handling — notify user when token refresh fails (Issue 119)
+  // Fix 5.3: Check manual logout intent to avoid confusing "session expired" toast
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'TOKEN_REFRESHED') return; // success
       if (event === 'SIGNED_OUT') {
         // Check if this was an unexpected sign-out (e.g., expired token)
-        const wasLoggedIn = sessionStorage.getItem('gf_was_logged_in');
-        if (wasLoggedIn) {
-          sessionStorage.removeItem('gf_was_logged_in');
-          toast.warning('Your session has expired. Please sign in again.');
+        const wasManual = useAuthStore.getState()._manualSignOut;
+        if (wasManual) {
+          // Reset the flag
+          useAuthStore.setState({ _manualSignOut: false });
+          return;
         }
+        try {
+          const wasLoggedIn = sessionStorage.getItem('gf_was_logged_in');
+          if (wasLoggedIn) {
+            sessionStorage.removeItem('gf_was_logged_in');
+            toast.warning('Your session has expired. Please sign in again.');
+          }
+        } catch { /* storage blocked */ }
       }
       if (event === 'SIGNED_IN') {
-        sessionStorage.setItem('gf_was_logged_in', '1');
+        try {
+          sessionStorage.setItem('gf_was_logged_in', '1');
+        } catch { /* storage blocked */ }
       }
     });
     return () => subscription.unsubscribe();
   }, []);
 
   // Issue 232: Handle unhandled promise rejections not caught by ErrorBoundary
+  // Fix 7.4: Improved cross-browser error message filtering
   useEffect(() => {
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
-      // Prevent these from being completely silent — surface via toast
       const msg = event.reason?.message || String(event.reason) || 'An unexpected error occurred';
-      // Only show for non-network errors to avoid noise during offline states
-      if (!msg.includes('NetworkError') && !msg.includes('Failed to fetch')) {
+      // Filter out network errors, aborted fetches, and React Query cancellations
+      const ignoredPatterns = [
+        'NetworkError', 'Failed to fetch', 'Load failed', // Safari
+        'The network connection was lost', // Firefox
+        'AbortError', 'The user aborted a request', 'cancelled',
+        'The operation was aborted', 'signal is aborted'
+      ];
+      const shouldIgnore = ignoredPatterns.some(p => msg.includes(p));
+      if (!shouldIgnore) {
         toast.error(`Unexpected error: ${msg.slice(0, 100)}`);
       }
       event.preventDefault();
@@ -301,8 +331,8 @@ const App = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
+        {/* Fix 7.6: Add delay to prevent tooltip flicker */}
+        <TooltipProvider delayDuration={300}>
           <Sonner />
           <AppContent />
         </TooltipProvider>
