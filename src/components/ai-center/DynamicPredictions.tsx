@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Sparkles, Loader2, Send, Brain, Lightbulb } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import ReactMarkdown from 'react-markdown';
+import { SafeMarkdown } from '@/components/SafeMarkdown';
 
 interface DynamicPredictionsProps {
   onClose?: () => void;
@@ -152,9 +152,7 @@ export function DynamicPredictions({ onClose }: DynamicPredictionsProps) {
               <span className="font-medium text-sm">AI Prediction</span>
               {isLoading && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
             </div>
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              <ReactMarkdown>{response}</ReactMarkdown>
-            </div>
+            <SafeMarkdown>{response}</SafeMarkdown>
           </div>
         )}
 

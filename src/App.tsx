@@ -10,6 +10,7 @@ import { useIdleLogout } from "@/hooks/useIdleLogout";
 import { useDynamicViewportHeight } from "@/hooks/useDynamicViewportHeight";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { AriaAnnouncerProvider } from "@/components/AriaAnnouncer";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -348,11 +349,13 @@ const App = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        {/* Fix 7.6: Add delay to prevent tooltip flicker */}
-        <TooltipProvider delayDuration={300}>
-          <Sonner />
-          <AppContent />
-        </TooltipProvider>
+        <AriaAnnouncerProvider>
+          {/* Fix 7.6: Add delay to prevent tooltip flicker */}
+          <TooltipProvider delayDuration={300}>
+            <Sonner />
+            <AppContent />
+          </TooltipProvider>
+        </AriaAnnouncerProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );
