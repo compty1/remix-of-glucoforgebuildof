@@ -225,6 +225,12 @@ const AppContent = () => {
     return () => window.removeEventListener('unhandledrejection', handleUnhandledRejection);
   }, []);
 
+  // Wave 6.6: Clear body scroll lock on route changes (Radix modal cleanup)
+  useEffect(() => {
+    document.body.style.overflow = '';
+    document.body.style.pointerEvents = '';
+  }, [user]); // triggers on auth state changes that cause navigation
+
   return (
     <BrowserRouter>
       <ScrollToTop />

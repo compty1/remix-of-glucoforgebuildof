@@ -370,7 +370,9 @@ serve(async (req) => {
     console.log("System prompt length:", systemPrompt.length);
     console.log("Sources found:", sourcesForClient.length);
 
+    // Wave 3.2: AbortSignal timeout to prevent infinite spinner
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      signal: AbortSignal.timeout(30000),
       method: "POST",
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,

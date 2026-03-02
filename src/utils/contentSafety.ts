@@ -42,5 +42,6 @@ export const CRISIS_RESOURCES = {
   phone: '988',
   text: 'Text HOME to 741741',
   url: 'https://988lifeline.org',
+  chatUrl: 'https://988lifeline.org/chat',
   label: '988 Suicide & Crisis Lifeline',
 } as const;

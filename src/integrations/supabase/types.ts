@@ -1239,6 +1239,24 @@ export type Database = {
         }
         Relationships: []
       }
+      cron_locks: {
+        Row: {
+          acquired_at: string
+          acquired_by: string | null
+          lock_name: string
+        }
+        Insert: {
+          acquired_at?: string
+          acquired_by?: string | null
+          lock_name: string
+        }
+        Update: {
+          acquired_at?: string
+          acquired_by?: string | null
+          lock_name?: string
+        }
+        Relationships: []
+      }
       cure_milestones: {
         Row: {
           completed_date: string | null
