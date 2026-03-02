@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
 import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
-import { detectPromptInjection, scrubPII, enforceTokenLimit, MEDICAL_SAFETY_SUFFIX, TEMPERATURE_GUIDE } from "../_shared/promptGuards.ts";
+import { detectPromptInjection, scrubPII, enforceTokenLimit, enforceContextWindow, detectDosageRequest, detectCrisisLanguage, DOSAGE_REFUSAL, CRISIS_RESPONSE, MEDICAL_SAFETY_SUFFIX, TEMPERATURE_GUIDE } from "../_shared/promptGuards.ts";
 
 const T1D_SYSTEM_PROMPT = `You are the T1D Companion, a supportive and knowledgeable assistant for people living with Type 1 Diabetes. Your role is to provide practical tips, tricks, and methods that have worked for others in the T1D community.
 
@@ -141,6 +141,22 @@ serve(async (req) => {
       );
     }
 
+    // Phase 11.3: Crisis language detection - return crisis resources immediately
+    if (detectCrisisLanguage(latestMsg)) {
+      return new Response(
+        `data: ${JSON.stringify({ choices: [{ delta: { content: CRISIS_RESPONSE } }] })}\n\ndata: [DONE]\n\n`,
+        { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } }
+      );
+    }
+
+    // Phase 11.2: Dosage request refusal
+    if (detectDosageRequest(latestMsg)) {
+      return new Response(
+        `data: ${JSON.stringify({ choices: [{ delta: { content: DOSAGE_REFUSAL } }] })}\n\ndata: [DONE]\n\n`,
+        { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } }
+      );
+    }
+
     // Phase 12.10: Token limit on user input
     if (messages && messages.length > 0) {
       const lastIdx = messages.length - 1;
@@ -148,6 +164,9 @@ serve(async (req) => {
         messages[lastIdx].content = enforceTokenLimit(messages[lastIdx].content, 2000);
       }
     }
+
+    // Phase 12.4: Enforce context window
+    const windowedMessages = enforceContextWindow(messages, 20);
 
     // Phase 12.2: Scrub PII from logs
     console.log("Chat request from user, message preview:", scrubPII(latestMsg.substring(0, 100)));
@@ -361,7 +380,7 @@ serve(async (req) => {
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          ...messages,
+          ...windowedMessages,
         ],
         stream: true,
         temperature: TEMPERATURE_GUIDE.chat_companion,
