@@ -19,6 +19,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { createSafeHTML } from '@/utils/inputSanitizer';
 
 interface Article {
   id: string;
@@ -81,7 +82,7 @@ export default function ArticleDetail() {
 
   const renderContent = (content: any) => {
     if (typeof content === 'string') {
-      return <div dangerouslySetInnerHTML={{ __html: content }} />;
+      return <div dangerouslySetInnerHTML={createSafeHTML(content)} />;
     }
     
     // Handle JSON rich text content
