@@ -26,12 +26,21 @@ export default defineConfig(({ mode }) => ({
     // Phase 7.25: Vendor chunk splitting
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-tooltip', '@radix-ui/react-tabs'],
-          'chart-vendor': ['recharts'],
-          'query-vendor': ['@tanstack/react-query'],
-          'animation-vendor': ['framer-motion'],
+        manualChunks(id) {
+          // Wave 5.2: Group route chunks to reduce waterfall
+          if (id.includes('node_modules')) {
+            if (id.includes('react-dom') || id.includes('react-router')) return 'react-vendor';
+            if (id.includes('@radix-ui')) return 'ui-vendor';
+            if (id.includes('recharts') || id.includes('d3-')) return 'chart-vendor';
+            if (id.includes('@tanstack')) return 'query-vendor';
+            if (id.includes('framer-motion')) return 'animation-vendor';
+            if (id.includes('jspdf') || id.includes('html2canvas')) return 'export-vendor';
+            if (id.includes('zod') || id.includes('react-hook-form') || id.includes('@hookform')) return 'form-vendor';
+          }
+          // Group admin routes
+          if (id.includes('/pages/admin/') || id.includes('/pages/Admin')) return 'admin-routes';
+          // Group community routes
+          if (id.includes('/pages/CommunitySolutions') || id.includes('/pages/CommunityPostDetail') || id.includes('/pages/DiabetesBurnout') || id.includes('/pages/FindDiabeticNearMe')) return 'community-routes';
         },
       },
     },
