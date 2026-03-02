@@ -41,6 +41,16 @@ const DEFAULT_FEATURE_FLAGS: FeatureFlag[] = [
   { id: 'experimental_charts', name: 'Experimental Charts', description: 'New chart visualizations in beta', enabled: false, category: 'experimental' },
   { id: 'social_login', name: 'Social Login', description: 'Google/Facebook authentication', enabled: false, category: 'features' },
   { id: 'advanced_analytics', name: 'Advanced Analytics', description: 'Detailed user behavior tracking', enabled: true, category: 'features' },
+  { id: 'nightscout_sync', name: 'Nightscout Sync', description: 'Enable Nightscout CGM data synchronization', enabled: true, category: 'features' },
+  { id: 'bluetooth_pairing', name: 'Bluetooth Pairing', description: 'Web Bluetooth device pairing for glucose meters', enabled: false, category: 'experimental' },
+  { id: 'nfc_scanning', name: 'NFC Scanning', description: 'NFC-based supply scanning and tracking', enabled: false, category: 'experimental' },
+  { id: 'retinopathy_mode', name: 'Retinopathy Mode', description: 'High-contrast accessibility mode for vision-impaired users', enabled: true, category: 'ui' },
+  { id: 'alert_budget', name: 'Alert Budget', description: 'Daily alert cap to reduce notification fatigue', enabled: true, category: 'features' },
+  { id: 'burnout_detection', name: 'Burnout Detection', description: 'Detect and respond to diabetes management burnout', enabled: true, category: 'features' },
+  { id: 'charity_points', name: 'Charity Points', description: 'Convert engagement points to charitable donations', enabled: false, category: 'features' },
+  { id: 'digital_companion', name: 'Digital Companion', description: 'Animated health companion on dashboard', enabled: false, category: 'ui' },
+  { id: 'mentor_matching', name: 'Mentor Matching', description: 'T1D mentor/mentee matching system', enabled: false, category: 'features' },
+  { id: 'local_ai', name: 'Local AI', description: 'Browser-based AI using WebLLM (no server needed)', enabled: false, category: 'experimental' },
 ];
 
 const DEFAULT_BRANDING: BrandingSetting[] = [

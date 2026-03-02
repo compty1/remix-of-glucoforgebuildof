@@ -13,9 +13,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Slider } from '@/components/ui/slider';
 import Layout from '@/components/Layout';
 import { useToast } from '@/hooks/use-toast';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useRetinopathyMode } from '@/hooks/useRetinopathyMode';
+import NightscoutConnector from '@/components/settings/NightscoutConnector';
+import BluetoothDevicePairing from '@/components/settings/BluetoothDevicePairing';
+import HormonalCycleTracker from '@/components/settings/HormonalCycleTracker';
 import { 
   User, 
   Bell, 
@@ -36,7 +41,13 @@ import {
   ImageOff,
   BellRing,
   BellOff,
-  KeyRound
+  KeyRound,
+  Link2,
+  Accessibility,
+  Bluetooth,
+  EyeOff,
+  BellMinus,
+  HeartPulse
 } from 'lucide-react';
 import { clearAllCache, clearFailedCache } from '@/lib/imageCache';
 
@@ -424,7 +435,7 @@ const Settings = () => {
         </section>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
+          <TabsList className="flex w-full overflow-x-auto">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
@@ -440,6 +451,14 @@ const Settings = () => {
             <TabsTrigger value="appearance" className="flex items-center gap-2">
               <Palette className="h-4 w-4" />
               Appearance
+            </TabsTrigger>
+            <TabsTrigger value="integrations" className="flex items-center gap-2">
+              <Link2 className="h-4 w-4" />
+              Integrations
+            </TabsTrigger>
+            <TabsTrigger value="accessibility" className="flex items-center gap-2">
+              <Accessibility className="h-4 w-4" />
+              Accessibility
             </TabsTrigger>
             <TabsTrigger value="data" className="flex items-center gap-2">
               <Database className="h-4 w-4" />
@@ -523,6 +542,10 @@ const Settings = () => {
                     </Select>
                   </div>
                 </div>
+
+                <Separator />
+                <HormonalCycleTracker />
+                <Separator />
 
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Research Participation</h3>
@@ -818,6 +841,21 @@ const Settings = () => {
             </Card>
           </TabsContent>
 
+          {/* Integrations Tab */}
+          <TabsContent value="integrations">
+            <div className="space-y-6">
+              <NightscoutConnector />
+              <BluetoothDevicePairing />
+            </div>
+          </TabsContent>
+
+          {/* Accessibility Tab */}
+          <TabsContent value="accessibility">
+            <div className="space-y-6">
+              <AccessibilitySettings />
+            </div>
+          </TabsContent>
+
           {/* Appearance Settings */}
           <TabsContent value="appearance">
             <Card>
@@ -1035,6 +1073,75 @@ const Settings = () => {
         </Tabs>
       </div>
     </Layout>
+  );
+};
+
+// Accessibility Settings sub-component
+const AccessibilitySettings = () => {
+  const { isEnabled: retinopathyEnabled, toggle: toggleRetinopathy } = useRetinopathyMode();
+  const [alertBudget, setAlertBudget] = useState(3);
+  const [burnoutAware, setBurnoutAware] = useState(false);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Accessibility className="h-5 w-5" />
+          Accessibility Settings
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="text-base flex items-center gap-2">
+              <EyeOff className="h-4 w-4" />
+              Retinopathy Mode
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              High-contrast black/yellow theme with enlarged text and touch targets for users with vision impairment
+            </p>
+          </div>
+          <Switch checked={retinopathyEnabled} onCheckedChange={toggleRetinopathy} />
+        </div>
+
+        <Separator />
+
+        <div className="space-y-3">
+          <div className="space-y-0.5">
+            <Label className="text-base flex items-center gap-2">
+              <BellMinus className="h-4 w-4" />
+              Daily Alert Budget
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              Limit predictive alerts per day to reduce notification fatigue ({alertBudget} alerts/day)
+            </p>
+          </div>
+          <Slider
+            value={[alertBudget]}
+            onValueChange={(v) => setAlertBudget(v[0])}
+            min={1}
+            max={10}
+            step={1}
+            className="max-w-xs"
+          />
+        </div>
+
+        <Separator />
+
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="text-base flex items-center gap-2">
+              <HeartPulse className="h-4 w-4" />
+              Burnout-Aware Notifications
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              When burnout risk is detected, suppress gamification and surface mental health resources instead
+            </p>
+          </div>
+          <Switch checked={burnoutAware} onCheckedChange={setBurnoutAware} />
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

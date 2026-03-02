@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/reac
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { useEngagementTracking } from "@/hooks/useEngagementTracking";
+import { useRetinopathyMode } from "@/hooks/useRetinopathyMode";
+import "@/styles/retinopathy-mode.css";
 import { useIdleLogout } from "@/hooks/useIdleLogout";
 import { useDynamicViewportHeight } from "@/hooks/useDynamicViewportHeight";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -124,6 +126,10 @@ const DonationsInfo = lazy(() => import("./pages/DonationsInfo"));
 const SupportGlucoForge = lazy(() => import("./pages/SupportGlucoForge"));
 const DiabetesBurnout = lazy(() => import("./pages/DiabetesBurnout"));
 const FindDiabeticNearMe = lazy(() => import("./pages/FindDiabeticNearMe"));
+const MentorDirectory = lazy(() => import("./pages/MentorDirectory"));
+const ProviderDashboard = lazy(() => import("./pages/provider/ProviderDashboard"));
+const AuditLog = lazy(() => import("./pages/admin/AuditLog"));
+const FeatureFlagManager = lazy(() => import("./pages/admin/FeatureFlagManager"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Loading page">
@@ -154,6 +160,9 @@ const AppContent = () => {
   
   // Track user engagement (visits, streaks) - must be inside QueryClientProvider
   useEngagementTracking();
+
+  // Apply retinopathy accessibility mode globally
+  useRetinopathyMode();
 
   // Fix 8.1: Auto-logout after 30 minutes of inactivity (medical data security)
   useIdleLogout();
@@ -343,6 +352,12 @@ const AppContent = () => {
         <Route path="/admin/warriors" element={<ProtectedRoute><AdminRoute><AdminWarriors /></AdminRoute></ProtectedRoute>} />
         <Route path="/admin/shop" element={<ProtectedRoute><AdminRoute><AdminShop /></AdminRoute></ProtectedRoute>} />
         <Route path="/admin/content-moderation" element={<ProtectedRoute><AdminRoute><ContentModeration /></AdminRoute></ProtectedRoute>} />
+        <Route path="/admin/audit-log" element={<ProtectedRoute><AdminRoute><AuditLog /></AdminRoute></ProtectedRoute>} />
+        <Route path="/admin/feature-flags" element={<ProtectedRoute><AdminRoute><FeatureFlagManager /></AdminRoute></ProtectedRoute>} />
+        
+        {/* Domain routes */}
+        <Route path="/mentors" element={<ProtectedRoute><MentorDirectory /></ProtectedRoute>} />
+        <Route path="/provider/dashboard" element={<ProtectedRoute><ProviderDashboard /></ProtectedRoute>} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>
