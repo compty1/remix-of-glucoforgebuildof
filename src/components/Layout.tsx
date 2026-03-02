@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { SkipToContent } from '@/components/SkipToContent';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,8 +12,8 @@ import { OnboardingModal } from '@/components/OnboardingModal';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { GlobalSearchDialog } from '@/components/search/GlobalSearchDialog';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
-import { SmartOnboarding } from '@/components/onboarding/SmartOnboarding';
-import { AchievementUnlockModal } from '@/components/achievements/AchievementUnlockModal';
+const SmartOnboarding = lazy(() => import('@/components/onboarding/SmartOnboarding').then(m => ({ default: m.SmartOnboarding })));
+const AchievementUnlockModal = lazy(() => import('@/components/achievements/AchievementUnlockModal').then(m => ({ default: m.AchievementUnlockModal })));
 import { useAchievements } from '@/hooks/useAchievements';
 import { useUserPreferences } from '@/hooks/useUserPreferences';
 
@@ -208,16 +208,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       />
       
       {/* Smart Onboarding Modal */}
-      <SmartOnboarding 
-        open={showSmartOnboarding} 
-        onOpenChange={setShowSmartOnboarding} 
-      />
+      <Suspense fallback={null}>
+        <SmartOnboarding 
+          open={showSmartOnboarding} 
+          onOpenChange={setShowSmartOnboarding} 
+        />
+      </Suspense>
       
       {/* Achievement Unlock Celebration */}
-      <AchievementUnlockModal 
-        achievement={recentlyUnlocked}
-        onClose={dismissUnlocked}
-      />
+      <Suspense fallback={null}>
+        <AchievementUnlockModal 
+          achievement={recentlyUnlocked}
+          onClose={dismissUnlocked}
+        />
+      </Suspense>
     </SidebarProvider>
   );
 };

@@ -154,6 +154,7 @@ const queryClient = new QueryClient({
 
 // Inner component that uses hooks requiring QueryClient
 const AppContent = () => {
+  console.log('[GF] AppContent rendering');
   const initialize = useAuthStore((state) => state.initialize);
   const user = useAuthStore((state) => state.user);
   const queryClient = useQueryClient();
@@ -358,6 +359,7 @@ const AppContent = () => {
         {/* Domain routes */}
         <Route path="/mentors" element={<ProtectedRoute><MentorDirectory /></ProtectedRoute>} />
         <Route path="/provider/dashboard" element={<ProtectedRoute><ProviderDashboard /></ProtectedRoute>} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>
