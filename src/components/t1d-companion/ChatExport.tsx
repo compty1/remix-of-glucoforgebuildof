@@ -21,8 +21,12 @@ interface ChatExportProps {
 }
 
 export function ChatExport({ messages, contextTitle }: ChatExportProps) {
+  // Phase 12.8: PHI warning on chat export
+  const PHI_WARNING = `⚠️ IMPORTANT: This export may contain Protected Health Information (PHI).
+Store securely and share only with your healthcare team. Do not post publicly.\n\n`;
+
   const formatForExport = () => {
-    const header = `T1D Companion Chat Export
+    const header = PHI_WARNING + `T1D Companion Chat Export
 ${contextTitle ? `Topic: ${contextTitle}` : ''}
 Date: ${new Date().toLocaleDateString()}
 ---
@@ -39,7 +43,9 @@ Date: ${new Date().toLocaleDateString()}
   };
 
   const formatAsMarkdown = () => {
-    const header = `# T1D Companion Chat Export
+    const header = `> ⚠️ **IMPORTANT:** This export may contain Protected Health Information (PHI). Store securely and share only with your healthcare team.
+
+# T1D Companion Chat Export
 
 ${contextTitle ? `**Topic:** ${contextTitle}` : ''}
 **Date:** ${new Date().toLocaleDateString()}

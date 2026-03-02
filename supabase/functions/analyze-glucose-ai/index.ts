@@ -70,7 +70,7 @@ GLUCOSE METRICS:
 - Time in Range (70-180): ${metrics.timeInRange.toFixed(1)}%
 - Time Below 70: ${metrics.timeBelow70.toFixed(1)}%
 - Time Above 180: ${metrics.timeAbove180.toFixed(1)}%
-- GMI (estimated A1C): ${metrics.gmi.toFixed(1)}%
+- GMI (Glucose Management Indicator): ${metrics.gmi.toFixed(1)}%
 - MAGE (swing amplitude): ${metrics.mage.toFixed(0)} mg/dL
 
 DETECTED PATTERNS:
