@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
 import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
+import { MEDICAL_SAFETY_SUFFIX, TEMPERATURE_GUIDE, enforceTokenLimit } from "../_shared/promptGuards.ts";
 
 interface GlucoseMetrics {
   avgGlucose: number;
@@ -59,7 +60,7 @@ Focus on:
 - Lifestyle correlations (meal timing, exercise, sleep)
 - Specific insulin adjustment suggestions (with caveats about provider consultation)
 - Encouraging what's working well
-- Prioritizing the most impactful changes first`;
+- Prioritizing the most impactful changes first` + MEDICAL_SAFETY_SUFFIX;
 
     const userPrompt = `Analyze this CGM data and provide personalized insights:
 
@@ -97,7 +98,7 @@ Provide:
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
         ],
-        temperature: 0.3, // Fix 8.4: Lower temperature for clinical consistency
+        temperature: TEMPERATURE_GUIDE.clinical_analysis,
         max_tokens: 2000
       }),
     });

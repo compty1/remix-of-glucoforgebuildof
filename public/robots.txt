@@ -1,14 +1,30 @@
+# Phase 14.18: robots.txt with PHI protection
 User-agent: Googlebot
 Allow: /
+Disallow: /dashboard
+Disallow: /data-upload
+Disallow: /journal
+Disallow: /scenario-lab
+Disallow: /settings
+Disallow: /admin*
+Disallow: /qa-checklist
 
 User-agent: Bingbot
 Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
+Disallow: /dashboard
+Disallow: /data-upload
+Disallow: /journal
+Disallow: /scenario-lab
+Disallow: /settings
+Disallow: /admin*
 
 User-agent: *
 Allow: /
+Disallow: /dashboard
+Disallow: /data-upload
+Disallow: /journal
+Disallow: /scenario-lab
+Disallow: /settings
+Disallow: /admin*
+
+Sitemap: https://glucoforge.lovable.app/sitemap.xml
