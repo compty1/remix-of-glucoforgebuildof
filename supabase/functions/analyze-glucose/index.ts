@@ -4,27 +4,8 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
 import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
 
-// Rate limiting config
-const RATE_LIMIT_REQUESTS = 30;
-const RATE_LIMIT_WINDOW_MS = 60000;
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
-
-function checkRateLimit(clientIp: string): boolean {
-  const now = Date.now();
-  const clientData = rateLimitStore.get(clientIp);
-
-  if (!clientData || now > clientData.resetTime) {
-    rateLimitStore.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
-    return true;
-  }
-
-  if (clientData.count >= RATE_LIMIT_REQUESTS) {
-    return false;
-  }
-
-  clientData.count++;
-  return true;
-}
+// Fix 4.7: Removed in-memory rate limiter (won't work in serverless).
+// Rate limiting is now handled via auth-based checks below.
 
 const analyzeRequestSchema = z.object({
   filename: z.string(),
@@ -697,19 +678,21 @@ function validateReadings(readings: GlucoseReading[]): GlucoseReading[] {
     
     const year = r.timestamp.getFullYear();
     if (year < 2010 || year > currentYear + 1) {
-      // Skip reading with impossible year
       return false;
     }
     
     if (r.timestamp < minDate || r.timestamp > maxDate) return false;
-    if (!r.value || isNaN(r.value)) return false;
+    // Fix 1.10: Filter negative values and NaN
+    if (!r.value || isNaN(r.value) || r.value < 0) return false;
     if (r.value < 20 || r.value > 500) return false;
     
     return true;
   });
   
-  // Date validation complete
-  return validated;
+  // Fix 3.5: Deduplicate by timestamp (keep last reading per timestamp)
+  const deduped = [...new Map(validated.map(r => [r.timestamp.getTime(), r])).values()];
+  
+  return deduped;
 }
 
 // ============= TEXT QUALITY ASSESSMENT =============
@@ -751,13 +734,15 @@ function assessTextQuality(text: string): TextQualityResult {
   const hasPercentages = percentages.length >= 2;
   
   // Calculate overall score (0-100)
+  // Fix 3.12: Require at least 1 CGM keyword to get a high score
   let score = 0;
-  score += alphanumericRatio >= 0.5 ? 30 : alphanumericRatio * 60;
-  score += hasKeywords ? 30 : foundKeywords.length * 10;
-  score += hasNumbers ? 20 : Math.min(glucoseRangeNumbers.length * 5, 20);
-  score += hasPercentages ? 20 : Math.min(percentages.length * 10, 20);
+  score += alphanumericRatio >= 0.5 ? 15 : alphanumericRatio * 30; // Reduced weight for raw alphanumeric
+  score += hasKeywords ? 35 : foundKeywords.length * 15; // Increased weight for CGM keywords
+  score += hasNumbers ? 25 : Math.min(glucoseRangeNumbers.length * 7, 25);
+  score += hasPercentages ? 25 : Math.min(percentages.length * 12, 25);
   
-  const isReadable = score >= 40;
+  // Fix 3.12: Don't consider readable without at least 1 CGM keyword
+  const isReadable = score >= 40 && foundKeywords.length >= 1;
   
   // Text quality assessment complete
   
@@ -1267,8 +1252,8 @@ Return ONLY valid JSON: {"gmi": number|null, "avgGlucose": number|null, "timeInR
             content: `Extract metrics from this ${reportType} CGM report:\n\n${pdfText.slice(0, 8000)}`
           }
         ],
-        max_tokens: 500,
-        temperature: 0 // Deterministic
+        max_tokens: 1500, // Fix 8.6: Increased from 500 to prevent truncation
+        temperature: 0.3 // Fix 8.4: Slightly above 0 for clinical consistency
       }),
     });
     
@@ -1278,7 +1263,10 @@ Return ONLY valid JSON: {"gmi": number|null, "avgGlucose": number|null, "timeInR
     }
     
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || '';
+    let content = data.choices?.[0]?.message?.content || '';
+    
+    // Fix 3.8: Strip markdown code fences before JSON parsing
+    content = content.replace(/^```(?:json)?\s*\n?/m, '').replace(/\n?\s*```\s*$/m, '');
     
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (jsonMatch) {
@@ -1380,12 +1368,19 @@ function parseCSV(content: string): GlucoseReading[] {
     const line = lines[i].trim();
     if (!line) continue;
     
+    // Fix 3.1: Proper CSV field parsing with escaped quotes ("")
     const parts: string[] = [];
     let current = '';
     let inQuotes = false;
-    for (const char of line) {
+    for (let ci = 0; ci < line.length; ci++) {
+      const char = line[ci];
       if (char === '"') {
-        inQuotes = !inQuotes;
+        if (inQuotes && ci + 1 < line.length && line[ci + 1] === '"') {
+          current += '"'; // Handle escaped quote ""
+          ci++; // Skip next quote
+        } else {
+          inQuotes = !inQuotes;
+        }
       } else if (char === ',' && !inQuotes) {
         parts.push(current.trim().replace(/"/g, ''));
         current = '';
@@ -1450,15 +1445,15 @@ function parseJSON(content: string): GlucoseReading[] {
       let timestamp: Date;
       let value: number;
       
-      // Nightscout format detection - uses 'sgv' for sensor glucose value
-      // and 'date' as Unix timestamp in milliseconds
+      // Fix 3.4: Nightscout format - 'date' is Unix timestamp (ms), use Number() explicitly
       if ('sgv' in item) {
-        // Nightscout format
-        timestamp = new Date(item.date || item.dateString || item.created_at);
+        // Nightscout format — date field is typically Unix ms timestamp
+        const rawDate = item.date;
+        timestamp = typeof rawDate === 'number' ? new Date(rawDate) : new Date(item.dateString || item.created_at || rawDate);
         value = parseFloat(item.sgv);
       } else if ('mbg' in item) {
-        // Nightscout manual blood glucose
-        timestamp = new Date(item.date || item.dateString || item.created_at);
+        const rawDate = item.date;
+        timestamp = typeof rawDate === 'number' ? new Date(rawDate) : new Date(item.dateString || item.created_at || rawDate);
         value = parseFloat(item.mbg);
       } else {
         // Generic JSON format
@@ -2361,11 +2356,18 @@ serve(async (req) => {
     if (authResult instanceof Response) return authResult;
     const { userId } = authResult;
 
-    // 4. Rate Limiting (Database-backed would be better, but keeping simple IP check as fallback for now)
-    const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
-    if (!checkRateLimit(clientIp)) {
+    // 4. Rate Limiting via database — check recent uploads by this user
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const { count: recentUploads } = await createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    ).from('uploads').select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .gte('uploaded_at', fiveMinutesAgo);
+    
+    if (recentUploads && recentUploads > 30) {
       return new Response(
-        JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+        JSON.stringify({ error: 'Too many uploads. Please try again in a few minutes.' }),
         { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -2882,7 +2884,8 @@ serve(async (req) => {
         await supabaseClient.from('uploads').update({ status: 'error' }).eq('id', uploadId);
       }
     } catch (_inner) {
-      // Could not update upload status
+      // Fix 4.8: Log inner error with context
+      console.error('Failed to update upload status to error:', _inner);
     }
     return new Response(
       JSON.stringify({ error: 'An unexpected error occurred during analysis.' }),

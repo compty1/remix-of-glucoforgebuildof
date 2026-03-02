@@ -32,6 +32,12 @@ import {
 } from 'lucide-react';
 import { DataExport } from '@/components/data-upload/DataExport';
 
+// Fix 6.1: Proper file size formatting
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
 
 interface UploadedFile {
   id: string;
@@ -112,7 +118,7 @@ const DataUpload = () => {
       id: upload.id,
       name: upload.file_name,
       type: fileType,
-      size: upload.file_size ? `${(upload.file_size / 1024 / 1024).toFixed(1)} MB` : '0 MB',
+      size: upload.file_size ? formatFileSize(upload.file_size) : '0 B',
       uploadDate: new Date(upload.uploaded_at).toLocaleDateString(),
       status: (upload.status === 'completed' ? 'complete' : upload.status) as 'complete' | 'processing' | 'error',
       insights: upload.insights || [],
@@ -188,10 +194,9 @@ const DataUpload = () => {
       return;
     }
 
+    // Fix 4.3: Process files in parallel instead of sequentially
     const files = Array.from(e.dataTransfer.files);
-    for (const file of files) {
-      await processFile(file);
-    }
+    await Promise.allSettled(files.map(f => processFile(f)));
   }, [user]);
 
   const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB practical limit for edge functions
@@ -227,7 +232,7 @@ const DataUpload = () => {
       id: tempId,
       name: file.name,
       type: getFileType(file.name),
-      size: `${(file.size / 1024 / 1024).toFixed(1)} MB`,
+      size: formatFileSize(file.size),
       uploadDate: new Date().toLocaleDateString(), // Use locale string directly to avoid timezone issues
       status: 'processing',
       insights: [],
@@ -248,15 +253,18 @@ const DataUpload = () => {
         
         if (!isBinary) return await file.text();
 
-        // PDFs, Excel files, and images must be sent as base64
-        const buffer = await file.arrayBuffer();
-        const bytes = new Uint8Array(buffer);
-        let binary = '';
-        const chunkSize = 0x8000;
-        for (let i = 0; i < bytes.length; i += chunkSize) {
-          binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
-        }
-        return btoa(binary);
+        // Fix 4.1: Use FileReader.readAsDataURL to avoid stack overflow on large files
+        return await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = reader.result as string;
+            // Strip the data URL prefix (e.g., "data:application/pdf;base64,")
+            const base64 = result.split(',')[1];
+            resolve(base64);
+          };
+          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.readAsDataURL(file);
+        });
       })();
 
       // Create upload record
@@ -420,10 +428,9 @@ const DataUpload = () => {
                       input.accept = '.csv,.json,.pdf,.xlsx,.xls,.xml,.png,.jpg,.jpeg,.webp';
                       input.multiple = true;
                       input.onchange = async (e) => {
+                        // Fix 4.3: Process files in parallel
                         const files = Array.from((e.target as HTMLInputElement).files || []);
-                        for (const file of files) {
-                          await processFile(file);
-                        }
+                        await Promise.allSettled(files.map(f => processFile(f)));
                       };
                       input.click();
                     }}
