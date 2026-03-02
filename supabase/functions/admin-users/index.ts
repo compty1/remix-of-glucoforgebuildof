@@ -1,11 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
+import { requireAdmin, requireJsonContentType } from "../_shared/auth.ts";
 
 // Validation schemas
 const resetPasswordSchema = z.object({
@@ -49,35 +46,14 @@ serve(async (req) => {
   }
 
   try {
+    const authResult = await requireAdmin(req);
+    if (authResult instanceof Response) return authResult;
+
+    // Use service role key for admin operations
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
-
-    // Verify admin access
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error("No authorization header provided");
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    
-    const user = userData.user;
-    if (!user) throw new Error("User not authenticated");
-
-    // Check if user is admin
-    const { data: adminCheck } = await supabaseClient
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-      .eq('role', 'admin')
-      .maybeSingle();
-
-    if (!adminCheck) {
-      throw new Error("Unauthorized: Admin access required");
-    }
 
     if (req.method === 'GET') {
       // Fetch all users from auth.users with profiles

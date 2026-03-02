@@ -1,10 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
+import { requireAdmin } from "../_shared/auth.ts";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,6 +9,9 @@ serve(async (req) => {
   }
 
   try {
+    const authResult = await requireAdmin(req);
+    if (authResult instanceof Response) return authResult;
+
     console.log('🌱 Seeding devices with comprehensive real-world data...');
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;

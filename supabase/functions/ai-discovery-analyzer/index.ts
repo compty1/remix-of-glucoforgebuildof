@@ -1,10 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
+import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
 
 const RATE_LIMIT_REQUESTS = 30;
 const RATE_LIMIT_WINDOW_MS = 60000;
@@ -252,11 +249,20 @@ serve(async (req) => {
   }
 
   try {
+    const contentTypeError = requireJsonContentType(req);
+    if (contentTypeError) return contentTypeError;
+
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
+
     console.log('🚀 Starting AI discovery analysis...');
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Use user auth context for RLS
+    const authHeader = req.headers.get('Authorization')!;
+    const supabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: authHeader } }
+    });
 
     // Fetch all existing discoveries
     const { data: existingDiscoveries, error: discError } = await supabase

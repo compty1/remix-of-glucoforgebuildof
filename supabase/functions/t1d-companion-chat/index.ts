@@ -1,10 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
+import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
 
 const T1D_SYSTEM_PROMPT = `You are the T1D Companion, a supportive and knowledgeable assistant for people living with Type 1 Diabetes. Your role is to provide practical tips, tricks, and methods that have worked for others in the T1D community.
 
@@ -126,6 +123,12 @@ serve(async (req) => {
   }
 
   try {
+    const contentTypeError = requireJsonContentType(req);
+    if (contentTypeError) return contentTypeError;
+
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
+
     const { messages, issueContext, postContext, contextType, deviceContext, projectContext } = await req.json();
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");

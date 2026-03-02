@@ -1,9 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
+import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
 
 interface GlucoseMetrics {
   avgGlucose: number;
@@ -29,6 +26,15 @@ serve(async (req) => {
   }
 
   try {
+    const contentTypeError = requireJsonContentType(req);
+    if (contentTypeError) return contentTypeError;
+
+    const sizeError = await validateBodySize(req);
+    if (sizeError) return sizeError;
+
+    const authResult = await requireAuth(req);
+    if (authResult instanceof Response) return authResult;
+    const { userId } = authResult;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
