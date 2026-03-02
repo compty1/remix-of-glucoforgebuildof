@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useAuthStore } from "@/store/authStore";
 import { useEngagementTracking } from "@/hooks/useEngagementTracking";
+import { useIdleLogout } from "@/hooks/useIdleLogout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ScrollToTop } from "@/components/ScrollToTop";
@@ -149,6 +150,9 @@ const AppContent = () => {
   
   // Track user engagement (visits, streaks) - must be inside QueryClientProvider
   useEngagementTracking();
+
+  // Fix 8.1: Auto-logout after 30 minutes of inactivity (medical data security)
+  useIdleLogout();
 
   useEffect(() => {
     const cleanup = initialize();

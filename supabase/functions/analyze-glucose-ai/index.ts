@@ -97,7 +97,7 @@ Provide:
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt }
         ],
-        temperature: 0.7,
+        temperature: 0.3, // Fix 8.4: Lower temperature for clinical consistency
         max_tokens: 2000
       }),
     });
