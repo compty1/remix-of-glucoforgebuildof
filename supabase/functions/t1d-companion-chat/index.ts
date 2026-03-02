@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
 import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
+import { detectPromptInjection, scrubPII, enforceTokenLimit, MEDICAL_SAFETY_SUFFIX, TEMPERATURE_GUIDE } from "../_shared/promptGuards.ts";
 
 const T1D_SYSTEM_PROMPT = `You are the T1D Companion, a supportive and knowledgeable assistant for people living with Type 1 Diabetes. Your role is to provide practical tips, tricks, and methods that have worked for others in the T1D community.
 
@@ -35,7 +36,7 @@ Format your responses with:
 - Empathetic acknowledgment of the challenge
 - Source attribution when referencing community posts
 
-End each response with: "💡 These tips come from the T1D community. Always discuss changes with your healthcare team."`;
+End each response with: "💡 These tips come from the T1D community. Always discuss changes with your healthcare team."` + MEDICAL_SAFETY_SUFFIX;
 
 // Stop words to filter out from keyword extraction
 const STOP_WORDS = new Set([
@@ -131,6 +132,26 @@ serve(async (req) => {
 
     const { messages, issueContext, postContext, contextType, deviceContext, projectContext } = await req.json();
     
+    // Phase 12.1: Prompt injection detection
+    const latestMsg = messages?.filter((m: any) => m.role === "user").pop()?.content || "";
+    if (detectPromptInjection(latestMsg)) {
+      return new Response(
+        JSON.stringify({ error: "Your message could not be processed. Please rephrase your question." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Phase 12.10: Token limit on user input
+    if (messages && messages.length > 0) {
+      const lastIdx = messages.length - 1;
+      if (messages[lastIdx].role === "user") {
+        messages[lastIdx].content = enforceTokenLimit(messages[lastIdx].content, 2000);
+      }
+    }
+
+    // Phase 12.2: Scrub PII from logs
+    console.log("Chat request from user, message preview:", scrubPII(latestMsg.substring(0, 100)));
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
@@ -343,6 +364,8 @@ serve(async (req) => {
           ...messages,
         ],
         stream: true,
+        temperature: TEMPERATURE_GUIDE.chat_companion,
+        max_tokens: 2000,
       }),
     });
 

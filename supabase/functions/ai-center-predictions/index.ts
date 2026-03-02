@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
 import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
+import { detectPromptInjection, MEDICAL_SAFETY_SUFFIX, TEMPERATURE_GUIDE, enforceTokenLimit } from "../_shared/promptGuards.ts";
 
 const SYSTEM_PROMPT = `You are an expert AI analyst specializing in Type 1 Diabetes research, technology, and treatment advances. 
 
@@ -29,7 +30,7 @@ Key developments to consider:
 - Once-weekly insulins (Icodec) reaching market
 - Teplizumab for prevention in at-risk individuals
 - CRISPR/gene therapy early research
-- Artificial pancreas multi-hormone systems`;
+- Artificial pancreas multi-hormone systems` + MEDICAL_SAFETY_SUFFIX;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -53,7 +54,16 @@ serve(async (req) => {
       throw new Error('Question is required');
     }
 
-    console.log('Generating prediction for:', question);
+    // Phase 12.1: Prompt injection check
+    if (detectPromptInjection(question)) {
+      return new Response(
+        JSON.stringify({ error: 'Your question could not be processed. Please rephrase.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Phase 12.10: Enforce token limit
+    const safeQuestion = enforceTokenLimit(question, 1000);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -65,10 +75,11 @@ serve(async (req) => {
         model: 'google/gemini-3-flash-preview',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: question },
+          { role: 'user', content: safeQuestion },
         ],
         stream: true,
         max_tokens: 1500,
+        temperature: TEMPERATURE_GUIDE.predictions,
       }),
     });
 
