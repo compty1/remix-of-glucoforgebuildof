@@ -21,22 +21,21 @@ export async function requireAuth(req: Request): Promise<AuthResult | Response> 
     return errorResponse("Unauthorized: missing or invalid Authorization header", 401);
   }
 
-  const token = authHeader.replace("Bearer ", "");
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_ANON_KEY")!,
     { global: { headers: { Authorization: authHeader } } }
   );
 
-  const { data, error } = await supabase.auth.getClaims(token);
-  if (error || !data?.claims) {
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) {
     return errorResponse("Unauthorized: invalid or expired token", 401);
   }
 
   return {
-    userId: data.claims.sub as string,
-    email: data.claims.email as string | undefined,
-    role: data.claims.role as string | undefined,
+    userId: user.id,
+    email: user.email,
+    role: user.role,
   };
 }
 
@@ -76,22 +75,21 @@ export async function optionalAuth(req: Request): Promise<AuthResult | null> {
     return null;
   }
 
-  const token = authHeader.replace("Bearer ", "");
   const supabase = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_ANON_KEY")!,
     { global: { headers: { Authorization: authHeader } } }
   );
 
-  const { data, error } = await supabase.auth.getClaims(token);
-  if (error || !data?.claims) {
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) {
     return null;
   }
 
   return {
-    userId: data.claims.sub as string,
-    email: data.claims.email as string | undefined,
-    role: data.claims.role as string | undefined,
+    userId: user.id,
+    email: user.email,
+    role: user.role,
   };
 }
 
