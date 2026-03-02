@@ -60,6 +60,30 @@ interface DeviceMetadata {
   parserVersion: string;
 }
 
+interface CompressionLowEvent {
+  timestamp: string;
+  nadirValue: number;
+  durationMinutes: number;
+  confidence: number;
+  priorTrend: 'stable' | 'rising' | 'falling';
+}
+
+interface HypoUnawarenessIndicator {
+  score: number;
+  indicators: string[];
+  lowFrequency: number;
+  avgLowDuration: number;
+  prolongedLows: number;
+  recommendation: string;
+}
+
+interface DataCompletenessGrade {
+  overallScore: number;
+  grade: 'A' | 'B' | 'C' | 'D' | 'F';
+  warnings: string[];
+  metricsReliability: Record<string, 'reliable' | 'limited' | 'unreliable'>;
+}
+
 interface NovelSignals {
   missedBoluses: MissedBolusEvent[];
   mealTimingScore: number;
@@ -69,6 +93,9 @@ interface NovelSignals {
   insulinStackingEvents: any[];
   recurringPatterns: RecurringPattern[];
   weekdayVsWeekendDiff: { weekdayTIR: number; weekendTIR: number; significantDifference: boolean } | null;
+  compressionLows: CompressionLowEvent[];
+  hypoUnawareness: HypoUnawarenessIndicator | null;
+  dataCompleteness: DataCompletenessGrade | null;
 }
 
 interface MissedBolusEvent {
@@ -405,20 +432,103 @@ function calculateDayNightMetrics(readings: GlucoseReading[]): DayNightMetrics |
   };
 }
 
-function detectNovelSignals(readings: GlucoseReading[], hourlyData: HourlyStats[]): NovelSignals {
+// ============= 1.16: COMPRESSION LOW DETECTION =============
+function detectCompressionLowEvents(readings: GlucoseReading[]): CompressionLowEvent[] {
+  if (readings.length < 20) return [];
+  const events: CompressionLowEvent[] = [];
+  const sorted = [...readings].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  for (let i = 6; i < sorted.length - 6; i++) {
+    const hour = sorted[i].timestamp.getHours();
+    if (hour >= 7 && hour < 23) continue;
+    const current = sorted[i].value;
+    if (current >= 65) continue;
+    const priorValues = sorted.slice(Math.max(0, i - 6), i).map(r => r.value);
+    const priorAvg = priorValues.reduce((a, b) => a + b, 0) / priorValues.length;
+    const priorTrend: CompressionLowEvent['priorTrend'] = priorAvg - current > 30 && priorAvg > 100 ? 'stable' : priorAvg > current + 10 ? 'falling' : 'rising';
+    const postValues = sorted.slice(i + 1, Math.min(sorted.length, i + 7)).map(r => r.value);
+    const postAvg = postValues.reduce((a, b) => a + b, 0) / (postValues.length || 1);
+    if (priorTrend !== 'falling' && postAvg > 90 && priorAvg > 80) {
+      let duration = 0;
+      for (let j = i; j < Math.min(sorted.length, i + 12); j++) { if (sorted[j].value < 70) duration += 5; else break; }
+      const confidence = (priorAvg > 100 ? 0.3 : 0.1) + (postAvg > 90 ? 0.3 : 0) + (current < 50 ? 0.2 : 0.1) + (duration < 45 ? 0.2 : 0.1);
+      events.push({ timestamp: sorted[i].timestamp.toISOString(), nadirValue: Math.round(current), durationMinutes: duration, confidence: Math.min(0.95, confidence), priorTrend });
+      i += 6;
+    }
+  }
+  return events.slice(0, 10);
+}
+
+// ============= 1.17: HYPOGLYCEMIA UNAWARENESS DETECTION =============
+function assessHypoUnawarenessSignals(readings: GlucoseReading[], daysOfData: number): HypoUnawarenessIndicator | null {
+  if (readings.length < 288 || daysOfData < 3) return null;
+  const sorted = [...readings].sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+  const indicators: string[] = [];
+  let score = 0, lowEventCount = 0, totalLowDuration = 0, prolongedSevereLows = 0, inLow = false, lowStartIdx = 0;
+  for (let i = 0; i < sorted.length; i++) {
+    if (sorted[i].value < 70 && !inLow) { inLow = true; lowStartIdx = i; lowEventCount++; }
+    else if (sorted[i].value >= 70 && inLow) {
+      inLow = false;
+      const durationMin = (sorted[i].timestamp.getTime() - sorted[lowStartIdx].timestamp.getTime()) / 60000;
+      totalLowDuration += durationMin;
+      if (sorted.slice(lowStartIdx, i).some(r => r.value < 54) && durationMin > 30) prolongedSevereLows++;
+    }
+  }
+  const lowsPerDay = lowEventCount / Math.max(1, daysOfData);
+  const avgLowDuration = lowEventCount > 0 ? totalLowDuration / lowEventCount : 0;
+  if (lowsPerDay > 2) { score += 25; indicators.push(`Frequent lows: ${lowsPerDay.toFixed(1)}/day`); }
+  else if (lowsPerDay > 1) { score += 15; indicators.push(`Elevated low frequency: ${lowsPerDay.toFixed(1)}/day`); }
+  if (avgLowDuration > 30) { score += 25; indicators.push(`Prolonged lows averaging ${Math.round(avgLowDuration)} min`); }
+  if (prolongedSevereLows > 0) { score += 30; indicators.push(`${prolongedSevereLows} severe prolonged lows (>30min <54)`); }
+  const nocturnalLows = sorted.filter(r => { const h = r.timestamp.getHours(); return r.value < 60 && (h >= 23 || h <= 5); });
+  if (nocturnalLows.length > daysOfData * 0.5) { score += 20; indicators.push('Frequent nocturnal lows'); }
+  if (indicators.length === 0) return null;
+  return { score: Math.min(100, score), indicators, lowFrequency: Math.round(lowsPerDay * 10) / 10, avgLowDuration: Math.round(avgLowDuration), prolongedLows: prolongedSevereLows,
+    recommendation: score >= 50 ? '⚠️ Pattern suggests possible hypoglycemia unawareness. Discuss with your endocrinologist.' : 'Monitor low patterns. Consider adjusting CGM low alerts.' };
+}
+
+// ============= 1.23: DATA COMPLETENESS GRADING =============
+function assessDataCompletenessGrade(readingsCount: number, daysOfData: number, percentActive: number, gapCount: number): DataCompletenessGrade {
+  const warnings: string[] = [];
+  let score = 100;
+  if (percentActive < 70) { score -= 30; warnings.push(`CGM wear time ${percentActive.toFixed(0)}% (min 70%)`); }
+  else if (percentActive < 85) score -= 10;
+  if (daysOfData < 3) { score -= 30; warnings.push('Less than 3 days — insufficient for patterns'); }
+  else if (daysOfData < 7) { score -= 15; warnings.push('Less than 7 days — limited patterns'); }
+  if (gapCount > 5) { score -= 10; warnings.push(`${gapCount} data gaps detected`); }
+  score = Math.max(0, score);
+  const grade: DataCompletenessGrade['grade'] = score >= 90 ? 'A' : score >= 75 ? 'B' : score >= 60 ? 'C' : score >= 40 ? 'D' : 'F';
+  return { overallScore: score, grade, warnings, metricsReliability: {
+    tir: percentActive >= 70 ? 'reliable' : percentActive >= 50 ? 'limited' : 'unreliable',
+    gmi: daysOfData >= 10 ? 'reliable' : daysOfData >= 5 ? 'limited' : 'unreliable',
+    cv: readingsCount >= 288 ? 'reliable' : readingsCount >= 72 ? 'limited' : 'unreliable',
+    mage: readingsCount >= 288 && percentActive >= 70 ? 'reliable' : 'limited',
+    patterns: daysOfData >= 7 ? 'reliable' : daysOfData >= 3 ? 'limited' : 'unreliable',
+    agp: daysOfData >= 14 ? 'reliable' : daysOfData >= 7 ? 'limited' : 'unreliable',
+  }};
+}
+
+function detectNovelSignals(readings: GlucoseReading[], hourlyData: HourlyStats[], dataQuality: DataQuality): NovelSignals {
   const missedBoluses = detectMissedBoluses(readings);
   const recurringPatterns = detectRecurringPatterns(readings);
   const weekdayVsWeekend = analyzeWeekdayVsWeekend(readings);
+  const compressionLows = detectCompressionLowEvents(readings);
+  const hypoUnawareness = assessHypoUnawarenessSignals(readings, dataQuality.daysOfData);
+  const dataCompleteness = assessDataCompletenessGrade(
+    readings.length, dataQuality.daysOfData, dataQuality.percentCGMActive, dataQuality.gapCount
+  );
   
   return {
     missedBoluses,
-    mealTimingScore: 0, // Requires insulin/meal data
+    mealTimingScore: 0,
     mealTimingMismatches: [],
-    sensorDrift: null, // Requires SMBG pairs
-    autoModeMetrics: null, // Requires pump data
+    sensorDrift: null,
+    autoModeMetrics: null,
     insulinStackingEvents: [],
     recurringPatterns,
-    weekdayVsWeekendDiff: weekdayVsWeekend
+    weekdayVsWeekendDiff: weekdayVsWeekend,
+    compressionLows,
+    hypoUnawareness,
+    dataCompleteness
   };
 }
 
@@ -2815,7 +2925,7 @@ serve(async (req) => {
     const confidenceScore = Math.max(0, 100 - validationFlags.reduce((sum: number, f: ValidationFlag) => sum + f.penalty, 0));
     const confidenceBand = confidenceScore >= 85 ? 'high' : confidenceScore >= 60 ? 'moderate' : confidenceScore >= 30 ? 'low' : 'unreliable';
     const dayNightAnalysis = calculateDayNightMetrics(readings);
-    const novelSignals = detectNovelSignals(readings, hourlyData);
+    const novelSignals = detectNovelSignals(readings, hourlyData, dataQuality);
     const executiveSummary = generateExecutiveSummary(detailedAnalysis, patterns, confidenceScore, dataQuality);
     const deviceMetadata = { deviceType: detectCSVFormat(fileContent), firmwareVersion: null, sensorAge: null, uploadSource: 'cloud_export', parserVersion: '2.0.0' };
 
