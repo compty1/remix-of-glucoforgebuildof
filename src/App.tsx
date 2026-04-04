@@ -130,6 +130,8 @@ const MentorDirectory = lazy(() => import("./pages/MentorDirectory"));
 const ProviderDashboard = lazy(() => import("./pages/provider/ProviderDashboard"));
 const AuditLog = lazy(() => import("./pages/admin/AuditLog"));
 const FeatureFlagManager = lazy(() => import("./pages/admin/FeatureFlagManager"));
+const ClinicPortal = lazy(() => import("./pages/ClinicPortal"));
+const SystemHealth = lazy(() => import("./pages/SystemHealth"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Loading page">
@@ -360,6 +362,8 @@ const AppContent = () => {
         <Route path="/mentors" element={<ProtectedRoute><MentorDirectory /></ProtectedRoute>} />
         <Route path="/provider/dashboard" element={<ProtectedRoute><ProviderDashboard /></ProtectedRoute>} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/clinic/:slug" element={<ClinicPortal />} />
+        <Route path="/admin/health" element={<ProtectedRoute><AdminRoute><SystemHealth /></AdminRoute></ProtectedRoute>} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>

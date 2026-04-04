@@ -96,7 +96,8 @@ const communityItems = [
 { title: "T1D Companion", url: "/t1d-companion", icon: MessageCircle },
 { title: "Community Solutions", url: "/community-solutions", icon: Users },
 { title: "Warrior Spotlight", url: "/warrior-spotlight", icon: Award },
-{ title: "Your Experience", url: "/your-experience", icon: Heart }];
+{ title: "Your Experience", url: "/your-experience", icon: Heart },
+{ title: "Find Mentors", url: "/mentors", icon: GraduationCap }];
 
 
 // Devices & Medications (with Devices submenu handled separately)
@@ -183,6 +184,16 @@ const adminItems = [
   title: "Admin",
   url: "/admin",
   icon: Shield
+},
+{
+  title: "Audit Log",
+  url: "/admin/audit-log",
+  icon: FileText
+},
+{
+  title: "Feature Flags",
+  url: "/admin/feature-flags",
+  icon: Settings
 }];
 
 

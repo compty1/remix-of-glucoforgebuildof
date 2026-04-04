@@ -54,7 +54,8 @@ import { ClaimedProjectsWidget } from '@/components/dashboard/ClaimedProjectsWid
 import { AchievementsWidget } from '@/components/dashboard/AchievementsWidget';
 import { StreaksWidget } from '@/components/dashboard/StreaksWidget';
 import { PeerComparisonPanel } from '@/components/glucose/PeerComparisonPanel';
-import { Trophy, Flame } from 'lucide-react';
+import DigitalCompanion from '@/components/dashboard/DigitalCompanion';
+import { Trophy, Flame, Bot, HeartPulse } from 'lucide-react';
 
 const availableWidgets: DashboardWidget[] = [
   {
@@ -164,7 +165,17 @@ const availableWidgets: DashboardWidget[] = [
     description: 'Compare your glucose data against users with excellent control',
     icon: Users,
     defaultSize: { w: 4, h: 4 }
-  }
+  },
+  // Gap 87: DigitalCompanion widget
+  {
+    id: 'digital-companion',
+    title: 'Digital Companion',
+    component: () => <DigitalCompanion tir={70} />,
+    category: 'Personal',
+    description: 'Your virtual T1D companion — mood-aware encouragement and support',
+    icon: Bot,
+    defaultSize: { w: 4, h: 4 }
+  },
 ];
 
 const Dashboard = () => {

@@ -42,10 +42,24 @@ export default function NightscoutConnector() {
 
   const testConnection = async () => {
     if (!url) return;
+    // Gap 239-240: Validate URL format and enforce HTTPS
+    let cleanUrl: string;
+    try {
+      const parsed = new URL(url.replace(/\/+$/, ''));
+      if (parsed.protocol !== 'https:') {
+        toast.error('Only HTTPS URLs are allowed for security');
+        setTestResult('error');
+        return;
+      }
+      cleanUrl = parsed.origin;
+    } catch {
+      toast.error('Invalid URL format');
+      setTestResult('error');
+      return;
+    }
     setTesting(true);
     setTestResult(null);
     try {
-      const cleanUrl = url.replace(/\/+$/, '');
       const resp = await fetch(`${cleanUrl}/api/v1/status.json`, {
         signal: AbortSignal.timeout(10000),
       });
@@ -61,12 +75,35 @@ export default function NightscoutConnector() {
 
   const saveConnection = async () => {
     if (!user || !url) return;
+    // Gap 237: Hash the API secret instead of storing plain text
+    let cleanUrl: string;
+    try {
+      const parsed = new URL(url.replace(/\/+$/, ''));
+      if (parsed.protocol !== 'https:') {
+        toast.error('Only HTTPS URLs are allowed');
+        return;
+      }
+      cleanUrl = parsed.origin + parsed.pathname.replace(/\/+$/, '');
+    } catch {
+      toast.error('Invalid URL format');
+      return;
+    }
+
+    // Hash the API secret client-side using SHA-1 (matching Nightscout's format)
+    let hashedSecret: string | null = null;
+    if (apiSecret) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(apiSecret);
+      const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      hashedSecret = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
     setSaving(true);
-    const cleanUrl = url.replace(/\/+$/, '');
     const payload = {
       user_id: user.id,
       nightscout_url: cleanUrl,
-      api_secret_hash: apiSecret || null,
+      api_secret_hash: hashedSecret,
       sync_enabled: syncEnabled,
     };
 

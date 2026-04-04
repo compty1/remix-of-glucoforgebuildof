@@ -5774,6 +5774,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_alert_preferences: {
+        Row: {
+          burnout_aware: boolean | null
+          created_at: string
+          daily_budget: number | null
+          font_size: number | null
+          high_contrast: boolean | null
+          id: string
+          reduced_motion: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          burnout_aware?: boolean | null
+          created_at?: string
+          daily_budget?: number | null
+          font_size?: number | null
+          high_contrast?: boolean | null
+          id?: string
+          reduced_motion?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          burnout_aware?: boolean | null
+          created_at?: string
+          daily_budget?: number | null
+          font_size?: number | null
+          high_contrast?: boolean | null
+          id?: string
+          reduced_motion?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_bookmarks: {
         Row: {
           bookmark_type: string

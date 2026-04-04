@@ -21,6 +21,7 @@ import { useRetinopathyMode } from '@/hooks/useRetinopathyMode';
 import NightscoutConnector from '@/components/settings/NightscoutConnector';
 import BluetoothDevicePairing from '@/components/settings/BluetoothDevicePairing';
 import HormonalCycleTracker from '@/components/settings/HormonalCycleTracker';
+import { DeviceConnectionGuide } from '@/components/settings/DeviceConnectionGuide';
 import { 
   User, 
   Bell, 
@@ -337,7 +338,8 @@ const Settings = () => {
     setLoading(true);
     try {
       const userId = user.id;
-      await Promise.allSettled([
+      const sb = supabase as any;
+      const results = await Promise.allSettled([
         supabase.from('profiles').delete().eq('user_id', userId),
         supabase.from('chat_sessions').delete().eq('user_id', userId),
         supabase.from('user_achievements').delete().eq('user_id', userId),
@@ -366,12 +368,26 @@ const Settings = () => {
         supabase.from('advocate_applications').delete().eq('user_id', userId),
         supabase.from('adult_content_submissions').delete().eq('user_id', userId),
         supabase.from('medication_reviews').delete().eq('user_id', userId),
-        // Additional tables (1981)
-        (supabase as any).from('glucose_analysis_entries').delete().eq('user_id', userId),
-        (supabase as any).from('push_subscriptions').delete().eq('user_id', userId),
-        (supabase as any).from('low_blood_sugar_stories').delete().eq('user_id', userId),
-        (supabase as any).from('review_helpful_votes').delete().eq('user_id', userId),
+        // Additional tables from gap analysis (gaps 177-186)
+        sb.from('glucose_analysis_entries').delete().eq('user_id', userId),
+        sb.from('push_subscriptions').delete().eq('user_id', userId),
+        sb.from('low_blood_sugar_stories').delete().eq('user_id', userId),
+        sb.from('review_helpful_votes').delete().eq('user_id', userId),
+        sb.from('hormonal_cycle_logs').delete().eq('user_id', userId),
+        sb.from('nightscout_connections').delete().eq('user_id', userId),
+        sb.from('user_alert_preferences').delete().eq('user_id', userId),
+        sb.from('mentor_profiles').delete().eq('user_id', userId),
+        sb.from('mentor_matches').delete().eq('mentee_id', userId),
+        sb.from('mentor_matches').delete().eq('mentor_id', userId),
+        sb.from('data_license_consents').delete().eq('user_id', userId),
+        sb.from('user_subscriptions').delete().eq('user_id', userId),
+        sb.from('journal_entries').delete().eq('user_id', userId),
       ]);
+      // Log failures for debugging (gap 276)
+      const failures = results.filter(r => r.status === 'rejected');
+      if (failures.length > 0) {
+        console.warn(`[AccountDelete] ${failures.length} deletion(s) failed:`, failures);
+      }
       await signOut();
       toast({
         title: "Account Deleted",
@@ -385,17 +401,23 @@ const Settings = () => {
   };
 
   // Data export before deletion (1984)
+  // Data export with full coverage (gaps 172-176, 187)
   const handleExportBeforeDelete = async () => {
     if (!user) return;
     try {
-      const [uploads, surveys, sessions, achievements, streaks, bookmarks, reviews] = await Promise.all([
+      const sb = supabase as any;
+      const [uploads, surveys, sessions, achievements, streaks, bookmarks, reviews, journal, hormonal, nightscout, preferences] = await Promise.all([
         supabase.from('uploads').select('*').eq('user_id', user.id),
         supabase.from('survey_responses').select('*').eq('user_id', user.id),
-        supabase.from('chat_sessions').select('id, context_name, created_at, summary').eq('user_id', user.id),
+        supabase.from('chat_sessions').select('id, context_name, created_at, summary, messages').eq('user_id', user.id),
         supabase.from('user_achievements').select('*').eq('user_id', user.id),
         supabase.from('user_streaks').select('*').eq('user_id', user.id),
         supabase.from('user_bookmarks').select('*').eq('user_id', user.id),
         supabase.from('device_reviews').select('*').eq('user_id', user.id),
+        sb.from('journal_entries').select('*').eq('user_id', user.id),
+        sb.from('hormonal_cycle_logs').select('*').eq('user_id', user.id),
+        sb.from('nightscout_connections').select('nightscout_url, sync_enabled, created_at').eq('user_id', user.id),
+        supabase.from('user_preferences').select('*').eq('user_id', user.id),
       ]);
       const exportData = {
         exported_at: new Date().toISOString(),
@@ -407,6 +429,10 @@ const Settings = () => {
         streaks: streaks.data || [],
         bookmarks: bookmarks.data || [],
         device_reviews: reviews.data || [],
+        journal_entries: journal.data || [],
+        hormonal_cycle_logs: hormonal.data || [],
+        nightscout_connections: nightscout.data || [],
+        user_preferences: preferences.data || [],
       };
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -434,8 +460,9 @@ const Settings = () => {
           </p>
         </section>
 
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="flex w-full overflow-x-auto">
+        {/* Gap 223: Support URL param tab switching */}
+        <Tabs defaultValue={new URLSearchParams(window.location.search).get('tab') || 'profile'} className="space-y-6">
+          <TabsList className="flex w-full overflow-x-auto scrollbar-thin" aria-label="Settings tabs">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
@@ -846,6 +873,7 @@ const Settings = () => {
             <div className="space-y-6">
               <NightscoutConnector />
               <BluetoothDevicePairing />
+              <DeviceConnectionGuide />
             </div>
           </TabsContent>
 
@@ -1076,11 +1104,77 @@ const Settings = () => {
   );
 };
 
-// Accessibility Settings sub-component
+// Accessibility Settings sub-component (gaps 43-46, 55-57)
 const AccessibilitySettings = () => {
   const { isEnabled: retinopathyEnabled, toggle: toggleRetinopathy } = useRetinopathyMode();
+  const { user } = useAuthStore();
   const [alertBudget, setAlertBudget] = useState(3);
   const [burnoutAware, setBurnoutAware] = useState(false);
+  const [fontSize, setFontSize] = useState(16);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [highContrast, setHighContrast] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+
+  // Load persisted accessibility settings (gaps 44, 46)
+  useEffect(() => {
+    if (!user) return;
+    const loadSettings = async () => {
+      const sb = supabase as any;
+      const { data } = await sb
+        .from('user_alert_preferences')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (data) {
+        setAlertBudget(data.daily_budget ?? 3);
+        setBurnoutAware(data.burnout_aware ?? false);
+        setFontSize(data.font_size ?? 16);
+        setReducedMotion(data.reduced_motion ?? false);
+        setHighContrast(data.high_contrast ?? false);
+      }
+      setSettingsLoaded(true);
+    };
+    loadSettings();
+  }, [user]);
+
+  // Persist accessibility settings (gaps 43, 45)
+  const saveAccessibilitySettings = async (updates: Record<string, any>) => {
+    if (!user) return;
+    const sb = supabase as any;
+    await sb.from('user_alert_preferences').upsert({
+      user_id: user.id,
+      ...updates,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' });
+  };
+
+  const handleAlertBudgetChange = (v: number[]) => {
+    setAlertBudget(v[0]);
+    saveAccessibilitySettings({ daily_budget: v[0], burnout_aware: burnoutAware, font_size: fontSize, reduced_motion: reducedMotion, high_contrast: highContrast });
+  };
+
+  const handleBurnoutAwareChange = (checked: boolean) => {
+    setBurnoutAware(checked);
+    saveAccessibilitySettings({ daily_budget: alertBudget, burnout_aware: checked, font_size: fontSize, reduced_motion: reducedMotion, high_contrast: highContrast });
+  };
+
+  const handleFontSizeChange = (v: number[]) => {
+    setFontSize(v[0]);
+    document.documentElement.style.fontSize = `${v[0]}px`;
+    saveAccessibilitySettings({ daily_budget: alertBudget, burnout_aware: burnoutAware, font_size: v[0], reduced_motion: reducedMotion, high_contrast: highContrast });
+  };
+
+  const handleReducedMotionChange = (checked: boolean) => {
+    setReducedMotion(checked);
+    document.documentElement.classList.toggle('reduce-motion', checked);
+    saveAccessibilitySettings({ daily_budget: alertBudget, burnout_aware: burnoutAware, font_size: fontSize, reduced_motion: checked, high_contrast: highContrast });
+  };
+
+  const handleHighContrastChange = (checked: boolean) => {
+    setHighContrast(checked);
+    document.documentElement.classList.toggle('high-contrast', checked);
+    saveAccessibilitySettings({ daily_budget: alertBudget, burnout_aware: burnoutAware, font_size: fontSize, reduced_motion: reducedMotion, high_contrast: checked });
+  };
 
   return (
     <Card>
@@ -1118,11 +1212,12 @@ const AccessibilitySettings = () => {
           </div>
           <Slider
             value={[alertBudget]}
-            onValueChange={(v) => setAlertBudget(v[0])}
+            onValueChange={handleAlertBudgetChange}
             min={1}
             max={10}
             step={1}
             className="max-w-xs"
+            aria-label={`Alert budget: ${alertBudget} per day`}
           />
         </div>
 
@@ -1138,7 +1233,54 @@ const AccessibilitySettings = () => {
               When burnout risk is detected, suppress gamification and surface mental health resources instead
             </p>
           </div>
-          <Switch checked={burnoutAware} onCheckedChange={setBurnoutAware} />
+          <Switch checked={burnoutAware} onCheckedChange={handleBurnoutAwareChange} />
+        </div>
+
+        <Separator />
+
+        {/* Font Size (gap 55) */}
+        <div className="space-y-3">
+          <div className="space-y-0.5">
+            <Label className="text-base">Font Size</Label>
+            <p className="text-sm text-muted-foreground">
+              Adjust base font size ({fontSize}px)
+            </p>
+          </div>
+          <Slider
+            value={[fontSize]}
+            onValueChange={handleFontSizeChange}
+            min={12}
+            max={24}
+            step={1}
+            className="max-w-xs"
+            aria-label={`Font size: ${fontSize}px`}
+          />
+        </div>
+
+        <Separator />
+
+        {/* Reduced Motion (gap 56) */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="text-base">Reduced Motion</Label>
+            <p className="text-sm text-muted-foreground">
+              Disable animations and transitions (overrides system preference)
+            </p>
+          </div>
+          <Switch checked={reducedMotion} onCheckedChange={handleReducedMotionChange} />
+        </div>
+
+        <Separator />
+
+        {/* High Contrast (gap 57) */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="text-base">High Contrast Mode</Label>
+            <p className="text-sm text-muted-foreground">
+              Increase contrast ratios for better readability
+            </p>
+          </div>
+          <Switch checked={highContrast} onCheckedChange={handleHighContrastChange} />
         </div>
       </CardContent>
     </Card>
