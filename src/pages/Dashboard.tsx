@@ -170,7 +170,7 @@ const availableWidgets: DashboardWidget[] = [
   {
     id: 'digital-companion',
     title: 'Digital Companion',
-    component: () => <DigitalCompanion />,
+    component: () => <DigitalCompanion tir={70} />,
     category: 'Personal',
     description: 'Your virtual T1D companion — mood-aware encouragement and support',
     icon: Bot,
