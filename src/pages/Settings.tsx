@@ -1209,11 +1209,12 @@ const AccessibilitySettings = () => {
           </div>
           <Slider
             value={[alertBudget]}
-            onValueChange={(v) => setAlertBudget(v[0])}
+            onValueChange={handleAlertBudgetChange}
             min={1}
             max={10}
             step={1}
             className="max-w-xs"
+            aria-label={`Alert budget: ${alertBudget} per day`}
           />
         </div>
 
@@ -1229,7 +1230,54 @@ const AccessibilitySettings = () => {
               When burnout risk is detected, suppress gamification and surface mental health resources instead
             </p>
           </div>
-          <Switch checked={burnoutAware} onCheckedChange={setBurnoutAware} />
+          <Switch checked={burnoutAware} onCheckedChange={handleBurnoutAwareChange} />
+        </div>
+
+        <Separator />
+
+        {/* Font Size (gap 55) */}
+        <div className="space-y-3">
+          <div className="space-y-0.5">
+            <Label className="text-base">Font Size</Label>
+            <p className="text-sm text-muted-foreground">
+              Adjust base font size ({fontSize}px)
+            </p>
+          </div>
+          <Slider
+            value={[fontSize]}
+            onValueChange={handleFontSizeChange}
+            min={12}
+            max={24}
+            step={1}
+            className="max-w-xs"
+            aria-label={`Font size: ${fontSize}px`}
+          />
+        </div>
+
+        <Separator />
+
+        {/* Reduced Motion (gap 56) */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="text-base">Reduced Motion</Label>
+            <p className="text-sm text-muted-foreground">
+              Disable animations and transitions (overrides system preference)
+            </p>
+          </div>
+          <Switch checked={reducedMotion} onCheckedChange={handleReducedMotionChange} />
+        </div>
+
+        <Separator />
+
+        {/* High Contrast (gap 57) */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-0.5">
+            <Label className="text-base">High Contrast Mode</Label>
+            <p className="text-sm text-muted-foreground">
+              Increase contrast ratios for better readability
+            </p>
+          </div>
+          <Switch checked={highContrast} onCheckedChange={handleHighContrastChange} />
         </div>
       </CardContent>
     </Card>
