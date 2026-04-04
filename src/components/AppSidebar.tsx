@@ -184,6 +184,16 @@ const adminItems = [
   title: "Admin",
   url: "/admin",
   icon: Shield
+},
+{
+  title: "Audit Log",
+  url: "/admin/audit-log",
+  icon: FileText
+},
+{
+  title: "Feature Flags",
+  url: "/admin/feature-flags",
+  icon: Settings
 }];
 
 

@@ -873,6 +873,7 @@ const Settings = () => {
             <div className="space-y-6">
               <NightscoutConnector />
               <BluetoothDevicePairing />
+              <DeviceConnectionGuide />
             </div>
           </TabsContent>
 
