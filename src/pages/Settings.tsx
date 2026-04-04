@@ -337,7 +337,8 @@ const Settings = () => {
     setLoading(true);
     try {
       const userId = user.id;
-      await Promise.allSettled([
+      const sb = supabase as any;
+      const results = await Promise.allSettled([
         supabase.from('profiles').delete().eq('user_id', userId),
         supabase.from('chat_sessions').delete().eq('user_id', userId),
         supabase.from('user_achievements').delete().eq('user_id', userId),
@@ -366,12 +367,26 @@ const Settings = () => {
         supabase.from('advocate_applications').delete().eq('user_id', userId),
         supabase.from('adult_content_submissions').delete().eq('user_id', userId),
         supabase.from('medication_reviews').delete().eq('user_id', userId),
-        // Additional tables (1981)
-        (supabase as any).from('glucose_analysis_entries').delete().eq('user_id', userId),
-        (supabase as any).from('push_subscriptions').delete().eq('user_id', userId),
-        (supabase as any).from('low_blood_sugar_stories').delete().eq('user_id', userId),
-        (supabase as any).from('review_helpful_votes').delete().eq('user_id', userId),
+        // Additional tables from gap analysis (gaps 177-186)
+        sb.from('glucose_analysis_entries').delete().eq('user_id', userId),
+        sb.from('push_subscriptions').delete().eq('user_id', userId),
+        sb.from('low_blood_sugar_stories').delete().eq('user_id', userId),
+        sb.from('review_helpful_votes').delete().eq('user_id', userId),
+        sb.from('hormonal_cycle_logs').delete().eq('user_id', userId),
+        sb.from('nightscout_connections').delete().eq('user_id', userId),
+        sb.from('user_alert_preferences').delete().eq('user_id', userId),
+        sb.from('mentor_profiles').delete().eq('user_id', userId),
+        sb.from('mentor_matches').delete().eq('mentee_id', userId),
+        sb.from('mentor_matches').delete().eq('mentor_id', userId),
+        sb.from('data_license_consents').delete().eq('user_id', userId),
+        sb.from('user_subscriptions').delete().eq('user_id', userId),
+        sb.from('journal_entries').delete().eq('user_id', userId),
       ]);
+      // Log failures for debugging (gap 276)
+      const failures = results.filter(r => r.status === 'rejected');
+      if (failures.length > 0) {
+        console.warn(`[AccountDelete] ${failures.length} deletion(s) failed:`, failures);
+      }
       await signOut();
       toast({
         title: "Account Deleted",
