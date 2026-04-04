@@ -130,6 +130,8 @@ const MentorDirectory = lazy(() => import("./pages/MentorDirectory"));
 const ProviderDashboard = lazy(() => import("./pages/provider/ProviderDashboard"));
 const AuditLog = lazy(() => import("./pages/admin/AuditLog"));
 const FeatureFlagManager = lazy(() => import("./pages/admin/FeatureFlagManager"));
+const ClinicPortal = lazy(() => import("./pages/ClinicPortal"));
+const SystemHealth = lazy(() => import("./pages/SystemHealth"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center" role="status" aria-label="Loading page">
