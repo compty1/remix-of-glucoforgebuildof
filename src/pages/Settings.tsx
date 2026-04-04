@@ -459,8 +459,9 @@ const Settings = () => {
           </p>
         </section>
 
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="flex w-full overflow-x-auto">
+        {/* Gap 223: Support URL param tab switching */}
+        <Tabs defaultValue={new URLSearchParams(window.location.search).get('tab') || 'profile'} className="space-y-6">
+          <TabsList className="flex w-full overflow-x-auto scrollbar-thin" aria-label="Settings tabs">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />
               Profile
