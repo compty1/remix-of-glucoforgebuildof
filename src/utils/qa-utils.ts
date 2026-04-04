@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 export const useAccessibilityAudit = () => {
   useEffect(() => {
     // Only run in development
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       import('axe-core').then((axe) => {
         axe.default.run().then((results) => {
           if (results.violations.length > 0) {
