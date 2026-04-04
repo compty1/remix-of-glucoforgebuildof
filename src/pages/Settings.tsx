@@ -400,17 +400,23 @@ const Settings = () => {
   };
 
   // Data export before deletion (1984)
+  // Data export with full coverage (gaps 172-176, 187)
   const handleExportBeforeDelete = async () => {
     if (!user) return;
     try {
-      const [uploads, surveys, sessions, achievements, streaks, bookmarks, reviews] = await Promise.all([
+      const sb = supabase as any;
+      const [uploads, surveys, sessions, achievements, streaks, bookmarks, reviews, journal, hormonal, nightscout, preferences] = await Promise.all([
         supabase.from('uploads').select('*').eq('user_id', user.id),
         supabase.from('survey_responses').select('*').eq('user_id', user.id),
-        supabase.from('chat_sessions').select('id, context_name, created_at, summary').eq('user_id', user.id),
+        supabase.from('chat_sessions').select('id, context_name, created_at, summary, messages').eq('user_id', user.id),
         supabase.from('user_achievements').select('*').eq('user_id', user.id),
         supabase.from('user_streaks').select('*').eq('user_id', user.id),
         supabase.from('user_bookmarks').select('*').eq('user_id', user.id),
         supabase.from('device_reviews').select('*').eq('user_id', user.id),
+        sb.from('journal_entries').select('*').eq('user_id', user.id),
+        sb.from('hormonal_cycle_logs').select('*').eq('user_id', user.id),
+        sb.from('nightscout_connections').select('nightscout_url, sync_enabled, created_at').eq('user_id', user.id),
+        supabase.from('user_preferences').select('*').eq('user_id', user.id),
       ]);
       const exportData = {
         exported_at: new Date().toISOString(),
@@ -422,6 +428,10 @@ const Settings = () => {
         streaks: streaks.data || [],
         bookmarks: bookmarks.data || [],
         device_reviews: reviews.data || [],
+        journal_entries: journal.data || [],
+        hormonal_cycle_logs: hormonal.data || [],
+        nightscout_connections: nightscout.data || [],
+        user_preferences: preferences.data || [],
       };
       const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
