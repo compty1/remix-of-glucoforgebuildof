@@ -21,6 +21,7 @@ import { useRetinopathyMode } from '@/hooks/useRetinopathyMode';
 import NightscoutConnector from '@/components/settings/NightscoutConnector';
 import BluetoothDevicePairing from '@/components/settings/BluetoothDevicePairing';
 import HormonalCycleTracker from '@/components/settings/HormonalCycleTracker';
+import DeviceConnectionGuide from '@/components/settings/DeviceConnectionGuide';
 import { 
   User, 
   Bell, 
