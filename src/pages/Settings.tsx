@@ -1091,11 +1091,77 @@ const Settings = () => {
   );
 };
 
-// Accessibility Settings sub-component
+// Accessibility Settings sub-component (gaps 43-46, 55-57)
 const AccessibilitySettings = () => {
   const { isEnabled: retinopathyEnabled, toggle: toggleRetinopathy } = useRetinopathyMode();
+  const { user } = useAuthStore();
   const [alertBudget, setAlertBudget] = useState(3);
   const [burnoutAware, setBurnoutAware] = useState(false);
+  const [fontSize, setFontSize] = useState(16);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const [highContrast, setHighContrast] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+
+  // Load persisted accessibility settings (gaps 44, 46)
+  useEffect(() => {
+    if (!user) return;
+    const loadSettings = async () => {
+      const sb = supabase as any;
+      const { data } = await sb
+        .from('user_alert_preferences')
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (data) {
+        setAlertBudget(data.daily_budget ?? 3);
+        setBurnoutAware(data.burnout_aware ?? false);
+        setFontSize(data.font_size ?? 16);
+        setReducedMotion(data.reduced_motion ?? false);
+        setHighContrast(data.high_contrast ?? false);
+      }
+      setSettingsLoaded(true);
+    };
+    loadSettings();
+  }, [user]);
+
+  // Persist accessibility settings (gaps 43, 45)
+  const saveAccessibilitySettings = async (updates: Record<string, any>) => {
+    if (!user) return;
+    const sb = supabase as any;
+    await sb.from('user_alert_preferences').upsert({
+      user_id: user.id,
+      ...updates,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' });
+  };
+
+  const handleAlertBudgetChange = (v: number[]) => {
+    setAlertBudget(v[0]);
+    saveAccessibilitySettings({ daily_budget: v[0], burnout_aware: burnoutAware, font_size: fontSize, reduced_motion: reducedMotion, high_contrast: highContrast });
+  };
+
+  const handleBurnoutAwareChange = (checked: boolean) => {
+    setBurnoutAware(checked);
+    saveAccessibilitySettings({ daily_budget: alertBudget, burnout_aware: checked, font_size: fontSize, reduced_motion: reducedMotion, high_contrast: highContrast });
+  };
+
+  const handleFontSizeChange = (v: number[]) => {
+    setFontSize(v[0]);
+    document.documentElement.style.fontSize = `${v[0]}px`;
+    saveAccessibilitySettings({ daily_budget: alertBudget, burnout_aware: burnoutAware, font_size: v[0], reduced_motion: reducedMotion, high_contrast: highContrast });
+  };
+
+  const handleReducedMotionChange = (checked: boolean) => {
+    setReducedMotion(checked);
+    document.documentElement.classList.toggle('reduce-motion', checked);
+    saveAccessibilitySettings({ daily_budget: alertBudget, burnout_aware: burnoutAware, font_size: fontSize, reduced_motion: checked, high_contrast: highContrast });
+  };
+
+  const handleHighContrastChange = (checked: boolean) => {
+    setHighContrast(checked);
+    document.documentElement.classList.toggle('high-contrast', checked);
+    saveAccessibilitySettings({ daily_budget: alertBudget, burnout_aware: burnoutAware, font_size: fontSize, reduced_motion: reducedMotion, high_contrast: checked });
+  };
 
   return (
     <Card>
