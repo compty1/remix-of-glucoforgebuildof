@@ -29,7 +29,7 @@ export const useAccessibilityAudit = () => {
 // Performance monitoring utility
 export const usePerformanceMonitor = () => {
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
+    if (import.meta.env.DEV) {
       // Monitor page load performance
       window.addEventListener('load', () => {
         const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
