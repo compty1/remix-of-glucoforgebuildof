@@ -1,4 +1,3 @@
-// Gap 133/207: Clinic whitelabel portal route
 import { useParams } from 'react-router-dom';
 import { useClinicBranding } from '@/hooks/useClinicBranding';
 import Layout from '@/components/Layout';
@@ -7,9 +6,9 @@ import { Loader2 } from 'lucide-react';
 
 export default function ClinicPortal() {
   const { slug } = useParams<{ slug: string }>();
-  const { branding, isLoading } = useClinicBranding(slug || '');
+  const { branding, loading } = useClinicBranding(slug || '');
 
-  if (isLoading) {
+  if (loading) {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[60vh]">
@@ -34,15 +33,15 @@ export default function ClinicPortal() {
     <Layout>
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8 text-center">
-          {branding.logo_url && (
-            <img src={branding.logo_url} alt={branding.clinic_name} className="h-16 mx-auto mb-4" />
+          {branding.logoUrl && (
+            <img src={branding.logoUrl} alt={branding.clinicName} className="h-16 mx-auto mb-4" />
           )}
-          <h1 className="text-3xl font-bold text-foreground">{branding.clinic_name}</h1>
+          <h1 className="text-3xl font-bold text-foreground">{branding.clinicName}</h1>
           <p className="text-muted-foreground mt-2">Patient Portal powered by GlucoForge</p>
         </div>
         <Card>
           <CardHeader>
-            <CardTitle>Welcome to {branding.clinic_name}</CardTitle>
+            <CardTitle>Welcome to {branding.clinicName}</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
