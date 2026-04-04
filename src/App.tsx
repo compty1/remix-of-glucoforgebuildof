@@ -362,6 +362,8 @@ const AppContent = () => {
         <Route path="/mentors" element={<ProtectedRoute><MentorDirectory /></ProtectedRoute>} />
         <Route path="/provider/dashboard" element={<ProtectedRoute><ProviderDashboard /></ProtectedRoute>} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/clinic/:slug" element={<ClinicPortal />} />
+        <Route path="/admin/health" element={<ProtectedRoute><AdminRoute><SystemHealth /></AdminRoute></ProtectedRoute>} />
         
         <Route path="*" element={<NotFound />} />
       </Routes>
