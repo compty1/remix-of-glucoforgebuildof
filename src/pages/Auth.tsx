@@ -386,13 +386,22 @@ const Auth = () => {
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="signin-password"
-                        type="password"
+                        type={showSignInPassword ? 'text' : 'password'}
                         placeholder="Enter your password"
                         value={signInPassword}
                         onChange={(e) => setSignInPassword(e.target.value)}
-                        className={`pl-10 ${errors.signInPassword ? 'border-destructive' : ''}`}
+                        className={`pl-10 pr-10 ${errors.signInPassword ? 'border-destructive' : ''}`}
                         disabled={isLoading}
+                        autoComplete="current-password"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowSignInPassword(!showSignInPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={showSignInPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showSignInPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
                     </div>
                     {errors.signInPassword && (
                       <p className="text-sm text-destructive">{errors.signInPassword}</p>
