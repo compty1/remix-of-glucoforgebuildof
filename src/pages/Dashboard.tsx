@@ -254,12 +254,19 @@ const Dashboard = () => {
     });
   };
 
+  // Gap 104: Replace spinner with skeleton layout
   if (loading) {
     return (
       <Layout>
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8" aria-busy="true">
+          <Skeleton className="h-10 w-1/3 mb-2" />
+          <Skeleton className="h-5 w-2/3 mb-8" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[1,2,3,4,5,6].map(i => (
+              <div key={i} className="space-y-2">
+                <Skeleton className="h-40 w-full rounded-lg" />
+              </div>
+            ))}
           </div>
         </div>
       </Layout>
