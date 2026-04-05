@@ -153,6 +153,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     <Link to="/research" className="block text-white/70 hover:text-brand-teal transition-colors">
                       Research Hub
                     </Link>
+                    <Link to="/ai-center" className="block text-white/70 hover:text-brand-teal transition-colors">
+                      AI Center
+                    </Link>
                   </div>
                 </div>
                 <div className="space-y-3">
@@ -163,6 +166,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </Link>
                     <Link to="/mental-health" className="block text-white/70 hover:text-brand-teal transition-colors">
                       Mental Health Hub
+                    </Link>
+                    <Link to="/organizations" className="block text-white/70 hover:text-brand-teal transition-colors">
+                      Organizations
+                    </Link>
+                    <Link to="/mentors" className="block text-white/70 hover:text-brand-teal transition-colors">
+                      Find Mentors
                     </Link>
                   </div>
                 </div>
@@ -180,6 +189,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </Link>
                     <Link to="/contact" className="block text-white/70 hover:text-brand-teal transition-colors">
                       Contact
+                    </Link>
+                    <Link to="/privacy" className="block text-white/70 hover:text-brand-teal transition-colors">
+                      Privacy Policy
+                    </Link>
+                    <Link to="/terms" className="block text-white/70 hover:text-brand-teal transition-colors">
+                      Terms of Service
                     </Link>
                   </div>
                 </div>
