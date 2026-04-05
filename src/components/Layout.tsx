@@ -247,6 +247,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </Suspense>
       {/* Cookie Consent Banner (gap 279) */}
       <CookieConsent />
+      {/* Idle timeout warning (gap 1060) */}
+      <IdleWarningDialog open={showWarning} secondsLeft={secondsLeft} onStayActive={stayActive} />
     </SidebarProvider>
   );
 };
