@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Collect user data from all relevant tables
+    // Gap 38: Expanded to include all user data tables
     const tables = [
       "profiles",
       "chat_sessions",
@@ -41,6 +41,28 @@ Deno.serve(async (req) => {
       "community_statements",
       "device_reviews",
       "medication_reviews",
+      // Gap 172-176: Additional tables for complete DSAR
+      "journal_entries",
+      "shifts",
+      "hormonal_cycle_logs",
+      "nightscout_connections",
+      "uploads",
+      "survey_responses",
+      "user_alert_preferences",
+      "mentor_profiles",
+      "mentor_matches",
+      "data_license_consents",
+      "user_subscriptions",
+      "charity_points",
+      "charity_donations",
+      "challenge_participants",
+      "connection_requests",
+      "claimed_projects",
+      "advocate_applications",
+      "adult_content_submissions",
+      "user_saved_issues",
+      "user_dashboards",
+      "contact_submissions",
     ];
 
     const exportData: Record<string, unknown> = {
