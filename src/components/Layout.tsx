@@ -15,7 +15,9 @@ import { GlobalSearchDialog } from '@/components/search/GlobalSearchDialog';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
 import { BottomNav } from '@/components/mobile/BottomNav';
 import { IdleWarningDialog } from '@/components/auth/IdleWarningDialog';
+import { KeyboardShortcutsDialog } from '@/components/KeyboardShortcutsDialog';
 import { useIdleLogout } from '@/hooks/useIdleLogout';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 const SmartOnboarding = lazy(() => import('@/components/onboarding/SmartOnboarding').then(m => ({ default: m.SmartOnboarding })));
 const AchievementUnlockModal = lazy(() => import('@/components/achievements/AchievementUnlockModal').then(m => ({ default: m.AchievementUnlockModal })));
 import { useAchievements } from '@/hooks/useAchievements';
@@ -32,6 +34,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const { showModal, completeOnboarding, dismissModal } = useOnboarding();
   const { showWarning, secondsLeft, stayActive } = useIdleLogout();
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  useKeyboardShortcuts();
   
   // Achievements and streaks
   const { recentlyUnlocked, dismissUnlocked } = useAchievements();

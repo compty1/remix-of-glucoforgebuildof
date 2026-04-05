@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
+import { checkRateLimit, rateLimitResponse, getClientIp } from "../_shared/rateLimiter.ts";
 import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
 import { detectPromptInjection, scrubPII, enforceTokenLimit, enforceContextWindow, detectDosageRequest, detectCrisisLanguage, DOSAGE_REFUSAL, CRISIS_RESPONSE, MEDICAL_SAFETY_SUFFIX, TEMPERATURE_GUIDE } from "../_shared/promptGuards.ts";
 
@@ -124,6 +125,11 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limit: 20 requests per minute per IP
+    const ip = getClientIp(req);
+    const rl = checkRateLimit(`chat:${ip}`, 20, 60_000);
+    if (!rl.allowed) return rateLimitResponse(rl.retryAfterMs);
+
     const contentTypeError = requireJsonContentType(req);
     if (contentTypeError) return contentTypeError;
 
