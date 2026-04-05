@@ -58,7 +58,9 @@ import { PeerComparisonPanel } from '@/components/glucose/PeerComparisonPanel';
 import DigitalCompanion from '@/components/dashboard/DigitalCompanion';
 import CharityPointsWidget from '@/components/gamification/CharityPointsWidget';
 import FoodLookup from '@/components/logging/FoodLookup';
-import { Trophy, Flame, Bot, HeartPulse, Wifi, Brain, PieChart, Clock, Apple } from 'lucide-react';
+import IOBWidget from '@/components/dashboard/IOBWidget';
+import MealImpactWidget from '@/components/dashboard/MealImpactWidget';
+import { Trophy, Flame, Bot, HeartPulse, Wifi, Brain, PieChart, Clock, Apple, Syringe, UtensilsCrossed } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthStore } from '@/store/authStore';
 
