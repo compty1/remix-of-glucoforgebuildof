@@ -33,6 +33,7 @@ import {
 import { DataExport } from '@/components/data-upload/DataExport';
 import FoodLookup from '@/components/logging/FoodLookup';
 import NFCSupplyScanner from '@/components/logging/NFCSupplyScanner';
+import { sanitizeFilename } from '@/utils/inputSanitizer';
 
 // Fix 6.1: Proper file size formatting
 function formatFileSize(bytes: number): string {
