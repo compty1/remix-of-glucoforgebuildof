@@ -238,6 +238,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           onClose={dismissUnlocked}
         />
       </Suspense>
+      {/* Cookie Consent Banner (gap 279) */}
+      <CookieConsent />
     </SidebarProvider>
   );
 };
