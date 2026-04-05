@@ -178,6 +178,16 @@ const availableWidgets: DashboardWidget[] = [
     icon: Bot,
     defaultSize: { w: 4, h: 4 }
   },
+  // Gap 88: CharityPoints widget
+  {
+    id: 'charity-points',
+    title: 'Charity Points',
+    component: () => <CharityPointsWidget />,
+    category: 'Community',
+    description: 'Track your charity contributions and community impact',
+    icon: Gift,
+    defaultSize: { w: 4, h: 3 }
+  },
 ];
 
 const Dashboard = () => {
