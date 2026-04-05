@@ -360,21 +360,8 @@ const Dashboard = () => {
             </div>
           </div>
           
-          {/* Nightscout Connection Banner */}
-          <Card className="mb-6 border-primary/20 bg-primary/5">
-            <CardContent className="flex items-center justify-between py-4">
-              <div className="flex items-center gap-3">
-                <Link2 className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="font-medium text-sm">Connect Nightscout</p>
-                  <p className="text-xs text-muted-foreground">Auto-sync your CGM data from Nightscout</p>
-                </div>
-              </div>
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/settings?tab=integrations">Connect</Link>
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Gap 85/357: Nightscout banner - dismissible + conditional */}
+          <NightscoutBanner />
 
           {isEditMode && (
             <div className="bg-accent/10 border border-accent/20 rounded-lg p-4 mb-6">
