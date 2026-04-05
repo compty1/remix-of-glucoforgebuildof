@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { DeviceAIChat } from '@/components/device/DeviceAIChat';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ShareButton } from '@/components/shared/ShareButton';
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -164,7 +165,10 @@ const DeviceDetail = () => {
     <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back Button */}
-        <BackButton fallbackPath="/devices" className="mb-4" />
+        <div className="flex items-center justify-between mb-4">
+          <BackButton fallbackPath="/devices" />
+          <ShareButton title={device?.name ? `${device.name} — GlucoForge` : undefined} />
+        </div>
 
         {/* Hero Section */}
         <section className="mb-8">

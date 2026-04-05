@@ -1,31 +1,10 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
+import { checkRateLimit, rateLimitResponse, getClientIp } from '../_shared/rateLimiter.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-// Rate limiting config
-const RATE_LIMIT_REQUESTS = 20;
-const RATE_LIMIT_WINDOW_MS = 60000;
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
-
-function checkRateLimit(clientIp: string): boolean {
-  const now = Date.now();
-  const clientData = rateLimitStore.get(clientIp);
-
-  if (!clientData || now > clientData.resetTime) {
-    rateLimitStore.set(clientIp, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
-    return true;
-  }
-
-  if (clientData.count >= RATE_LIMIT_REQUESTS) {
-    return false;
-  }
-
-  clientData.count++;
-  return true;
-}
 
 interface RedditPost {
   data: {

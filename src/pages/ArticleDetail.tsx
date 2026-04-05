@@ -12,10 +12,10 @@ import {
   Clock, 
   Eye, 
   Calendar,
-  Share2,
   BookmarkPlus,
   ChevronLeft
 } from 'lucide-react';
+import { ShareButton } from '@/components/shared/ShareButton';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
@@ -254,10 +254,7 @@ export default function ArticleDetail() {
               <BookmarkPlus className="h-4 w-4 mr-2" />
               Save
             </Button>
-            <Button variant="outline" size="sm">
-              <Share2 className="h-4 w-4 mr-2" />
-              Share
-            </Button>
+            <ShareButton title={article.title} text={article.excerpt || undefined} />
           </div>
         </header>
 
