@@ -595,6 +595,44 @@ const Settings = () => {
                   </div>
                 </div>
 
+                {/* Gap 58: Glucose unit selector */}
+                <div className="space-y-2">
+                  <Label>Glucose Units</Label>
+                  <Select value={profile.glucoseUnit} onValueChange={(val) => setProfile(prev => ({ ...prev, glucoseUnit: val }))}>
+                    <SelectTrigger><SelectValue placeholder="Select unit" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mgdl">mg/dL</SelectItem>
+                      <SelectItem value="mmol">mmol/L</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Gap 76: Target glucose range */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="target-low">Target Range Low ({profile.glucoseUnit === 'mmol' ? 'mmol/L' : 'mg/dL'})</Label>
+                    <Input id="target-low" type="number" value={profile.targetRangeLow} onChange={(e) => setProfile(prev => ({ ...prev, targetRangeLow: Number(e.target.value) }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="target-high">Target Range High</Label>
+                    <Input id="target-high" type="number" value={profile.targetRangeHigh} onChange={(e) => setProfile(prev => ({ ...prev, targetRangeHigh: Number(e.target.value) }))} />
+                  </div>
+                </div>
+
+                {/* Gap 78: Emergency contact */}
+                <Separator />
+                <h3 className="text-lg font-semibold">Emergency Contact</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="emergency-name">Contact Name</Label>
+                    <Input id="emergency-name" placeholder="Name" value={profile.emergencyContactName} onChange={(e) => setProfile(prev => ({ ...prev, emergencyContactName: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="emergency-phone">Contact Phone</Label>
+                    <Input id="emergency-phone" type="tel" placeholder="+1 (555) 000-0000" autoComplete="tel" value={profile.emergencyContactPhone} onChange={(e) => setProfile(prev => ({ ...prev, emergencyContactPhone: e.target.value }))} />
+                  </div>
+                </div>
+
                 <Separator />
 
                 <div className="flex justify-end">
