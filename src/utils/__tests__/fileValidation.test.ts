@@ -30,7 +30,7 @@ describe('validateFileUpload', () => {
 
   it('accepts valid CSV files', async () => {
     const content = new TextEncoder().encode('name,value\ntest,123');
-    const file = createMockFile('data.csv', 'text/csv', content.length, content);
+    const file = createMockFile('data.csv', 'text/csv', content.length, content.buffer as ArrayBuffer);
     const result = await validateFileUpload(file);
     expect(result.valid).toBe(true);
   });
