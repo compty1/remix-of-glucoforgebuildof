@@ -11,13 +11,26 @@ export interface SearchResult {
 
 const DEBOUNCE_MS = 300;
 
+/**
+ * Sanitize a search term for use in ilike filters.
+ * Escapes Postgres special characters to prevent SQL injection via .or() filters.
+ */
+function sanitizeSearchTerm(raw: string): string {
+  // Escape %, _, and \ which are special in LIKE/ILIKE
+  return raw
+    .replace(/\\/g, '\\\\')
+    .replace(/%/g, '\\%')
+    .replace(/_/g, '\\_')
+    // Strip any remaining dangerous chars
+    .replace(/['"();]/g, '');
+}
+
 export function useGlobalSearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const search = useCallback((query: string) => {
-    // Clear previous debounce timer
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     if (query.trim().length < 2) {
@@ -29,7 +42,8 @@ export function useGlobalSearch() {
     setIsLoading(true);
 
     debounceRef.current = setTimeout(async () => {
-      const searchTerm = `%${query.toLowerCase()}%`;
+      const sanitized = sanitizeSearchTerm(query.trim().toLowerCase());
+      const searchTerm = `%${sanitized}%`;
 
       try {
         const [

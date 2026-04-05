@@ -14,7 +14,8 @@ import { PaperDetailsModal } from '@/components/research/PaperDetailsModal';
 import { FoundConnectionsTab } from '@/components/research/FoundConnectionsTab';
 import { useResearchInsights } from '@/hooks/useResearchInsights';
 import { useCitationNetwork, type NetworkNode } from '@/hooks/useCitationNetwork';
-import { RefreshCw, Sparkles, TrendingUp, Network, Mail, BarChart3, Link2 } from 'lucide-react';
+import { RefreshCw, Sparkles, TrendingUp, Network, Mail, BarChart3, Link2, Download } from 'lucide-react';
+import { CitationExportButtons } from '@/components/research/CitationExportButtons';
 
 const ResearchInsights = () => {
   usePageMeta('Research Insights', 'Explore T1D research insights, citation networks, TLDR summaries and influential papers.');
@@ -123,6 +124,10 @@ const ResearchInsights = () => {
 
           {/* Influential Papers Tab */}
           <TabsContent value="influential">
+            <div className="flex items-center justify-between mb-4">
+              <Badge variant="outline">{topInfluentialPapers.length} influential papers</Badge>
+              <CitationExportButtons papers={topInfluentialPapers} />
+            </div>
             {loading ? (
               <Skeleton className="h-[600px]" />
             ) : (
