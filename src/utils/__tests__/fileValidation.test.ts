@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { validateFileUpload, checkUploadQuota } from '../fileValidation';
 
-function createMockFile(name: string, type: string, size: number, content?: Uint8Array): File {
-  const buffer = content ? new Blob([content]) : new Blob([new ArrayBuffer(size)]);
-  return new File([buffer], name, { type });
+function createMockFile(name: string, type: string, size: number, content?: ArrayBuffer): File {
+  const blob = content ? new Blob([content]) : new Blob([new ArrayBuffer(size)]);
+  return new File([blob], name, { type });
 }
 
 describe('validateFileUpload', () => {
