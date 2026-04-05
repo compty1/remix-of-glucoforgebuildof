@@ -53,12 +53,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     }
   }, [user, prefsLoading, preferences]);
 
-  // Keyboard shortcut for search (Cmd+K or Ctrl+K)
+  // Keyboard shortcut for search (Cmd+K or Ctrl+K) and ? for shortcuts help
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setSearchOpen(true);
+      }
+      const tag = (e.target as HTMLElement)?.tagName;
+      const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || (e.target as HTMLElement)?.isContentEditable;
+      if (e.key === '?' && !isInput && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        setShortcutsOpen(true);
       }
     };
     
