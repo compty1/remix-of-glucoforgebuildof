@@ -34,6 +34,29 @@ export function usePageMeta(title: string, description?: string) {
     if (description) setOG('og:description', description.slice(0, 200));
     setOG('og:type', 'website');
 
+    // Twitter Card tags
+    const setMeta = (name: string, content: string) => {
+      let tag = document.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);
+      if (!tag) {
+        tag = document.createElement('meta');
+        tag.name = name;
+        document.head.appendChild(tag);
+      }
+      tag.content = content;
+    };
+    setMeta('twitter:card', 'summary');
+    setMeta('twitter:title', title ? `${title} | GlucoForge` : 'GlucoForge');
+    if (description) setMeta('twitter:description', description.slice(0, 200));
+
+    // Canonical URL
+    let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement('link');
+      canonical.rel = 'canonical';
+      document.head.appendChild(canonical);
+    }
+    canonical.href = window.location.origin + window.location.pathname;
+
     return () => {
       document.title = appName;
     };

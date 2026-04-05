@@ -8,12 +8,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuthStore } from '@/store/authStore';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Mail, Lock, User, AlertCircle, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Loader2, Mail, Lock, User, AlertCircle, CheckCircle2, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import logoImage from '@/assets/glucoforge-logo.svg';
 import { signInSchema, signUpSchema } from '@/lib/validation';
 import { z } from 'zod';
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { PasswordStrengthIndicator } from '@/components/auth/PasswordStrengthIndicator';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 
@@ -35,6 +36,11 @@ const Auth = () => {
   const [signUpPassword, setSignUpPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  
+  // Password visibility
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Validation errors
   const [errors, setErrors] = useState<{[key: string]: string}>({});
@@ -357,6 +363,7 @@ const Auth = () => {
                         onChange={(e) => setSignInEmail(e.target.value)}
                         className={`pl-10 ${errors.signInEmail ? 'border-destructive' : ''}`}
                         disabled={isLoading}
+                        autoComplete="email"
                       />
                     </div>
                     {errors.signInEmail && (
@@ -380,13 +387,22 @@ const Auth = () => {
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="signin-password"
-                        type="password"
+                        type={showSignInPassword ? 'text' : 'password'}
                         placeholder="Enter your password"
                         value={signInPassword}
                         onChange={(e) => setSignInPassword(e.target.value)}
-                        className={`pl-10 ${errors.signInPassword ? 'border-destructive' : ''}`}
+                        className={`pl-10 pr-10 ${errors.signInPassword ? 'border-destructive' : ''}`}
                         disabled={isLoading}
+                        autoComplete="current-password"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowSignInPassword(!showSignInPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={showSignInPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showSignInPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
                     </div>
                     {errors.signInPassword && (
                       <p className="text-sm text-destructive">{errors.signInPassword}</p>
@@ -461,17 +477,27 @@ const Auth = () => {
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="signup-password"
-                        type="password"
+                        type={showSignUpPassword ? 'text' : 'password'}
                         placeholder="Create a secure password"
                         value={signUpPassword}
                         onChange={(e) => setSignUpPassword(e.target.value)}
-                        className={`pl-10 ${errors.signUpPassword ? 'border-destructive' : ''}`}
+                        className={`pl-10 pr-10 ${errors.signUpPassword ? 'border-destructive' : ''}`}
                         disabled={isLoading}
+                        autoComplete="new-password"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={showSignUpPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showSignUpPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
                     </div>
                     {errors.signUpPassword && (
                       <p className="text-sm text-destructive">{errors.signUpPassword}</p>
                     )}
+                    <PasswordStrengthIndicator password={signUpPassword} />
                   </div>
                   
                   <div className="space-y-2">
@@ -480,13 +506,22 @@ const Auth = () => {
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         id="confirm-password"
-                        type="password"
+                        type={showConfirmPassword ? 'text' : 'password'}
                         placeholder="Confirm your password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className={`pl-10 ${errors.confirmPassword ? 'border-destructive' : ''}`}
+                        className={`pl-10 pr-10 ${errors.confirmPassword ? 'border-destructive' : ''}`}
                         disabled={isLoading}
+                        autoComplete="new-password"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
                     </div>
                     {errors.confirmPassword && (
                       <p className="text-sm text-destructive">{errors.confirmPassword}</p>

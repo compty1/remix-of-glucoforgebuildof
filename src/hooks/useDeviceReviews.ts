@@ -43,7 +43,7 @@ interface UseDeviceReviewsReturn {
   refresh: () => void;
 }
 
-export const useDeviceReviews = (deviceId: string | undefined): UseDeviceReviewsReturn => {
+export const useDeviceReviews = (deviceId: string | undefined, sortBy: 'newest' | 'helpful' | 'highest' | 'lowest' = 'newest'): UseDeviceReviewsReturn => {
   const [reviews, setReviews] = useState<DeviceReview[]>([]);
   const [stats, setStats] = useState<ReviewStats>({
     averageRating: 0,
@@ -62,12 +62,14 @@ export const useDeviceReviews = (deviceId: string | undefined): UseDeviceReviews
       setLoading(true);
       setError(null);
 
-      // Fetch reviews — server-side limit to prevent over-fetching (Issue 67)
+      // Fetch reviews with sort option
+      const orderCol = sortBy === 'helpful' ? 'helpful_count' : sortBy === 'highest' || sortBy === 'lowest' ? 'rating' : 'created_at';
+      const ascending = sortBy === 'lowest';
       const { data: reviewsData, error: reviewsError } = await supabase
         .from('device_reviews')
         .select('*')
         .eq('device_id', deviceId)
-        .order('created_at', { ascending: false })
+        .order(orderCol, { ascending, nullsFirst: false })
         .limit(100);
 
       if (reviewsError) throw reviewsError;
@@ -144,7 +146,7 @@ export const useDeviceReviews = (deviceId: string | undefined): UseDeviceReviews
     } finally {
       setLoading(false);
     }
-  }, [deviceId, user?.id]); // Issue 266: only depend on user.id (not whole user object) to avoid unnecessary refetches
+  }, [deviceId, user?.id, sortBy]);
 
   useEffect(() => {
     fetchReviews();
