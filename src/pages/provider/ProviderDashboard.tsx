@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { Loader2, Users, AlertTriangle, ArrowUpDown, Search } from 'lucide-react';
+import RPMBillingExport from '@/components/provider/RPMBillingExport';
 
 const sb = supabase as any;
 
@@ -126,6 +127,13 @@ export default function ProviderDashboard() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+
+        {/* Gap 127: RPM Billing Export */}
+        {patients.length > 0 && (
+          <div className="mt-8">
+            <RPMBillingExport />
           </div>
         )}
       </div>

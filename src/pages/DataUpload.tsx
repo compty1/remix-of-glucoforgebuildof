@@ -31,6 +31,9 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { DataExport } from '@/components/data-upload/DataExport';
+import FoodLookup from '@/components/logging/FoodLookup';
+import NFCSupplyScanner from '@/components/logging/NFCSupplyScanner';
+import { sanitizeFilename } from '@/utils/inputSanitizer';
 
 // Fix 6.1: Proper file size formatting
 function formatFileSize(bytes: number): string {
@@ -232,10 +235,12 @@ const DataUpload = () => {
     }
 
     const tempId = crypto.randomUUID();
+    // Gap 201: Sanitize filename before use
+    const safeName = sanitizeFilename(file.name);
     const newFile: UploadedFile = {
       id: tempId,
-      name: file.name,
-      type: getFileType(file.name),
+      name: safeName,
+      type: getFileType(safeName),
       size: formatFileSize(file.size),
       uploadDate: new Date().toLocaleDateString(), // Use locale string directly to avoid timezone issues
       status: 'processing',
@@ -758,6 +763,12 @@ const DataUpload = () => {
           dayNightAnalysis={selectedFile.dayNightAnalysis}
         />
       )}
+
+      {/* Gap 3 & 4: FoodLookup and NFCSupplyScanner */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8 px-4 sm:px-6 lg:px-8">
+        <FoodLookup />
+        <NFCSupplyScanner />
+      </div>
     </Layout>
   );
 };

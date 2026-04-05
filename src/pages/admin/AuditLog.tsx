@@ -35,10 +35,13 @@ export default function AuditLog() {
   const [tableFilter, setTableFilter] = useState('all');
   const [actionFilter, setActionFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 50;
 
   useEffect(() => {
     const load = async () => {
-      let query = sb.from('audit_trail').select('*').order('created_at', { ascending: false }).limit(200);
+      setLoading(true);
+      let query = sb.from('audit_trail').select('*').order('created_at', { ascending: false }).range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
       if (tableFilter !== 'all') query = query.eq('table_name', tableFilter);
       if (actionFilter !== 'all') query = query.eq('action', actionFilter);
       const { data } = await query;
@@ -46,7 +49,7 @@ export default function AuditLog() {
       setLoading(false);
     };
     load();
-  }, [tableFilter, actionFilter]);
+  }, [tableFilter, actionFilter, page]);
 
   const filtered = entries.filter(e =>
     !searchQuery ||
@@ -132,6 +135,19 @@ export default function AuditLog() {
                 </CardContent>
               </Card>
             ))}
+          </div>
+        )}
+
+        {/* Gap 341: Pagination */}
+        {!loading && filtered.length > 0 && (
+          <div className="flex items-center justify-between mt-4">
+            <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
+              Previous
+            </Button>
+            <span className="text-sm text-muted-foreground">Page {page + 1}</span>
+            <Button variant="outline" size="sm" disabled={filtered.length < PAGE_SIZE} onClick={() => setPage(p => p + 1)}>
+              Next
+            </Button>
           </div>
         )}
       </div>

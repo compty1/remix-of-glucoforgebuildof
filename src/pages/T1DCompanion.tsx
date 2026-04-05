@@ -9,7 +9,8 @@ import { MySavedIssues } from '@/components/t1d-companion/MySavedIssues';
 import { ChatHistoryList } from '@/components/chat/ChatHistoryList';
 import { SavedIssue } from '@/hooks/useSavedIssues';
 import { useAuthStore } from '@/store/authStore';
-import { Sparkles, Compass, MessageSquare, Bookmark, History } from 'lucide-react';
+import { Sparkles, Compass, MessageSquare, Bookmark, History, Cpu } from 'lucide-react';
+import { useLocalAI } from '@/hooks/useLocalAI';
 
 interface ChatContext {
   initialMessage: string;
@@ -24,8 +25,9 @@ interface ChatContext {
 export default function T1DCompanion() {
   const [activeTab, setActiveTab] = useState('explore');
   const [chatContext, setChatContext] = useState<ChatContext | null>(null);
-  const [chatKey, setChatKey] = useState(0); // Force re-mount when loading sessions
+  const [chatKey, setChatKey] = useState(0);
   const { user } = useAuthStore();
+  const { isSupported: localAISupported, isModelLoaded } = useLocalAI();
 
   const handleSelectIssue = (issue: any) => {
     setChatContext({
@@ -89,6 +91,15 @@ export default function T1DCompanion() {
             Your AI-powered assistant for Type 1 Diabetes challenges. Get practical tips and solutions 
             from the T1D community, track your issues, and find what works for others.
           </p>
+          {/* Gap 528: Local AI badge */}
+          {localAISupported && (
+            <div className="flex items-center gap-1.5 mt-2">
+              <Cpu className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs text-primary font-medium">
+                {isModelLoaded ? 'Local AI Active — responses stay on your device' : 'WebGPU available — Local AI ready'}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Main Tabs */}
