@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
 import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
+import { checkRateLimit, rateLimitResponse, getClientIp } from "../_shared/rateLimiter.ts";
 
 // Input validation schema
 const dailyBriefingRequestSchema = z.object({
@@ -16,6 +17,11 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Rate limit: 10 requests per minute per IP
+    const ip = getClientIp(req);
+    const rl = checkRateLimit(`briefing:${ip}`, 10, 60_000);
+    if (!rl.allowed) return rateLimitResponse(rl.retryAfterMs);
+
     const contentTypeError = requireJsonContentType(req);
     if (contentTypeError) return contentTypeError;
 

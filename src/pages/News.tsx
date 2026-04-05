@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { Newspaper, RefreshCw, Search, AlertCircle, Rss } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,10 @@ const News = () => {
   } = useT1DNews();
 
   const [localSearch, setLocalSearch] = useState('');
+
+  // Auto-refresh news every 5 minutes
+  const stableRefresh = useCallback(() => { refreshNews(); }, [refreshNews]);
+  const { isPolling, togglePolling } = useAutoRefresh(stableRefresh, { intervalMs: 5 * 60 * 1000 });
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
