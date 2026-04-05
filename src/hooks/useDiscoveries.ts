@@ -23,13 +23,18 @@ export const useDiscoveries = (filters?: {
   type?: string;
   impact?: string;
   minCredibility?: number;
+  limit?: number;
+  offset?: number;
 }) => {
+  const limit = filters?.limit ?? 50;
+  const offset = filters?.offset ?? 0;
+
   const { data: discoveries = [], isLoading: loading, error: rawError } = useQuery({
-    queryKey: ['discoveries', filters?.type, filters?.impact, filters?.minCredibility],
+    queryKey: ['discoveries', filters?.type, filters?.impact, filters?.minCredibility, limit, offset],
     queryFn: async () => {
       let query = supabase
         .from('discoveries')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('credibility_score', { ascending: false })
         .order('discovered_at', { ascending: false });
 
@@ -43,13 +48,15 @@ export const useDiscoveries = (filters?: {
         query = query.gte('credibility_score', filters.minCredibility);
       }
 
-      const { data, error: fetchError } = await query.limit(50);
+      const { data, error: fetchError, count } = await query.range(offset, offset + limit - 1);
       if (fetchError) throw fetchError;
-      return (data || []) as Discovery[];
+      return { items: (data || []) as Discovery[], totalCount: count ?? 0 };
     },
-    staleTime: 15 * 60 * 1000, // 15 minutes
+    staleTime: 15 * 60 * 1000,
   });
 
   const error = rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch discoveries') : null;
-  return { discoveries, loading, error };
+  const totalCount = (discoveries as any)?.totalCount ?? 0;
+  const items = (discoveries as any)?.items ?? discoveries;
+  return { discoveries: Array.isArray(items) ? items : [], loading, error, totalCount };
 };
