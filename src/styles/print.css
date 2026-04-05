@@ -1,0 +1,72 @@
+/* Print stylesheet - Gap 1073 */
+@media print {
+  /* Hide non-essential UI */
+  header,
+  footer,
+  nav,
+  aside,
+  [data-sidebar],
+  .bottom-nav,
+  .fixed,
+  .sticky,
+  button:not([data-print]),
+  [role="dialog"],
+  [role="alertdialog"] {
+    display: none !important;
+  }
+
+  /* Reset layout */
+  body,
+  #root {
+    background: white !important;
+    color: black !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Ensure content fills page */
+  .min-h-screen {
+    min-height: auto !important;
+  }
+
+  .flex-1 {
+    flex: none !important;
+  }
+
+  /* Show link URLs */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+    word-break: break-all;
+  }
+
+  /* Page breaks */
+  .card,
+  article,
+  section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  h1, h2, h3 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* Remove shadows and borders for cleaner print */
+  .shadow,
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg {
+    box-shadow: none !important;
+  }
+
+  /* Ensure images print */
+  img {
+    max-width: 100% !important;
+  }
+}

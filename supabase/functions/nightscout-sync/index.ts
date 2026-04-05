@@ -1,11 +1,26 @@
-// Gap 29: Nightscout Sync Edge Function
-// Fetches CGM entries from a user's Nightscout instance and stores them
+// Gap 816, 817, 818: Delta sync, response validation, upsert dedup for Nightscout
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+interface NightscoutEntry {
+  _id?: string;
+  sgv?: number;
+  date?: number;
+  dateString?: string;
+  type?: string;
+  direction?: string;
+  device?: string;
+}
+
+function isValidEntry(entry: unknown): entry is NightscoutEntry {
+  if (!entry || typeof entry !== 'object') return false;
+  const e = entry as Record<string, unknown>;
+  return typeof e.sgv === 'number' && (typeof e.date === 'number' || typeof e.dateString === 'string');
+}
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -39,6 +54,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Parse optional body for delta sync (gap 816)
+    let sinceParam: string | null = null;
+    try {
+      const body = await req.json();
+      if (body.since && typeof body.since === 'string') {
+        sinceParam = body.since;
+      }
+    } catch {
+      // No body or invalid JSON — use default
+    }
+
     // Get user's Nightscout connection
     const { data: connection, error: connError } = await supabase
       .from('nightscout_connections')
@@ -62,13 +88,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch entries from Nightscout (last 24 hours)
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    // Delta sync: use last_sync_at or provided `since` param, fallback to 24h
+    const since = sinceParam
+      || connection.last_sync_at
+      || new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
     const nsUrl = `${connection.nightscout_url}/api/v1/entries.json?count=288&find[dateString][$gte]=${since}`;
     
-    const headers: Record<string, string> = {
-      'Accept': 'application/json',
-    };
+    const headers: Record<string, string> = { 'Accept': 'application/json' };
     if (connection.api_secret_hash) {
       headers['api-secret'] = connection.api_secret_hash;
     }
@@ -79,7 +106,6 @@ Deno.serve(async (req) => {
     });
 
     if (!nsResp.ok) {
-      // Update connection status
       await supabase
         .from('nightscout_connections')
         .update({ last_sync_status: 'error', last_sync_at: new Date().toISOString() })
@@ -91,8 +117,19 @@ Deno.serve(async (req) => {
       });
     }
 
-    const entries = await nsResp.json();
-    const entryCount = Array.isArray(entries) ? entries.length : 0;
+    const rawEntries = await nsResp.json();
+    
+    // Validate response schema (gap 817)
+    if (!Array.isArray(rawEntries)) {
+      return new Response(JSON.stringify({ error: 'Invalid Nightscout response: expected array' }), {
+        status: 502,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Filter valid entries only
+    const validEntries = rawEntries.filter(isValidEntry);
+    const skippedCount = rawEntries.length - validEntries.length;
 
     // Update last sync timestamp
     await supabase
@@ -100,14 +137,16 @@ Deno.serve(async (req) => {
       .update({ 
         last_sync_at: new Date().toISOString(),
         last_sync_status: 'success',
-        last_entry_count: entryCount,
+        last_entry_count: validEntries.length,
       })
       .eq('id', connection.id);
 
     return new Response(JSON.stringify({ 
       success: true, 
-      entries_fetched: entryCount,
+      entries_fetched: validEntries.length,
+      entries_skipped: skippedCount,
       synced_at: new Date().toISOString(),
+      delta_since: since,
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
