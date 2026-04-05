@@ -225,13 +225,7 @@ const DiabetesBurnout = () => {
   const { data: posts, isLoading: postsLoading } = useBurnoutPosts(postCategory === "all" ? undefined : postCategory);
   const [seeding, setSeeding] = useState(false);
 
-  // Auto-seed on first load if no posts
-  useEffect(() => {
-    if (posts && posts.length === 0 && !seeding) {
-      setSeeding(true);
-      supabase.functions.invoke("seed-burnout-posts").finally(() => setSeeding(false));
-    }
-  }, [posts, seeding]);
+  // Bug 248: Removed unauthenticated auto-seeding. Data should be seeded via admin tools only.
 
   const categories = ["all", "Taking a Break", "Automation Saved Me", "Therapy That Worked", "Simplifying Management", "CGM Burnout"];
 

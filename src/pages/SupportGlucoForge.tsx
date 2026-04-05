@@ -256,8 +256,10 @@ export default function SupportGlucoForge() {
   const [donationAmount, setDonationAmount] = useState(100);
   const [donationType, setDonationType] = useState<'one-time' | 'monthly'>('one-time');
 
+  const navigate = useNavigate();
+  
   const handleDonate = () => {
-    window.open(`/donate?amount=${donationAmount}&type=${donationType}`, '_self');
+    navigate(`/donate?amount=${donationAmount}&type=${donationType}`);
   };
 
   return (

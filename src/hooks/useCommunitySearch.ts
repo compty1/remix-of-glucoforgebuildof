@@ -280,15 +280,9 @@ export const useRefreshCommunityData = () => {
       const { data, error } = await supabase.functions.invoke('community-feed');
       
       if (error) {
-        // Only seed if the table is nearly empty
-        const { count } = await supabase
-          .from('community_posts')
-          .select('*', { count: 'exact', head: true });
-
-        if ((count || 0) < 10) {
-          await supabase.functions.invoke('seed-community-posts');
-          await supabase.functions.invoke('seed-community-comments');
-        }
+        // Bug 300: Removed unauthenticated client-side seed calls.
+        // Data should be seeded via admin tools only.
+        throw error;
       }
       
       return data || { success: true };

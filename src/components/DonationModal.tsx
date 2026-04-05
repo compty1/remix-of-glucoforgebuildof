@@ -88,7 +88,7 @@ export const DonationModal = ({ open, onOpenChange }: DonationModalProps) => {
 
       if (data?.url) {
         // Redirect to Stripe Checkout
-        window.open(data.url, '_blank');
+        window.open(data.url, '_blank', 'noopener,noreferrer');
         onOpenChange(false);
         toast({
           title: "Redirecting to Stripe Checkout",

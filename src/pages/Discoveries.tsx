@@ -51,13 +51,8 @@ export default function Discoveries() {
     }
   };
 
-  const handleSeedData = async () => {
-    try {
-      await supabase.functions.invoke('seed-discoveries');
-      window.location.reload();
-    } catch {
-    }
-  };
+  // Bug 246/247: Removed unauthenticated client-side seeding.
+  // Data should be seeded via admin tools only.
 
   if (loading) {
     return (
