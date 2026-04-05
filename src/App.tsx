@@ -17,6 +17,11 @@ import { ScrollToTop } from "@/components/ScrollToTop";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { applySecurityHeaders } from "@/utils/securityHeaders";
+import { usePerformanceMonitoring } from "@/hooks/usePerformanceMonitoring";
+
+// Apply security headers once at startup (gaps 263-266)
+applySecurityHeaders();
 
 // Eagerly loaded critical routes
 import Index from "./pages/Index";
@@ -172,6 +177,9 @@ const AppContent = () => {
 
   // Phase 6.27: Dynamic viewport height for mobile browser chrome
   useDynamicViewportHeight();
+
+  // Gap 494/495: Performance monitoring
+  usePerformanceMonitoring();
 
   // Phase 5.8 / 7.28: Clear query cache on logout
   useEffect(() => {

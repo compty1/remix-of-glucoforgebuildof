@@ -174,6 +174,7 @@ const otherItems = [
 const supportItems = [
 { title: "About", url: "/about", icon: Info },
 { title: "Healthcare Providers", url: "/healthcare-providers", icon: Building2 },
+{ title: "Provider Dashboard", url: "/provider/dashboard", icon: Stethoscope },
 { title: "Resources", url: "/resources", icon: Library },
 { title: "Settings", url: "/settings", icon: Settings },
 { title: "Help & Support", url: "/help", icon: HelpCircle }];

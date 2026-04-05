@@ -152,7 +152,12 @@ const Settings = () => {
     diagnosisDate: '',
     primaryCgm: '',
     insulinDelivery: '',
-    researchParticipation: true
+    researchParticipation: true,
+    glucoseUnit: 'mgdl',
+    targetRangeLow: 70,
+    targetRangeHigh: 180,
+    emergencyContactName: '',
+    emergencyContactPhone: '',
   });
   const [notifications, setNotifications] = useState({
     glucoseAlerts: true,
@@ -161,7 +166,10 @@ const Settings = () => {
     deviceAlerts: true,
     weeklyReports: true,
     emailDelivery: true,
-    pushDelivery: false
+    pushDelivery: false,
+    quietHoursStart: '',
+    quietHoursEnd: '',
+    alertPriority: 'all',
   });
 
   const [privacy, setPrivacy] = useState({
@@ -195,14 +203,15 @@ const Settings = () => {
       if (error) return;
 
       if (data) {
-        setProfile({
+        setProfile(prev => ({
+          ...prev,
           displayName: data.display_name || '',
           bio: data.bio || '',
           diagnosisDate: data.diagnosis_date || '',
           primaryCgm: data.primary_cgm || '',
           insulinDelivery: data.insulin_delivery || '',
           researchParticipation: data.research_participation ?? true
-        });
+        }));
         if (data.notification_preferences) {
           const prefs = data.notification_preferences as typeof notifications;
           setNotifications(prev => ({ ...prev, ...prefs }));
@@ -587,6 +596,44 @@ const Settings = () => {
                   </div>
                 </div>
 
+                {/* Gap 58: Glucose unit selector */}
+                <div className="space-y-2">
+                  <Label>Glucose Units</Label>
+                  <Select value={profile.glucoseUnit} onValueChange={(val) => setProfile(prev => ({ ...prev, glucoseUnit: val }))}>
+                    <SelectTrigger><SelectValue placeholder="Select unit" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mgdl">mg/dL</SelectItem>
+                      <SelectItem value="mmol">mmol/L</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Gap 76: Target glucose range */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="target-low">Target Range Low ({profile.glucoseUnit === 'mmol' ? 'mmol/L' : 'mg/dL'})</Label>
+                    <Input id="target-low" type="number" value={profile.targetRangeLow} onChange={(e) => setProfile(prev => ({ ...prev, targetRangeLow: Number(e.target.value) }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="target-high">Target Range High</Label>
+                    <Input id="target-high" type="number" value={profile.targetRangeHigh} onChange={(e) => setProfile(prev => ({ ...prev, targetRangeHigh: Number(e.target.value) }))} />
+                  </div>
+                </div>
+
+                {/* Gap 78: Emergency contact */}
+                <Separator />
+                <h3 className="text-lg font-semibold">Emergency Contact</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="emergency-name">Contact Name</Label>
+                    <Input id="emergency-name" placeholder="Name" value={profile.emergencyContactName} onChange={(e) => setProfile(prev => ({ ...prev, emergencyContactName: e.target.value }))} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="emergency-phone">Contact Phone</Label>
+                    <Input id="emergency-phone" type="tel" placeholder="+1 (555) 000-0000" autoComplete="tel" value={profile.emergencyContactPhone} onChange={(e) => setProfile(prev => ({ ...prev, emergencyContactPhone: e.target.value }))} />
+                  </div>
+                </div>
+
                 <Separator />
 
                 <div className="flex justify-end">
@@ -717,7 +764,41 @@ const Settings = () => {
 
                 <Separator />
 
-                {/* Save Button - Fixed item 1841-1845 */}
+                {/* Gap 67: Quiet Hours */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Quiet Hours</h3>
+                  <p className="text-sm text-muted-foreground">Suppress non-urgent notifications during these hours</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="quiet-start">Start Time</Label>
+                      <Input id="quiet-start" type="time" value={notifications.quietHoursStart} onChange={(e) => setNotifications(prev => ({ ...prev, quietHoursStart: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="quiet-end">End Time</Label>
+                      <Input id="quiet-end" type="time" value={notifications.quietHoursEnd} onChange={(e) => setNotifications(prev => ({ ...prev, quietHoursEnd: e.target.value }))} />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Gap 69: Alert Priority */}
+                <div className="space-y-2">
+                  <Label>Alert Priority Filter</Label>
+                  <p className="text-sm text-muted-foreground">Choose which priority level of alerts to receive</p>
+                  <Select value={notifications.alertPriority} onValueChange={(val) => setNotifications(prev => ({ ...prev, alertPriority: val }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Alerts</SelectItem>
+                      <SelectItem value="high">High Priority Only</SelectItem>
+                      <SelectItem value="critical">Critical Only</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Separator />
+
+                {/* Save Button */}
                 <div className="flex justify-end">
                   <Button onClick={handleSaveNotifications} disabled={loading}>Save Notification Preferences</Button>
                 </div>
