@@ -23,23 +23,13 @@ export const useMedicationReviews = () => {
 
   const submitReview = useMutation({
     mutationFn: async (review: ReviewSubmission) => {
-      if (!user) {
-        throw new Error("You must be logged in to submit a review");
-      }
-
+      if (!user) throw new Error("You must be logged in to submit a review");
       const { data, error } = await supabase
         .from("medication_reviews")
-        .insert({
-          ...review,
-          user_id: user.id,
-        })
+        .insert({ ...review, user_id: user.id })
         .select()
         .single();
-
-      if (error) {
-        throw error;
-      }
-
+      if (error) throw error;
       return data;
     },
     onSuccess: (data) => {
@@ -54,10 +44,7 @@ export const useMedicationReviews = () => {
 
   const updateReview = useMutation({
     mutationFn: async ({ reviewId, updates }: { reviewId: string; updates: Partial<ReviewSubmission> }) => {
-      if (!user) {
-        throw new Error("You must be logged in to update a review");
-      }
-
+      if (!user) throw new Error("You must be logged in to update a review");
       const { data, error } = await supabase
         .from("medication_reviews")
         .update(updates)
@@ -65,11 +52,7 @@ export const useMedicationReviews = () => {
         .eq("user_id", user.id)
         .select()
         .single();
-
-      if (error) {
-        throw error;
-      }
-
+      if (error) throw error;
       return data;
     },
     onSuccess: (data) => {
@@ -83,20 +66,13 @@ export const useMedicationReviews = () => {
 
   const deleteReview = useMutation({
     mutationFn: async ({ reviewId, medicationId }: { reviewId: string; medicationId: string }) => {
-      if (!user) {
-        throw new Error("You must be logged in to delete a review");
-      }
-
+      if (!user) throw new Error("You must be logged in to delete a review");
       const { error } = await supabase
         .from("medication_reviews")
         .delete()
         .eq("id", reviewId)
         .eq("user_id", user.id);
-
-      if (error) {
-        throw error;
-      }
-
+      if (error) throw error;
       return { reviewId, medicationId };
     },
     onSuccess: ({ medicationId }) => {
@@ -111,13 +87,38 @@ export const useMedicationReviews = () => {
 
   const toggleHelpful = useMutation({
     mutationFn: async ({ reviewId, medicationId }: { reviewId: string; medicationId: string }) => {
-      // Use atomic RPC to avoid race conditions (Issue 92)
-      const { error } = await supabase.rpc('increment_review_helpful', { review_id: reviewId as any });
-      if (error) throw error;
+      if (!user) throw new Error("You must be logged in to vote");
+
+      // Check if user already voted
+      const { data: existing } = await supabase
+        .from("medication_review_helpful_votes")
+        .select("id")
+        .eq("review_id", reviewId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (existing) {
+        // Un-vote
+        const { error } = await supabase
+          .from("medication_review_helpful_votes")
+          .delete()
+          .eq("review_id", reviewId)
+          .eq("user_id", user.id);
+        if (error) throw error;
+      } else {
+        // Vote
+        const { error } = await supabase
+          .from("medication_review_helpful_votes")
+          .insert({ review_id: reviewId, user_id: user.id });
+        if (error) throw error;
+      }
       return { reviewId, medicationId };
     },
     onSuccess: ({ medicationId }) => {
       queryClient.invalidateQueries({ queryKey: ["medication-details", medicationId] });
+    },
+    onError: () => {
+      toast.error("Failed to update vote");
     },
   });
 

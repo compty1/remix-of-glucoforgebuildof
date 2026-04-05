@@ -1,10 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
-};
+import { corsHeaders, handleCors, jsonResponse, errorResponse } from "../_shared/cors.ts";
+import { analyzeSentiment } from "../_shared/sentiment.ts";
+import { isJunkContent, cleanMarkdown, deterministicId } from "../_shared/junkFilter.ts";
 
 // Device-specific search queries for Firecrawl
 const DEVICE_SEARCH_QUERIES: Record<string, { webQuery: string; redditQuery: string }> = {
@@ -42,56 +40,6 @@ const DEVICE_SEARCH_QUERIES: Record<string, { webQuery: string; redditQuery: str
   },
 };
 
-// Junk content markers to filter out navigation/boilerplate
-const JUNK_MARKERS = [
-  'skip to main content', 'skip to content', 'skip to primary content',
-  'skip to navigation', 'skip to footer',
-  'skip to fda search', 'skip to in this section',
-  'a-z list', 'cookie policy', 'advertisement',
-  'sign up for', 'subscribe to', 'privacy policy', 'terms of service',
-  'accept cookies', 'we use cookies', 'javascript is disabled',
-  'go to main content', 'visit website', 'error 403', 'error 404',
-  'claimed profile', 'trustscore', 'share - facebook',
-  'logoproducts', 'dexcom logo', 'products patients',
-  'save up to', 'pill identifier', 'find treatment options',
-  'drug interaction checker', 'check for [drug interactions]',
-  'latest drug news', 'complete sitemap', 'clipboard, search history',
-  'sale sold out in stock', 'filter your search',
-  'we are updating our terms', 'find a journal', 'publish with us',
-  'track your research', 'automated to help more patients',
-  'page you were looking', 'in this section:',
-  'start over on our', 'home page](https://',
-];
-
-function analyzeSentiment(text: string): 'positive' | 'neutral' | 'negative' {
-  const positiveWords = ['love', 'amazing', 'great', 'excellent', 'works', 'helped', 'better', 'recommend', 'effective', 'game changer', 'life changing', 'wonderful', 'fantastic', 'improved', 'perfect', 'happy', 'accurate', 'reliable', 'comfortable', 'easy'];
-  const negativeWords = ['hate', 'terrible', 'horrible', 'useless', 'failed', 'side effects', 'problem', 'issue', 'stopped working', 'awful', 'worst', 'pain', 'dangerous', 'disappointed', 'frustrated', 'inaccurate', 'unreliable', 'uncomfortable', 'annoying', 'defective'];
-
-  const lowerText = text.toLowerCase();
-  let pos = 0, neg = 0;
-  positiveWords.forEach(w => { if (lowerText.includes(w)) pos++; });
-  negativeWords.forEach(w => { if (lowerText.includes(w)) neg++; });
-
-  if (pos > neg + 1) return 'positive';
-  if (neg > pos + 1) return 'negative';
-  return 'neutral';
-}
-
-function isJunkContent(text: string): boolean {
-  const lower = text.toLowerCase().substring(0, 500);
-  return JUNK_MARKERS.some(marker => lower.includes(marker));
-}
-
-function cleanMarkdown(text: string): string {
-  return text
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/#{1,6}\s*/g, '')
-    .replace(/\*{1,3}/g, '')
-    .replace(/!\[.*?\]\(.*?\)/g, '')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
-}
-
 function extractSource(url: string): string {
   if (url.includes('reddit.com')) return 'reddit';
   if (url.includes('diatribe.org')) return 'diatribe';
@@ -112,14 +60,12 @@ function extractSource(url: string): string {
   }
 }
 
-// Fetch web reviews via Firecrawl search with scrape
 async function fetchWebReviews(deviceName: string, searchQuery: string, limit = 20): Promise<any[]> {
   const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
   if (!firecrawlKey) return [];
 
   try {
     console.log(`Firecrawl web search for "${deviceName}": ${searchQuery}`);
-
     const response = await fetch('https://api.firecrawl.dev/v1/search', {
       method: 'POST',
       headers: {
@@ -146,7 +92,7 @@ async function fetchWebReviews(deviceName: string, searchQuery: string, limit = 
     return results
       .filter((r: any) => {
         const content = r.markdown || r.description || '';
-        return content.length > 100 && !isJunkContent(content);
+        return !isJunkContent(content) && content.length > 100;
       })
       .map((r: any) => {
         const rawContent = r.markdown || r.description || '';
@@ -154,7 +100,6 @@ async function fetchWebReviews(deviceName: string, searchQuery: string, limit = 
         const url = r.url || '';
         const source = extractSource(url);
         const sentiment = analyzeSentiment(cleaned);
-
         const title = (r.title || '').replace(/ - .+$/, '').replace(/ \| .+$/, '').substring(0, 200)
           || `${deviceName} Review`;
 
@@ -174,14 +119,12 @@ async function fetchWebReviews(deviceName: string, searchQuery: string, limit = 
   }
 }
 
-// Fetch Reddit community posts via Firecrawl search
 async function fetchRedditBuzz(deviceName: string, searchQuery: string, limit = 10): Promise<any[]> {
   const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
   if (!firecrawlKey) return [];
 
   try {
     console.log(`Firecrawl Reddit search for "${deviceName}": ${searchQuery}`);
-
     const response = await fetch('https://api.firecrawl.dev/v1/search', {
       method: 'POST',
       headers: {
@@ -209,7 +152,7 @@ async function fetchRedditBuzz(deviceName: string, searchQuery: string, limit = 
       .filter((r: any) => {
         const url = r.url || '';
         const content = r.markdown || r.description || '';
-        return url.includes('reddit.com') && content.length > 80 && !isJunkContent(content);
+        return url.includes('reddit.com') && !isJunkContent(content);
       })
       .map((r: any) => {
         const rawContent = r.markdown || r.description || '';
@@ -234,9 +177,8 @@ async function fetchRedditBuzz(deviceName: string, searchQuery: string, limit = 
 }
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
+  const corsResp = handleCors(req);
+  if (corsResp) return corsResp;
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -267,64 +209,50 @@ serve(async (req) => {
 
     for (const device of devices || []) {
       const config = DEVICE_SEARCH_QUERIES[device.name];
-      if (!config) {
-        console.log(`No search config for device: ${device.name}, using generic`);
-      }
-
       const webQuery = config?.webQuery || `"${device.name}" review experience`;
       const redditQuery = config?.redditQuery || `site:reddit.com "${device.name}" review experience`;
 
-      // Pass 1: Primary web reviews
       const webReviews1 = await fetchWebReviews(device.name, webQuery, 20);
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Pass 2: Alternative sources
       const webQuery2 = `${device.name} user review diabetes experience site:reddit.com OR site:diatribe.org OR site:healthline.com`;
       const webReviews2 = await fetchWebReviews(device.name, webQuery2, 20);
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Pass 3: Forum/feedback angle
       const webQuery3 = `"${device.name}" diabetes user feedback forum opinion`;
       const webReviews3 = await fetchWebReviews(device.name, webQuery3, 15);
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Pass 4: Pros/cons comparison
       const webQuery4 = `"${device.name}" pros cons comparison 2024 2025 diabetes`;
       const webReviews4 = await fetchWebReviews(device.name, webQuery4, 15);
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Pass 5: Long-term experience
       const webQuery5 = `"${device.name}" long term review experience months years diabetes`;
       const webReviews5 = await fetchWebReviews(device.name, webQuery5, 15);
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Pass 6: Forum-specific (diabetesdaily, tudiabetes, beyondtype1)
       const webQuery6 = `"${device.name}" review experience site:diabetesdaily.com OR site:tudiabetes.org OR site:beyondtype1.org`;
       const webReviews6 = await fetchWebReviews(device.name, webQuery6, 15);
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Pass 7: YouTube reviews
       const webQuery7 = `"${device.name}" review diabetes site:youtube.com`;
       const webReviews7 = await fetchWebReviews(device.name, webQuery7, 10);
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Pass 8: Reddit with broader subreddit coverage
       const redditQuery2 = `site:reddit.com "${device.name}" diabetes OR type1 OR insulin pump OR CGM`;
       const redditPosts2 = await fetchRedditBuzz(device.name, redditQuery2, 10);
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Reddit community buzz
       const redditPosts = await fetchRedditBuzz(device.name, redditQuery, 10);
 
-      // Combine all results, deduplicate by URL
       const allResults = [...webReviews1, ...webReviews2, ...webReviews3, ...webReviews4, ...webReviews5, ...webReviews6, ...webReviews7, ...redditPosts, ...redditPosts2];
       const uniqueByUrl = Array.from(new Map(allResults.map(r => [r.source_url, r])).values());
 
       console.log(`${device.name}: ${uniqueByUrl.length} unique results (from ${allResults.length} total)`);
 
-      // Insert into external_device_reviews
       for (const result of uniqueByUrl) {
-        const externalId = `fc_${device.id}_${result.source}_${Math.random().toString(36).substr(2, 9)}`;
+        // Deterministic ID from source + URL to prevent duplicates
+        const externalId = deterministicId(result.source || 'web', result.source_url, result.content);
 
         const record = {
           device_id: device.id,
@@ -336,7 +264,7 @@ serve(async (req) => {
           content: result.content,
           sentiment: result.sentiment || 'neutral',
           helpful_count: 0,
-          published_at: new Date().toISOString(),
+          published_at: null, // BUG 6 fix: don't fake dates for scraped content
           source_url: result.source_url || null,
           device_mentioned: device.name,
           verified_purchase: false,
@@ -345,7 +273,7 @@ serve(async (req) => {
 
         const { error: insertError } = await supabase
           .from('external_device_reviews')
-          .insert(record);
+          .upsert(record, { onConflict: 'source,external_id', ignoreDuplicates: true });
 
         if (!insertError) {
           totalInserted++;
@@ -358,30 +286,17 @@ serve(async (req) => {
       await new Promise(resolve => setTimeout(resolve, 2000));
     }
 
-    const summary = {
+    return jsonResponse({
       success: true,
       devicesProcessed: devices?.length || 0,
       totalInserted,
       startIndex,
       batchSize,
-    };
-
-    console.log('Summary:', JSON.stringify(summary));
-
-    return new Response(JSON.stringify(summary), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Error in fetch-device-reviews:', error);
-
-    return new Response(JSON.stringify({
-      success: false,
-      error: errorMessage,
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return errorResponse(errorMessage, 500);
   }
 });
