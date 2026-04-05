@@ -152,7 +152,12 @@ const Settings = () => {
     diagnosisDate: '',
     primaryCgm: '',
     insulinDelivery: '',
-    researchParticipation: true
+    researchParticipation: true,
+    glucoseUnit: 'mgdl',
+    targetRangeLow: 70,
+    targetRangeHigh: 180,
+    emergencyContactName: '',
+    emergencyContactPhone: '',
   });
   const [notifications, setNotifications] = useState({
     glucoseAlerts: true,
@@ -161,7 +166,10 @@ const Settings = () => {
     deviceAlerts: true,
     weeklyReports: true,
     emailDelivery: true,
-    pushDelivery: false
+    pushDelivery: false,
+    quietHoursStart: '',
+    quietHoursEnd: '',
+    alertPriority: 'all',
   });
 
   const [privacy, setPrivacy] = useState({
