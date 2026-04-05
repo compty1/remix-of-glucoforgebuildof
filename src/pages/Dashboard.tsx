@@ -16,7 +16,6 @@ import {
   LayoutGrid,
   X,
   Save,
-  RotateCcw,
   TrendingUp,
   Users,
   Beaker,
@@ -29,7 +28,9 @@ import {
   BarChart3,
   Bookmark,
   Upload,
-  Mail
+  Mail,
+  Gift,
+  RotateCcw
 } from 'lucide-react';
 import { WeeklyDigestSignup } from '@/components/WeeklyDigestSignup';
 import { Link2 } from 'lucide-react';
@@ -55,9 +56,52 @@ import { AchievementsWidget } from '@/components/dashboard/AchievementsWidget';
 import { StreaksWidget } from '@/components/dashboard/StreaksWidget';
 import { PeerComparisonPanel } from '@/components/glucose/PeerComparisonPanel';
 import DigitalCompanion from '@/components/dashboard/DigitalCompanion';
-import { CharityPointsWidget } from '@/components/gamification/CharityPointsWidget';
-import { Trophy, Flame, Bot, HeartPulse, Gift, RotateCcw } from 'lucide-react';
+import CharityPointsWidget from '@/components/gamification/CharityPointsWidget';
+import { Trophy, Flame, Bot, HeartPulse } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuthStore } from '@/store/authStore';
+
+// Gap 85/357: Dismissible Nightscout banner with conditional check
+const NightscoutBanner = () => {
+  const { user } = useAuthStore();
+  const [dismissed, setDismissed] = useState(false);
+  const [hasConnection, setHasConnection] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    try { if (sessionStorage.getItem('gf_ns_dismissed')) { setDismissed(true); return; } } catch {}
+    const check = async () => {
+      const sb = supabase as any;
+      const { count } = await sb.from('nightscout_connections').select('*', { count: 'exact', head: true }).eq('user_id', user.id);
+      setHasConnection((count ?? 0) > 0);
+    };
+    check();
+  }, [user]);
+
+  if (dismissed || hasConnection === null || hasConnection) return null;
+
+  return (
+    <Card className="mb-6 border-primary/20 bg-primary/5">
+      <CardContent className="flex items-center justify-between py-4">
+        <div className="flex items-center gap-3">
+          <Link2 className="h-5 w-5 text-primary" />
+          <div>
+            <p className="font-medium text-sm">Connect Nightscout</p>
+            <p className="text-xs text-muted-foreground">Auto-sync your CGM data from Nightscout</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/settings?tab=integrations">Connect</Link>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => { setDismissed(true); try { sessionStorage.setItem('gf_ns_dismissed', '1'); } catch {} }}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 const availableWidgets: DashboardWidget[] = [
   {
