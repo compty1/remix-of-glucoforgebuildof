@@ -37,6 +37,7 @@ const volunteerRoles = [
 
 const Index = () => {
   usePageMeta('Home', 'GlucoForge — the open T1D intelligence platform. Discover research, community insights, devices, and cure progress.');
+  useOrganizationSchema();
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const [featuredInsights, setFeaturedInsights] = useState<DiscoveryCardData[]>([]);
