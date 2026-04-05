@@ -132,6 +132,9 @@ export default function Contact() {
 
             {/* Contact Form */}
             <div className="lg:col-span-2">
+              {submitted ? (
+                <ContactSuccessState onReset={() => setSubmitted(false)} />
+              ) : (
               <Card>
                 <CardHeader>
                   <CardTitle>Send us a Message</CardTitle>
