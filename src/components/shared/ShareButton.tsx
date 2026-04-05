@@ -82,7 +82,7 @@ export const ShareButton: React.FC<ShareButtonProps> = ({
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={handleCopyLink}>
           {copied ? (
-            <Check className="h-4 w-4 mr-2 text-green-500" />
+            <Check className="h-4 w-4 mr-2 text-primary" />
           ) : (
             <Link className="h-4 w-4 mr-2" />
           )}
