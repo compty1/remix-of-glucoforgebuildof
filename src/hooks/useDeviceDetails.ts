@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { sanitizeForIlike } from '@/utils/searchSanitizer';
 
 export interface DeviceMetrics {
   reliability_score: number | null;

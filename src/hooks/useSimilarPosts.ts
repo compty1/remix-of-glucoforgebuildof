@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { CommunityPost } from './useCommunitySearch';
+import { sanitizeForIlike } from '@/utils/searchSanitizer';
 
 interface UseSimilarPostsOptions {
   currentPostId: string;

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { sanitizeForIlike } from '@/utils/searchSanitizer';
 
 export interface DeviceSolution {
   id: string;
