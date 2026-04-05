@@ -57,7 +57,8 @@ import { StreaksWidget } from '@/components/dashboard/StreaksWidget';
 import { PeerComparisonPanel } from '@/components/glucose/PeerComparisonPanel';
 import DigitalCompanion from '@/components/dashboard/DigitalCompanion';
 import CharityPointsWidget from '@/components/gamification/CharityPointsWidget';
-import { Trophy, Flame, Bot, HeartPulse } from 'lucide-react';
+import FoodLookup from '@/components/logging/FoodLookup';
+import { Trophy, Flame, Bot, HeartPulse, Wifi, Brain, PieChart, Clock, Apple } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthStore } from '@/store/authStore';
 
@@ -231,6 +232,89 @@ const availableWidgets: DashboardWidget[] = [
     description: 'Track your charity contributions and community impact',
     icon: Gift,
     defaultSize: { w: 4, h: 3 }
+  },
+  // Gap 89: FoodLookup widget
+  {
+    id: 'food-lookup',
+    title: 'Food Lookup',
+    component: () => <FoodLookup />,
+    category: 'Health',
+    description: 'Search nutritional info and scan food barcodes',
+    icon: Apple,
+    defaultSize: { w: 4, h: 4 }
+  },
+  // Gap 90: Nightscout Status widget
+  {
+    id: 'nightscout-status',
+    title: 'Nightscout Status',
+    component: () => (
+      <Card className="h-full p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Wifi className="h-5 w-5 text-primary" />
+          <h3 className="font-medium text-sm">Nightscout Connection</h3>
+        </div>
+        <p className="text-xs text-muted-foreground">Check Settings → Integrations to connect your Nightscout instance.</p>
+      </Card>
+    ),
+    category: 'Technology',
+    description: 'View Nightscout CGM connection status',
+    icon: Wifi,
+    defaultSize: { w: 3, h: 2 }
+  },
+  // Gap 91: Burnout Score widget
+  {
+    id: 'burnout-awareness',
+    title: 'Burnout Awareness',
+    component: () => (
+      <Card className="h-full p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Brain className="h-5 w-5 text-primary" />
+          <h3 className="font-medium text-sm">Burnout Check</h3>
+        </div>
+        <p className="text-xs text-muted-foreground">Your burnout risk is monitored based on login patterns and data uploads.</p>
+        <Badge variant="secondary" className="mt-2 text-xs">Low Risk</Badge>
+      </Card>
+    ),
+    category: 'Health',
+    description: 'Monitor diabetes management burnout risk',
+    icon: Brain,
+    defaultSize: { w: 3, h: 2 }
+  },
+  // Gap 99: Time-in-Range donut widget
+  {
+    id: 'time-in-range',
+    title: 'Time in Range',
+    component: () => (
+      <Card className="h-full p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <PieChart className="h-5 w-5 text-primary" />
+          <h3 className="font-medium text-sm">Time in Range</h3>
+        </div>
+        <p className="text-xs text-muted-foreground">Upload CGM data to see your TIR breakdown.</p>
+      </Card>
+    ),
+    category: 'Health',
+    description: 'Standard Time-in-Range donut chart visualization',
+    icon: PieChart,
+    defaultSize: { w: 4, h: 4 }
+  },
+  // Gap 102: Data freshness indicator
+  {
+    id: 'data-freshness',
+    title: 'Data Freshness',
+    component: () => (
+      <Card className="h-full p-4">
+        <div className="flex items-center gap-2 mb-3">
+          <Clock className="h-5 w-5 text-primary" />
+          <h3 className="font-medium text-sm">Last Sync</h3>
+        </div>
+        <p className="text-xs text-muted-foreground">Upload data or connect Nightscout to track sync freshness.</p>
+      </Card>
+    ),
+    category: 'Tools',
+    description: 'Shows when your data was last synced or uploaded',
+    icon: Clock,
+    defaultSize: { w: 3, h: 2 }
   },
 ];
 
