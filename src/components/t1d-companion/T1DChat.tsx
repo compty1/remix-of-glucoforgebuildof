@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { screenContent, type SafetyScreenResult } from '@/utils/contentSafety';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -158,6 +159,16 @@ export function T1DChat({ initialMessage, initialContext, sessionId }: T1DChatPr
     if (!input.trim() || isLoading) return;
 
     const message = input.trim();
+
+    // Gap 202: Content safety screening
+    const safety = screenContent(message);
+    if (safety.hasCrisisLanguage) {
+      toast({
+        title: 'We care about you',
+        description: 'If you\'re in crisis, please call 988 (Suicide & Crisis Lifeline) or text HOME to 741741.',
+        duration: 10000,
+      });
+    }
     
     // Detect if this is an issue that should be saved
     const detection = detectIssue(message);
