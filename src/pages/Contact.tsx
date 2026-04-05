@@ -235,6 +235,7 @@ export default function Contact() {
                   </form>
                 </CardContent>
               </Card>
+              )}
             </div>
           </div>
 
