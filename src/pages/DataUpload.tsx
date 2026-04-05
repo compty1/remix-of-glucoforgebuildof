@@ -235,10 +235,12 @@ const DataUpload = () => {
     }
 
     const tempId = crypto.randomUUID();
+    // Gap 201: Sanitize filename before use
+    const safeName = sanitizeFilename(file.name);
     const newFile: UploadedFile = {
       id: tempId,
-      name: file.name,
-      type: getFileType(file.name),
+      name: safeName,
+      type: getFileType(safeName),
       size: formatFileSize(file.size),
       uploadDate: new Date().toLocaleDateString(), // Use locale string directly to avoid timezone issues
       status: 'processing',
