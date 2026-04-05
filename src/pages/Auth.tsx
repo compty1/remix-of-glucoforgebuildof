@@ -363,6 +363,7 @@ const Auth = () => {
                         onChange={(e) => setSignInEmail(e.target.value)}
                         className={`pl-10 ${errors.signInEmail ? 'border-destructive' : ''}`}
                         disabled={isLoading}
+                        autoComplete="email"
                       />
                     </div>
                     {errors.signInEmail && (
