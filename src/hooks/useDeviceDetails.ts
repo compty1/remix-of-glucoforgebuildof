@@ -159,7 +159,7 @@ async function fetchDeviceDetails(deviceId: string): Promise<DeviceDetails | nul
     supabase
       .from('fda_device_events')
       .select('*')
-      .or(`device_name.ilike.%${deviceData.name}%,manufacturer_name.ilike.%${deviceData.manufacturer}%`)
+      .or(`device_name.ilike.%${sanitizeForIlike(deviceData.name)}%,manufacturer_name.ilike.%${sanitizeForIlike(deviceData.manufacturer || '')}%`)
       .order('event_date', { ascending: false })
       .limit(20),
     supabase
