@@ -92,7 +92,7 @@ export const useMedications = (options: UseMedicationsOptions = {}) => {
 
       // Apply search filter
       if (search) {
-        query = query.or(`name.ilike.%${search}%,generic_name.ilike.%${search}%,manufacturer.ilike.%${search}%`);
+        query = query.or(`name.ilike.%${sanitizeForIlike(search)}%,generic_name.ilike.%${sanitizeForIlike(search)}%,manufacturer.ilike.%${sanitizeForIlike(search)}%`);
       }
 
       // Apply sorting — direction is passed in for price asc/desc support (Issue 180)

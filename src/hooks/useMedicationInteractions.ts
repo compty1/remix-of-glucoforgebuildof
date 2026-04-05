@@ -26,7 +26,7 @@ export function useMedicationInteractions() {
       const { data, error } = await supabase
         .from("medication_interactions")
         .select("*")
-        .or(`interacting_drug_name.ilike.%${searchTerm}%,interacting_drug_category.ilike.%${searchTerm}%`)
+        .or(`interacting_drug_name.ilike.%${sanitizeForIlike(searchTerm)}%,interacting_drug_category.ilike.%${sanitizeForIlike(searchTerm)}%`)
         .order("severity")
         .limit(50);
 

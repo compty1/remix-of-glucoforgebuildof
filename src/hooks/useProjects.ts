@@ -106,7 +106,8 @@ export const useProjects = (initialFilters?: Partial<ProjectFilters>) => {
       }
 
       if (filters.searchQuery) {
-        query = query.or(`title.ilike.%${filters.searchQuery}%,description.ilike.%${filters.searchQuery}%`);
+        const q = sanitizeForIlike(filters.searchQuery);
+        query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
       }
 
       const { data, error } = await query;

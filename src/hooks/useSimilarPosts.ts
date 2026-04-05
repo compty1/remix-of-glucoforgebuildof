@@ -24,7 +24,7 @@ export const useSimilarPosts = ({
       
       // Match by device
       if (deviceMentioned) {
-        conditions.push(`device_mentioned.eq.${deviceMentioned}`);
+        conditions.push(`device_mentioned.eq.${sanitizeForIlike(deviceMentioned)}`);
       }
       
       // Match by topic tags (overlap)

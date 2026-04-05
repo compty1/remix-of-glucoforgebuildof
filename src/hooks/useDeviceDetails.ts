@@ -121,13 +121,13 @@ async function fetchDeviceDetails(deviceId: string): Promise<DeviceDetails | nul
   if (deviceError) throw deviceError;
   if (!deviceData) return null;
 
-  // Build community post search filter
+  // Build community post search filter with sanitized inputs
   const deviceNameLower = deviceData.name.toLowerCase();
   const deviceParts = deviceNameLower.split(' ');
-  const brand = deviceParts[0];
-  const model = deviceParts.slice(1).join(' ');
-  let searchFilter = `device_mentioned.ilike.%${brand}%,title.ilike.%${deviceNameLower}%`;
-  if (model && model.length > 1) {
+  const brand = sanitizeForIlike(deviceParts[0]);
+  const model = sanitizeForIlike(deviceParts.slice(1).join(' '));
+  let searchFilter = `device_mentioned.ilike.%${brand}%,title.ilike.%${sanitizeForIlike(deviceNameLower)}%`;
+  if (model && model.length > 2) {
     searchFilter += `,title.ilike.%${model}%,content.ilike.%${model}%`;
   }
 

@@ -58,7 +58,8 @@ export const useAdultContentSearch = (initialFilters?: Partial<AdultSearchFilter
       .eq('is_published', true);
 
     if (filters.query) {
-      query = query.or(`title.ilike.%${filters.query}%,content.ilike.%${filters.query}%`);
+      const q = sanitizeForIlike(filters.query);
+      query = query.or(`title.ilike.%${q}%,content.ilike.%${q}%`);
     }
 
     if (filters.category !== 'all') {
