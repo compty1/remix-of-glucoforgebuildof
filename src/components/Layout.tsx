@@ -259,6 +259,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <CookieConsent />
       {/* Idle timeout warning (gap 1060) */}
       <IdleWarningDialog open={showWarning} secondsLeft={secondsLeft} onStayActive={stayActive} />
+      <KeyboardShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
     </SidebarProvider>
   );
 };
