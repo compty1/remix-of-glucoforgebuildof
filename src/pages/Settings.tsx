@@ -764,7 +764,41 @@ const Settings = () => {
 
                 <Separator />
 
-                {/* Save Button - Fixed item 1841-1845 */}
+                {/* Gap 67: Quiet Hours */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Quiet Hours</h3>
+                  <p className="text-sm text-muted-foreground">Suppress non-urgent notifications during these hours</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="quiet-start">Start Time</Label>
+                      <Input id="quiet-start" type="time" value={notifications.quietHoursStart} onChange={(e) => setNotifications(prev => ({ ...prev, quietHoursStart: e.target.value }))} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="quiet-end">End Time</Label>
+                      <Input id="quiet-end" type="time" value={notifications.quietHoursEnd} onChange={(e) => setNotifications(prev => ({ ...prev, quietHoursEnd: e.target.value }))} />
+                    </div>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Gap 69: Alert Priority */}
+                <div className="space-y-2">
+                  <Label>Alert Priority Filter</Label>
+                  <p className="text-sm text-muted-foreground">Choose which priority level of alerts to receive</p>
+                  <Select value={notifications.alertPriority} onValueChange={(val) => setNotifications(prev => ({ ...prev, alertPriority: val }))}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Alerts</SelectItem>
+                      <SelectItem value="high">High Priority Only</SelectItem>
+                      <SelectItem value="critical">Critical Only</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Separator />
+
+                {/* Save Button */}
                 <div className="flex justify-end">
                   <Button onClick={handleSaveNotifications} disabled={loading}>Save Notification Preferences</Button>
                 </div>
