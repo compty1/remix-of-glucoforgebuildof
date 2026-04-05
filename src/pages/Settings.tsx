@@ -203,14 +203,15 @@ const Settings = () => {
       if (error) return;
 
       if (data) {
-        setProfile({
+        setProfile(prev => ({
+          ...prev,
           displayName: data.display_name || '',
           bio: data.bio || '',
           diagnosisDate: data.diagnosis_date || '',
           primaryCgm: data.primary_cgm || '',
           insulinDelivery: data.insulin_delivery || '',
           researchParticipation: data.research_participation ?? true
-        });
+        }));
         if (data.notification_preferences) {
           const prefs = data.notification_preferences as typeof notifications;
           setNotifications(prev => ({ ...prev, ...prefs }));
