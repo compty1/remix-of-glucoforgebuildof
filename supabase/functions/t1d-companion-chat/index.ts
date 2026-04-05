@@ -127,10 +127,33 @@ serve(async (req) => {
     const contentTypeError = requireJsonContentType(req);
     if (contentTypeError) return contentTypeError;
 
+    // Gap 171: Body size validation
+    const sizeError = await validateBodySize(req);
+    if (sizeError) return sizeError;
+
     const authResult = await requireAuth(req);
     if (authResult instanceof Response) return authResult;
 
     const { messages, issueContext, postContext, contextType, deviceContext, projectContext } = await req.json();
+
+    // Gap 796: Message length validation
+    if (messages && Array.isArray(messages) && messages.length > 0) {
+      const lastMsg = messages[messages.length - 1];
+      if (lastMsg?.content && typeof lastMsg.content === 'string' && lastMsg.content.length > 4000) {
+        return new Response(
+          JSON.stringify({ error: "Message too long. Please keep messages under 4000 characters." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    // Gap 797: Conversation history limit
+    if (messages && Array.isArray(messages) && messages.length > 50) {
+      return new Response(
+        JSON.stringify({ error: "Conversation too long. Please start a new chat." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     
     // Phase 12.1: Prompt injection detection
     const latestMsg = messages?.filter((m: any) => m.role === "user").pop()?.content || "";

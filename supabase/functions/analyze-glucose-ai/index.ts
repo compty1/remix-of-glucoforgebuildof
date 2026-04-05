@@ -41,11 +41,26 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const { metrics, patterns, hourlyData } = await req.json() as {
+    const body = await req.json();
+    const { metrics, patterns, hourlyData } = body as {
       metrics: GlucoseMetrics;
       patterns: Pattern[];
       hourlyData: { hour: number; avg: number }[];
     };
+
+    // Input validation (gap 793)
+    if (!metrics || typeof metrics.avgGlucose !== 'number' || typeof metrics.cv !== 'number' ||
+        typeof metrics.timeInRange !== 'number' || typeof metrics.timeBelow70 !== 'number' ||
+        typeof metrics.timeAbove180 !== 'number' || typeof metrics.gmi !== 'number' ||
+        typeof metrics.mage !== 'number') {
+      return errorResponse('Invalid metrics: all numeric fields required', 400);
+    }
+    if (!Array.isArray(patterns)) {
+      return errorResponse('patterns must be an array', 400);
+    }
+    if (!Array.isArray(hourlyData)) {
+      return errorResponse('hourlyData must be an array', 400);
+    }
 
     const systemPrompt = `You are an expert diabetes data analyst and certified diabetes educator. Analyze the provided CGM glucose metrics and patterns to provide actionable insights.
 
