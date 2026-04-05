@@ -34,7 +34,24 @@ export default function MentorDirectory() {
         .select('*')
         .eq('is_mentor', true)
         .order('years_with_t1d', { ascending: false });
-      setMentors(data || []);
+
+      // Gap 14/163: Get actual mentee counts from mentor_matches
+      const mentorList = data || [];
+      if (mentorList.length > 0) {
+        const mentorIds = mentorList.map((m: any) => m.user_id);
+        const { data: matchCounts } = await sb
+          .from('mentor_matches')
+          .select('mentor_id')
+          .in('mentor_id', mentorIds)
+          .eq('status', 'active');
+        const countMap: Record<string, number> = {};
+        (matchCounts || []).forEach((mc: any) => {
+          countMap[mc.mentor_id] = (countMap[mc.mentor_id] || 0) + 1;
+        });
+        mentorList.forEach((m: any) => { m._menteeCount = countMap[m.user_id] || 0; });
+      }
+
+      setMentors(mentorList);
       setLoading(false);
     };
     load();
@@ -52,7 +69,7 @@ export default function MentorDirectory() {
       devicesUsed: m.devices_used || [],
       specialties: m.specialties || [],
       maxMentees: m.max_mentees || 3,
-      currentMenteeCount: 0,
+      currentMenteeCount: m._menteeCount || 0,
     }));
     setMatches(rankMentors(mentorProfiles, menteePrefs));
     setTab('matches');

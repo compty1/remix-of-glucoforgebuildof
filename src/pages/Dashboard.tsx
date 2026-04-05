@@ -437,6 +437,28 @@ const Dashboard = () => {
                 <LayoutGrid className="h-4 w-4 mr-2" />
                 {isEditMode ? 'Save Layout' : 'Edit Mode'}
               </Button>
+
+              {/* Gap 107: Reset to Default Layout */}
+              {isEditMode && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    const defaultIds = availableWidgets.slice(0, 6).map(w => w.id);
+                    const defaultLayouts: { [key: string]: GridLayout[] } = {};
+                    ['lg', 'md', 'sm', 'xs', 'xxs'].forEach(bp => {
+                      defaultLayouts[bp] = defaultIds.map((id, i) => {
+                        const w = availableWidgets.find(aw => aw.id === id)!;
+                        return { i: id, x: (i % 3) * 4, y: Math.floor(i / 3) * 4, w: w.defaultSize.w, h: w.defaultSize.h, minW: 2, minH: 2 };
+                      });
+                    });
+                    saveLayout(defaultLayouts, defaultIds);
+                    toast({ title: 'Layout Reset', description: 'Dashboard restored to default layout.' });
+                  }}
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Reset Layout
+                </Button>
+              )
               
               <Dialog open={showWidgetLibrary} onOpenChange={setShowWidgetLibrary}>
                 <DialogTrigger asChild>
