@@ -11,7 +11,7 @@ describe('applyAlertBudget', () => {
     expect(result.length).toBe(2);
   });
 
-  it('caps alerts at daily budget', () => {
+  it('caps non-urgent alerts at daily budget but always shows urgent_low', () => {
     const alerts: PendingAlert[] = [
       { id: '1', priority: 'urgent_low', message: 'Urgent low', timestamp: Date.now() },
       { id: '2', priority: 'high', message: 'High glucose', timestamp: Date.now() },
@@ -19,16 +19,18 @@ describe('applyAlertBudget', () => {
       { id: '4', priority: 'informational', message: 'Log food', timestamp: Date.now() },
     ];
     const result = applyAlertBudget(alerts, 1, { dailyBudget: 3 });
-    // Already shown 1, budget is 3, so 2 remaining
-    expect(result.length).toBe(2);
+    // urgent_low always passes through + 2 remaining budget = 3 total
+    expect(result.length).toBe(3);
+    expect(result[0].priority).toBe('urgent_low');
   });
 
-  it('prioritizes urgent_low over informational', () => {
+  it('urgent_low always passes through even over budget', () => {
     const alerts: PendingAlert[] = [
       { id: '1', priority: 'informational', message: 'Low pri', timestamp: Date.now() },
       { id: '2', priority: 'urgent_low', message: 'Urgent', timestamp: Date.now() },
     ];
-    const result = applyAlertBudget(alerts, 2, { dailyBudget: 3 });
+    const result = applyAlertBudget(alerts, 3, { dailyBudget: 3 });
+    // Budget exhausted but urgent_low always passes
     expect(result.length).toBe(1);
     expect(result[0].priority).toBe('urgent_low');
   });
