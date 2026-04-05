@@ -5,6 +5,7 @@
  */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders, handleCors, jsonResponse, errorResponse } from "../_shared/cors.ts";
+import { checkRateLimit, rateLimitResponse, getClientIp } from "../_shared/rateLimiter.ts";
 
 // Simple in-memory cache (gap 819) — TTL 10 minutes
 const cache = new Map<string, { data: unknown; expires: number }>();
@@ -41,6 +42,11 @@ serve(async (req) => {
   if (req.method !== "POST") {
     return errorResponse("Method not allowed", 405);
   }
+
+  // Rate limit: 30 requests per minute per IP
+  const ip = getClientIp(req);
+  const rl = checkRateLimit(`nutrition:${ip}`, 30, 60_000);
+  if (!rl.allowed) return rateLimitResponse(rl.retryAfterMs);
 
   try {
     const { barcode, query, serving_grams } = await req.json();
