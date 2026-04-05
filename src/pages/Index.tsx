@@ -40,6 +40,7 @@ const Index = () => {
   const { user } = useAuthStore();
   const [featuredInsights, setFeaturedInsights] = useState<DiscoveryCardData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchFeaturedInsights = async () => {
@@ -60,7 +61,7 @@ const Index = () => {
 
         setFeaturedInsights(typedData);
       } catch (error) {
-        // silently fail; featured insights are non-critical
+        setFetchError('Unable to load featured insights');
       } finally {
         setLoading(false);
       }
