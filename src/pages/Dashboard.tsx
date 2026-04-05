@@ -458,7 +458,7 @@ const Dashboard = () => {
                   <RotateCcw className="h-4 w-4 mr-2" />
                   Reset Layout
                 </Button>
-              )
+              )}
               
               <Dialog open={showWidgetLibrary} onOpenChange={setShowWidgetLibrary}>
                 <DialogTrigger asChild>
