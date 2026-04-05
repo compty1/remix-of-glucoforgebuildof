@@ -58,7 +58,9 @@ import { PeerComparisonPanel } from '@/components/glucose/PeerComparisonPanel';
 import DigitalCompanion from '@/components/dashboard/DigitalCompanion';
 import CharityPointsWidget from '@/components/gamification/CharityPointsWidget';
 import FoodLookup from '@/components/logging/FoodLookup';
-import { Trophy, Flame, Bot, HeartPulse, Wifi, Brain, PieChart, Clock, Apple } from 'lucide-react';
+import IOBWidget from '@/components/dashboard/IOBWidget';
+import MealImpactWidget from '@/components/dashboard/MealImpactWidget';
+import { Trophy, Flame, Bot, HeartPulse, Wifi, Brain, PieChart, Clock, Apple, Syringe, UtensilsCrossed } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuthStore } from '@/store/authStore';
 
@@ -315,6 +317,26 @@ const availableWidgets: DashboardWidget[] = [
     description: 'Shows when your data was last synced or uploaded',
     icon: Clock,
     defaultSize: { w: 3, h: 2 }
+  },
+  // Gap 92/93: IOB Calculator widget
+  {
+    id: 'iob-calculator',
+    title: 'Insulin on Board',
+    component: () => <IOBWidget />,
+    category: 'Health',
+    description: 'Track your active insulin on board (IOB)',
+    icon: Syringe,
+    defaultSize: { w: 3, h: 3 }
+  },
+  // Gap 97: Meal Impact widget
+  {
+    id: 'meal-impact',
+    title: 'Meal Impact Guide',
+    component: () => <MealImpactWidget />,
+    category: 'Health',
+    description: 'Understand how different meal types affect glucose',
+    icon: UtensilsCrossed,
+    defaultSize: { w: 4, h: 4 }
   },
 ];
 

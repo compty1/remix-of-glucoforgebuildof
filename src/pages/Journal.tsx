@@ -12,7 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/store/authStore";
 import { InfoRail } from "@/components/InfoRail";
-import { TrendingUp, AlertCircle, Calendar, Sparkles, Upload } from "lucide-react";
+import { TrendingUp, AlertCircle, Calendar, Sparkles, Upload, Thermometer, Brain } from "lucide-react";
+import { type StressLevel } from "@/utils/illnessStressTags";
 
 interface Shift {
   id: string;
@@ -45,6 +46,9 @@ const Journal = () => {
   const [context, setContext] = useState('');
   const [tags, setTags] = useState('');
   const [shiftTime, setShiftTime] = useState('');
+  // Gap 24: Illness/stress tagging
+  const [isSickDay, setIsSickDay] = useState(false);
+  const [stressLevel, setStressLevel] = useState<StressLevel>('none');
 
   useEffect(() => {
     if (!user) {
@@ -113,6 +117,9 @@ const Journal = () => {
     setSubmitting(true);
     try {
       const tagsArray = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      // Gap 24: Add illness/stress tags automatically
+      if (isSickDay && !tagsArray.includes('sick-day')) tagsArray.push('sick-day');
+      if (stressLevel !== 'none' && !tagsArray.includes(`stress-${stressLevel}`)) tagsArray.push(`stress-${stressLevel}`);
       
       const { error } = await supabase
         .from('shifts')
@@ -135,6 +142,8 @@ const Journal = () => {
       setContext('');
       setTags('');
       setShiftTime('');
+      setIsSickDay(false);
+      setStressLevel('none');
       
       // Refresh data
       fetchShifts();
@@ -228,7 +237,31 @@ const Journal = () => {
                       onChange={(e) => setTags(e.target.value)}
                       placeholder="Separate with commas (e.g., exercise, stress, meal, sleep)"
                     />
-                  </div>
+                    </div>
+
+                    {/* Gap 24: Illness/Stress Day Tagging */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3 border rounded-lg bg-muted/30">
+                      <div className="flex items-center gap-3">
+                        <Thermometer className="h-4 w-4 text-destructive" />
+                        <label className="text-sm font-medium">Sick Day</label>
+                        <input type="checkbox" checked={isSickDay} onChange={(e) => setIsSickDay(e.target.checked)} className="ml-auto" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <Brain className="h-4 w-4 text-warning" />
+                          <label className="text-sm font-medium">Stress Level</label>
+                        </div>
+                        <Select value={stressLevel} onValueChange={(v: StressLevel) => setStressLevel(v)}>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">None</SelectItem>
+                            <SelectItem value="mild">Mild</SelectItem>
+                            <SelectItem value="moderate">Moderate</SelectItem>
+                            <SelectItem value="severe">Severe</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
 
                   <Button type="submit" disabled={submitting} className="w-full">
                     {submitting ? "Adding Entry..." : "Add Entry"}
