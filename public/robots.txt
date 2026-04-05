@@ -27,4 +27,11 @@ Disallow: /scenario-lab
 Disallow: /settings
 Disallow: /admin*
 
-Sitemap: https://glucoforge.lovable.app/sitemap.xml
+Sitemap: https://glucoforge.org/sitemap.xml
+
+# Crawl-delay for polite bots
+User-agent: AhrefsBot
+Crawl-delay: 10
+
+User-agent: SemrushBot
+Crawl-delay: 10
