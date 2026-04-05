@@ -5,7 +5,7 @@
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Syringe } from 'lucide-react';
-import { computeIOBTimeline, type InsulinEvent } from '@/utils/iobCalculator';
+import { calculateIOBTimeline, type InsulinEvent } from '@/utils/iobCalculator';
 import { useMemo } from 'react';
 
 interface IOBWidgetProps {
@@ -15,7 +15,7 @@ interface IOBWidgetProps {
 export default function IOBWidget({ events = [] }: IOBWidgetProps) {
   const currentIOB = useMemo(() => {
     if (events.length === 0) return null;
-    const timeline = computeIOBTimeline(events, [{ timestamp: new Date() }] as any);
+    const timeline = calculateIOBTimeline(events, [new Date()]);
     return timeline[0]?.totalIOB ?? 0;
   }, [events]);
 
