@@ -31,6 +31,8 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { DataExport } from '@/components/data-upload/DataExport';
+import FoodLookup from '@/components/logging/FoodLookup';
+import NFCSupplyScanner from '@/components/logging/NFCSupplyScanner';
 
 // Fix 6.1: Proper file size formatting
 function formatFileSize(bytes: number): string {
@@ -758,6 +760,12 @@ const DataUpload = () => {
           dayNightAnalysis={selectedFile.dayNightAnalysis}
         />
       )}
+
+      {/* Gap 3 & 4: FoodLookup and NFCSupplyScanner */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8 px-4 sm:px-6 lg:px-8">
+        <FoodLookup />
+        <NFCSupplyScanner />
+      </div>
     </Layout>
   );
 };
