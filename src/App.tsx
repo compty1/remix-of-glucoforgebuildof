@@ -178,6 +178,9 @@ const AppContent = () => {
   // Phase 6.27: Dynamic viewport height for mobile browser chrome
   useDynamicViewportHeight();
 
+  // Gap 494/495: Performance monitoring
+  usePerformanceMonitoring();
+
   // Phase 5.8 / 7.28: Clear query cache on logout
   useEffect(() => {
     if (!user) {
