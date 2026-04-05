@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
@@ -15,7 +15,7 @@ export interface Bookmark {
   created_at: string;
 }
 
-export function useBookmarks() {
+export function useBookmarks(categoryFilter?: string) {
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuthStore();
@@ -29,19 +29,26 @@ export function useBookmarks() {
 
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      let query = supabase
         .from('user_bookmarks')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
+      if (categoryFilter) {
+        query = query.eq('bookmark_type', categoryFilter);
+      }
+
+      const { data, error } = await query;
+
       if (error) throw error;
       setBookmarks(data || []);
     } catch {
+      // silent
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, categoryFilter]);
 
   const addBookmark = async (bookmark: {
     bookmark_type: string;
@@ -107,6 +114,31 @@ export function useBookmarks() {
     }
   };
 
+  const removeAllBookmarks = async () => {
+    if (!user) return false;
+
+    try {
+      let query = supabase
+        .from('user_bookmarks')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (categoryFilter) {
+        query = query.eq('bookmark_type', categoryFilter);
+      }
+
+      const { error } = await query;
+      if (error) throw error;
+
+      toast.success('All bookmarks removed');
+      await fetchBookmarks();
+      return true;
+    } catch {
+      toast.error('Failed to remove bookmarks');
+      return false;
+    }
+  };
+
   const removeBookmarkByUrl = async (url: string) => {
     if (!user) return false;
 
@@ -147,6 +179,12 @@ export function useBookmarks() {
     }
   };
 
+  // Derive available categories from bookmarks
+  const categories = useMemo(() => {
+    const set = new Set(bookmarks.map(b => b.bookmark_type));
+    return Array.from(set).sort();
+  }, [bookmarks]);
+
   useEffect(() => {
     fetchBookmarks();
   }, [fetchBookmarks]);
@@ -154,8 +192,10 @@ export function useBookmarks() {
   return {
     bookmarks,
     loading,
+    categories,
     addBookmark,
     removeBookmark,
+    removeAllBookmarks,
     removeBookmarkByUrl,
     isBookmarked,
     toggleBookmark,

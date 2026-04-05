@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, Check, CheckCheck, Trash2, Settings } from 'lucide-react';
+import { Bell, CheckCheck, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -45,14 +45,16 @@ function NotificationItem({
   };
 
   return (
-    <div
+    <button
+      type="button"
       onClick={handleClick}
       className={cn(
-        'flex items-start gap-3 p-3 hover:bg-muted/50 cursor-pointer transition-colors',
+        'flex items-start gap-3 p-3 hover:bg-muted/50 cursor-pointer transition-colors w-full text-left',
         !notification.is_read && 'bg-primary/5'
       )}
+      aria-label={`${notification.is_read ? '' : 'Unread: '}${notification.title}`}
     >
-      <div className="text-xl flex-shrink-0">
+      <div className="text-xl flex-shrink-0" aria-hidden="true">
         {notification.icon || TYPE_ICONS[notification.type] || '📢'}
       </div>
       <div className="flex-1 min-w-0 space-y-1">
@@ -72,9 +74,9 @@ function NotificationItem({
         </p>
       </div>
       {!notification.is_read && (
-        <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2" />
+        <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2" aria-hidden="true" />
       )}
-    </div>
+    </button>
   );
 }
 
@@ -91,21 +93,27 @@ export function NotificationCenter({ className }: { className?: string }) {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className={cn("relative", className)}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn("relative", className)}
+          aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ''}`}
+        >
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge 
               variant="destructive" 
               className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-[10px]"
+              aria-label={`${unreadCount} unread notifications`}
             >
               {unreadCount > 9 ? '9+' : unreadCount}
             </Badge>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0">
+      <PopoverContent align="end" className="w-80 p-0" aria-label="Notifications panel">
         <div className="flex items-center justify-between p-3 border-b">
-          <h3 className="font-semibold">Notifications</h3>
+          <h3 className="font-semibold" id="notifications-heading">Notifications</h3>
           <div className="flex items-center gap-1">
             {unreadCount > 0 && (
               <Button
@@ -113,6 +121,7 @@ export function NotificationCenter({ className }: { className?: string }) {
                 size="sm"
                 onClick={() => markAllAsRead()}
                 className="h-8 text-xs gap-1"
+                aria-label="Mark all notifications as read"
               >
                 <CheckCheck className="h-3 w-3" />
                 Mark all read
@@ -126,34 +135,36 @@ export function NotificationCenter({ className }: { className?: string }) {
                 setOpen(false);
                 navigate('/settings');
               }}
+              aria-label="Notification settings"
             >
               <Settings className="h-4 w-4" />
             </Button>
           </div>
         </div>
 
-        <ScrollArea className="h-[400px]">
+        <ScrollArea className="h-[400px]" aria-labelledby="notifications-heading">
           {isLoading ? (
-            <div className="p-8 text-center text-muted-foreground">
+            <div className="p-8 text-center text-muted-foreground" aria-busy="true">
               Loading...
             </div>
           ) : notifications.length === 0 ? (
             <div className="p-8 text-center">
-              <Bell className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+              <Bell className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" aria-hidden="true" />
               <p className="text-sm text-muted-foreground">No notifications yet</p>
               <p className="text-xs text-muted-foreground mt-1">
                 We'll notify you about important updates
               </p>
             </div>
           ) : (
-            <div className="divide-y">
+            <div className="divide-y" role="list" aria-label="Notification list">
               {notifications.map(notification => (
-                <NotificationItem
-                  key={notification.id}
-                  notification={notification}
-                  onMarkRead={markAsRead}
-                  onNavigate={handleNavigate}
-                />
+                <div key={notification.id} role="listitem">
+                  <NotificationItem
+                    notification={notification}
+                    onMarkRead={markAsRead}
+                    onNavigate={handleNavigate}
+                  />
+                </div>
               ))}
             </div>
           )}
