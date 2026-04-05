@@ -365,6 +365,39 @@ export type Database = {
         }
         Relationships: []
       }
+      alert_history: {
+        Row: {
+          alert_message: string | null
+          alert_type: string
+          created_at: string
+          id: string
+          suppression_reason: string | null
+          user_id: string
+          was_delivered: boolean | null
+          was_suppressed: boolean | null
+        }
+        Insert: {
+          alert_message?: string | null
+          alert_type: string
+          created_at?: string
+          id?: string
+          suppression_reason?: string | null
+          user_id: string
+          was_delivered?: boolean | null
+          was_suppressed?: boolean | null
+        }
+        Update: {
+          alert_message?: string | null
+          alert_type?: string
+          created_at?: string
+          id?: string
+          suppression_reason?: string | null
+          user_id?: string
+          was_delivered?: boolean | null
+          was_suppressed?: boolean | null
+        }
+        Relationships: []
+      }
       app_community_buzz: {
         Row: {
           app_id: string | null
@@ -458,6 +491,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      appointment_reminders: {
+        Row: {
+          appointment_date: string
+          created_at: string
+          id: string
+          is_completed: boolean | null
+          location: string | null
+          notes: string | null
+          provider_name: string | null
+          reminder_minutes_before: number | null
+          title: string
+          user_id: string
+        }
+        Insert: {
+          appointment_date: string
+          created_at?: string
+          id?: string
+          is_completed?: boolean | null
+          location?: string | null
+          notes?: string | null
+          provider_name?: string | null
+          reminder_minutes_before?: number | null
+          title: string
+          user_id: string
+        }
+        Update: {
+          appointment_date?: string
+          created_at?: string
+          id?: string
+          is_completed?: boolean | null
+          location?: string | null
+          notes?: string | null
+          provider_name?: string | null
+          reminder_minutes_before?: number | null
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       articles: {
         Row: {
@@ -717,6 +789,39 @@ export type Database = {
           source_url?: string | null
           title?: string
           topic_tags?: string[] | null
+        }
+        Relationships: []
+      }
+      burnout_scores: {
+        Row: {
+          assessed_at: string
+          category: string | null
+          contributing_factors: string[] | null
+          created_at: string
+          id: string
+          notes: string | null
+          score: number
+          user_id: string
+        }
+        Insert: {
+          assessed_at?: string
+          category?: string | null
+          contributing_factors?: string[] | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          score: number
+          user_id: string
+        }
+        Update: {
+          assessed_at?: string
+          category?: string | null
+          contributing_factors?: string[] | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          score?: number
+          user_id?: string
         }
         Relationships: []
       }
@@ -2724,6 +2829,48 @@ export type Database = {
         }
         Relationships: []
       }
+      exercise_logs: {
+        Row: {
+          calories_burned: number | null
+          created_at: string
+          duration_minutes: number | null
+          exercise_type: string
+          glucose_after: number | null
+          glucose_before: number | null
+          id: string
+          intensity: string | null
+          logged_at: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          calories_burned?: number | null
+          created_at?: string
+          duration_minutes?: number | null
+          exercise_type: string
+          glucose_after?: number | null
+          glucose_before?: number | null
+          id?: string
+          intensity?: string | null
+          logged_at?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          calories_burned?: number | null
+          created_at?: string
+          duration_minutes?: number | null
+          exercise_type?: string
+          glucose_after?: number | null
+          glucose_before?: number | null
+          id?: string
+          intensity?: string | null
+          logged_at?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       experience_submissions: {
         Row: {
           category: string
@@ -3135,6 +3282,45 @@ export type Database = {
         }
         Relationships: []
       }
+      lab_results: {
+        Row: {
+          created_at: string
+          id: string
+          lab_name: string | null
+          notes: string | null
+          reference_range: string | null
+          test_date: string
+          test_type: string
+          unit: string | null
+          user_id: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lab_name?: string | null
+          notes?: string | null
+          reference_range?: string | null
+          test_date: string
+          test_type: string
+          unit?: string | null
+          user_id: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lab_name?: string | null
+          notes?: string | null
+          reference_range?: string | null
+          test_date?: string
+          test_type?: string
+          unit?: string | null
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       low_blood_sugar_stories: {
         Row: {
           author_username: string | null
@@ -3255,6 +3441,51 @@ export type Database = {
           ticker_symbol?: string
           updated_at?: string
           volume?: number | null
+        }
+        Relationships: []
+      }
+      meal_logs: {
+        Row: {
+          barcode: string | null
+          calories: number | null
+          carbs_grams: number | null
+          created_at: string
+          fat_grams: number | null
+          food_name: string
+          id: string
+          logged_at: string
+          meal_type: string | null
+          notes: string | null
+          protein_grams: number | null
+          user_id: string
+        }
+        Insert: {
+          barcode?: string | null
+          calories?: number | null
+          carbs_grams?: number | null
+          created_at?: string
+          fat_grams?: number | null
+          food_name: string
+          id?: string
+          logged_at?: string
+          meal_type?: string | null
+          notes?: string | null
+          protein_grams?: number | null
+          user_id: string
+        }
+        Update: {
+          barcode?: string | null
+          calories?: number | null
+          carbs_grams?: number | null
+          created_at?: string
+          fat_grams?: number | null
+          food_name?: string
+          id?: string
+          logged_at?: string
+          meal_type?: string | null
+          notes?: string | null
+          protein_grams?: number | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -3546,6 +3777,45 @@ export type Database = {
           },
         ]
       }
+      medication_logs: {
+        Row: {
+          created_at: string
+          dose_amount: number
+          dose_unit: string | null
+          id: string
+          injection_site: string | null
+          logged_at: string
+          medication_name: string
+          notes: string | null
+          route: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dose_amount: number
+          dose_unit?: string | null
+          id?: string
+          injection_site?: string | null
+          logged_at?: string
+          medication_name: string
+          notes?: string | null
+          route?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dose_amount?: number
+          dose_unit?: string | null
+          id?: string
+          injection_site?: string | null
+          logged_at?: string
+          medication_name?: string
+          notes?: string | null
+          route?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       medication_reviews: {
         Row: {
           cons: string[] | null
@@ -3752,6 +4022,42 @@ export type Database = {
         }
         Relationships: []
       }
+      mood_logs: {
+        Row: {
+          created_at: string
+          energy_level: number | null
+          id: string
+          logged_at: string
+          mood: string
+          notes: string | null
+          sleep_hours: number | null
+          stress_level: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          energy_level?: number | null
+          id?: string
+          logged_at?: string
+          mood: string
+          notes?: string | null
+          sleep_hours?: number | null
+          stress_level?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          energy_level?: number | null
+          id?: string
+          logged_at?: string
+          mood?: string
+          notes?: string | null
+          sleep_hours?: number | null
+          stress_level?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           categories: Json | null
@@ -3824,6 +4130,33 @@ export type Database = {
           title?: string
           type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      page_views: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          page_path: string
+          referrer: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          page_path: string
+          referrer?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          page_path?: string
+          referrer?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -3974,6 +4307,45 @@ export type Database = {
         }
         Relationships: []
       }
+      post_reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          post_id: string
+          post_type: string
+          reason: string
+          reporter_user_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          post_id: string
+          post_type?: string
+          reason: string
+          reporter_user_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          post_id?: string
+          post_type?: string
+          reason?: string
+          reporter_user_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string | null
+        }
+        Relationships: []
+      }
       potential_warriors: {
         Row: {
           contact_info: string | null
@@ -4057,15 +4429,23 @@ export type Database = {
           avatar_style: string | null
           avatar_url: string | null
           bio: string | null
+          carb_ratio: number | null
           created_at: string
           diagnosis_date: string | null
           display_name: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          glucose_unit: string | null
           id: string
           insulin_delivery: string | null
+          insulin_sensitivity_factor: number | null
           notification_preferences: Json | null
           primary_cgm: string | null
           privacy_settings: Json | null
           research_participation: boolean | null
+          target_glucose_high: number | null
+          target_glucose_low: number | null
+          timezone: string | null
           updated_at: string
           user_id: string
         }
@@ -4074,15 +4454,23 @@ export type Database = {
           avatar_style?: string | null
           avatar_url?: string | null
           bio?: string | null
+          carb_ratio?: number | null
           created_at?: string
           diagnosis_date?: string | null
           display_name?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          glucose_unit?: string | null
           id?: string
           insulin_delivery?: string | null
+          insulin_sensitivity_factor?: number | null
           notification_preferences?: Json | null
           primary_cgm?: string | null
           privacy_settings?: Json | null
           research_participation?: boolean | null
+          target_glucose_high?: number | null
+          target_glucose_low?: number | null
+          timezone?: string | null
           updated_at?: string
           user_id: string
         }
@@ -4091,15 +4479,23 @@ export type Database = {
           avatar_style?: string | null
           avatar_url?: string | null
           bio?: string | null
+          carb_ratio?: number | null
           created_at?: string
           diagnosis_date?: string | null
           display_name?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          glucose_unit?: string | null
           id?: string
           insulin_delivery?: string | null
+          insulin_sensitivity_factor?: number | null
           notification_preferences?: Json | null
           primary_cgm?: string | null
           privacy_settings?: Json | null
           research_participation?: boolean | null
+          target_glucose_high?: number | null
+          target_glucose_low?: number | null
+          timezone?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -4636,6 +5032,63 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_scenarios: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          scenario_data: Json
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          scenario_data?: Json
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          scenario_data?: Json
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      search_history: {
+        Row: {
+          created_at: string
+          id: string
+          query: string
+          result_count: number | null
+          search_type: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          query: string
+          result_count?: number | null
+          search_type?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          query?: string
+          result_count?: number | null
+          search_type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       shifts: {
         Row: {
           context: string | null
@@ -4780,6 +5233,39 @@ export type Database = {
         }
         Relationships: []
       }
+      site_rotation_logs: {
+        Row: {
+          applied_at: string
+          created_at: string
+          device_type: string | null
+          id: string
+          notes: string | null
+          removed_at: string | null
+          site_name: string
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          notes?: string | null
+          removed_at?: string | null
+          site_name: string
+          user_id: string
+        }
+        Update: {
+          applied_at?: string
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          notes?: string | null
+          removed_at?: string | null
+          site_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       state_diabetes_forms: {
         Row: {
           created_at: string | null
@@ -4819,6 +5305,48 @@ export type Database = {
           notes?: string | null
           state_code?: string
           state_name?: string
+        }
+        Relationships: []
+      }
+      supply_logs: {
+        Row: {
+          brand: string | null
+          created_at: string
+          expiration_date: string | null
+          id: string
+          logged_at: string
+          lot_number: string | null
+          notes: string | null
+          quantity: number | null
+          scanned_via: string | null
+          supply_type: string
+          user_id: string
+        }
+        Insert: {
+          brand?: string | null
+          created_at?: string
+          expiration_date?: string | null
+          id?: string
+          logged_at?: string
+          lot_number?: string | null
+          notes?: string | null
+          quantity?: number | null
+          scanned_via?: string | null
+          supply_type: string
+          user_id: string
+        }
+        Update: {
+          brand?: string | null
+          created_at?: string
+          expiration_date?: string | null
+          id?: string
+          logged_at?: string
+          lot_number?: string | null
+          notes?: string | null
+          quantity?: number | null
+          scanned_via?: string | null
+          supply_type?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -5929,46 +6457,61 @@ export type Database = {
       }
       user_preferences: {
         Row: {
+          alert_priority: string | null
           cgm_device_id: string | null
           content_interests: string[] | null
           created_at: string | null
           device_brands: string[] | null
           diagnosis_year: number | null
+          export_format: string | null
           id: string
+          notification_sound: string | null
           onboarding_completed: boolean | null
           primary_challenges: string[] | null
           primary_medication_id: string | null
           pump_device_id: string | null
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
           therapy_type: string | null
           updated_at: string | null
           user_id: string
         }
         Insert: {
+          alert_priority?: string | null
           cgm_device_id?: string | null
           content_interests?: string[] | null
           created_at?: string | null
           device_brands?: string[] | null
           diagnosis_year?: number | null
+          export_format?: string | null
           id?: string
+          notification_sound?: string | null
           onboarding_completed?: boolean | null
           primary_challenges?: string[] | null
           primary_medication_id?: string | null
           pump_device_id?: string | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
           therapy_type?: string | null
           updated_at?: string | null
           user_id: string
         }
         Update: {
+          alert_priority?: string | null
           cgm_device_id?: string | null
           content_interests?: string[] | null
           created_at?: string | null
           device_brands?: string[] | null
           diagnosis_year?: number | null
+          export_format?: string | null
           id?: string
+          notification_sound?: string | null
           onboarding_completed?: boolean | null
           primary_challenges?: string[] | null
           primary_medication_id?: string | null
           pump_device_id?: string | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
           therapy_type?: string | null
           updated_at?: string | null
           user_id?: string
@@ -6203,6 +6746,42 @@ export type Database = {
           roles?: string[]
           skills?: string | null
           status?: string | null
+        }
+        Relationships: []
+      }
+      volunteer_signups: {
+        Row: {
+          availability: string | null
+          created_at: string
+          email: string
+          experience: string | null
+          full_name: string
+          id: string
+          interests: string[] | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          availability?: string | null
+          created_at?: string
+          email: string
+          experience?: string | null
+          full_name: string
+          id?: string
+          interests?: string[] | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          availability?: string | null
+          created_at?: string
+          email?: string
+          experience?: string | null
+          full_name?: string
+          id?: string
+          interests?: string[] | null
+          status?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
