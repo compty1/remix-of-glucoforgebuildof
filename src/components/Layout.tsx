@@ -13,6 +13,7 @@ import { OnboardingModal } from '@/components/OnboardingModal';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { GlobalSearchDialog } from '@/components/search/GlobalSearchDialog';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { BottomNav } from '@/components/mobile/BottomNav';
 const SmartOnboarding = lazy(() => import('@/components/onboarding/SmartOnboarding').then(m => ({ default: m.SmartOnboarding })));
 const AchievementUnlockModal = lazy(() => import('@/components/achievements/AchievementUnlockModal').then(m => ({ default: m.AchievementUnlockModal })));
 import { useAchievements } from '@/hooks/useAchievements';
@@ -127,9 +128,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </header>
           
           {/* Main content */}
-          <main id="main-content" className="flex-1 bg-background" role="main">
+          <main id="main-content" className="flex-1 bg-background pb-14 md:pb-0" role="main">
             {children}
           </main>
+          
+          {/* Mobile bottom navigation */}
+          <BottomNav />
           
           {/* Footer with brand purple */}
           <footer className="bg-brand-purple-dark py-8">

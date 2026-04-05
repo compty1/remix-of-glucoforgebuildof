@@ -6,10 +6,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Mail, MapPin, Clock } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { ContactSuccessState } from '@/components/contact/ContactSuccessState';
 
 export default function Contact() {
   usePageMeta('Contact Us', 'Get in touch with the GlucoForge team for support, feedback, or partnerships.');
@@ -19,16 +20,23 @@ export default function Contact() {
     subject: '',
     category: '',
     message: '',
-    // Honeypot field — hidden from real users, bots will fill it (Issue 142)
     _honeypot: ''
   });
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const lastSubmitRef = useRef<number>(0);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Honeypot check — if filled, silently reject (bot detected)
+    // Honeypot check
     if (formData._honeypot) {
-      toast.success('Message sent successfully!');
+      setSubmitted(true);
+      return;
+    }
+    // Rate limiting: 30s between submissions
+    const now = Date.now();
+    if (now - lastSubmitRef.current < 30000) {
+      toast.error('Please wait before submitting again.');
       return;
     }
     setSubmitting(true);
@@ -44,7 +52,8 @@ export default function Contact() {
         });
 
       if (error) throw error;
-      toast.success('Message sent successfully! We\'ll get back to you within 24 hours.');
+      lastSubmitRef.current = Date.now();
+      setSubmitted(true);
       setFormData({ name: '', email: '', subject: '', category: '', message: '', _honeypot: '' });
     } catch {
       toast.error('Failed to send message. Please try again.');
@@ -123,6 +132,9 @@ export default function Contact() {
 
             {/* Contact Form */}
             <div className="lg:col-span-2">
+              {submitted ? (
+                <ContactSuccessState onReset={() => setSubmitted(false)} />
+              ) : (
               <Card>
                 <CardHeader>
                   <CardTitle>Send us a Message</CardTitle>
@@ -223,6 +235,7 @@ export default function Contact() {
                   </form>
                 </CardContent>
               </Card>
+              )}
             </div>
           </div>
 

@@ -47,8 +47,8 @@ interface UseClinicalTrialsDetailedResult {
   getByCondition: (condition: string) => ClinicalTrialDetailed[];
 }
 
-export const useClinicalTrialsDetailed = (phase?: string): UseClinicalTrialsDetailedResult => {
-  const cacheKey = phase || 'all';
+export const useClinicalTrialsDetailed = (phase?: string, statusFilter?: string): UseClinicalTrialsDetailedResult => {
+  const cacheKey = `${phase || 'all'}_${statusFilter || 'all'}`;
   const [data, setData] = useState<ClinicalTrialDetailed[]>(cache[cacheKey]?.data || []);
   const [loading, setLoading] = useState(!cache[cacheKey]?.data?.length);
   const [error, setError] = useState<string | null>(null);
@@ -63,6 +63,10 @@ export const useClinicalTrialsDetailed = (phase?: string): UseClinicalTrialsDeta
       query = query.eq('phase', phase);
     }
 
+    if (statusFilter) {
+      query = query.eq('overall_status', statusFilter);
+    }
+
     const { data: dbData, error: dbError } = await query.limit(100);
 
     if (dbError) {
@@ -74,7 +78,7 @@ export const useClinicalTrialsDetailed = (phase?: string): UseClinicalTrialsDeta
       setData(dbData as ClinicalTrialDetailed[]);
     }
     return dbData;
-  }, [phase]);
+  }, [phase, statusFilter]);
 
   const refreshData = useCallback(async () => {
     try {
