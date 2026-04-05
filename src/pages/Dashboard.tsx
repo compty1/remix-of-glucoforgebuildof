@@ -318,6 +318,26 @@ const availableWidgets: DashboardWidget[] = [
     icon: Clock,
     defaultSize: { w: 3, h: 2 }
   },
+  // Gap 92/93: IOB Calculator widget
+  {
+    id: 'iob-calculator',
+    title: 'Insulin on Board',
+    component: () => <IOBWidget />,
+    category: 'Health',
+    description: 'Track your active insulin on board (IOB)',
+    icon: Syringe,
+    defaultSize: { w: 3, h: 3 }
+  },
+  // Gap 97: Meal Impact widget
+  {
+    id: 'meal-impact',
+    title: 'Meal Impact Guide',
+    component: () => <MealImpactWidget />,
+    category: 'Health',
+    description: 'Understand how different meal types affect glucose',
+    icon: UtensilsCrossed,
+    defaultSize: { w: 4, h: 4 }
+  },
 ];
 
 const Dashboard = () => {
