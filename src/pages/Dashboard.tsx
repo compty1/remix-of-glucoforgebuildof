@@ -55,7 +55,9 @@ import { AchievementsWidget } from '@/components/dashboard/AchievementsWidget';
 import { StreaksWidget } from '@/components/dashboard/StreaksWidget';
 import { PeerComparisonPanel } from '@/components/glucose/PeerComparisonPanel';
 import DigitalCompanion from '@/components/dashboard/DigitalCompanion';
-import { Trophy, Flame, Bot, HeartPulse } from 'lucide-react';
+import { CharityPointsWidget } from '@/components/gamification/CharityPointsWidget';
+import { Trophy, Flame, Bot, HeartPulse, Gift, RotateCcw } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const availableWidgets: DashboardWidget[] = [
   {
