@@ -76,7 +76,10 @@ export function useT1DChat() {
     };
 
     try {
-      const apiMessages = [...messages, userMessage].map(m => ({
+      // Bug 307: Use ref for fresh messages instead of stale closure
+      // Bug 308: Truncate history to last 20 messages to avoid exceeding context window
+      const recentMessages = [...messagesRef.current].slice(-20);
+      const apiMessages = [...recentMessages, userMessage].map(m => ({
         role: m.role,
         content: m.content,
       }));
