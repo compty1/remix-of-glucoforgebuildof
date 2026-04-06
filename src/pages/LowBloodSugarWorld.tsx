@@ -143,6 +143,7 @@ const StoryCard: React.FC<{ story: LowSugarStory; onUpvote: (id: string) => void
 };
 
 export default function LowBloodSugarWorld() {
+  const { user } = useAuthStore();
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const queryClient = useQueryClient();
@@ -164,7 +165,6 @@ export default function LowBloodSugarWorld() {
 
   const handleUpvote = async (storyId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error('Please sign in to upvote stories');
         return;
