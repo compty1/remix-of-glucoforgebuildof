@@ -28,7 +28,8 @@ export const useResources = (category?: string) => {
         .from('t1d_resources')
         .select('*')
         .order('priority', { ascending: false })
-        .order('title');
+        .order('title')
+        .limit(200);
       
       if (category) {
         query = query.eq('category', category);

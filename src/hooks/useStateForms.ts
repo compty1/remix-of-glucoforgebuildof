@@ -20,7 +20,8 @@ export const useStateForms = (stateCode?: string, category?: string) => {
       let query = supabase
         .from('state_diabetes_forms')
         .select('*')
-        .order('form_name');
+        .order('form_name')
+        .limit(500);
       
       if (stateCode) {
         query = query.eq('state_code', stateCode);

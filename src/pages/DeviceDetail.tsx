@@ -45,7 +45,7 @@ const DeviceDetail = () => {
 
   // Validate UUID before querying DB — prevents Postgres errors on invalid paths (Issue 107)
   const isValidDeviceId = deviceId ? UUID_REGEX.test(deviceId) : false;
-  const { data, loading, error } = useDeviceDetails(isValidDeviceId ? deviceId : undefined);
+  const { data, loading, error, refresh } = useDeviceDetails(isValidDeviceId ? deviceId : undefined);
   const { data: userFixes } = useDeviceFixes(isValidDeviceId ? deviceId : undefined);
   const { totalCount: solutionsCount } = useDeviceSolutions(isValidDeviceId ? deviceId : undefined, data?.device?.name);
 
@@ -92,7 +92,7 @@ const DeviceDetail = () => {
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="flex items-center justify-between">
               <span>{error}</span>
-              <Button size="sm" variant="outline" className="ml-4 shrink-0" onClick={() => window.location.reload()}>
+              <Button size="sm" variant="outline" className="ml-4 shrink-0" onClick={() => refresh()}>
                 Retry
               </Button>
             </AlertDescription>

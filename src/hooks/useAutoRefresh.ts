@@ -11,8 +11,8 @@ interface UseAutoRefreshOptions {
 
 /**
  * Auto-refresh hook that polls a callback at a given interval.
- * Pauses when the browser tab is hidden to save resources.
- * Returns controls to manually refresh or toggle polling.
+ * Bug 243: Added isRefreshing guard to prevent overlapping calls.
+ * Bug 244: Fires immediately on tab focus return.
  */
 export function useAutoRefresh(
   callback: () => void | Promise<void>,
@@ -26,6 +26,7 @@ export function useAutoRefresh(
 
   const callbackRef = useRef(callback);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isRefreshingRef = useRef(false);
   const [isPolling, setIsPolling] = useState(enabled);
   const [lastRefreshedAt, setLastRefreshedAt] = useState<Date | null>(null);
 
@@ -35,8 +36,15 @@ export function useAutoRefresh(
   }, [callback]);
 
   const doRefresh = useCallback(async () => {
-    await callbackRef.current();
-    setLastRefreshedAt(new Date());
+    // Bug 243: Guard against overlapping refreshes
+    if (isRefreshingRef.current) return;
+    isRefreshingRef.current = true;
+    try {
+      await callbackRef.current();
+      setLastRefreshedAt(new Date());
+    } finally {
+      isRefreshingRef.current = false;
+    }
   }, []);
 
   const startPolling = useCallback(() => {
@@ -51,15 +59,12 @@ export function useAutoRefresh(
     }
   }, []);
 
-  // Toggle polling
   const togglePolling = useCallback(() => {
     setIsPolling(prev => !prev);
   }, []);
 
-  // Manual refresh
   const refresh = useCallback(() => {
     doRefresh();
-    // Reset the interval after manual refresh
     if (isPolling) {
       stopPolling();
       startPolling();
@@ -84,7 +89,7 @@ export function useAutoRefresh(
       if (document.hidden) {
         stopPolling();
       } else if (isPolling && enabled) {
-        // Refresh immediately when tab becomes visible again
+        // Bug 244: Refresh immediately when tab becomes visible
         doRefresh();
         startPolling();
       }

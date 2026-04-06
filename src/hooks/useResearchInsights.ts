@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ResearchPaperWithTLDR {
@@ -45,58 +46,47 @@ interface UseResearchInsightsResult {
   filterByInfluentialThreshold: (minInfluential: number) => ResearchPaperWithTLDR[];
 }
 
+/**
+ * Bug 220: Migrated from manual useState/useEffect to React Query.
+ * Stats computed via useMemo from cached data.
+ */
 export const useResearchInsights = (): UseResearchInsightsResult => {
-  const [papers, setPapers] = useState<ResearchPaperWithTLDR[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchPapers = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { data, error: dbError } = await supabase
+  const { data: papers = [], isLoading: loading, error: queryError, refetch } = useQuery({
+    queryKey: ['research-insights'],
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from('medical_research_papers')
         .select('*')
         .order('influential_citation_count', { ascending: false, nullsFirst: false })
         .limit(500);
+      if (error) throw error;
+      return (data || []) as ResearchPaperWithTLDR[];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
 
-      if (dbError) throw new Error(dbError.message);
-      
-      setPapers((data || []) as ResearchPaperWithTLDR[]);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch research data');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const refreshData = useCallback(async () => { await refetch(); }, [refetch]);
 
-  const refreshData = useCallback(async () => {
-    await fetchPapers();
-  }, [fetchPapers]);
+  const papersWithTLDR = useMemo(() =>
+    papers.filter(p => p.tldr_summary && p.tldr_summary.trim().length > 0),
+  [papers]);
 
-  const papersWithTLDR = useMemo(() => {
-    return papers.filter(p => p.tldr_summary && p.tldr_summary.trim().length > 0);
-  }, [papers]);
-
-  const topInfluentialPapers = useMemo(() => {
-    return papers
+  const topInfluentialPapers = useMemo(() =>
+    papers
       .filter(p => (p.influential_citation_count || 0) > 0)
       .sort((a, b) => (b.influential_citation_count || 0) - (a.influential_citation_count || 0))
-      .slice(0, 20);
-  }, [papers]);
+      .slice(0, 20),
+  [papers]);
 
   const stats = useMemo((): ResearchInsightsStats => {
     const totalCitations = papers.reduce((sum, p) => sum + (p.citation_count || 0), 0);
     const totalInfluentialCitations = papers.reduce((sum, p) => sum + (p.influential_citation_count || 0), 0);
     const openAccessCount = papers.filter(p => p.open_access).length;
-    
     const relevanceScores = papers.filter(p => p.diabetes_relevance_score != null).map(p => p.diabetes_relevance_score!);
-    const averageRelevanceScore = relevanceScores.length > 0 
-      ? relevanceScores.reduce((a, b) => a + b, 0) / relevanceScores.length 
+    const averageRelevanceScore = relevanceScores.length > 0
+      ? relevanceScores.reduce((a, b) => a + b, 0) / relevanceScores.length
       : 0;
 
-    // Count fields of study
     const fieldCounts: Record<string, number> = {};
     papers.forEach(p => {
       (p.fields_of_study || []).forEach(field => {
@@ -120,19 +110,13 @@ export const useResearchInsights = (): UseResearchInsightsResult => {
     };
   }, [papers, papersWithTLDR]);
 
-  const filterByField = useCallback((field: string) => {
-    return papers.filter(p => 
-      p.fields_of_study?.some(f => f.toLowerCase().includes(field.toLowerCase()))
-    );
-  }, [papers]);
+  const filterByField = useCallback((field: string) =>
+    papers.filter(p => p.fields_of_study?.some(f => f.toLowerCase().includes(field.toLowerCase()))),
+  [papers]);
 
-  const filterByInfluentialThreshold = useCallback((minInfluential: number) => {
-    return papers.filter(p => (p.influential_citation_count || 0) >= minInfluential);
-  }, [papers]);
-
-  useEffect(() => {
-    fetchPapers();
-  }, [fetchPapers]);
+  const filterByInfluentialThreshold = useCallback((minInfluential: number) =>
+    papers.filter(p => (p.influential_citation_count || 0) >= minInfluential),
+  [papers]);
 
   return {
     papers,
@@ -140,7 +124,7 @@ export const useResearchInsights = (): UseResearchInsightsResult => {
     topInfluentialPapers,
     stats,
     loading,
-    error,
+    error: queryError ? String(queryError) : null,
     refreshData,
     filterByField,
     filterByInfluentialThreshold,

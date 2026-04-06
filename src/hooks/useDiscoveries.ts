@@ -10,13 +10,18 @@ export interface Discovery {
   category?: string;
   impact_level?: 'Breakthrough' | 'High' | 'Medium' | 'Low';
   credibility_score: number;
-  credibility_factors?: any;
+  credibility_factors?: Record<string, unknown>;
   primary_source?: string;
   source_urls?: string[];
   publication_date?: string;
-  ai_analysis?: any;
-  cross_references?: any[];
+  ai_analysis?: Record<string, unknown>;
+  cross_references?: Record<string, unknown>[];
   discovered_at: string;
+}
+
+interface DiscoveriesResult {
+  items: Discovery[];
+  totalCount: number;
 }
 
 export const useDiscoveries = (filters?: {
@@ -29,7 +34,7 @@ export const useDiscoveries = (filters?: {
   const limit = filters?.limit ?? 50;
   const offset = filters?.offset ?? 0;
 
-  const { data: discoveries = [], isLoading: loading, error: rawError } = useQuery({
+  const { data, isLoading: loading, error: rawError } = useQuery<DiscoveriesResult>({
     queryKey: ['discoveries', filters?.type, filters?.impact, filters?.minCredibility, limit, offset],
     queryFn: async () => {
       let query = supabase
@@ -56,7 +61,10 @@ export const useDiscoveries = (filters?: {
   });
 
   const error = rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch discoveries') : null;
-  const totalCount = (discoveries as any)?.totalCount ?? 0;
-  const items = (discoveries as any)?.items ?? discoveries;
-  return { discoveries: Array.isArray(items) ? items : [], loading, error, totalCount };
+  return {
+    discoveries: data?.items ?? [],
+    loading,
+    error,
+    totalCount: data?.totalCount ?? 0,
+  };
 };

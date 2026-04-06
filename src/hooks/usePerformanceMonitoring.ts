@@ -1,11 +1,14 @@
 import { useEffect } from 'react';
 
-/** Gap 494/495: Core Web Vitals + Long Task monitoring */
+/**
+ * Long Task monitoring.
+ * Bug 272: Updated comment to reflect actual scope (long tasks only, not CWV).
+ */
 export function usePerformanceMonitoring() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Long task observer (gap 495)
+    // Long task observer
     if ('PerformanceObserver' in window) {
       try {
         const longTaskObserver = new PerformanceObserver((list) => {

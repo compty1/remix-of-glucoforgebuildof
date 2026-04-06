@@ -114,7 +114,7 @@ ${contextTitle ? `**Topic:** ${contextTitle}` : ''}
             </style>
           </head>
           <body>
-            <pre>${content}</pre>
+            <pre>${content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
           </body>
         </html>
       `);

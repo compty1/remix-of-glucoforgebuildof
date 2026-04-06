@@ -36,7 +36,8 @@ export function useT1DHistory(options?: UseT1DHistoryOptions) {
       let query = supabase
         .from('t1d_history_events')
         .select('*')
-        .order('year', { ascending: true });
+        .order('year', { ascending: true })
+        .limit(500);
 
       if (options?.era) {
         query = query.eq('era', options.era);
