@@ -85,8 +85,6 @@ export const AlertPreferencesModal: React.FC<AlertPreferencesModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
       // Upsert the subscription
       const { error } = await supabase
         .from('email_subscriptions')
