@@ -23,18 +23,20 @@ export function useSubscriptionTier(): { subscription: SubscriptionInfo; loading
   const { data: subscription = DEFAULT_SUB, isLoading: loading } = useQuery({
     queryKey: ['subscription-tier', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('user_subscriptions' as any)
+      // user_subscriptions may not exist yet in the schema
+      const { data, error } = await (supabase as any)
+        .from('user_subscriptions')
         .select('*')
         .eq('user_id', user!.id)
         .maybeSingle();
 
       if (error || !data) return DEFAULT_SUB;
 
-      const isActive = !data.expires_at || new Date(data.expires_at) > new Date();
+      const row = data as Record<string, any>;
+      const isActive = !row.expires_at || new Date(row.expires_at) > new Date();
       return {
-        tier: (isActive ? data.tier : 'free') as SubscriptionTier,
-        expiresAt: data.expires_at as string | null,
+        tier: (isActive ? row.tier : 'free') as SubscriptionTier,
+        expiresAt: (row.expires_at as string) || null,
         isActive,
       };
     },
