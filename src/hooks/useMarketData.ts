@@ -28,7 +28,8 @@ export const useMarketData = () => {
       .from('market_data')
       .select('*')
       .order('data_date', { ascending: false })
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+     .limit(500);
 
     if (dbError) throw dbError;
     if (dbData) {

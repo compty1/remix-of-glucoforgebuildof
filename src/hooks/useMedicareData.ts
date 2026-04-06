@@ -22,7 +22,8 @@ export const useMedicareData = () => {
     const { data: dbData, error: dbError } = await supabase
       .from('medicare_coverage_data')
       .select('*')
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+     .limit(500);
 
     if (dbError) throw dbError;
     if (dbData) setData(dbData);

@@ -28,7 +28,8 @@ export function useDeviceFixes(deviceId: string | undefined) {
         .from("device_user_fixes")
         .select("*")
         .eq("device_id", deviceId)
-        .order("votes", { ascending: false });
+        .order("votes", { ascending: false })
+        .limit(200);
 
       if (error) throw error;
       return data as DeviceFix[];
