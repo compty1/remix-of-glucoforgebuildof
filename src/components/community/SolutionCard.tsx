@@ -53,14 +53,9 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
 
   const { isPostSaved, savePost, unsavePost, updateNotes, getPostNotes, isSaving, isUnsaving, isUpdatingNotes } = useSavedPosts();
 
-  // Check login status
-  React.useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsLoggedIn(!!user);
-    };
-    checkAuth();
-  }, []);
+  // Bug 100/101: Use cached auth state instead of network round-trip
+  const { user: authUser } = useAuthStore();
+  const isLoggedIn = !!authUser;
 
   const isSaved = isPostSaved(post.post_id);
   const currentNotes = getPostNotes(post.post_id);
