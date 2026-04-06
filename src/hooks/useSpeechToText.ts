@@ -1,20 +1,23 @@
 /**
  * Phase 18.1: Voice-to-Text Logging
- * Web Speech API hook for voice input with transcript output.
+ * Bug 269: Stops existing recognition before starting new.
+ * Bug 270: Only concatenates final results.
  */
 import { useState, useCallback, useRef, useEffect } from 'react';
 
 interface SpeechToTextState {
   isListening: boolean;
   transcript: string;
+  interimTranscript: string;
   error: string | null;
   isSupported: boolean;
 }
 
-interface SpeechToTextReturn extends SpeechToTextState {
+interface SpeechToTextReturn extends Omit<SpeechToTextState, 'interimTranscript'> {
   startListening: () => void;
   stopListening: () => void;
   resetTranscript: () => void;
+  interimTranscript: string;
 }
 
 export function useSpeechToText(lang = 'en-US'): SpeechToTextReturn {
@@ -24,6 +27,7 @@ export function useSpeechToText(lang = 'en-US'): SpeechToTextReturn {
   const [state, setState] = useState<SpeechToTextState>({
     isListening: false,
     transcript: '',
+    interimTranscript: '',
     error: null,
     isSupported,
   });
@@ -42,6 +46,12 @@ export function useSpeechToText(lang = 'en-US'): SpeechToTextReturn {
       return;
     }
 
+    // Bug 269: Stop existing before starting new
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
     recognition.continuous = true;
@@ -50,10 +60,20 @@ export function useSpeechToText(lang = 'en-US'): SpeechToTextReturn {
 
     recognition.onresult = (event: any) => {
       let finalTranscript = '';
+      let interimTranscript = '';
       for (let i = 0; i < event.results.length; i++) {
-        finalTranscript += event.results[i][0].transcript;
+        const result = event.results[i];
+        if (result.isFinal) {
+          finalTranscript += result[0].transcript;
+        } else {
+          interimTranscript += result[0].transcript;
+        }
       }
-      setState((s) => ({ ...s, transcript: finalTranscript }));
+      setState((s) => ({
+        ...s,
+        transcript: s.transcript + finalTranscript,
+        interimTranscript,
+      }));
     };
 
     recognition.onerror = (event: any) => {
@@ -61,21 +81,21 @@ export function useSpeechToText(lang = 'en-US'): SpeechToTextReturn {
     };
 
     recognition.onend = () => {
-      setState((s) => ({ ...s, isListening: false }));
+      setState((s) => ({ ...s, isListening: false, interimTranscript: '' }));
     };
 
     recognitionRef.current = recognition;
     recognition.start();
-    setState((s) => ({ ...s, isListening: true, error: null }));
+    setState((s) => ({ ...s, isListening: true, error: null, interimTranscript: '' }));
   }, [isSupported, lang]);
 
   const stopListening = useCallback(() => {
     recognitionRef.current?.stop();
-    setState((s) => ({ ...s, isListening: false }));
+    setState((s) => ({ ...s, isListening: false, interimTranscript: '' }));
   }, []);
 
   const resetTranscript = useCallback(() => {
-    setState((s) => ({ ...s, transcript: '', error: null }));
+    setState((s) => ({ ...s, transcript: '', interimTranscript: '', error: null }));
   }, []);
 
   return { ...state, startListening, stopListening, resetTranscript };
