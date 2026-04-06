@@ -70,6 +70,27 @@ const Auth = () => {
     }
   };
 
+  const handleAppleSignIn = async () => {
+    setAppleLoading(true);
+    setErrors({});
+    try {
+      const result = await lovable.auth.signInWithOAuth("apple", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        setErrors({ general: result.error instanceof Error ? result.error.message : 'Apple sign-in failed' });
+        setAppleLoading(false);
+        return;
+      }
+      if (result.redirected) {
+        return;
+      }
+    } catch {
+      setErrors({ general: 'Apple sign-in failed. Please try again.' });
+      setAppleLoading(false);
+    }
+  };
+
   // If not initialized yet, show loading
   if (!initialized || loading) {
     return (
