@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { 
   ThumbsUp, 
@@ -47,7 +48,7 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
   const [showComments, setShowComments] = useState(false);
   const [showSimilar, setShowSimilar] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [_isLoggedInLegacy, _setIsLoggedInLegacy] = useState<boolean | null>(null);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [isEditingNotes, setIsEditingNotes] = useState(false);
 
