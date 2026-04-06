@@ -46,6 +46,7 @@ const Auth = () => {
   // Validation errors
   const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
