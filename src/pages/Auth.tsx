@@ -44,6 +44,7 @@ const Auth = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Validation errors
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
