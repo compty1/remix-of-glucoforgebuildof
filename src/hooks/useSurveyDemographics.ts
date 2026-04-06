@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuthStore } from '@/store/authStore';
 
 interface Demographics {
   id: string;
@@ -18,63 +19,34 @@ interface Demographics {
   updated_at: string;
 }
 
-interface UseSurveyDemographicsResult {
-  demographics: Demographics | null;
-  hasDemographics: boolean;
-  loading: boolean;
-  error: string | null;
-  refetch: () => Promise<void>;
-}
+/**
+ * Survey demographics hook.
+ * Bug 222: Replaced supabase.auth.getUser() with useAuthStore, migrated to React Query.
+ */
+export const useSurveyDemographics = () => {
+  const { user } = useAuthStore();
 
-export const useSurveyDemographics = (): UseSurveyDemographicsResult => {
-  const [demographics, setDemographics] = useState<Demographics | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchDemographics = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        setDemographics(null);
-        setLoading(false);
-        return;
-      }
-
-      const { data, error: fetchError } = await supabase
+  const { data: demographics = null, isLoading: loading, error: queryError, refetch } = useQuery({
+    queryKey: ['survey-demographics', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from('survey_demographics')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user!.id)
         .maybeSingle();
 
-      if (fetchError) {
-        throw new Error(`Failed to fetch demographics: ${fetchError.message}`);
-      }
-
-      setDemographics(data as Demographics | null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch demographics');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const refetch = async () => {
-    await fetchDemographics();
-  };
-
-  useEffect(() => {
-    fetchDemographics();
-  }, []);
+      if (error) throw error;
+      return data as Demographics | null;
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
+  });
 
   return {
     demographics,
     hasDemographics: demographics !== null,
     loading,
-    error,
-    refetch,
+    error: queryError ? String(queryError) : null,
+    refetch: async () => { await refetch(); },
   };
 };
