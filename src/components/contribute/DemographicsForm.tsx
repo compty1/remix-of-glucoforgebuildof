@@ -130,6 +130,7 @@ export const DemographicsForm = ({
   showTitle = true,
   compact = false 
 }: DemographicsFormProps) => {
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [demographics, setDemographics] = useState<Demographics>({
@@ -151,7 +152,6 @@ export const DemographicsForm = ({
 
   const fetchDemographics = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setLoading(false);
         return;
@@ -191,7 +191,7 @@ export const DemographicsForm = ({
   const handleSave = async () => {
     try {
       setSaving(true);
-      const { data: { user } } = await supabase.auth.getUser();
+      
       
       if (!user) {
         toast({
