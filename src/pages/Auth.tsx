@@ -44,7 +44,29 @@ const Auth = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Validation errors
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    setErrors({});
+    try {
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
+      });
+      if (result.error) {
+        setErrors({ general: result.error instanceof Error ? result.error.message : 'Google sign-in failed' });
+        setGoogleLoading(false);
+        return;
+      }
+      if (result.redirected) {
+        return; // Browser will redirect to Google
+      }
+      // Session set — auth listener will handle navigation
+    } catch {
+      setErrors({ general: 'Google sign-in failed. Please try again.' });
+      setGoogleLoading(false);
+    }
+  };
 
   // If not initialized yet, show loading
   if (!initialized || loading) {
