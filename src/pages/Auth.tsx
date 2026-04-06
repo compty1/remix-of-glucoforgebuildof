@@ -15,6 +15,7 @@ import { signInSchema, signUpSchema } from '@/lib/validation';
 import { z } from 'zod';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { PasswordStrengthIndicator } from '@/components/auth/PasswordStrengthIndicator';
+import { lovable } from '@/integrations/lovable/index';
 
 const emailSchema = z.string().email('Please enter a valid email address');
 
