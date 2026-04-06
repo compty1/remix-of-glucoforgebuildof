@@ -162,14 +162,15 @@ export function useT1DChat() {
         variant: 'destructive',
       });
       // Remove the user message if there was an error
-      setMessages(prev => prev.slice(0, -1));
+      updateMessages(prev => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
     }
-  }, [messages, toast]);
+  }, [toast, updateMessages]);
 
   const clearChat = useCallback(() => {
     setMessages([]);
+    messagesRef.current = [];
   }, []);
 
   const getLastAssistantMessage = useCallback(() => {
