@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface FDADeviceEvent {
@@ -12,7 +13,7 @@ export interface FDADeviceEvent {
   severity_level?: string;
   status: string;
   source_url?: string;
-  raw_data?: any;
+  raw_data?: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -27,81 +28,39 @@ interface UseFDADataResult {
 }
 
 export const useFDAData = (eventType?: string): UseFDADataResult => {
-  const [data, setData] = useState<FDADeviceEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchFromDB = useCallback(async () => {
-    let query = supabase
-      .from('fda_device_events')
-      .select('*')
-      .order('event_date', { ascending: false });
+  const { data = [], isLoading, error: rawError } = useQuery({
+    queryKey: ['fda-data', eventType],
+    queryFn: async (): Promise<FDADeviceEvent[]> => {
+      let query = supabase
+        .from('fda_device_events')
+        .select('id, event_type, fda_event_id, device_name, manufacturer_name, event_date, event_description, severity_level, status, source_url, created_at, updated_at')
+        .order('event_date', { ascending: false });
 
-    if (eventType) {
-      query = query.eq('event_type', eventType);
-    }
+      if (eventType) query = query.eq('event_type', eventType);
 
-    const { data: dbData, error: dbError } = await query.limit(100);
-
-    if (dbError) {
-      throw new Error(`Database error: ${dbError.message}`);
-    }
-
-    if (dbData) {
-      setData(dbData as FDADeviceEvent[]);
-    }
-    return dbData;
-  }, [eventType]);
+      const { data, error } = await query.limit(100);
+      if (error) throw new Error(`Database error: ${error.message}`);
+      return (data || []) as FDADeviceEvent[];
+    },
+    staleTime: 15 * 60 * 1000,
+  });
 
   const refreshData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    const { error: functionError } = await supabase.functions.invoke('fda-data-feed');
+    if (functionError) throw new Error(`Failed to refresh FDA data: ${functionError.message}`);
+    await queryClient.invalidateQueries({ queryKey: ['fda-data'] });
+  }, [queryClient]);
 
-      const { error: functionError } = await supabase.functions.invoke('fda-data-feed');
-
-      if (functionError) {
-        throw new Error(`Failed to refresh FDA data: ${functionError.message}`);
-      }
-
-      // Re-query DB after refresh
-      await fetchFromDB();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to refresh FDA data');
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchFromDB]);
-
-  const getByEventType = useCallback((type: string) => {
-    return data.filter(event => event.event_type === type);
-  }, [data]);
-
-  const getByManufacturer = useCallback((manufacturer: string) => {
-    return data.filter(event => 
-      event.manufacturer_name?.toLowerCase().includes(manufacturer.toLowerCase())
-    );
-  }, [data]);
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        await fetchFromDB();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch FDA data');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [fetchFromDB]);
+  const getByEventType = useCallback((type: string) => data.filter(e => e.event_type === type), [data]);
+  const getByManufacturer = useCallback((manufacturer: string) =>
+    data.filter(e => e.manufacturer_name?.toLowerCase().includes(manufacturer.toLowerCase())), [data]);
 
   return {
     data,
-    loading,
-    error,
+    loading: isLoading,
+    error: rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch FDA data') : null,
     refreshData,
     getByEventType,
     getByManufacturer,

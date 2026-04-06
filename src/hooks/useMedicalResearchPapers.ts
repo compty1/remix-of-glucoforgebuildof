@@ -1,8 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-const STALE_TIME_MS = 15 * 60 * 1000; // 15 minutes
-const cache: Record<string, { data: any[]; fetchedAt: number }> = {};
 
 export interface MedicalResearchPaper {
   id: string;
@@ -28,10 +26,9 @@ export interface MedicalResearchPaper {
   diabetes_relevance_score?: number;
   device_mentions?: string[];
   drug_mentions?: string[];
-  raw_data?: any;
+  raw_data?: Record<string, unknown>;
   created_at: string;
   updated_at: string;
-  // T1D classification fields
   is_type1_relevant?: boolean;
   diabetes_type?: 'type1' | 'type2' | 'general' | 'gestational';
   classification_confidence?: number;
@@ -56,128 +53,40 @@ interface UseMedicalResearchPapersOptions {
 
 export const useMedicalResearchPapers = (options?: UseMedicalResearchPapersOptions): UseMedicalResearchPapersResult => {
   const { minRelevanceScore, type1Only = true } = options || {};
-  const cacheKey = `${minRelevanceScore ?? 'none'}-${type1Only}`;
-  const [data, setData] = useState<MedicalResearchPaper[]>(cache[cacheKey]?.data || []);
-  const [loading, setLoading] = useState(!cache[cacheKey]?.data?.length);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchResearchPapers = useCallback(async () => {
-    const now = Date.now();
-    const cached = cache[cacheKey];
-    if (cached && now - cached.fetchedAt < STALE_TIME_MS && cached.data.length > 0) {
-      setData(cached.data as MedicalResearchPaper[]);
-      setLoading(false);
-      return;
-    }
-    try {
-      setLoading(true);
-      setError(null);
-
-      // First, get existing data from the database
+  const { data = [], isLoading, error: rawError } = useQuery({
+    queryKey: ['medical-research-papers', minRelevanceScore, type1Only],
+    queryFn: async (): Promise<MedicalResearchPaper[]> => {
       let query = supabase
         .from('medical_research_papers')
-        .select('*')
+        .select('id, paper_id, title, abstract, authors, journal_name, publication_date, doi, pmid, pmc_id, europe_pmc_id, study_type, keywords, mesh_terms, citation_count, impact_factor, open_access, pdf_url, full_text_url, source_database, diabetes_relevance_score, device_mentions, drug_mentions, created_at, updated_at, is_type1_relevant, diabetes_type, classification_confidence')
         .order('publication_date', { ascending: false });
 
-      if (minRelevanceScore) {
-        query = query.gte('diabetes_relevance_score', minRelevanceScore);
-      }
+      if (minRelevanceScore) query = query.gte('diabetes_relevance_score', minRelevanceScore);
+      if (type1Only) query = query.eq('is_type1_relevant', true);
 
-      // Filter for Type 1 diabetes relevant papers by default
-      if (type1Only) {
-        query = query.eq('is_type1_relevant', true);
-      }
-
-      const { data: existingData, error: dbError } = await query.limit(100);
-
-      if (dbError) {
-        throw new Error(`Database error: ${dbError.message}`);
-      }
-
-      if (existingData && existingData.length > 0) {
-        cache[cacheKey] = { data: existingData, fetchedAt: Date.now() };
-        setData(existingData as MedicalResearchPaper[]);
-        setLoading(false);
-      }
-
-      // Then fetch fresh data from the edge function in the background
-      const { error: functionError } = await supabase.functions.invoke('medical-research-aggregator');
-
-      if (functionError) {
-        // Edge function error — use cached data if available
-        if (!existingData || existingData.length === 0) {
-          throw new Error(`Failed to fetch research papers: ${functionError.message}`);
-        }
-      } else {
-        // Re-query DB to get canonical data after edge function updates
-        let refreshQuery = supabase
-          .from('medical_research_papers')
-          .select('*')
-          .order('publication_date', { ascending: false });
-        if (minRelevanceScore) {
-          refreshQuery = refreshQuery.gte('diabetes_relevance_score', minRelevanceScore);
-        }
-        if (type1Only) {
-          refreshQuery = refreshQuery.eq('is_type1_relevant', true);
-        }
-        const { data: refreshedData } = await refreshQuery.limit(100);
-        if (refreshedData && refreshedData.length > 0) {
-          cache[cacheKey] = { data: refreshedData, fetchedAt: Date.now() };
-          setData(refreshedData as MedicalResearchPaper[]);
-        }
-      }
-
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch research papers');
-    } finally {
-      setLoading(false);
-    }
-  }, [minRelevanceScore, type1Only]);
+      const { data, error } = await query.limit(100);
+      if (error) throw new Error(`Database error: ${error.message}`);
+      return (data || []) as MedicalResearchPaper[];
+    },
+    staleTime: 15 * 60 * 1000,
+  });
 
   const refreshData = useCallback(async () => {
-    setLoading(true);
-    await fetchResearchPapers();
-  }, [fetchResearchPapers]);
+    const { error: functionError } = await supabase.functions.invoke('medical-research-aggregator');
+    if (functionError) throw new Error(`Failed to fetch research papers: ${functionError.message}`);
+    await queryClient.invalidateQueries({ queryKey: ['medical-research-papers'] });
+  }, [queryClient]);
 
-  const getByRelevanceScore = useCallback((minScore: number) => {
-    return data.filter(paper => (paper.diabetes_relevance_score || 0) >= minScore);
-  }, [data]);
+  const getByRelevanceScore = useCallback((minScore: number) =>
+    data.filter(p => (p.diabetes_relevance_score || 0) >= minScore), [data]);
+  const getByJournal = useCallback((journal: string) =>
+    data.filter(p => p.journal_name?.toLowerCase().includes(journal.toLowerCase())), [data]);
+  const getByDeviceMentions = useCallback((device: string) =>
+    data.filter(p => p.device_mentions?.some(m => m.toLowerCase().includes(device.toLowerCase()))), [data]);
+  const getOpenAccess = useCallback(() => data.filter(p => p.open_access === true), [data]);
+  const getType1Only = useCallback(() => data.filter(p => p.is_type1_relevant === true), [data]);
 
-  const getByJournal = useCallback((journal: string) => {
-    return data.filter(paper => 
-      paper.journal_name?.toLowerCase().includes(journal.toLowerCase())
-    );
-  }, [data]);
-
-  const getByDeviceMentions = useCallback((device: string) => {
-    return data.filter(paper => 
-      paper.device_mentions?.some(mention => 
-        mention.toLowerCase().includes(device.toLowerCase())
-      )
-    );
-  }, [data]);
-
-  const getOpenAccess = useCallback(() => {
-    return data.filter(paper => paper.open_access === true);
-  }, [data]);
-
-  const getType1Only = useCallback(() => {
-    return data.filter(paper => paper.is_type1_relevant === true);
-  }, [data]);
-
-  useEffect(() => {
-    fetchResearchPapers();
-  }, [fetchResearchPapers]);
-
-  return {
-    data,
-    loading,
-    error,
-    refreshData,
-    getByRelevanceScore,
-    getByJournal,
-    getByDeviceMentions,
-    getOpenAccess,
-    getType1Only,
-  };
+  return { data, loading: isLoading, error: rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch research papers') : null, refreshData, getByRelevanceScore, getByJournal, getByDeviceMentions, getOpenAccess, getType1Only };
 };
