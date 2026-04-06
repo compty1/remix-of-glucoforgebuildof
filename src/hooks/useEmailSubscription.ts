@@ -109,7 +109,8 @@ export const useEmailSubscription = (): UseEmailSubscriptionResult => {
       const { error: dbError } = await supabase
         .from('email_subscriptions')
         .update({ is_active: false })
-        .eq('id', subscription.id);
+        .eq('id', subscription.id)
+        .eq('user_id', user.id);
 
       if (dbError) throw new Error(dbError.message);
       
@@ -131,7 +132,8 @@ export const useEmailSubscription = (): UseEmailSubscriptionResult => {
       const { error: dbError } = await supabase
         .from('email_subscriptions')
         .update({ preferences, is_active: true })
-        .eq('id', subscription.id);
+        .eq('id', subscription.id)
+        .eq('user_id', user.id);
 
       if (dbError) throw new Error(dbError.message);
       

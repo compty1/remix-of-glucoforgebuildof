@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -256,8 +256,10 @@ export default function SupportGlucoForge() {
   const [donationAmount, setDonationAmount] = useState(100);
   const [donationType, setDonationType] = useState<'one-time' | 'monthly'>('one-time');
 
+  const navigate = useNavigate();
+  
   const handleDonate = () => {
-    window.open(`/donate?amount=${donationAmount}&type=${donationType}`, '_self');
+    navigate(`/donate?amount=${donationAmount}&type=${donationType}`);
   };
 
   return (

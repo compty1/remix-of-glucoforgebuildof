@@ -28,7 +28,8 @@ export const usePatentData = () => {
     const { data: dbData, error: dbError } = await supabase
       .from('patent_data')
       .select('*')
-      .order('patent_date', { ascending: false });
+      .order('patent_date', { ascending: false })
+     .limit(500);
 
     if (dbError) throw dbError;
     if (dbData) {

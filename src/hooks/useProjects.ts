@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { sanitizeForIlike } from '@/utils/searchSanitizer';
 import { useAuthStore } from '@/store/authStore';
 
 export interface Project {
@@ -105,7 +106,8 @@ export const useProjects = (initialFilters?: Partial<ProjectFilters>) => {
       }
 
       if (filters.searchQuery) {
-        query = query.or(`title.ilike.%${filters.searchQuery}%,description.ilike.%${filters.searchQuery}%`);
+        const q = sanitizeForIlike(filters.searchQuery);
+        query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
       }
 
       const { data, error } = await query;

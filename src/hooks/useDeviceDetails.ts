@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { sanitizeForIlike } from '@/utils/searchSanitizer';
 
 export interface DeviceMetrics {
   reliability_score: number | null;
@@ -120,13 +121,13 @@ async function fetchDeviceDetails(deviceId: string): Promise<DeviceDetails | nul
   if (deviceError) throw deviceError;
   if (!deviceData) return null;
 
-  // Build community post search filter
+  // Build community post search filter with sanitized inputs
   const deviceNameLower = deviceData.name.toLowerCase();
   const deviceParts = deviceNameLower.split(' ');
-  const brand = deviceParts[0];
-  const model = deviceParts.slice(1).join(' ');
-  let searchFilter = `device_mentioned.ilike.%${brand}%,title.ilike.%${deviceNameLower}%`;
-  if (model && model.length > 1) {
+  const brand = sanitizeForIlike(deviceParts[0]);
+  const model = sanitizeForIlike(deviceParts.slice(1).join(' '));
+  let searchFilter = `device_mentioned.ilike.%${brand}%,title.ilike.%${sanitizeForIlike(deviceNameLower)}%`;
+  if (model && model.length > 2) {
     searchFilter += `,title.ilike.%${model}%,content.ilike.%${model}%`;
   }
 
@@ -158,7 +159,7 @@ async function fetchDeviceDetails(deviceId: string): Promise<DeviceDetails | nul
     supabase
       .from('fda_device_events')
       .select('*')
-      .or(`device_name.ilike.%${deviceData.name}%,manufacturer_name.ilike.%${deviceData.manufacturer}%`)
+      .or(`device_name.ilike.%${sanitizeForIlike(deviceData.name)}%,manufacturer_name.ilike.%${sanitizeForIlike(deviceData.manufacturer || '')}%`)
       .order('event_date', { ascending: false })
       .limit(20),
     supabase

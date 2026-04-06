@@ -34,7 +34,8 @@ export function useBurnoutPosts(category?: string) {
       let query = supabase
         .from("burnout_community_posts")
         .select("*")
-        .order("score", { ascending: false });
+        .order("score", { ascending: false })
+        .limit(200);
 
       if (category && category !== "all") {
         query = query.eq("burnout_category", category);
@@ -57,7 +58,8 @@ export function useBurnoutComments(postId: string | null) {
         .from("burnout_comments")
         .select("*")
         .eq("post_id", postId)
-        .order("score", { ascending: false });
+        .order("score", { ascending: false })
+        .limit(200);
 
       if (error) throw error;
       return (data || []) as BurnoutComment[];

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { sanitizeForIlike } from '@/utils/searchSanitizer';
 
 export interface DeviceSolution {
   id: string;
@@ -43,12 +44,14 @@ export const useDeviceSolutions = (deviceId: string | undefined, deviceName?: st
       if (!deviceName) return [];
       
       // Search for posts mentioning the device
+      const sanitizedName = sanitizeForIlike(deviceName);
       const searchTerms = deviceName.toLowerCase().split(' ').filter(t => t.length > 2);
+      const firstTerm = searchTerms[0] ? sanitizeForIlike(searchTerms[0]) : sanitizedName;
       
       const { data, error } = await supabase
         .from('community_posts')
         .select('*')
-        .or(`device_mentioned.ilike.%${deviceName}%,title.ilike.%${searchTerms[0] || deviceName}%`)
+        .or(`device_mentioned.ilike.%${sanitizedName}%,title.ilike.%${firstTerm}%`)
         .eq('is_solution', true)
         .order('score', { ascending: false })
         .limit(50);

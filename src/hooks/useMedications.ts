@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { sanitizeForIlike } from "@/utils/searchSanitizer";
 
 export interface Medication {
   id: string;
@@ -91,7 +92,7 @@ export const useMedications = (options: UseMedicationsOptions = {}) => {
 
       // Apply search filter
       if (search) {
-        query = query.or(`name.ilike.%${search}%,generic_name.ilike.%${search}%,manufacturer.ilike.%${search}%`);
+        query = query.or(`name.ilike.%${sanitizeForIlike(search)}%,generic_name.ilike.%${sanitizeForIlike(search)}%,manufacturer.ilike.%${sanitizeForIlike(search)}%`);
       }
 
       // Apply sorting — direction is passed in for price asc/desc support (Issue 180)

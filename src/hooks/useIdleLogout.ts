@@ -3,7 +3,7 @@ import { useAuthStore } from '@/store/authStore';
 
 /**
  * Auto-logout after inactivity with a 60-second warning dialog.
- * Gaps 8.1, 1060: idle logout + timeout warning before logout.
+ * Bug 309: Throttled event handler to avoid clearing/creating timers on every mouse pixel.
  */
 export function useIdleLogout(timeoutMs = 30 * 60 * 1000) {
   const { user, signOut } = useAuthStore();
@@ -12,8 +12,10 @@ export function useIdleLogout(timeoutMs = 30 * 60 * 1000) {
   const [showWarning, setShowWarning] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(60);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastResetRef = useRef<number>(0);
 
   const WARNING_DURATION = 60_000; // 60 seconds warning before logout
+  const THROTTLE_MS = 1000; // Only process activity events once per second
 
   const clearTimers = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -25,6 +27,11 @@ export function useIdleLogout(timeoutMs = 30 * 60 * 1000) {
   }, []);
 
   const resetTimer = useCallback(() => {
+    // Bug 309: Throttle — skip if called within THROTTLE_MS of last reset
+    const now = Date.now();
+    if (now - lastResetRef.current < THROTTLE_MS) return;
+    lastResetRef.current = now;
+
     clearTimers();
     setShowWarning(false);
     setSecondsLeft(60);
@@ -55,6 +62,7 @@ export function useIdleLogout(timeoutMs = 30 * 60 * 1000) {
   }, [user, signOut, timeoutMs, clearTimers]);
 
   const stayActive = useCallback(() => {
+    lastResetRef.current = 0; // Allow immediate reset when user clicks "Stay Active"
     resetTimer();
   }, [resetTimer]);
 
@@ -63,6 +71,7 @@ export function useIdleLogout(timeoutMs = 30 * 60 * 1000) {
 
     const events: (keyof WindowEventMap)[] = ['mousemove', 'keydown', 'touchstart', 'scroll'];
     events.forEach(e => window.addEventListener(e, resetTimer, { passive: true }));
+    lastResetRef.current = 0; // Allow first reset
     resetTimer();
 
     return () => {

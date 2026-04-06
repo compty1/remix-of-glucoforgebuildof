@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useDebounce } from '@/hooks/useDebounce';
+import { sanitizeForIlike } from '@/utils/searchSanitizer';
 
 export interface CommunityPost {
   id: string;
@@ -73,7 +74,8 @@ export const useCommunitySearch = (initialFilters?: Partial<SearchFilters>) => {
 
     // Apply text search if query exists — uses debounced value
     if (debouncedFilters.query) {
-      query = query.or(`title.ilike.%${debouncedFilters.query}%,content.ilike.%${debouncedFilters.query}%`);
+      const q = sanitizeForIlike(debouncedFilters.query);
+      query = query.or(`title.ilike.%${q}%,content.ilike.%${q}%`);
     }
 
     // Apply source filter
@@ -278,15 +280,9 @@ export const useRefreshCommunityData = () => {
       const { data, error } = await supabase.functions.invoke('community-feed');
       
       if (error) {
-        // Only seed if the table is nearly empty
-        const { count } = await supabase
-          .from('community_posts')
-          .select('*', { count: 'exact', head: true });
-
-        if ((count || 0) < 10) {
-          await supabase.functions.invoke('seed-community-posts');
-          await supabase.functions.invoke('seed-community-comments');
-        }
+        // Bug 300: Removed unauthenticated client-side seed calls.
+        // Data should be seeded via admin tools only.
+        throw error;
       }
       
       return data || { success: true };

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
 import { useToast } from '@/hooks/use-toast';
+import { sanitizeForIlike } from '@/utils/searchSanitizer';
 
 export interface DiabeticProfile {
   id: string;
@@ -48,7 +49,8 @@ export function useDiabeticProfiles(stateFilter?: string, searchQuery?: string) 
         query = query.eq('state', stateFilter);
       }
       if (searchQuery) {
-        query = query.or(`city.ilike.%${searchQuery}%,display_name.ilike.%${searchQuery}%,device_setup.ilike.%${searchQuery}%`);
+        const q = sanitizeForIlike(searchQuery);
+        query = query.or(`city.ilike.%${q}%,display_name.ilike.%${q}%,device_setup.ilike.%${q}%`);
       }
 
       const { data, error } = await query;

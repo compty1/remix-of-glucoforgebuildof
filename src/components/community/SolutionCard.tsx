@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuthStore } from '@/store/authStore';
 import { useNavigate } from 'react-router-dom';
 import { 
   ThumbsUp, 
@@ -47,20 +48,15 @@ export const SolutionCard: React.FC<SolutionCardProps> = ({
   const [showComments, setShowComments] = useState(false);
   const [showSimilar, setShowSimilar] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
+  const [_isLoggedInLegacy, _setIsLoggedInLegacy] = useState<boolean | null>(null);
   const [showNotesModal, setShowNotesModal] = useState(false);
   const [isEditingNotes, setIsEditingNotes] = useState(false);
 
   const { isPostSaved, savePost, unsavePost, updateNotes, getPostNotes, isSaving, isUnsaving, isUpdatingNotes } = useSavedPosts();
 
-  // Check login status
-  React.useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsLoggedIn(!!user);
-    };
-    checkAuth();
-  }, []);
+  // Bug 100/101: Use cached auth state instead of network round-trip
+  const { user: authUser } = useAuthStore();
+  const isLoggedIn = !!authUser;
 
   const isSaved = isPostSaved(post.post_id);
   const currentNotes = getPostNotes(post.post_id);
