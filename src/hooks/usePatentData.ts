@@ -1,9 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-const STALE_TIME_MS = 15 * 60 * 1000; // 15 minutes
-let lastFetchedAt: number | null = null;
-let cachedData: PatentData[] = [];
 
 interface PatentData {
   id: string;
@@ -20,65 +17,33 @@ interface PatentData {
 }
 
 export const usePatentData = () => {
-  const [data, setData] = useState<PatentData[]>(cachedData);
-  const [loading, setLoading] = useState(cachedData.length === 0);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchFromDB = async () => {
-    const { data: dbData, error: dbError } = await supabase
-      .from('patent_data')
-      .select('*')
-      .order('patent_date', { ascending: false })
-     .limit(500);
+  const { data = [], isLoading, error: rawError } = useQuery({
+    queryKey: ['patent-data'],
+    queryFn: async (): Promise<PatentData[]> => {
+      const { data, error } = await supabase
+        .from('patent_data')
+        .select('id, patent_id, title, abstract, inventors, assignee, patent_date, diabetes_relevance_score, patent_url, created_at, updated_at')
+        .order('patent_date', { ascending: false })
+        .limit(500);
 
-    if (dbError) throw dbError;
-    if (dbData) {
-      cachedData = dbData;
-      lastFetchedAt = Date.now();
-      setData(dbData);
-    }
-    return dbData;
+      if (error) throw error;
+      return (data || []) as PatentData[];
+    },
+    staleTime: 15 * 60 * 1000,
+  });
+
+  const refetch = useCallback(async () => {
+    const { error: functionError } = await supabase.functions.invoke('patent-innovation-feed');
+    if (functionError) throw functionError;
+    await queryClient.invalidateQueries({ queryKey: ['patent-data'] });
+  }, [queryClient]);
+
+  return {
+    data,
+    loading: isLoading,
+    error: rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch patent data') : null,
+    refetch,
   };
-
-  const refetch = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { error: functionError } = await supabase.functions.invoke('patent-innovation-feed');
-
-      if (functionError) {
-        throw functionError;
-      }
-
-      await fetchFromDB();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to refresh patent data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const now = Date.now();
-    if (lastFetchedAt && now - lastFetchedAt < STALE_TIME_MS && cachedData.length > 0) {
-      setData(cachedData);
-      setLoading(false);
-      return;
-    }
-    const load = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        await fetchFromDB();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch patent data');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
-
-  return { data, loading, error, refetch };
 };

@@ -1,9 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-const STALE_TIME_MS = 20 * 60 * 1000; // 20 minutes
-let lastFetchedAt: number | null = null;
-let cachedData: DrugPricingData[] = [];
 
 interface DrugPricingData {
   id: string;
@@ -19,65 +16,33 @@ interface DrugPricingData {
 }
 
 export const useDrugPricing = () => {
-  const [data, setData] = useState<DrugPricingData[]>(cachedData);
-  const [loading, setLoading] = useState(cachedData.length === 0);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchFromDB = async () => {
-    const { data: dbData, error: dbError } = await supabase
-      .from('drug_pricing_data')
-      .select('*')
-      .order('created_at', { ascending: false })
-     .limit(500);
+  const { data = [], isLoading, error: rawError } = useQuery({
+    queryKey: ['drug-pricing'],
+    queryFn: async (): Promise<DrugPricingData[]> => {
+      const { data, error } = await supabase
+        .from('drug_pricing_data')
+        .select('id, drug_name, manufacturer, ndc_code, unit_price, medicare_price, year, data_source, created_at, updated_at')
+        .order('created_at', { ascending: false })
+        .limit(500);
 
-    if (dbError) throw dbError;
-    if (dbData) {
-      cachedData = dbData;
-      lastFetchedAt = Date.now();
-      setData(dbData);
-    }
-    return dbData;
+      if (error) throw error;
+      return (data || []) as DrugPricingData[];
+    },
+    staleTime: 20 * 60 * 1000,
+  });
+
+  const refetch = useCallback(async () => {
+    const { error: functionError } = await supabase.functions.invoke('medicare-data-feed');
+    if (functionError) throw functionError;
+    await queryClient.invalidateQueries({ queryKey: ['drug-pricing'] });
+  }, [queryClient]);
+
+  return {
+    data,
+    loading: isLoading,
+    error: rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch drug pricing data') : null,
+    refetch,
   };
-
-  const refetch = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { error: functionError } = await supabase.functions.invoke('medicare-data-feed');
-
-      if (functionError) {
-        throw functionError;
-      }
-
-      await fetchFromDB();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to refresh drug pricing data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const now = Date.now();
-    if (lastFetchedAt && now - lastFetchedAt < STALE_TIME_MS && cachedData.length > 0) {
-      setData(cachedData);
-      setLoading(false);
-      return;
-    }
-    const load = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        await fetchFromDB();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch drug pricing data');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
-
-  return { data, loading, error, refetch };
 };

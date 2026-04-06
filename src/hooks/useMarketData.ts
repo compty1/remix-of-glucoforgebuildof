@@ -1,9 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-const STALE_TIME_MS = 10 * 60 * 1000; // 10 minutes
-let lastFetchedAt: number | null = null;
-let cachedData: MarketData[] = [];
 
 interface MarketData {
   id: string;
@@ -19,66 +16,34 @@ interface MarketData {
 }
 
 export const useMarketData = () => {
-  const [data, setData] = useState<MarketData[]>(cachedData);
-  const [loading, setLoading] = useState(cachedData.length === 0);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchFromDB = async () => {
-    const { data: dbData, error: dbError } = await supabase
-      .from('market_data')
-      .select('*')
-      .order('data_date', { ascending: false })
-      .order('created_at', { ascending: false })
-     .limit(500);
+  const { data = [], isLoading, error: rawError } = useQuery({
+    queryKey: ['market-data'],
+    queryFn: async (): Promise<MarketData[]> => {
+      const { data, error } = await supabase
+        .from('market_data')
+        .select('id, company_name, ticker_symbol, current_price, market_cap, change_percent, volume, data_date, created_at, updated_at')
+        .order('data_date', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(500);
 
-    if (dbError) throw dbError;
-    if (dbData) {
-      cachedData = dbData;
-      lastFetchedAt = Date.now();
-      setData(dbData);
-    }
-    return dbData;
+      if (error) throw error;
+      return (data || []) as MarketData[];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const refetch = useCallback(async () => {
+    const { error: functionError } = await supabase.functions.invoke('financial-market-feed');
+    if (functionError) throw functionError;
+    await queryClient.invalidateQueries({ queryKey: ['market-data'] });
+  }, [queryClient]);
+
+  return {
+    data,
+    loading: isLoading,
+    error: rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch market data') : null,
+    refetch,
   };
-
-  const refetch = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { error: functionError } = await supabase.functions.invoke('financial-market-feed');
-
-      if (functionError) {
-        throw functionError;
-      }
-
-      await fetchFromDB();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to refresh market data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const now = Date.now();
-    if (lastFetchedAt && now - lastFetchedAt < STALE_TIME_MS && cachedData.length > 0) {
-      setData(cachedData);
-      setLoading(false);
-      return;
-    }
-    const load = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        await fetchFromDB();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch market data');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
-
-  return { data, loading, error, refetch };
 };

@@ -1,8 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-const STALE_TIME_MS = 5 * 60 * 1000; // 5 minutes - news refreshes more often
-let newsCache: { data: any[]; fetchedAt: number } | null = null;
 
 export interface NewsArticle {
   id: string;
@@ -37,98 +35,66 @@ interface UseT1DNewsResult {
 }
 
 export const useT1DNews = (): UseT1DNewsResult => {
-  const [allArticles, setAllArticles] = useState<NewsArticle[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+  const queryClient = useQueryClient();
 
-  const fetchNewsFromDB = useCallback(async () => {
-    const now = Date.now();
-    if (newsCache && now - newsCache.fetchedAt < STALE_TIME_MS && newsCache.data.length > 0) {
-      setAllArticles(newsCache.data as NewsArticle[]);
-      return;
-    }
-    try {
-      const { data, error: dbError } = await supabase
+  const { data: allArticles = [], isLoading, error: rawError } = useQuery({
+    queryKey: ['t1d-news'],
+    queryFn: async (): Promise<NewsArticle[]> => {
+      const { data, error } = await supabase
         .from('t1d_news_articles')
-        .select('*')
+        .select('id, title, description, url, image_url, source_name, source_url, author, published_at, category, relevance_score, is_featured, created_at, updated_at, content')
         .order('published_at', { ascending: false })
         .limit(100);
 
-      if (dbError) throw dbError;
+      if (error) throw error;
 
-      // Defensive coding: filter and map with null checks
-      const validArticles = (data || [])
-        .filter((article): article is NewsArticle => 
-          article !== null && 
-          typeof article.id === 'string' && 
+      return (data || [])
+        .filter((article): article is NewsArticle =>
+          article !== null &&
+          typeof article.id === 'string' &&
           typeof article.title === 'string'
         )
         .map(article => ({
           ...article,
           description: article.description || 'No description available',
-          image_url: article.image_url || null,
           category: article.category || 'general',
           source_name: article.source_name || 'Unknown Source',
           relevance_score: article.relevance_score ?? 0,
-          is_featured: article.is_featured ?? false
+          is_featured: article.is_featured ?? false,
         }));
-
-      newsCache = { data: validArticles, fetchedAt: Date.now() };
-      setAllArticles(validArticles);
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch news');
-    }
-  }, []);
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
   const refreshNews = useCallback(async () => {
     setRefreshing(true);
-    setError(null);
-
     try {
-      const { data, error: funcError } = await supabase.functions.invoke('fetch-t1d-news');
-
-      if (funcError) {
-        throw funcError;
-      }
-
-      if (data?.data) {
-        setAllArticles(data.data);
-      } else {
-        await fetchNewsFromDB();
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to refresh news');
-      // Try to load from DB as fallback
-      await fetchNewsFromDB();
+      const { error: funcError } = await supabase.functions.invoke('fetch-t1d-news');
+      if (funcError) throw funcError;
+      await queryClient.invalidateQueries({ queryKey: ['t1d-news'] });
+    } catch {
+      // Fallback: just invalidate to show DB data
+      await queryClient.invalidateQueries({ queryKey: ['t1d-news'] });
     } finally {
       setRefreshing(false);
     }
-  }, [fetchNewsFromDB]);
+  }, [queryClient]);
 
-  useEffect(() => {
-    const loadNews = async () => {
-      setLoading(true);
-      await fetchNewsFromDB();
-      setLoading(false);
-    };
+  const filteredArticles = useMemo(() => {
+    return allArticles.filter(article => {
+      const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;
+      const matchesSearch = !searchQuery ||
+        article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        article.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    });
+  }, [allArticles, selectedCategory, searchQuery]);
 
-    loadNews();
-  }, [fetchNewsFromDB]);
-
-  const filteredArticles = allArticles.filter(article => {
-    const matchesCategory = selectedCategory === 'all' || article.category === selectedCategory;
-    const matchesSearch = !searchQuery || 
-      article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      article.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  const featuredArticles = filteredArticles.filter(article => article.is_featured);
-  const regularArticles = filteredArticles.filter(article => !article.is_featured);
+  const featuredArticles = useMemo(() => filteredArticles.filter(a => a.is_featured), [filteredArticles]);
+  const regularArticles = useMemo(() => filteredArticles.filter(a => !a.is_featured), [filteredArticles]);
 
   const getCategoryCounts = useCallback(() => {
     const counts: Record<string, number> = { all: allArticles.length };
@@ -141,9 +107,9 @@ export const useT1DNews = (): UseT1DNewsResult => {
   return {
     articles: regularArticles,
     featuredArticles,
-    loading,
+    loading: isLoading,
     refreshing,
-    error,
+    error: rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch news') : null,
     selectedCategory,
     setSelectedCategory,
     searchQuery,

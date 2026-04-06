@@ -1,9 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-const STALE_TIME_MS = 15 * 60 * 1000; // 15 minutes
-let lastFetchedAt: number | null = null;
-let cachedData: ResearchFunding[] = [];
 
 interface ResearchFunding {
   id: string;
@@ -21,68 +18,34 @@ interface ResearchFunding {
 }
 
 export const useResearchFunding = () => {
-  const [data, setData] = useState<ResearchFunding[]>(cachedData);
-  const [loading, setLoading] = useState(cachedData.length === 0);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchData = async () => {
-    const now = Date.now();
-    if (lastFetchedAt && now - lastFetchedAt < STALE_TIME_MS && cachedData.length > 0) {
-      setData(cachedData);
-      setLoading(false);
-      return;
-    }
-    try {
-      setLoading(true);
-      setError(null);
-
-      // First get existing data
-      const { data: existingData, error: dbError } = await supabase
+  const { data = [], isLoading, error: rawError } = useQuery({
+    queryKey: ['research-funding'],
+    queryFn: async (): Promise<ResearchFunding[]> => {
+      const { data, error } = await supabase
         .from('research_funding')
-        .select('*')
+        .select('id, project_number, project_title, principal_investigator, organization, funding_amount, fiscal_year, project_start_date, project_end_date, created_at, updated_at')
         .order('fiscal_year', { ascending: false })
-        .order('funding_amount', { ascending: false });
+        .order('funding_amount', { ascending: false })
+        .limit(500);
 
-      if (dbError) throw dbError;
+      if (error) throw error;
+      return (data || []) as ResearchFunding[];
+    },
+    staleTime: 15 * 60 * 1000,
+  });
 
-      if (existingData && existingData.length > 0) {
-        cachedData = existingData;
-        lastFetchedAt = Date.now();
-        setData(existingData);
-        setLoading(false);
-      }
+  const refetch = useCallback(async () => {
+    const { error: functionError } = await supabase.functions.invoke('funding-research-feed');
+    if (functionError) throw functionError;
+    await queryClient.invalidateQueries({ queryKey: ['research-funding'] });
+  }, [queryClient]);
 
-      // Then refresh from edge function
-      const { error: functionError } = await supabase.functions.invoke('funding-research-feed');
-
-      if (functionError) {
-        if (!existingData || existingData.length === 0) {
-          throw functionError;
-        }
-      } else {
-        // Refetch after update
-        const { data: freshData } = await supabase
-          .from('research_funding')
-          .select('*')
-          .order('fiscal_year', { ascending: false })
-          .order('funding_amount', { ascending: false });
-        
-        if (freshData) {
-          cachedData = freshData;
-          lastFetchedAt = Date.now();
-          setData(freshData);
-        }
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch research funding data');
-    } finally {
-      setLoading(false);
-    }
+  return {
+    data,
+    loading: isLoading,
+    error: rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch research funding data') : null,
+    refetch,
   };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  return { data, loading, error, refetch: fetchData };
 };

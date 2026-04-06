@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface NetworkNode {
@@ -39,52 +40,28 @@ interface UseCitationNetworkResult {
 }
 
 export const useCitationNetwork = (): UseCitationNetworkResult => {
-  const [nodes, setNodes] = useState<NetworkNode[]>([]);
-  const [links, setLinks] = useState<NetworkLink[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchPapers = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const { data, isLoading, error: rawError } = useQuery({
+    queryKey: ['citation-network'],
+    queryFn: async () => {
+      const [papersRes, citationsRes] = await Promise.all([
+        supabase
+          .from('medical_research_papers')
+          .select('id, title, tldr_summary, abstract, citation_count, influential_citation_count, source_database, fields_of_study, doi, pdf_url, full_text_url, authors, publication_date, journal_name, open_access')
+          .gt('citation_count', 0)
+          .order('influential_citation_count', { ascending: false, nullsFirst: false })
+          .limit(100),
+        supabase
+          .from('paper_citations')
+          .select('citing_paper_id, cited_paper_id, is_influential')
+          .limit(500),
+      ]);
 
-      // Fetch top papers for network visualization with all details
-      const { data: papers, error: papersError } = await supabase
-        .from('medical_research_papers')
-        .select(`
-          id, 
-          title, 
-          tldr_summary, 
-          abstract,
-          citation_count, 
-          influential_citation_count, 
-          source_database, 
-          fields_of_study, 
-          doi, 
-          pdf_url,
-          full_text_url,
-          authors,
-          publication_date,
-          journal_name,
-          open_access
-        `)
-        .gt('citation_count', 0)
-        .order('influential_citation_count', { ascending: false, nullsFirst: false })
-        .limit(100);
+      if (papersRes.error) throw new Error(papersRes.error.message);
+      if (citationsRes.error) throw new Error(citationsRes.error.message);
 
-      if (papersError) throw new Error(papersError.message);
-
-      // Fetch citation relationships
-      const { data: citations, error: citationsError } = await supabase
-        .from('paper_citations')
-        .select('citing_paper_id, cited_paper_id, is_influential')
-        .limit(500);
-
-      if (citationsError) throw new Error(citationsError.message);
-
-      // Transform papers to nodes with all details
-      const paperNodes: NetworkNode[] = (papers || []).map(p => ({
+      const nodes: NetworkNode[] = (papersRes.data || []).map(p => ({
         id: p.id,
         title: p.title,
         tldr: p.tldr_summary || undefined,
@@ -102,56 +79,35 @@ export const useCitationNetwork = (): UseCitationNetworkResult => {
         openAccess: p.open_access || false,
       }));
 
-      // Transform citations to links
-      const paperIds = new Set(paperNodes.map(n => n.id));
-      const citationLinks: NetworkLink[] = (citations || [])
+      const paperIds = new Set(nodes.map(n => n.id));
+      const links: NetworkLink[] = (citationsRes.data || [])
         .filter(c => paperIds.has(c.citing_paper_id) && paperIds.has(c.cited_paper_id))
-        .map(c => ({
-          source: c.citing_paper_id,
-          target: c.cited_paper_id,
-          isInfluential: c.is_influential,
-        }));
+        .map(c => ({ source: c.citing_paper_id, target: c.cited_paper_id, isInfluential: c.is_influential }));
 
-      setNodes(paperNodes);
-      setLinks(citationLinks);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch network data');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      return { nodes, links };
+    },
+    staleTime: 15 * 60 * 1000,
+  });
+
+  const networkData = useMemo((): CitationNetworkData => data || { nodes: [], links: [] }, [data]);
+
+  const refreshNetwork = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['citation-network'] });
+  }, [queryClient]);
 
   const fetchCitationData = useCallback(async () => {
     try {
-      // Call edge function to populate citation relationships
-      const { error } = await supabase.functions.invoke('fetch-citation-network');
-      if (error) {
-        // Citation fetch failed — local data will still be shown
-      }
-      // Refresh the local data
-      await fetchPapers();
+      await supabase.functions.invoke('fetch-citation-network');
     } catch {
-      // Ignore citation network errors silently
+      // Ignore citation network fetch errors
     }
-  }, [fetchPapers]);
-
-  const refreshNetwork = useCallback(async () => {
-    await fetchPapers();
-  }, [fetchPapers]);
-
-  const networkData = useMemo((): CitationNetworkData => ({
-    nodes,
-    links,
-  }), [nodes, links]);
-
-  useEffect(() => {
-    fetchPapers();
-  }, [fetchPapers]);
+    await queryClient.invalidateQueries({ queryKey: ['citation-network'] });
+  }, [queryClient]);
 
   return {
     networkData,
-    loading,
-    error,
+    loading: isLoading,
+    error: rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch network data') : null,
     refreshNetwork,
     fetchCitationData,
   };

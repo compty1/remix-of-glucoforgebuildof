@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-const STALE_TIME_MS = 10 * 60 * 1000; // 10 minutes
-let _companiesCache: { data: any[]; fetchedAt: number; key: string } | null = null;
 
 export interface T1DCompany {
   id: string;
@@ -58,184 +56,131 @@ export interface CompanyStats {
 }
 
 export function useT1DCompanies(filters?: CompanyFilters) {
-  const cacheKey = JSON.stringify(filters || {});
-  const cached = _companiesCache?.key === cacheKey ? _companiesCache : null;
-  const [companies, setCompanies] = useState<T1DCompany[]>((cached?.data || []) as T1DCompany[]);
-  const [loading, setLoading] = useState(!cached?.data?.length);
-  const [error, setError] = useState<string | null>(null);
-  const [stats, setStats] = useState<CompanyStats | null>(null);
-
-  const fetchCompanies = async () => {
-    const now = Date.now();
-    const cur = _companiesCache?.key === cacheKey ? _companiesCache : null;
-    if (cur && now - cur.fetchedAt < STALE_TIME_MS && cur.data.length > 0) {
-      setCompanies(cur.data as T1DCompany[]);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
-
-    try {
+  const { data: rawCompanies = [], isLoading: loading, error: rawError, refetch } = useQuery({
+    queryKey: ['t1d-companies', filters?.companyType, filters?.focusArea, filters?.country, filters?.fundingStage, filters?.minFunding, filters?.maxFunding],
+    queryFn: async (): Promise<T1DCompany[]> => {
       let query = supabase
         .from('t1d_companies')
         .select('*')
         .eq('is_active', true)
         .order('total_funding_usd', { ascending: false, nullsFirst: false });
 
-      if (filters?.companyType && filters.companyType !== 'all') {
-        query = query.eq('company_type', filters.companyType);
-      }
+      if (filters?.companyType && filters.companyType !== 'all') query = query.eq('company_type', filters.companyType);
+      if (filters?.country) query = query.eq('country', filters.country);
+      if (filters?.fundingStage) query = query.eq('funding_stage', filters.fundingStage);
+      if (filters?.focusArea) query = query.contains('focus_areas', [filters.focusArea]);
+      if (filters?.minFunding) query = query.gte('total_funding_usd', filters.minFunding);
+      if (filters?.maxFunding) query = query.lte('total_funding_usd', filters.maxFunding);
 
-      if (filters?.country) {
-        query = query.eq('country', filters.country);
-      }
+      const { data, error } = await query.limit(500);
+      if (error) throw error;
+      return (data || []).map(d => ({
+        ...d,
+        investors: (d.investors as unknown as Array<{ name: string; type: string }>) || [],
+        key_people: (d.key_people as unknown as Array<{ name: string; role: string; linkedin?: string }>) || [],
+        products: (d.products as unknown as Array<{ name: string; status: string; description?: string }>) || [],
+      })) as T1DCompany[];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
 
-      if (filters?.fundingStage) {
-        query = query.eq('funding_stage', filters.fundingStage);
-      }
+  const companies = useMemo(() => {
+    if (!filters?.search) return rawCompanies;
+    const searchLower = filters.search.toLowerCase();
+    return rawCompanies.filter(company =>
+      company.name.toLowerCase().includes(searchLower) ||
+      company.description?.toLowerCase().includes(searchLower) ||
+      company.technology_summary?.toLowerCase().includes(searchLower) ||
+      company.focus_areas?.some(area => area.toLowerCase().includes(searchLower))
+    );
+  }, [rawCompanies, filters?.search]);
 
-      if (filters?.focusArea) {
-        query = query.contains('focus_areas', [filters.focusArea]);
-      }
+  const stats = useMemo((): CompanyStats => {
+    const totalFunding = companies.reduce((sum, c) => sum + (c.total_funding_usd || 0), 0);
+    const byType: Record<string, number> = {};
+    const byFocusArea: Record<string, number> = {};
+    const byCountry: Record<string, number> = {};
 
-      if (filters?.minFunding) {
-        query = query.gte('total_funding_usd', filters.minFunding);
-      }
+    companies.forEach(company => {
+      if (company.company_type) byType[company.company_type] = (byType[company.company_type] || 0) + 1;
+      company.focus_areas?.forEach(area => { byFocusArea[area] = (byFocusArea[area] || 0) + 1; });
+      if (company.country) byCountry[company.country] = (byCountry[company.country] || 0) + 1;
+    });
 
-      if (filters?.maxFunding) {
-        query = query.lte('total_funding_usd', filters.maxFunding);
-      }
+    return {
+      totalCompanies: companies.length,
+      totalFunding,
+      avgFunding: companies.length > 0 ? totalFunding / companies.length : 0,
+      byType,
+      byFocusArea,
+      byCountry,
+    };
+  }, [companies]);
 
-      const { data, error: fetchError } = await query;
-
-      if (fetchError) throw fetchError;
-
-      let filteredData = (data || []) as unknown as T1DCompany[];
-
-      // Client-side search filter
-      if (filters?.search) {
-        const searchLower = filters.search.toLowerCase();
-        filteredData = filteredData.filter(company =>
-          company.name.toLowerCase().includes(searchLower) ||
-          company.description?.toLowerCase().includes(searchLower) ||
-          company.technology_summary?.toLowerCase().includes(searchLower) ||
-          company.focus_areas?.some(area => area.toLowerCase().includes(searchLower))
-        );
-      }
-
-      _companiesCache = { data: filteredData, fetchedAt: Date.now(), key: cacheKey };
-      setCompanies(filteredData);
-
-      // Calculate stats
-      const totalFunding = filteredData.reduce((sum, c) => sum + (c.total_funding_usd || 0), 0);
-      const byType: Record<string, number> = {};
-      const byFocusArea: Record<string, number> = {};
-      const byCountry: Record<string, number> = {};
-
-      filteredData.forEach(company => {
-        if (company.company_type) {
-          byType[company.company_type] = (byType[company.company_type] || 0) + 1;
-        }
-        company.focus_areas?.forEach(area => {
-          byFocusArea[area] = (byFocusArea[area] || 0) + 1;
-        });
-        if (company.country) {
-          byCountry[company.country] = (byCountry[company.country] || 0) + 1;
-        }
-      });
-
-      setStats({
-        totalCompanies: filteredData.length,
-        totalFunding,
-        avgFunding: filteredData.length > 0 ? totalFunding / filteredData.length : 0,
-        byType,
-        byFocusArea,
-        byCountry
-      });
-
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch companies');
-    } finally {
-      setLoading(false);
-    }
+  return {
+    companies,
+    loading,
+    error: rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch companies') : null,
+    stats,
+    refetch,
   };
-
-  useEffect(() => {
-    fetchCompanies();
-  }, [filters?.search, filters?.companyType, filters?.focusArea, filters?.country, filters?.fundingStage]);
-
-  return { companies, loading, error, stats, refetch: fetchCompanies };
 }
 
 export function useCompanyById(id: string | undefined) {
-  const [company, setCompany] = useState<T1DCompany | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data: company = null, isLoading: loading, error: rawError } = useQuery({
+    queryKey: ['t1d-company', id],
+    queryFn: async (): Promise<T1DCompany | null> => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from('t1d_companies')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
 
-  useEffect(() => {
-    if (!id) {
-      setLoading(false);
-      return;
-    }
+      if (error) throw error;
+      if (!data) return null;
+      return {
+        ...data,
+        investors: (data.investors as unknown as Array<{ name: string; type: string }>) || [],
+        key_people: (data.key_people as unknown as Array<{ name: string; role: string; linkedin?: string }>) || [],
+        products: (data.products as unknown as Array<{ name: string; status: string; description?: string }>) || [],
+      } as T1DCompany;
+    },
+    enabled: !!id,
+    staleTime: 10 * 60 * 1000,
+  });
 
-    const fetchCompany = async () => {
-      setLoading(true);
-      try {
-        const { data, error: fetchError } = await supabase
-          .from('t1d_companies')
-          .select('*')
-          .eq('id', id)
-          .maybeSingle();
-
-        if (fetchError) throw fetchError;
-        setCompany(data as unknown as T1DCompany);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch company');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCompany();
-  }, [id]);
-
-  return { company, loading, error };
+  return { company, loading, error: rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch company') : null };
 }
 
 export function useRelatedCompanies(focusAreas: string[] | null, excludeId?: string) {
-  const [companies, setCompanies] = useState<T1DCompany[]>([]);
-  const [loading, setLoading] = useState(true);
+  const serializedAreas = focusAreas?.join(',') || '';
 
-  useEffect(() => {
-    if (!focusAreas || focusAreas.length === 0) {
-      setLoading(false);
-      return;
-    }
+  const { data: companies = [], isLoading: loading } = useQuery({
+    queryKey: ['related-companies', serializedAreas, excludeId],
+    queryFn: async (): Promise<T1DCompany[]> => {
+      if (!focusAreas || focusAreas.length === 0) return [];
 
-    const fetchRelated = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('t1d_companies')
-          .select('*')
-          .eq('is_active', true)
-          .overlaps('focus_areas', focusAreas)
-          .neq('id', excludeId || '')
-          .order('total_funding_usd', { ascending: false, nullsFirst: false })
-          .limit(6);
+      const { data, error } = await supabase
+        .from('t1d_companies')
+        .select('*')
+        .eq('is_active', true)
+        .overlaps('focus_areas', focusAreas)
+        .neq('id', excludeId || '')
+        .order('total_funding_usd', { ascending: false, nullsFirst: false })
+        .limit(6);
 
-        if (error) throw error;
-        setCompanies((data || []) as unknown as T1DCompany[]);
-      } catch (err) {
-        // Ignore related companies fetch errors silently
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRelated();
-  }, [focusAreas, excludeId]);
+      if (error) throw error;
+      return (data || []).map(d => ({
+        ...d,
+        investors: (d.investors as unknown as Array<{ name: string; type: string }>) || [],
+        key_people: (d.key_people as unknown as Array<{ name: string; role: string; linkedin?: string }>) || [],
+        products: (d.products as unknown as Array<{ name: string; status: string; description?: string }>) || [],
+      })) as T1DCompany[];
+    },
+    enabled: !!focusAreas && focusAreas.length > 0,
+    staleTime: 10 * 60 * 1000,
+  });
 
   return { companies, loading };
 }

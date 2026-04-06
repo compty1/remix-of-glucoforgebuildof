@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 
 interface Survey {
   id: string;
   title: string;
   description: string;
   category: string;
-  questions: any; // This handles the Json type from Supabase
+  questions: Json;
   created_at: string;
   updated_at: string;
-  // New research-grade fields
   survey_type?: string;
   research_category?: string;
   institution_partner?: string;
@@ -21,7 +21,7 @@ interface Survey {
   version?: number;
   status?: string;
   target_responses?: number;
-  metadata?: any;
+  metadata?: Json;
 }
 
 interface UseSurveysResult {
@@ -32,46 +32,32 @@ interface UseSurveysResult {
 }
 
 export const useSurveys = (): UseSurveysResult => {
-  const [surveys, setSurveys] = useState<Survey[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchSurveys = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { data, error: fetchError } = await supabase
+  const { data: surveys = [], isLoading, error: rawError } = useQuery({
+    queryKey: ['surveys'],
+    queryFn: async (): Promise<Survey[]> => {
+      const { data, error } = await supabase
         .from('surveys')
-        .select('*')
+        .select('id, title, description, category, questions, created_at, updated_at, survey_type, research_category, institution_partner, irb_number, consent_text, estimated_time_minutes, is_anonymous, requires_demographics, version, status, target_responses, metadata')
         .eq('status', 'active')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100);
 
-      if (fetchError) {
-        throw new Error(`Failed to fetch surveys: ${fetchError.message}`);
-      }
-
-      // Type assertion to handle the Json type from Supabase
-      setSurveys((data as Survey[]) || []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch surveys');
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (error) throw new Error(`Failed to fetch surveys: ${error.message}`);
+      return (data || []) as Survey[];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
 
   const refetch = async () => {
-    await fetchSurveys();
+    await queryClient.invalidateQueries({ queryKey: ['surveys'] });
   };
-
-  useEffect(() => {
-    fetchSurveys();
-  }, []);
 
   return {
     surveys,
-    loading,
-    error,
+    loading: isLoading,
+    error: rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch surveys') : null,
     refetch,
   };
 };

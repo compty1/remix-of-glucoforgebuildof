@@ -1,9 +1,6 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-const STALE_TIME_MS = 10 * 60 * 1000; // 10 minutes
-let lastFetchedAt: number | null = null;
-let cachedConnections: any[] = [];
 
 export type ConnectionType = 'food' | 'biology' | 'device' | 'chemical' | 'environmental' | 'symptom' | 'treatment';
 export type ValidationStatus = 'confirmed' | 'emerging' | 'hypothesis';
@@ -63,100 +60,70 @@ interface UseFoundConnectionsResult {
   setSortBy: (sort: 'confidence' | 'novelty' | 'recent') => void;
 }
 
+function parseConnection(conn: Record<string, unknown>): FoundConnection {
+  return {
+    id: conn.id as string,
+    title: conn.title as string,
+    description: conn.description as string,
+    connection_type: conn.connection_type as ConnectionType,
+    source_papers: (conn.source_papers as SourcePaper[] | null) || [],
+    source_posts: (conn.source_posts as SourcePost[] | null) || [],
+    source_trials: (conn.source_trials as SourceTrial[] | null) || [],
+    source_fda_data: (conn.source_fda_data as unknown[] | null) || [],
+    confidence_score: (conn.confidence_score as number) || 0,
+    novelty_score: (conn.novelty_score as number) || 0,
+    community_mentions: (conn.community_mentions as number) || 0,
+    research_citations: (conn.research_citations as number) || 0,
+    validation_status: (conn.validation_status as ValidationStatus) || 'hypothesis',
+    cross_validation_count: (conn.cross_validation_count as number) || 0,
+    biological_mechanism: conn.biological_mechanism as string | null,
+    practical_implications: (conn.practical_implications as string[]) || [],
+    keywords: (conn.keywords as string[]) || [],
+    created_at: conn.created_at as string,
+    updated_at: conn.updated_at as string,
+  };
+}
+
 export const useFoundConnections = (): UseFoundConnectionsResult => {
-  const [allConnections, setAllConnections] = useState<FoundConnection[]>(cachedConnections);
-  const [loading, setLoading] = useState(cachedConnections.length === 0);
   const [analyzing, setAnalyzing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<ConnectionType | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'confidence' | 'novelty' | 'recent'>('confidence');
+  const queryClient = useQueryClient();
 
-  const fetchConnections = useCallback(async () => {
-    const now = Date.now();
-    if (lastFetchedAt && now - lastFetchedAt < STALE_TIME_MS && cachedConnections.length > 0) {
-      setAllConnections(cachedConnections);
-      setLoading(false);
-      return;
-    }
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { data, error: dbError } = await supabase
+  const { data: allConnections = [], isLoading, error: rawError } = useQuery({
+    queryKey: ['found-connections'],
+    queryFn: async (): Promise<FoundConnection[]> => {
+      const { data, error } = await supabase
         .from('ai_found_connections')
         .select('*')
-        .order('confidence_score', { ascending: false });
+        .order('confidence_score', { ascending: false })
+        .limit(200);
 
-      if (dbError) throw new Error(dbError.message);
-
-      const parsed = (data || []).map((conn): FoundConnection => ({
-        id: conn.id,
-        title: conn.title,
-        description: conn.description,
-        connection_type: conn.connection_type as ConnectionType,
-        source_papers: (conn.source_papers as unknown as SourcePaper[]) || [],
-        source_posts: (conn.source_posts as unknown as SourcePost[]) || [],
-        source_trials: (conn.source_trials as unknown as SourceTrial[]) || [],
-        source_fda_data: (conn.source_fda_data as unknown as unknown[]) || [],
-        confidence_score: conn.confidence_score || 0,
-        novelty_score: conn.novelty_score || 0,
-        community_mentions: conn.community_mentions || 0,
-        research_citations: conn.research_citations || 0,
-        validation_status: (conn.validation_status as ValidationStatus) || 'hypothesis',
-        cross_validation_count: conn.cross_validation_count || 0,
-        biological_mechanism: conn.biological_mechanism,
-        practical_implications: conn.practical_implications || [],
-        keywords: conn.keywords || [],
-        created_at: conn.created_at,
-        updated_at: conn.updated_at,
-      }));
-
-      cachedConnections = parsed;
-      lastFetchedAt = Date.now();
-      setAllConnections(parsed);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch connections');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      if (error) throw new Error(error.message);
+      return (data || []).map(conn => parseConnection(conn as Record<string, unknown>));
+    },
+    staleTime: 10 * 60 * 1000,
+  });
 
   const triggerAnalysis = useCallback(async () => {
     try {
       setAnalyzing(true);
-      setError(null);
-
       const { error: fnError } = await supabase.functions.invoke('ai-connection-analyzer');
-
       if (fnError) throw new Error(fnError.message);
-
-      // Refresh data after analysis
-      await fetchConnections();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to analyze connections');
+      await queryClient.invalidateQueries({ queryKey: ['found-connections'] });
     } finally {
       setAnalyzing(false);
     }
-  }, [fetchConnections]);
-
-  const filterByType = useCallback((type: ConnectionType | 'all') => {
-    setActiveFilter(type);
-  }, []);
-
-  const searchConnections = useCallback((query: string) => {
-    setSearchQuery(query);
-  }, []);
+  }, [queryClient]);
 
   const connections = useMemo(() => {
     let filtered = allConnections;
 
-    // Filter by type
     if (activeFilter !== 'all') {
       filtered = filtered.filter(c => c.connection_type === activeFilter);
     }
 
-    // Filter by search
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(c =>
@@ -167,36 +134,31 @@ export const useFoundConnections = (): UseFoundConnectionsResult => {
       );
     }
 
-    // Sort
     return [...filtered].sort((a, b) => {
       switch (sortBy) {
-        case 'confidence':
-          return b.confidence_score - a.confidence_score;
-        case 'novelty':
-          return b.novelty_score - a.novelty_score;
-        case 'recent':
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-        default:
-          return 0;
+        case 'confidence': return b.confidence_score - a.confidence_score;
+        case 'novelty': return b.novelty_score - a.novelty_score;
+        case 'recent': return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        default: return 0;
       }
     });
   }, [allConnections, activeFilter, searchQuery, sortBy]);
 
-  useEffect(() => {
-    fetchConnections();
-  }, [fetchConnections]);
+  const refreshConnections = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['found-connections'] });
+  }, [queryClient]);
 
   return {
     connections,
-    loading,
+    loading: isLoading,
     analyzing,
-    error,
-    filterByType,
+    error: rawError ? (rawError instanceof Error ? rawError.message : 'Failed to fetch connections') : null,
+    filterByType: setActiveFilter,
     activeFilter,
-    searchConnections,
+    searchConnections: setSearchQuery,
     searchQuery,
     triggerAnalysis,
-    refreshConnections: fetchConnections,
+    refreshConnections,
     sortBy,
     setSortBy,
   };
