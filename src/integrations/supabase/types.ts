@@ -1634,6 +1634,35 @@ export type Database = {
         }
         Relationships: []
       }
+      device_fix_votes: {
+        Row: {
+          created_at: string
+          fix_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fix_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fix_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "device_fix_votes_fix_id_fkey"
+            columns: ["fix_id"]
+            isOneToOne: false
+            referencedRelation: "device_user_fixes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       device_improvements: {
         Row: {
           created_at: string | null
@@ -2903,6 +2932,35 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      experience_upvote_votes: {
+        Row: {
+          created_at: string
+          id: string
+          submission_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          submission_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          submission_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "experience_upvote_votes_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "experience_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       external_device_reviews: {
         Row: {
@@ -5336,6 +5394,35 @@ export type Database = {
           state_name?: string
         }
         Relationships: []
+      }
+      story_upvote_votes: {
+        Row: {
+          created_at: string
+          id: string
+          story_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          story_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          story_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_upvote_votes_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "low_blood_sugar_stories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       supply_logs: {
         Row: {

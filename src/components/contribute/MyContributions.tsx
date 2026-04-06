@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuthStore } from '@/store/authStore';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ interface ContributionStats {
 }
 
 export const MyContributions = () => {
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [responses, setResponses] = useState<SurveyResponse[]>([]);
   const [stats, setStats] = useState<ContributionStats>({
@@ -51,7 +53,6 @@ export const MyContributions = () => {
 
   const fetchContributions = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setLoading(false);
         return;
@@ -110,7 +111,6 @@ export const MyContributions = () => {
   };
 
   const handleExportData = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     // Create exportable data

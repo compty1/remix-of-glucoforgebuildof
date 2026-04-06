@@ -1,58 +1,43 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/authStore";
 import { supabase } from "@/integrations/supabase/client";
 
 interface OnboardingState {
-  isNewUser: boolean;
   role: string | null;
-  currentDay: number;
   showModal: boolean;
 }
 
 export const useOnboarding = () => {
   const { user } = useAuthStore();
-  const [state, setState] = useState<OnboardingState>({
-    isNewUser: false,
+  const [localState, setLocalState] = useState<OnboardingState>({
     role: null,
-    currentDay: 1,
-    showModal: false
+    showModal: false,
   });
 
-  useEffect(() => {
-    if (user) {
-      checkOnboardingStatus();
-    }
-  }, [user]);
-
-  const checkOnboardingStatus = async () => {
-    if (!user) return;
-
-    try {
-      // Check if user has a profile
+  const { data: isNewUser = false } = useQuery({
+    queryKey: ['onboarding-status', user?.id],
+    queryFn: async () => {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('*')
-        .eq('user_id', user.id)
+        .select('user_id')
+        .eq('user_id', user!.id)
         .maybeSingle();
 
-      // If no profile exists, this is a new user
-      if (!profile) {
-        setState(prev => ({
-          ...prev,
-          isNewUser: true,
-          showModal: true
-        }));
+      const isNew = !profile;
+      if (isNew) {
+        setLocalState(prev => ({ ...prev, showModal: true }));
       }
-    } catch {
-      // Onboarding check failed — defaults will be used
-    }
-  };
+      return isNew;
+    },
+    enabled: !!user?.id,
+    staleTime: 10 * 60 * 1000,
+  });
 
-  const completeOnboarding = async (role: string) => {
+  const completeOnboarding = useCallback(async (role: string) => {
     if (!user) return;
 
     try {
-      // Create or update profile with role
       const { error } = await supabase
         .from('profiles')
         .upsert({
@@ -63,45 +48,29 @@ export const useOnboarding = () => {
 
       if (error) throw error;
 
-      setState(prev => ({
-        ...prev,
-        role,
-        showModal: false,
-        isNewUser: false
-      }));
+      setLocalState({ role, showModal: false });
 
       // If newly diagnosed, trigger first 100 days program
       if (role === 'newly_diagnosed') {
-        await startFirst100Days();
+        await supabase.functions.invoke('daily-briefing', {
+          body: { userId: user.id, dayNumber: 1 }
+        });
       }
     } catch {
       // Onboarding completion error
     }
-  };
+  }, [user]);
 
-  const startFirst100Days = async () => {
-    try {
-      // Call the daily briefing function to get today's tip
-      const { data } = await supabase.functions.invoke('daily-briefing', {
-        body: { 
-          userId: user?.id,
-          dayNumber: 1 
-        }
-      });
-
-      // First 100 Days program started
-    } catch {
-      // First 100 Days initialization failed — non-critical
-    }
-  };
-
-  const dismissModal = () => {
-    setState(prev => ({ ...prev, showModal: false }));
-  };
+  const dismissModal = useCallback(() => {
+    setLocalState(prev => ({ ...prev, showModal: false }));
+  }, []);
 
   return {
-    ...state,
+    isNewUser: isNewUser && !localState.role,
+    role: localState.role,
+    currentDay: 1,
+    showModal: localState.showModal,
     completeOnboarding,
-    dismissModal
+    dismissModal,
   };
 };

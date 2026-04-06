@@ -1,12 +1,11 @@
 /**
  * Domain 5.5: Subscription Tier Hook
  * Checks the user's subscription tier for freemium gating.
+ * Migrated to React Query, removed `as any` (Bugs 104, 105, 182).
  */
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
-
-const sb = supabase as any;
 
 export type SubscriptionTier = 'free' | 'premium' | 'provider';
 
@@ -16,41 +15,34 @@ export interface SubscriptionInfo {
   isActive: boolean;
 }
 
+const DEFAULT_SUB: SubscriptionInfo = { tier: 'free', expiresAt: null, isActive: true };
+
 export function useSubscriptionTier(): { subscription: SubscriptionInfo; loading: boolean } {
   const { user } = useAuthStore();
-  const [subscription, setSubscription] = useState<SubscriptionInfo>({
-    tier: 'free',
-    expiresAt: null,
-    isActive: true,
-  });
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    const load = async () => {
-      const { data } = await sb
+  const { data: subscription = DEFAULT_SUB, isLoading: loading } = useQuery({
+    queryKey: ['subscription-tier', user?.id],
+    queryFn: async () => {
+      // user_subscriptions may not exist yet in the schema
+      const { data, error } = await (supabase as any)
         .from('user_subscriptions')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user!.id)
         .maybeSingle();
 
-      if (data) {
-        const isActive = !data.expires_at || new Date(data.expires_at) > new Date();
-        setSubscription({
-          tier: isActive ? data.tier : 'free',
-          expiresAt: data.expires_at,
-          isActive,
-        });
-      }
-      setLoading(false);
-    };
+      if (error || !data) return DEFAULT_SUB;
 
-    load();
-  }, [user]);
+      const row = data as Record<string, any>;
+      const isActive = !row.expires_at || new Date(row.expires_at) > new Date();
+      return {
+        tier: (isActive ? row.tier : 'free') as SubscriptionTier,
+        expiresAt: (row.expires_at as string) || null,
+        isActive,
+      };
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
+  });
 
   return { subscription, loading };
 }

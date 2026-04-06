@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuthStore } from '@/store/authStore';
 
 interface AlertPreferencesModalProps {
   isOpen: boolean;
@@ -43,24 +44,17 @@ export const AlertPreferencesModal: React.FC<AlertPreferencesModalProps> = ({
   isOpen,
   onClose,
 }) => {
+  const { user } = useAuthStore();
   const [email, setEmail] = useState('');
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
   const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.email) {
-        setUserEmail(user.email);
-        setEmail(user.email);
-      }
-    };
-    if (isOpen) {
-      getUser();
+    if (isOpen && user?.email) {
+      setEmail(user.email);
     }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   const handleTopicToggle = (topicId: string) => {
     setSelectedTopics(prev =>
@@ -91,8 +85,6 @@ export const AlertPreferencesModal: React.FC<AlertPreferencesModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
       // Upsert the subscription
       const { error } = await supabase
         .from('email_subscriptions')

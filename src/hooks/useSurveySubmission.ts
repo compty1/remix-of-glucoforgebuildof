@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuthStore } from '@/store/authStore';
 import { toast } from '@/hooks/use-toast';
 
 interface UseSurveySubmissionResult {
@@ -10,16 +11,13 @@ interface UseSurveySubmissionResult {
 }
 
 export const useSurveySubmission = (): UseSurveySubmissionResult => {
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const checkExistingResponse = async (surveyId: string) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        return null;
-      }
+      if (!user) return null;
 
       const { data, error } = await supabase
         .from('survey_responses')
@@ -43,9 +41,6 @@ export const useSurveySubmission = (): UseSurveySubmissionResult => {
       setLoading(true);
       setError(null);
 
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      
       if (!user) {
         throw new Error('You must be logged in to submit a survey response');
       }

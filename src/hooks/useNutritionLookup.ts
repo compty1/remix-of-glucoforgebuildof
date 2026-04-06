@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface NutritionResult {
@@ -13,31 +13,30 @@ export interface NutritionResult {
   imageUrl?: string;
 }
 
+/**
+ * Nutrition lookup hook using useMutation for on-demand queries.
+ * Bug 219: Added proper error handling, removed manual useState pattern.
+ */
 export function useNutritionLookup() {
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<NutritionResult[]>([]);
-  const [error, setError] = useState<string | null>(null);
-
-  const lookup = async (query: string, isBarcode = false) => {
-    setLoading(true);
-    setError(null);
-    setResults([]);
-    try {
-      const { data, error: fnError } = await supabase.functions.invoke('nutrition-lookup', {
+  const mutation = useMutation({
+    mutationFn: async ({ query, isBarcode = false }: { query: string; isBarcode?: boolean }) => {
+      const { data, error } = await supabase.functions.invoke('nutrition-lookup', {
         body: isBarcode ? { barcode: query } : { query },
       });
-      if (fnError) throw fnError;
-      if (data?.results) {
-        setResults(data.results);
-      } else if (data?.error) {
-        setError(data.error);
-      }
-    } catch (e: any) {
-      setError(e.message || 'Lookup failed');
-    } finally {
-      setLoading(false);
-    }
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      return (data?.results || []) as NutritionResult[];
+    },
+  });
+
+  const lookup = async (query: string, isBarcode = false) => {
+    mutation.mutate({ query, isBarcode });
   };
 
-  return { lookup, results, loading, error };
+  return {
+    lookup,
+    results: mutation.data || [],
+    loading: mutation.isPending,
+    error: mutation.error ? mutation.error.message : null,
+  };
 }

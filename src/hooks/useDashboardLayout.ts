@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuthStore } from '@/store/authStore';
 
 interface DashboardLayout {
   i: string;
@@ -11,22 +13,6 @@ interface DashboardLayout {
   minH?: number;
   maxW?: number;
   maxH?: number;
-}
-
-interface UserDashboard {
-  id: string;
-  user_id: string;
-  layout: {
-    layouts: {
-      lg: DashboardLayout[];
-      md: DashboardLayout[];
-      sm: DashboardLayout[];
-      xs: DashboardLayout[];
-    };
-    widgets: string[];
-  };
-  created_at: string;
-  updated_at: string;
 }
 
 interface UseDashboardLayoutResult {
@@ -87,99 +73,57 @@ const DEFAULT_LAYOUTS = {
 };
 
 export const useDashboardLayout = (): UseDashboardLayoutResult => {
-  const [layouts, setLayouts] = useState(DEFAULT_LAYOUTS);
-  const [widgets, setWidgets] = useState(DEFAULT_WIDGETS);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuthStore();
+  const queryClient = useQueryClient();
+  const qk = ['dashboard-layout', user?.id];
 
-  const fetchDashboardLayout = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        // User not logged in, use defaults
-        setLayouts(DEFAULT_LAYOUTS);
-        setWidgets(DEFAULT_WIDGETS);
-        return;
-      }
-
-      const { data, error: fetchError } = await supabase
+  const { data, isLoading, error: queryError } = useQuery({
+    queryKey: qk,
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from('user_dashboards')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', user!.id)
         .maybeSingle();
 
-      if (fetchError) {
-        throw new Error(`Failed to fetch dashboard layout: ${fetchError.message}`);
-      }
+      if (error) throw error;
 
-      if (data && data.layout) {
+      if (data?.layout) {
         const savedLayout = data.layout as any;
-        if (savedLayout.layouts) {
-          setLayouts(savedLayout.layouts);
-        }
-        if (savedLayout.widgets) {
-          setWidgets(savedLayout.widgets);
-        }
+        return {
+          layouts: savedLayout.layouts || DEFAULT_LAYOUTS,
+          widgets: savedLayout.widgets || DEFAULT_WIDGETS,
+        };
       }
+      return { layouts: DEFAULT_LAYOUTS, widgets: DEFAULT_WIDGETS };
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
+  });
 
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch dashboard layout');
-      // Use defaults on error
-      setLayouts(DEFAULT_LAYOUTS);
-      setWidgets(DEFAULT_WIDGETS);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const saveLayout = async (newLayouts: any, widgetList: string[]) => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error('You must be logged in to save dashboard layout');
-      }
-
-      const layoutData = {
-        layouts: newLayouts,
-        widgets: widgetList
-      };
-
-      const { error: saveError } = await supabase
+  const saveMutation = useMutation({
+    mutationFn: async ({ newLayouts, widgetList }: { newLayouts: any; widgetList: string[] }) => {
+      if (!user) throw new Error('You must be logged in to save dashboard layout');
+      const { error } = await supabase
         .from('user_dashboards')
-        .upsert({
-          user_id: user.id,
-          layout: layoutData
-        }, {
-          onConflict: 'user_id'
-        });
+        .upsert({ user_id: user.id, layout: { layouts: newLayouts, widgets: widgetList } }, { onConflict: 'user_id' });
+      if (error) throw error;
+      return { layouts: newLayouts, widgets: widgetList };
+    },
+    onSuccess: (result) => {
+      queryClient.setQueryData(qk, result);
+    },
+  });
 
-      if (saveError) {
-        throw new Error(`Failed to save dashboard layout: ${saveError.message}`);
-      }
-
-      setLayouts(newLayouts);
-      setWidgets(widgetList);
-
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save dashboard layout');
-      throw err;
-    }
-  };
-
-  useEffect(() => {
-    fetchDashboardLayout();
-  }, []);
+  const saveLayout = useCallback(async (newLayouts: any, widgetList: string[]) => {
+    await saveMutation.mutateAsync({ newLayouts, widgetList });
+  }, [saveMutation]);
 
   return {
-    layouts,
-    widgets,
-    loading,
-    error,
+    layouts: data?.layouts || DEFAULT_LAYOUTS,
+    widgets: data?.widgets || DEFAULT_WIDGETS,
+    loading: isLoading,
+    error: queryError ? String(queryError) : null,
     saveLayout,
   };
 };
