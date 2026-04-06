@@ -498,7 +498,7 @@ const DiabetesBurnout = () => {
             ))}
           </div>
 
-          {postsLoading || seeding ? (
+          {postsLoading ? (
             <div className="space-y-3">{[1,2,3].map(i => <Card key={i} className="h-40 animate-pulse bg-muted" />)}</div>
           ) : posts && posts.length > 0 ? (
             <div className="space-y-3">
