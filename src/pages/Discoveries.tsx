@@ -157,8 +157,7 @@ export default function Discoveries() {
           {filteredDiscoveries.length === 0 && (
             <Card className="text-center p-12">
               <CardContent>
-                <p className="text-muted-foreground mb-4">No discoveries found. Initialize data to see real T1D research.</p>
-                <Button onClick={handleSeedData}>Load Sample Discoveries</Button>
+                <p className="text-muted-foreground mb-4">No discoveries found yet. Check back later for the latest T1D research.</p>
               </CardContent>
             </Card>
           )}
