@@ -86,15 +86,15 @@ export function useChatSessions(contextType?: ContextType, contextId?: string) {
 
   // Get a single session by ID
   const getSession = useCallback(async (sessionId: string): Promise<ChatSession | null> => {
+    if (!user?.id) return null;
     const { data, error } = await supabase
       .from('chat_sessions')
       .select('*')
       .eq('id', sessionId)
+      .eq('user_id', user.id)
       .maybeSingle();
 
-    if (error || !data) {
-      return null;
-    }
+    if (error || !data) return null;
 
     return {
       ...data,
@@ -102,7 +102,7 @@ export function useChatSessions(contextType?: ContextType, contextId?: string) {
       messages: (data.messages as unknown as ChatMessage[]) || [],
       suggested_questions: (data.suggested_questions as unknown as string[]) || [],
     };
-  }, []);
+  }, [user?.id]);
 
   // Create a new session
   const createSession = useMutation({
@@ -118,7 +118,7 @@ export function useChatSessions(contextType?: ContextType, contextId?: string) {
         suggested_questions: [] as unknown[],
       };
 
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('chat_sessions')
         .insert(insertData)
         .select()
@@ -127,11 +127,11 @@ export function useChatSessions(contextType?: ContextType, contextId?: string) {
       if (error) throw error;
 
       return {
-        ...(data as any),
+        ...data,
         context_type: (data.context_type || 'general') as ContextType,
         messages: (data.messages as unknown as ChatMessage[]) || [],
         suggested_questions: (data.suggested_questions as unknown as string[]) || [],
-      };
+      } as ChatSession;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['chat-sessions'] });
@@ -162,10 +162,13 @@ export function useChatSessions(contextType?: ContextType, contextId?: string) {
         updateData.summary = params.summary;
       }
 
+      if (!user?.id) throw new Error('Not authenticated');
+
       const { error } = await supabase
         .from('chat_sessions')
         .update(updateData)
-        .eq('id', sessionId);
+        .eq('id', sessionId)
+        .eq('user_id', user.id);
 
       if (error) throw error;
     },
@@ -180,10 +183,13 @@ export function useChatSessions(contextType?: ContextType, contextId?: string) {
   // Delete a session
   const deleteSession = useMutation({
     mutationFn: async (sessionId: string): Promise<void> => {
+      if (!user?.id) throw new Error('Not authenticated');
+
       const { error } = await supabase
         .from('chat_sessions')
         .delete()
-        .eq('id', sessionId);
+        .eq('id', sessionId)
+        .eq('user_id', user.id);
 
       if (error) throw error;
     },
