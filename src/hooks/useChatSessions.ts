@@ -109,18 +109,18 @@ export function useChatSessions(contextType?: ContextType, contextId?: string) {
     mutationFn: async (params: CreateSessionParams): Promise<ChatSession> => {
       if (!user?.id) throw new Error('User not authenticated');
 
-      const insertData = {
+      const insertData: Record<string, unknown> = {
         user_id: user.id,
         context_type: params.context_type,
         context_id: params.context_id || null,
         context_name: params.context_name || null,
-        messages: (params.messages || []) as unknown as Record<string, unknown>[],
-        suggested_questions: [] as unknown[],
+        messages: (params.messages || []) as unknown,
+        suggested_questions: [] as unknown,
       };
 
       const { data, error } = await supabase
         .from('chat_sessions')
-        .insert(insertData)
+        .insert(insertData as { user_id: string })
         .select()
         .single();
 
