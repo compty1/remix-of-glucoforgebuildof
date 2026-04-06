@@ -170,7 +170,7 @@ function CurePipelineAnimation() {
 
 const LiveCureMonitoring = () => {
   usePageMeta('Live Cure Monitoring', 'Real-time monitoring of T1D cure therapy trials, milestones, and treatment pipeline progress.');
-  const { data, loading, error } = useCureMonitoring();
+  const { data, loading, error, refetch } = useCureMonitoring();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedTherapy, setSelectedTherapy] = useState<CureTherapy | null>(null);
@@ -225,7 +225,7 @@ const LiveCureMonitoring = () => {
             <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Failed to Load Cure Data</h2>
             <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={() => window.location.reload()}>Try Again</Button>
+            <Button onClick={() => refetch()}>Try Again</Button>
           </Card>
         </div>
       </Layout>

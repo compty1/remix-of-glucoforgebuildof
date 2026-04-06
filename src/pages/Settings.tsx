@@ -1095,9 +1095,8 @@ const Settings = () => {
                         const cleared = await clearFailedCache();
                         toast({
                           title: "Cache Cleared",
-                          description: `Cleared ${cleared} failed image entries. Logos will reload.`,
+                          description: `Cleared ${cleared} failed image entries. Logos will reload on next visit.`,
                         });
-                        window.location.reload();
                       }}
                     >
                       <RefreshCw className="h-4 w-4 mr-2" />
@@ -1110,9 +1109,8 @@ const Settings = () => {
                         await clearAllCache();
                         toast({
                           title: "All Cache Cleared",
-                          description: "All image cache cleared. Page will reload.",
+                          description: "All image cache cleared. Changes apply on next navigation.",
                         });
-                        window.location.reload();
                       }}
                     >
                       <ImageOff className="h-4 w-4 mr-2" />
