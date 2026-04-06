@@ -1,16 +1,9 @@
 /**
  * Phase 19.4: Feature Flag Hook
- * Simple client-side feature flag system.
- * Can be backed by a DB table or used with static defaults.
+ * Migrated to React Query with shared cache (Bug 232).
  */
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-interface FeatureFlag {
-  name: string;
-  enabled: boolean;
-  metadata?: Record<string, unknown>;
-}
 
 // Static defaults – used when DB is unreachable or flag doesn't exist
 const DEFAULT_FLAGS: Record<string, boolean> = {
@@ -34,40 +27,27 @@ const DEFAULT_FLAGS: Record<string, boolean> = {
 
 /**
  * Hook to check if a feature flag is enabled.
- * Falls back to static defaults if the flag table doesn't exist.
+ * Uses React Query with shared cache so multiple components checking
+ * the same flag won't create duplicate DB queries.
  */
 export function useFeatureFlag(flagName: string): { enabled: boolean; loading: boolean } {
-  const [enabled, setEnabled] = useState(DEFAULT_FLAGS[flagName] ?? false);
-  const [loading, setLoading] = useState(true);
+  const { data: enabled = DEFAULT_FLAGS[flagName] ?? false, isLoading: loading } = useQuery({
+    queryKey: ['feature-flag', flagName],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('admin_settings')
+        .select('setting_value')
+        .eq('setting_key', `feature_flag_${flagName}`)
+        .eq('category', 'feature_flags')
+        .maybeSingle();
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function fetchFlag() {
-      try {
-        // Attempt to read from admin_settings as a flag store
-        const { data, error } = await supabase
-          .from('admin_settings')
-          .select('setting_value')
-          .eq('setting_key', `feature_flag_${flagName}`)
-          .eq('category', 'feature_flags')
-          .maybeSingle();
-
-        if (!cancelled) {
-          if (!error && data?.setting_value !== undefined) {
-            setEnabled(Boolean(data.setting_value));
-          }
-          // Otherwise keep default
-          setLoading(false);
-        }
-      } catch {
-        if (!cancelled) setLoading(false);
+      if (error || !data?.setting_value) {
+        return DEFAULT_FLAGS[flagName] ?? false;
       }
-    }
-
-    fetchFlag();
-    return () => { cancelled = true; };
-  }, [flagName]);
+      return Boolean(data.setting_value);
+    },
+    staleTime: 10 * 60 * 1000,
+  });
 
   return { enabled, loading };
 }

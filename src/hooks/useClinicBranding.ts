@@ -1,11 +1,11 @@
 /**
  * Domain 5.3: Clinic Branding Hook
  * Loads tenant branding from clinic_tenants and applies CSS custom properties.
+ * Migrated to React Query (Bug 218).
  */
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-
-const sb = supabase as any;
 
 export interface ClinicBranding {
   clinicName: string;
@@ -16,46 +16,43 @@ export interface ClinicBranding {
 }
 
 export function useClinicBranding(slug: string | undefined): { branding: ClinicBranding | null; loading: boolean } {
-  const [branding, setBranding] = useState<ClinicBranding | null>(null);
-  const [loading, setLoading] = useState(!!slug);
-
-  useEffect(() => {
-    if (!slug) return;
-
-    const load = async () => {
-      const { data } = await sb
+  const { data: branding = null, isLoading: loading } = useQuery({
+    queryKey: ['clinic-branding', slug],
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from('clinic_tenants')
         .select('*')
-        .eq('slug', slug)
+        .eq('slug', slug!)
         .maybeSingle();
 
-      if (data) {
-        setBranding({
-          clinicName: data.clinic_name,
-          logoUrl: data.logo_url,
-          primaryColor: data.primary_color,
-          secondaryColor: data.secondary_color,
-          slug: data.slug,
-        });
+      if (error || !data) return null;
 
-        // Apply CSS custom properties
-        if (data.primary_color) {
-          document.documentElement.style.setProperty('--clinic-primary', data.primary_color);
-        }
-        if (data.secondary_color) {
-          document.documentElement.style.setProperty('--clinic-secondary', data.secondary_color);
-        }
-      }
-      setLoading(false);
-    };
+      return {
+        clinicName: data.clinic_name,
+        logoUrl: data.logo_url,
+        primaryColor: data.primary_color,
+        secondaryColor: data.secondary_color,
+        slug: data.slug,
+      } as ClinicBranding;
+    },
+    enabled: !!slug,
+    staleTime: 10 * 60 * 1000,
+  });
 
-    load();
+  // Apply/remove CSS custom properties
+  useEffect(() => {
+    if (branding?.primaryColor) {
+      document.documentElement.style.setProperty('--clinic-primary', branding.primaryColor);
+    }
+    if (branding?.secondaryColor) {
+      document.documentElement.style.setProperty('--clinic-secondary', branding.secondaryColor);
+    }
 
     return () => {
       document.documentElement.style.removeProperty('--clinic-primary');
       document.documentElement.style.removeProperty('--clinic-secondary');
     };
-  }, [slug]);
+  }, [branding]);
 
   return { branding, loading };
 }
