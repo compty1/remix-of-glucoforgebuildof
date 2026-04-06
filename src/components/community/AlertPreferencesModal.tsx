@@ -54,9 +54,7 @@ export const AlertPreferencesModal: React.FC<AlertPreferencesModalProps> = ({
     if (isOpen && user?.email) {
       setEmail(user.email);
     }
-      getUser();
-    }
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   const handleTopicToggle = (topicId: string) => {
     setSelectedTopics(prev =>
