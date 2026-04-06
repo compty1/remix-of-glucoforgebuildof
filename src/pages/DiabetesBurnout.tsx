@@ -223,7 +223,6 @@ const DiabetesBurnout = () => {
   usePageMeta('Diabetes Burnout', 'Understand and recover from diabetes burnout — community support, self-assessment, and recovery plans.');
   const [postCategory, setPostCategory] = useState("all");
   const { data: posts, isLoading: postsLoading } = useBurnoutPosts(postCategory === "all" ? undefined : postCategory);
-  const [seeding, setSeeding] = useState(false);
 
   // Bug 248: Removed unauthenticated auto-seeding. Data should be seeded via admin tools only.
 
