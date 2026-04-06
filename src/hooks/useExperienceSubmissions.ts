@@ -131,31 +131,36 @@ export function useSubmitExperience() {
 
 export function useUpvoteExperience() {
   const queryClient = useQueryClient();
+  const { user } = useAuthStore();
 
   return useMutation({
     mutationFn: async (submissionId: string) => {
-      // Atomic increment using rpc-style raw update
-      const { data: updated, error: updateError } = await supabase.rpc('increment_experience_upvote' as any, { submission_id: submissionId }).single();
-      
-      // Fallback: if RPC doesn't exist, use read-then-write
-      if (updateError) {
-        const { data: current } = await supabase
-          .from('experience_submissions')
-          .select('upvotes')
-          .eq('id', submissionId)
-          .maybeSingle();
+      if (!user) throw new Error('You must be logged in to vote');
 
-        const { data: fallbackUpdated, error: fallbackError } = await supabase
-          .from('experience_submissions')
-          .update({ upvotes: (current?.upvotes || 0) + 1 })
-          .eq('id', submissionId)
-          .select()
-          .single();
+      // Check if already voted
+      const { data: existing } = await supabase
+        .from('experience_upvote_votes')
+        .select('id')
+        .eq('submission_id', submissionId)
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-        if (fallbackError) throw fallbackError;
-        return fallbackUpdated;
+      if (existing) {
+        // Remove vote (toggle off)
+        const { error } = await supabase
+          .from('experience_upvote_votes')
+          .delete()
+          .eq('id', existing.id);
+        if (error) throw error;
+        return { action: 'removed' as const };
+      } else {
+        // Add vote
+        const { error } = await supabase
+          .from('experience_upvote_votes')
+          .insert({ submission_id: submissionId, user_id: user.id });
+        if (error) throw error;
+        return { action: 'added' as const };
       }
-      return updated;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['experience-submissions'] });

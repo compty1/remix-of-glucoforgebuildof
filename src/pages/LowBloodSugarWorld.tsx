@@ -169,13 +169,33 @@ export default function LowBloodSugarWorld() {
         return;
       }
 
-      const { error } = await supabase.rpc('increment_story_upvotes', { story_id: storyId });
-      if (error) throw error;
+      // Check if already voted
+      const { data: existing } = await supabase
+        .from('story_upvote_votes')
+        .select('id')
+        .eq('story_id', storyId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (existing) {
+        // Toggle off
+        const { error } = await supabase
+          .from('story_upvote_votes')
+          .delete()
+          .eq('id', existing.id);
+        if (error) throw error;
+        toast.success('Vote removed');
+      } else {
+        // Toggle on
+        const { error } = await supabase
+          .from('story_upvote_votes')
+          .insert({ story_id: storyId, user_id: user.id });
+        if (error) throw error;
+        toast.success('Upvoted!');
+      }
 
       queryClient.invalidateQueries({ queryKey: ['low-blood-sugar-stories'] });
-      toast.success('Upvoted!');
     } catch {
-      // Upvote failed
       toast.error('Failed to upvote');
     }
   };
