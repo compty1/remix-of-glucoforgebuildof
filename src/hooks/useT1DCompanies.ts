@@ -74,7 +74,12 @@ export function useT1DCompanies(filters?: CompanyFilters) {
 
       const { data, error } = await query.limit(500);
       if (error) throw error;
-      return (data || []) as T1DCompany[];
+      return (data || []).map(d => ({
+        ...d,
+        investors: (d.investors as unknown as Array<{ name: string; type: string }>) || [],
+        key_people: (d.key_people as unknown as Array<{ name: string; role: string; linkedin?: string }>) || [],
+        products: (d.products as unknown as Array<{ name: string; status: string; description?: string }>) || [],
+      })) as T1DCompany[];
     },
     staleTime: 10 * 60 * 1000,
   });
@@ -133,7 +138,13 @@ export function useCompanyById(id: string | undefined) {
         .maybeSingle();
 
       if (error) throw error;
-      return data as T1DCompany | null;
+      if (!data) return null;
+      return {
+        ...data,
+        investors: (data.investors as unknown as Array<{ name: string; type: string }>) || [],
+        key_people: (data.key_people as unknown as Array<{ name: string; role: string; linkedin?: string }>) || [],
+        products: (data.products as unknown as Array<{ name: string; status: string; description?: string }>) || [],
+      } as T1DCompany;
     },
     enabled: !!id,
     staleTime: 10 * 60 * 1000,
@@ -160,7 +171,12 @@ export function useRelatedCompanies(focusAreas: string[] | null, excludeId?: str
         .limit(6);
 
       if (error) throw error;
-      return (data || []) as T1DCompany[];
+      return (data || []).map(d => ({
+        ...d,
+        investors: (d.investors as unknown as Array<{ name: string; type: string }>) || [],
+        key_people: (d.key_people as unknown as Array<{ name: string; role: string; linkedin?: string }>) || [],
+        products: (d.products as unknown as Array<{ name: string; status: string; description?: string }>) || [],
+      })) as T1DCompany[];
     },
     enabled: !!focusAreas && focusAreas.length > 0,
     staleTime: 10 * 60 * 1000,

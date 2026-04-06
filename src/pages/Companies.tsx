@@ -186,7 +186,7 @@ const Companies = () => {
                       className="pl-10"
                     />
                   </div>
-                  <Button variant="outline" onClick={refetch} disabled={loading}>
+                  <Button variant="outline" onClick={() => refetch()} disabled={loading}>
                     <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                     Refresh
                   </Button>
@@ -252,7 +252,7 @@ const Companies = () => {
               <Card className="border-destructive/50 bg-destructive/5">
                 <CardContent className="p-4 text-center">
                   <p className="text-destructive">{error}</p>
-                  <Button variant="outline" onClick={refetch} className="mt-2">
+                  <Button variant="outline" onClick={() => refetch()} className="mt-2">
                     Try Again
                   </Button>
                 </CardContent>
