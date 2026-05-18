@@ -29,6 +29,7 @@ import { AchievementGrid } from '@/components/achievements/AchievementGrid';
 import { useAchievements } from '@/hooks/useAchievements';
 import { useStreaks } from '@/hooks/useStreaks';
 import { useSearchParams } from 'react-router-dom';
+import { ConnectedAccounts } from '@/components/settings/ConnectedAccounts';
 
 interface Profile {
   id?: string;
@@ -690,6 +691,7 @@ export default function Profile() {
             </TabsContent>
 
             <TabsContent value="security" className="space-y-6">
+              <ConnectedAccounts />
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
