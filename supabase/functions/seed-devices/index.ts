@@ -3,11 +3,16 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
 import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
 import { requireAdmin } from "../_shared/auth.ts";
 
+import { guardSeedFunction } from "../_shared/seedGuard.ts";
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
+
+
+  const seedGuard = await guardSeedFunction(req);
+  if (seedGuard) return seedGuard;
   try {
     const authResult = await requireAdmin(req);
     if (authResult instanceof Response) return authResult;
