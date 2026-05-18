@@ -4,15 +4,26 @@
  */
 import { corsHeaders, handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { requireAuth } from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
 
   try {
+    const auth = await requireAuth(req);
+    if (auth instanceof Response) return auth;
+
     const { mentorId, menteeId, action } = await req.json();
     if (!mentorId || !menteeId || !action) {
       return errorResponse('mentorId, menteeId, and action are required');
+    }
+    // Caller must be one of the two parties (IDOR fix)
+    if (auth.userId !== mentorId && auth.userId !== menteeId) {
+      return errorResponse('Forbidden: not a party to this match', 403);
+    }
+    if (!['request', 'accepted', 'declined'].includes(action)) {
+      return errorResponse('Invalid action');
     }
 
     const supabase = createClient(
