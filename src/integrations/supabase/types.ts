@@ -1318,6 +1318,7 @@ export type Database = {
           tags: string[] | null
           title: string
           upvotes: number | null
+          user_id: string | null
         }
         Insert: {
           category: string
@@ -1334,6 +1335,7 @@ export type Database = {
           tags?: string[] | null
           title: string
           upvotes?: number | null
+          user_id?: string | null
         }
         Update: {
           category?: string
@@ -1350,6 +1352,7 @@ export type Database = {
           tags?: string[] | null
           title?: string
           upvotes?: number | null
+          user_id?: string | null
         }
         Relationships: []
       }
