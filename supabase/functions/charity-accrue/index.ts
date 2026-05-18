@@ -4,14 +4,21 @@
  */
 import { corsHeaders, handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { requireAuth } from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
 
   try {
-    const { userId, streakDays, reason } = await req.json();
-    if (!userId) return errorResponse('userId is required');
+    const auth = await requireAuth(req);
+    if (auth instanceof Response) return auth;
+
+    const { streakDays, reason } = await req.json();
+    const userId = auth.userId; // Trust auth, not client-provided id (IDOR fix)
+    if (typeof streakDays !== 'number' || streakDays < 0 || streakDays > 10000) {
+      return errorResponse('streakDays must be a non-negative number');
+    }
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
