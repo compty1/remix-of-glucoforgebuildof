@@ -22,6 +22,7 @@ import NightscoutConnector from '@/components/settings/NightscoutConnector';
 import BluetoothDevicePairing from '@/components/settings/BluetoothDevicePairing';
 import HormonalCycleTracker from '@/components/settings/HormonalCycleTracker';
 import { DeviceConnectionGuide } from '@/components/settings/DeviceConnectionGuide';
+import { ConnectedAccounts } from '@/components/settings/ConnectedAccounts';
 import { 
   User, 
   Bell, 
@@ -808,6 +809,8 @@ const Settings = () => {
 
           {/* Privacy Settings */}
           <TabsContent value="privacy">
+            <div className="space-y-6">
+            <ConnectedAccounts />
             <Card>
               <CardHeader>
                 <CardTitle>Privacy & Data Control</CardTitle>
@@ -947,6 +950,7 @@ const Settings = () => {
                 </div>
               </CardContent>
             </Card>
+            </div>
           </TabsContent>
 
           {/* Integrations Tab */}
