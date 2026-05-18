@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+import { fetchWithTimeout } from "../_shared/seedGuard.ts";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -30,7 +31,7 @@ serve(async (req) => {
     for (const paper of papers || []) {
       try {
         // Fetch references from Semantic Scholar
-        const response = await fetch(
+        const response = await fetchWithTimeout(
           `https://api.semanticscholar.org/graph/v1/paper/${paper.semantic_scholar_id}/references?fields=paperId,isInfluential&limit=20`
         );
         

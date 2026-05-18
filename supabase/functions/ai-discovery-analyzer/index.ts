@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
 import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
 
+import { fetchWithTimeout } from "../_shared/seedGuard.ts";
 const RATE_LIMIT_REQUESTS = 30;
 const RATE_LIMIT_WINDOW_MS = 60000;
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
@@ -70,7 +71,7 @@ async function callLovableAI(systemPrompt: string, userContent: string): Promise
   const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
   if (!LOVABLE_API_KEY) throw new Error('LOVABLE_API_KEY not configured');
 
-  const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+  const response = await fetchWithTimeout('https://ai.gateway.lovable.dev/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${LOVABLE_API_KEY}`,

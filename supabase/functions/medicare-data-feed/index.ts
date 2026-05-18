@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
+import { fetchWithTimeout } from "../_shared/seedGuard.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -66,7 +67,7 @@ async function fetchDrugPricing(): Promise<DrugPricingResult[]> {
     try {
       // Step 1: Get NDC from OpenFDA
       const url = `${OPENFDA_NDC_API}?search=${encodeURIComponent(drug.search)}&limit=1`;
-      const response = await fetch(url, {
+      const response = await fetchWithTimeout(url, {
         headers: { 'Accept': 'application/json' },
       });
 
@@ -87,7 +88,7 @@ async function fetchDrugPricing(): Promise<DrugPricingResult[]> {
       let dataSource = '';
       try {
         const nadacUrl = `https://data.medicaid.gov/api/1/datastore/query/a64474-d161-4089-be2f-5a21a15e4a57?conditions[0][property]=ndc_description&conditions[0][value]=%25${encodeURIComponent(drug.nadac_search)}%25&conditions[0][operator]=LIKE&sort[0][property]=effective_date&sort[0][order]=desc&limit=1`;
-        const nadacResponse = await fetch(nadacUrl, {
+        const nadacResponse = await fetchWithTimeout(nadacUrl, {
           headers: { 'Accept': 'application/json' },
         });
         if (nadacResponse.ok) {
@@ -169,7 +170,7 @@ async function fetchCMSCoverageData(): Promise<CMSCoverageResult[]> {
   for (const query of coverageQueries) {
     try {
       // Try fetching from the CMS Coverage API
-      const response = await fetch(
+      const response = await fetchWithTimeout(
         `${CMS_COVERAGE_API}/search?keyword=${encodeURIComponent(query.search_term)}&coverageType=NCD&limit=1`,
         { headers: { 'Accept': 'application/json' } }
       );

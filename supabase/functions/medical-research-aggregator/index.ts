@@ -2,6 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
+import { fetchWithTimeout } from "../_shared/seedGuard.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -104,7 +105,7 @@ serve(async (req) => {
         try {
           const europeUrl = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodeURIComponent(query)}&format=json&resultType=core&pageSize=100&sort=RELEVANCE`;
           
-          const response = await fetch(europeUrl);
+          const response = await fetchWithTimeout(europeUrl);
           
           if (response.ok) {
             const data = await response.json();

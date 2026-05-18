@@ -2,6 +2,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
+import { fetchWithTimeout } from "../_shared/seedGuard.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -112,7 +113,7 @@ serve(async (req) => {
         const apiUrl = `https://clinicaltrials.gov/api/query/full_studies?expr=${encodeURIComponent(query)}&min_rnk=1&max_rnk=50&fmt=json`;
         
         try {
-          const response = await fetch(apiUrl);
+          const response = await fetchWithTimeout(apiUrl);
           
           if (response.ok) {
             const data = await response.json();

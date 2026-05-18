@@ -4,6 +4,7 @@ import { corsHeaders, handleCors, jsonResponse, errorResponse } from "../_shared
 import { analyzeSentiment } from "../_shared/sentiment.ts";
 import { isJunkContent, cleanMarkdown, deterministicId } from "../_shared/junkFilter.ts";
 
+import { fetchWithTimeout } from "../_shared/seedGuard.ts";
 // Drugs.com URL mappings for all 44 medications
 const MEDICATION_URLS: Record<string, string> = {
   'humalog': 'https://www.drugs.com/comments/insulin-lispro/humalog.html',
@@ -107,7 +108,7 @@ async function scrapeDrugsComReviews(medicationName: string, baseUrl: string, ma
       const url = page === 1 ? baseUrl : `${baseUrl}?page=${page}`;
       console.log(`Scraping Drugs.com page ${page} for ${medicationName}: ${url}`);
 
-      const response = await fetch('https://api.firecrawl.dev/v1/scrape', {
+      const response = await fetchWithTimeout('https://api.firecrawl.dev/v1/scrape', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${firecrawlKey}`,
@@ -186,7 +187,7 @@ async function fetchRedditPosts(query: string, limit = 8): Promise<any[]> {
 
   try {
     const searchQuery = `site:reddit.com ${query}`;
-    const response = await fetch('https://api.firecrawl.dev/v1/search', {
+    const response = await fetchWithTimeout('https://api.firecrawl.dev/v1/search', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${firecrawlKey}`,
@@ -241,7 +242,7 @@ async function fetchWebConsumerReviews(medicationName: string, limit = 10): Prom
     const searchQuery = `"${medicationName}" review experience diabetes site:webmd.com OR site:healthline.com OR site:verywellhealth.com OR site:everydayhealth.com`;
     console.log(`Web consumer search for ${medicationName}`);
 
-    const response = await fetch('https://api.firecrawl.dev/v1/search', {
+    const response = await fetchWithTimeout('https://api.firecrawl.dev/v1/search', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${firecrawlKey}`,

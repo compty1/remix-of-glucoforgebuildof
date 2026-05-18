@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
 import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
 
+import { fetchWithTimeout } from "../_shared/seedGuard.ts";
 interface DiscoveredConnection {
   title: string;
   description: string;
@@ -135,7 +136,7 @@ Return connections using the suggest_connections function. Each connection must 
 
     console.log('Calling AI for connection analysis...');
 
-    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const aiResponse = await fetchWithTimeout('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${lovableApiKey}`,

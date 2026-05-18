@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+import { fetchWithTimeout } from "../_shared/seedGuard.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
@@ -135,7 +136,7 @@ async function searchWithFirecrawl(query: string): Promise<any[]> {
 
   try {
     console.log(`Searching Firecrawl for: ${query}`);
-    const response = await fetch('https://api.firecrawl.dev/v1/search', {
+    const response = await fetchWithTimeout('https://api.firecrawl.dev/v1/search', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${firecrawlKey}`,

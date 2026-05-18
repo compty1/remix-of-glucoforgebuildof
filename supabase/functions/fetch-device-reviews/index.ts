@@ -4,6 +4,7 @@ import { corsHeaders, handleCors, jsonResponse, errorResponse } from "../_shared
 import { analyzeSentiment } from "../_shared/sentiment.ts";
 import { isJunkContent, cleanMarkdown, deterministicId } from "../_shared/junkFilter.ts";
 
+import { fetchWithTimeout } from "../_shared/seedGuard.ts";
 // Device-specific search queries for Firecrawl
 const DEVICE_SEARCH_QUERIES: Record<string, { webQuery: string; redditQuery: string }> = {
   'Dexcom G7': {
@@ -66,7 +67,7 @@ async function fetchWebReviews(deviceName: string, searchQuery: string, limit = 
 
   try {
     console.log(`Firecrawl web search for "${deviceName}": ${searchQuery}`);
-    const response = await fetch('https://api.firecrawl.dev/v1/search', {
+    const response = await fetchWithTimeout('https://api.firecrawl.dev/v1/search', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${firecrawlKey}`,
@@ -125,7 +126,7 @@ async function fetchRedditBuzz(deviceName: string, searchQuery: string, limit = 
 
   try {
     console.log(`Firecrawl Reddit search for "${deviceName}": ${searchQuery}`);
-    const response = await fetch('https://api.firecrawl.dev/v1/search', {
+    const response = await fetchWithTimeout('https://api.firecrawl.dev/v1/search', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${firecrawlKey}`,
