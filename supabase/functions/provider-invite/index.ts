@@ -4,14 +4,20 @@
  */
 import { corsHeaders, handleCors, jsonResponse, errorResponse } from '../_shared/cors.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { requireAuth } from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
 
   try {
-    const { providerId, patientEmail, action } = await req.json();
-    if (!providerId) return errorResponse('providerId is required');
+    const auth = await requireAuth(req);
+    if (auth instanceof Response) return auth;
+
+    // Read body ONCE (previous code called req.json() twice — bug)
+    const body = await req.json();
+    const { providerId, patientEmail, action, linkId } = body ?? {};
+    if (!action) return errorResponse('action is required');
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -19,7 +25,12 @@ Deno.serve(async (req) => {
     );
 
     if (action === 'invite') {
+      if (!providerId) return errorResponse('providerId is required');
       if (!patientEmail) return errorResponse('patientEmail is required for invite');
+      // Only the provider themself can send the invite (IDOR fix)
+      if (auth.userId !== providerId) {
+        return errorResponse('Forbidden: not authorized for this provider', 403);
+      }
 
       // Check if provider exists
       const { data: provider } = await supabase
@@ -59,8 +70,19 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'accept' || action === 'reject') {
-      const { linkId } = await req.json();
+      if (!linkId) return errorResponse('linkId is required');
       const status = action === 'accept' ? 'active' : 'rejected';
+
+      // Only the invited patient may accept/reject (IDOR fix)
+      const { data: link } = await supabase
+        .from('provider_patient_links')
+        .select('patient_id')
+        .eq('id', linkId)
+        .maybeSingle();
+      if (!link) return errorResponse('Invitation not found', 404);
+      if (link.patient_id !== auth.userId) {
+        return errorResponse('Forbidden: not your invitation', 403);
+      }
 
       await supabase
         .from('provider_patient_links')
