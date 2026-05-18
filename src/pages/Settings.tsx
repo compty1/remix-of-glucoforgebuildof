@@ -950,6 +950,7 @@ const Settings = () => {
                 </div>
               </CardContent>
             </Card>
+            </div>
           </TabsContent>
 
           {/* Integrations Tab */}
