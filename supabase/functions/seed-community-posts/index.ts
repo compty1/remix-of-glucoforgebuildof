@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
 import { requireAdmin } from "../_shared/auth.ts";
 
+import { guardSeedFunction } from "../_shared/seedGuard.ts";
 // Curated, high-quality T1D community solutions
 const curatedPosts = [
   // GLUCOSE LOWS
@@ -3049,6 +3050,10 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+
+
+  const seedGuard = await guardSeedFunction(req);
+  if (seedGuard) return seedGuard;
   try {
     const authResult = await requireAdmin(req);
     if (authResult instanceof Response) return authResult;

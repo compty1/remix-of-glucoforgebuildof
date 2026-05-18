@@ -3,6 +3,7 @@ import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts
 import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
 import { detectPromptInjection, MEDICAL_SAFETY_SUFFIX, TEMPERATURE_GUIDE, enforceTokenLimit } from "../_shared/promptGuards.ts";
 
+import { fetchWithTimeout } from "../_shared/seedGuard.ts";
 const SYSTEM_PROMPT = `You are an expert AI analyst specializing in Type 1 Diabetes research, technology, and treatment advances. 
 
 Your role is to provide evidence-based predictions and insights about:
@@ -65,7 +66,7 @@ serve(async (req) => {
     // Phase 12.10: Enforce token limit
     const safeQuestion = enforceTokenLimit(question, 1000);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetchWithTimeout('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${LOVABLE_API_KEY}`,

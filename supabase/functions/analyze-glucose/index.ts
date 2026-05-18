@@ -4,6 +4,7 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { corsHeaders, validateBodySize, errorResponse } from "../_shared/cors.ts";
 import { requireAuth, requireJsonContentType } from "../_shared/auth.ts";
 
+import { fetchWithTimeout } from "../_shared/seedGuard.ts";
 // Fix 4.7: Removed in-memory rate limiter (won't work in serverless).
 // Rate limiting is now handled via auth-based checks below.
 
@@ -1101,7 +1102,7 @@ async function extractPDFWithVision(base64PDF: string, filename: string): Promis
   
   try {
     // Use Gemini with vision capability to read the PDF document
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetchWithTimeout("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${LOVABLE_API_KEY}`,
@@ -1333,7 +1334,7 @@ LIBRE/AGP HINTS:
 - Look for the AGP profile section`;
     }
     
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetchWithTimeout("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${LOVABLE_API_KEY}`,
@@ -1781,7 +1782,7 @@ async function extractImageWithVision(base64Image: string, filename: string): Pr
   else if (lowerFilename.endsWith('.webp')) mimeType = 'image/webp';
   
   try {
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetchWithTimeout("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${LOVABLE_API_KEY}`,
@@ -2249,7 +2250,7 @@ async function generateAIRecommendations(
   
   if (LOVABLE_API_KEY) {
     try {
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      const response = await fetchWithTimeout("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${LOVABLE_API_KEY}`,

@@ -1,3 +1,4 @@
+import { fetchWithTimeout } from "../_shared/seedGuard.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4'
 
 const corsHeaders = {
@@ -58,7 +59,7 @@ async function fetchFromEuropePMC(query: string): Promise<ResearchItem[]> {
     
     console.log(`Fetching from Europe PMC: ${query}`);
     
-    const response = await fetch(url, {
+    const response = await fetchWithTimeout(url, {
       headers: {
         'User-Agent': 'GlucoForge-Research-Aggregator/1.0'
       }
@@ -99,7 +100,7 @@ async function fetchFromPubMed(query: string): Promise<ResearchItem[]> {
     
     console.log(`Fetching from PubMed: ${query}`);
     
-    const searchResponse = await fetch(searchUrl);
+    const searchResponse = await fetchWithTimeout(searchUrl);
     if (!searchResponse.ok) return [];
     
     const searchData = await searchResponse.json();
@@ -109,7 +110,7 @@ async function fetchFromPubMed(query: string): Promise<ResearchItem[]> {
     
     // Fetch details for the IDs
     const summaryUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=${idList.slice(0, 10).join(',')}&retmode=json`;
-    const summaryResponse = await fetch(summaryUrl);
+    const summaryResponse = await fetchWithTimeout(summaryUrl);
     if (!summaryResponse.ok) return [];
     
     const summaryData = await summaryResponse.json();
