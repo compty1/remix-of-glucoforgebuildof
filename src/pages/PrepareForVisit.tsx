@@ -9,8 +9,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuthStore } from "@/store/authStore";
 import { InfoRail } from "@/components/InfoRail";
 import { FileText, Calendar, TrendingUp, AlertCircle, CheckCircle, Download, User } from "lucide-react";
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const PrepareForVisit = () => {
+  usePageMeta("Prepare for Your Visit", "Get ready for your endo appointment with personalized questions and summaries.");
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuthStore();

@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Heart, Home } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export const DonationSuccess = () => {
+  usePageMeta("Thank You", "Thank you for supporting GlucoForge and the T1D community.");
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const donation = searchParams.get('donation');

@@ -29,6 +29,7 @@ import {
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const formatCurrency = (value: number | null): string => {
   if (!value) return 'Undisclosed';
@@ -39,6 +40,7 @@ const formatCurrency = (value: number | null): string => {
 };
 
 const CompanyComparison = () => {
+  usePageMeta("Company Comparison", "Compare diabetes companies side by side — devices, drugs, pipeline, and reputation.");
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
