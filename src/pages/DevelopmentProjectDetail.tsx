@@ -11,7 +11,6 @@ import { useClaimedProjects } from "@/hooks/useClaimedProjects";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import { 
-import { usePageMeta } from '@/hooks/usePageMeta';
   ArrowLeft, 
   Target, 
   CheckCircle2, 
@@ -79,6 +78,7 @@ export default function DevelopmentProjectDetail() {
       ? claimedProject.completed_tasks?.filter(t => t !== taskId) || []
       : [...(claimedProject.completed_tasks || []), taskId];
     
+import { usePageMeta } from '@/hooks/usePageMeta';
     const totalTasks = project?.tasks?.length || 1;
     const newProgress = Math.round((newCompletedTasks.length / totalTasks) * 100);
     

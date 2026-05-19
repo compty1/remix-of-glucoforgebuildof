@@ -13,7 +13,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { 
-import { usePageMeta } from '@/hooks/usePageMeta';
   ChevronLeft, 
   Eye, 
   TrendingUp, 
@@ -79,6 +78,7 @@ const ProjectDetail: React.FC = () => {
       'Gastrointestinal': 'bg-warning/10 text-warning border-warning/20',
       'Neurological': 'bg-chart-5/10 text-chart-5 border-chart-5/20',
       'Metabolic': 'bg-primary/10 text-primary border-primary/20',
+import { usePageMeta } from '@/hooks/usePageMeta';
       'Sleep': 'bg-chart-1/10 text-chart-1 border-chart-1/20',
       'Psychological': 'bg-chart-4/10 text-chart-4 border-chart-4/20',
       'Hormonal': 'bg-destructive/10 text-destructive border-destructive/20',

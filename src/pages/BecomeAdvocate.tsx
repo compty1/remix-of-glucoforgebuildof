@@ -14,7 +14,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { 
-import { usePageMeta } from '@/hooks/usePageMeta';
   Megaphone, 
   Heart, 
   Users, 
@@ -79,6 +78,7 @@ export default function BecomeAdvocate() {
     consent_to_contact: false,
     consent_to_share_story: false
   });
+import { usePageMeta } from '@/hooks/usePageMeta';
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));

@@ -9,7 +9,6 @@ import { Progress } from '@/components/ui/progress';
 import { InfoRail } from '@/components/InfoRail';
 import { PredictionDetailModal } from '@/components/future/PredictionDetailModal';
 import { 
-import { usePageMeta } from '@/hooks/usePageMeta';
   Rocket, 
   Calendar, 
   TrendingUp, 
@@ -79,6 +78,7 @@ const predictions: TimelinePrediction[] = [
   },
 
   // 5 Years (2031)
+import { usePageMeta } from '@/hooks/usePageMeta';
   {
     id: '5y-1',
     timeframe: '5 Years',

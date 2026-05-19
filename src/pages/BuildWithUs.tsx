@@ -5,7 +5,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DevelopmentProjectCard } from "@/components/build-with-us/DevelopmentProjectCard";
 import { developmentProjects, DevelopmentProject } from "@/data/developmentProjects";
 import { 
-import { usePageMeta } from '@/hooks/usePageMeta';
   Code2, 
   Cpu, 
   Wrench, 
@@ -78,6 +77,7 @@ export default function BuildWithUs() {
             </Button>
           </div>
         </section>
+import { usePageMeta } from '@/hooks/usePageMeta';
 
         {/* Projects Section */}
         <section id="projects-section" className="py-12 md:py-16 px-4">
