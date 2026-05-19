@@ -3,8 +3,10 @@ import { useClinicBranding } from '@/hooks/useClinicBranding';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function ClinicPortal() {
+  usePageMeta("Clinic Portal", "Manage patients, RPM billing, and CGM analytics from your clinic portal.");
   const { slug } = useParams<{ slug: string }>();
   const { branding, loading } = useClinicBranding(slug || '');
 

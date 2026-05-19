@@ -18,6 +18,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const topicCategories = [
   {
@@ -101,6 +102,7 @@ interface TopicCardProps {
 }
 
 const TopicCard: React.FC<TopicCardProps> = ({ topic, categoryId, onClick }) => {
+  usePageMeta("Learn & Explore", "Curated education resources, articles, and guides for living with Type 1 diabetes.");
   return (
     <div 
       className="p-4 rounded-lg border bg-card hover:bg-muted/50 hover:border-primary/50 transition-colors cursor-pointer"

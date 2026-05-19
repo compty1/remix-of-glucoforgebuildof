@@ -13,6 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { 
+import { usePageMeta } from '@/hooks/usePageMeta';
   ChevronLeft, 
   Eye, 
   TrendingUp, 
@@ -33,6 +34,7 @@ import {
 } from 'lucide-react';
 
 const ProjectDetail: React.FC = () => {
+  usePageMeta("Project Detail", "Track research projects, funding, and clinical trial progress for T1D.");
   const { slug } = useParams<{ slug: string }>();
   const { project, researchLinks, communitySolutions, isLoading } = useProjectDetail(slug || '');
 

@@ -29,8 +29,10 @@ import { SavePostNotesModal } from '@/components/community/SavePostNotesModal';
 import { RelatedPosts } from '@/components/community/RelatedPosts';
 import { useAuthStore } from '@/store/authStore';
 import { formatDistanceToNow, format } from 'date-fns';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const CommunityPostDetail: React.FC = () => {
+  usePageMeta("Community Post", "Read and discuss community-shared T1D experiences, tips, and questions.");
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
   const [commentLimit, setCommentLimit] = useState(10);

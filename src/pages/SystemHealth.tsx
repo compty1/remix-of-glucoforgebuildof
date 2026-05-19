@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface HealthStatus {
   database: 'ok' | 'error' | 'checking';
@@ -14,6 +15,7 @@ interface HealthStatus {
 }
 
 export default function SystemHealth() {
+  usePageMeta("System Health", "Live system health, data freshness, and integration status for GlucoForge.");
   const [status, setStatus] = useState<HealthStatus>({
     database: 'checking',
     edgeFunctions: 'checking',

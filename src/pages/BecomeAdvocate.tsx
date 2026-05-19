@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { 
+import { usePageMeta } from '@/hooks/usePageMeta';
   Megaphone, 
   Heart, 
   Users, 
@@ -56,6 +57,7 @@ const skills = [
 ];
 
 export default function BecomeAdvocate() {
+  usePageMeta("Become an Advocate", "Join the GlucoForge advocate program to amplify T1D voices and drive change in diabetes care.");
   const { user } = useAuthStore();
   const [formStep, setFormStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
