@@ -1,6 +1,14 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 import { checkRateLimit, rateLimitResponse, getClientIp } from '../_shared/rateLimiter.ts';
 
+const FETCH_TIMEOUT_MS = 25_000;
+function tfetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), FETCH_TIMEOUT_MS);
+  return fetch(input, { ...init, signal: init.signal ?? c.signal }).finally(() => clearTimeout(t));
+}
+
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -160,7 +168,7 @@ async function fetchRedditPosts(subreddit: string, limit: number = 50, sort: str
   for (const url of urls) {
     try {
       console.log(`Trying to fetch from: ${url}`);
-      const response = await fetch(url, { headers });
+      const response = await tfetch(url, { headers });
       
       if (response.ok) {
         const data: RedditResponse = await response.json();
@@ -192,7 +200,7 @@ async function fetchTopComments(subreddit: string, postId: string, limit: number
 
   for (const url of urls) {
     try {
-      const response = await fetch(url, { headers });
+      const response = await tfetch(url, { headers });
       
       if (!response.ok) continue;
       

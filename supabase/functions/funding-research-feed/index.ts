@@ -1,6 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
+const FETCH_TIMEOUT_MS = 25_000;
+function tfetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), FETCH_TIMEOUT_MS);
+  return fetch(input, { ...init, signal: init.signal ?? c.signal }).finally(() => clearTimeout(t));
+}
+
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -44,7 +52,7 @@ async function fetchNIHReporterData(): Promise<NIHProject[]> {
   try {
     console.log('[NIH-REPORTER] Fetching diabetes research funding data...');
     
-    const response = await fetch(NIH_REPORTER_API, {
+    const response = await tfetch(NIH_REPORTER_API, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -122,7 +130,7 @@ async function fetchCureResearchData(): Promise<NIHProject[]> {
   try {
     console.log('[NIH-REPORTER] Fetching cure-focused research...');
     
-    const response = await fetch(NIH_REPORTER_API, {
+    const response = await tfetch(NIH_REPORTER_API, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

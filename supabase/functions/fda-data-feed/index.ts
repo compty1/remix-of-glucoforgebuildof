@@ -6,6 +6,14 @@ import { handleHealthCheck } from "../_shared/health.ts";
 import { withRetry } from "../_shared/health.ts";
 import { processBatch } from "../_shared/batch.ts";
 
+const FETCH_TIMEOUT_MS = 25_000;
+function tfetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), FETCH_TIMEOUT_MS);
+  return fetch(input, { ...init, signal: init.signal ?? c.signal }).finally(() => clearTimeout(t));
+}
+
+
 interface FDADeviceEvent {
   fda_event_id: string;
   event_type: string;
@@ -50,7 +58,7 @@ serve(async (req) => {
     // Fetch device recalls
     try {
       console.log('Fetching FDA device recalls');
-      const recallsResponse = await fetch(`${FDA_ENDPOINTS.recalls}?search=product_description:"diabetes"+OR+"glucose"+OR+"insulin"&limit=100`);
+      const recallsResponse = await tfetch(`${FDA_ENDPOINTS.recalls}?search=product_description:"diabetes"+OR+"glucose"+OR+"insulin"&limit=100`);
       
       if (recallsResponse.ok) {
         const recallsData = await recallsResponse.json();
@@ -78,7 +86,7 @@ serve(async (req) => {
     // Fetch 510(k) clearances
     try {
       console.log('Fetching FDA 510(k) clearances');
-      const clearancesResponse = await fetch(`${FDA_ENDPOINTS.clearances}?search=device_name:"diabetes"+OR+"glucose"+OR+"insulin"&limit=50`);
+      const clearancesResponse = await tfetch(`${FDA_ENDPOINTS.clearances}?search=device_name:"diabetes"+OR+"glucose"+OR+"insulin"&limit=50`);
       
       if (clearancesResponse.ok) {
         const clearancesData = await clearancesResponse.json();
@@ -105,7 +113,7 @@ serve(async (req) => {
     // Fetch PMA approvals
     try {
       console.log('Fetching FDA PMA approvals');
-      const pmaResponse = await fetch(`${FDA_ENDPOINTS.pma}?search=device_name:"diabetes"+OR+"glucose"+OR+"insulin"&limit=50`);
+      const pmaResponse = await tfetch(`${FDA_ENDPOINTS.pma}?search=device_name:"diabetes"+OR+"glucose"+OR+"insulin"&limit=50`);
       
       if (pmaResponse.ok) {
         const pmaData = await pmaResponse.json();
@@ -132,7 +140,7 @@ serve(async (req) => {
     // Fetch adverse events
     try {
       console.log('Fetching FDA adverse events');
-      const eventsResponse = await fetch(`${FDA_ENDPOINTS.adverse_events}?search=device.generic_name:"diabetes"+OR+"glucose"+OR+"insulin"&limit=100`);
+      const eventsResponse = await tfetch(`${FDA_ENDPOINTS.adverse_events}?search=device.generic_name:"diabetes"+OR+"glucose"+OR+"insulin"&limit=100`);
       
       if (eventsResponse.ok) {
         const eventsData = await eventsResponse.json();
