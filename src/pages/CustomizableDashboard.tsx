@@ -35,6 +35,7 @@ import {
 } from 'lucide-react';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -49,6 +50,7 @@ interface DashboardWidget {
 }
 
 const CustomizableDashboard = () => {
+  usePageMeta("My Dashboard", "Your personalized T1D dashboard — glucose, mood, devices, and community.");
   const [layouts, setLayouts] = useState<{ [key: string]: GridLayout[] }>({
     lg: [
       { i: 'cure-progress', x: 0, y: 0, w: 4, h: 3 },

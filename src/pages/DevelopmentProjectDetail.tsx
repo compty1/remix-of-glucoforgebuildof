@@ -11,6 +11,7 @@ import { useClaimedProjects } from "@/hooks/useClaimedProjects";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import { 
+import { usePageMeta } from '@/hooks/usePageMeta';
   ArrowLeft, 
   Target, 
   CheckCircle2, 
@@ -51,6 +52,7 @@ const taskStatusColors: Record<string, string> = {
 };
 
 export default function DevelopmentProjectDetail() {
+  usePageMeta("Development Project", "Track development progress on T1D research projects and clinical milestones.");
   const { projectId } = useParams<{ projectId: string }>();
   const project = developmentProjects.find(p => p.id === projectId);
   const { user } = useAuthStore();

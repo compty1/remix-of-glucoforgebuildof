@@ -21,6 +21,7 @@ import {
   Zap
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const partnerBenefits = [
   {
@@ -56,6 +57,7 @@ const interestAreas = [
 ];
 
 export default function HealthcareProviders() {
+  usePageMeta("Healthcare Providers", "Find endocrinologists, CDEs, and T1D-friendly providers reviewed by the community.");
   const [formData, setFormData] = useState({
     organization_name: '',
     contact_name: '',

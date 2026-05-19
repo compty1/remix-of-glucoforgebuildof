@@ -41,6 +41,7 @@ import {
   HeartHandshake
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 // Platform statistics
 const platformStats = [
@@ -253,6 +254,7 @@ const alternativeWays = [
 ];
 
 export default function SupportGlucoForge() {
+  usePageMeta("Support GlucoForge", "Help fund open T1D tools, research, and community programs.");
   const [donationAmount, setDonationAmount] = useState(100);
   const [donationType, setDonationType] = useState<'one-time' | 'monthly'>('one-time');
 

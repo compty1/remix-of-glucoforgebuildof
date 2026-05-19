@@ -16,6 +16,7 @@ import { OptInBanner } from '@/components/find-diabetics/OptInBanner';
 import { ConnectionRequestModal } from '@/components/find-diabetics/ConnectionRequestModal';
 import { ConnectionsTab } from '@/components/find-diabetics/ConnectionsTab';
 import { useAuthStore } from '@/store/authStore';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const US_STATES = [
   'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
@@ -51,6 +52,7 @@ const TIPS = [
 ];
 
 const FindDiabeticNearMe: React.FC = () => {
+  usePageMeta("Find a Diabetic Near Me", "Connect with people living with T1D in your area for peer support and friendship.");
   const { user } = useAuthStore();
   const [stateFilter, setStateFilter] = useState('');
   const [searchQuery, setSearchQuery] = useState('');

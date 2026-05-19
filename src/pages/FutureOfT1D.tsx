@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { InfoRail } from '@/components/InfoRail';
 import { PredictionDetailModal } from '@/components/future/PredictionDetailModal';
 import { 
+import { usePageMeta } from '@/hooks/usePageMeta';
   Rocket, 
   Calendar, 
   TrendingUp, 
@@ -240,6 +241,7 @@ const qualityOfLifeProjections = [
 ];
 
 export default function FutureOfT1D() {
+  usePageMeta("Future of T1D", "Explore the cures, devices, and breakthroughs shaping the future of Type 1 diabetes.");
   const [selectedTimeframe, setSelectedTimeframe] = useState<string>('3 Years');
   const [selectedPrediction, setSelectedPrediction] = useState<TimelinePrediction | null>(null);
   const [modalOpen, setModalOpen] = useState(false);

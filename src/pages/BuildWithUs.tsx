@@ -5,6 +5,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DevelopmentProjectCard } from "@/components/build-with-us/DevelopmentProjectCard";
 import { developmentProjects, DevelopmentProject } from "@/data/developmentProjects";
 import { 
+import { usePageMeta } from '@/hooks/usePageMeta';
   Code2, 
   Cpu, 
   Wrench, 
@@ -44,6 +45,7 @@ const steps = [
 ];
 
 export default function BuildWithUs() {
+  usePageMeta("Build With Us", "Partner with GlucoForge to co-create open T1D tools, research, and community programs.");
   const [activeCategory, setActiveCategory] = useState<string>("all");
 
   const filteredProjects = activeCategory === "all" 

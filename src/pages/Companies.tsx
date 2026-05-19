@@ -13,11 +13,13 @@ import FundingTimelineChart from '@/components/companies/FundingTimelineChart';
 import { useT1DCompanies, CompanyFilters } from '@/hooks/useT1DCompanies';
 import { BackButton } from '@/components/ui/back-button';
 import { 
+import { usePageMeta } from '@/hooks/usePageMeta';
   Search, Building2, DollarSign, TrendingUp, Globe, 
   Filter, RefreshCw, Users, Beaker, Heart, GitCompare
 } from 'lucide-react';
 
 const Companies = () => {
+  usePageMeta("Diabetes Companies", "Explore companies, manufacturers, and startups shaping the T1D ecosystem.");
   const [searchQuery, setSearchQuery] = useState('');
   const [companyType, setCompanyType] = useState<string>('');
   const [focusArea, setFocusArea] = useState<string>('');

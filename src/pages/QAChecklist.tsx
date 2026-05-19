@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { CheckCircle, XCircle, AlertTriangle, Download } from 'lucide-react';
 import { useState } from 'react';
 import { AdminRoute } from '@/components/admin/AdminRoute';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface QAItem {
   id: string;
@@ -77,6 +78,7 @@ const qaItems: QAItem[] = [
 ];
 
 export default function QAChecklist() {
+  usePageMeta("QA Checklist", "Internal QA checklist for verifying app integrity and clinical accuracy.");
   const [items] = useState<QAItem[]>(qaItems);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
 

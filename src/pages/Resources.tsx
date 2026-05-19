@@ -27,6 +27,7 @@ import {
   Stethoscope
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface Resource {
   id: string;
@@ -346,6 +347,7 @@ const resourceCategories = [
 ];
 
 const Resources = () => {
+  usePageMeta("Resources", "Trusted T1D resources — guides, financial aid, mental health, and emergency support.");
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('insurance');
 

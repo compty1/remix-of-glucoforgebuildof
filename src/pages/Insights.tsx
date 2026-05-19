@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ExternalLink, TrendingUp, Users, MessageSquare, Calendar, Heart, AlertCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useCommunityPosts } from '@/hooks/useCommunityPosts';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface CommunityPost {
   id: string;
@@ -20,6 +21,7 @@ interface CommunityPost {
 }
 
 export default function Insights() {
+  usePageMeta("Insights", "AI-powered insights from your glucose, mood, and lifestyle data.");
   const { posts: communityPosts, loading, error } = useCommunityPosts();
   const [selectedCategory, setSelectedCategory] = useState('all');
 
