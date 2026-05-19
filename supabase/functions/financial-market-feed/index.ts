@@ -1,6 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
+const FETCH_TIMEOUT_MS = 25_000;
+function tfetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), FETCH_TIMEOUT_MS);
+  return fetch(input, { ...init, signal: init.signal ?? c.signal }).finally(() => clearTimeout(t));
+}
+
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -26,7 +34,7 @@ async function fetchQuote(ticker: string): Promise<{
 } | null> {
   try {
     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
-    const response = await fetch(url, {
+    const response = await tfetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
         'Accept': 'application/json',

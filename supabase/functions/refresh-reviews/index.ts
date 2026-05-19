@@ -1,6 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const FETCH_TIMEOUT_MS = 25_000;
+function tfetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), FETCH_TIMEOUT_MS);
+  return fetch(input, { ...init, signal: init.signal ?? c.signal }).finally(() => clearTimeout(t));
+}
+
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
@@ -42,7 +50,7 @@ serve(async (req) => {
     const totalDevices = deviceCount || 0;
     for (let i = 0; i < totalDevices; i += 4) {
       try {
-        const res = await fetch(`${supabaseUrl}/functions/v1/fetch-device-reviews`, {
+        const res = await tfetch(`${supabaseUrl}/functions/v1/fetch-device-reviews`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${anonKey}`,
@@ -74,7 +82,7 @@ serve(async (req) => {
     const totalMeds = medCount || 0;
     for (let i = 0; i < totalMeds; i += 10) {
       try {
-        const res = await fetch(`${supabaseUrl}/functions/v1/fetch-medication-reviews`, {
+        const res = await tfetch(`${supabaseUrl}/functions/v1/fetch-medication-reviews`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${anonKey}`,

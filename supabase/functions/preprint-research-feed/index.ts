@@ -1,6 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
 
+const FETCH_TIMEOUT_MS = 25_000;
+function tfetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), FETCH_TIMEOUT_MS);
+  return fetch(input, { ...init, signal: init.signal ?? c.signal }).finally(() => clearTimeout(t));
+}
+
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -37,7 +45,7 @@ async function fetchBioRxivData(server: 'biorxiv' | 'medrxiv'): Promise<Preprint
   try {
     console.log(`[PREPRINT-FEED] Fetching from ${server}...`);
     
-    const response = await fetch(`${apiUrl}/${startDate}/${endDate}/0/100`);
+    const response = await tfetch(`${apiUrl}/${startDate}/${endDate}/0/100`);
     
     if (!response.ok) {
       console.error(`[PREPRINT-FEED] ${server} API error: ${response.status}`);
@@ -110,7 +118,7 @@ async function fetchArxivData(): Promise<PreprintPaper[]> {
       console.log(`[PREPRINT-FEED] Fetching from arXiv: ${query}`);
       
       const encodedQuery = encodeURIComponent(query);
-      const response = await fetch(
+      const response = await tfetch(
         `${ARXIV_API}?search_query=all:${encodedQuery}&start=0&max_results=25&sortBy=lastUpdatedDate&sortOrder=descending`
       );
 
