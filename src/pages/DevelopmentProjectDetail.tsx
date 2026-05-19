@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -78,7 +79,6 @@ export default function DevelopmentProjectDetail() {
       ? claimedProject.completed_tasks?.filter(t => t !== taskId) || []
       : [...(claimedProject.completed_tasks || []), taskId];
     
-import { usePageMeta } from '@/hooks/usePageMeta';
     const totalTasks = project?.tasks?.length || 1;
     const newProgress = Math.round((newCompletedTasks.length / totalTasks) * 100);
     

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -77,7 +78,6 @@ export default function BuildWithUs() {
             </Button>
           </div>
         </section>
-import { usePageMeta } from '@/hooks/usePageMeta';
 
         {/* Projects Section */}
         <section id="projects-section" className="py-12 md:py-16 px-4">

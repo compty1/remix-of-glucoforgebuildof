@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from '@/components/Layout';
 import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -78,7 +79,6 @@ const predictions: TimelinePrediction[] = [
   },
 
   // 5 Years (2031)
-import { usePageMeta } from '@/hooks/usePageMeta';
   {
     id: '5y-1',
     timeframe: '5 Years',

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from '@/components/Layout';
 import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -78,7 +79,6 @@ export default function BecomeAdvocate() {
     consent_to_contact: false,
     consent_to_share_story: false
   });
-import { usePageMeta } from '@/hooks/usePageMeta';
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));

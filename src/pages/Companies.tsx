@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -77,7 +78,6 @@ const Companies = () => {
   };
 
   const hasFilters = searchQuery || companyType || focusArea || country;
-import { usePageMeta } from '@/hooks/usePageMeta';
 
   return (
     <Layout>
