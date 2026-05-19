@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { usePageMeta } from '@/hooks/usePageMeta';
 import { ContactSuccessState } from '@/components/contact/ContactSuccessState';
+import { contactSubmissionSchema } from '@/schemas/contact';
 
 export default function Contact() {
   usePageMeta('Contact Us', 'Get in touch with the GlucoForge team for support, feedback, or partnerships.');
@@ -28,9 +29,16 @@ export default function Contact() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Honeypot check
+    // Honeypot — silently accept bots
     if (formData._honeypot) {
       setSubmitted(true);
+      return;
+    }
+    // Zod validation (Wave 3)
+    const parsed = contactSubmissionSchema.safeParse(formData);
+    if (!parsed.success) {
+      const first = parsed.error.issues[0];
+      toast.error(first?.message ?? 'Please review the form and try again.');
       return;
     }
     // Rate limiting: 30s between submissions
@@ -41,14 +49,15 @@ export default function Contact() {
     }
     setSubmitting(true);
     try {
+      const data = parsed.data;
       const { error } = await supabase
         .from('contact_submissions')
         .insert({
-          name: formData.name,
-          email: formData.email,
-          subject: formData.subject,
-          category: formData.category || null,
-          message: formData.message,
+          name: data.name,
+          email: data.email,
+          subject: data.subject,
+          category: data.category || null,
+          message: data.message,
         });
 
       if (error) throw error;
