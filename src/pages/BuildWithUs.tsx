@@ -1,11 +1,11 @@
 import { useState } from "react";
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { DevelopmentProjectCard } from "@/components/build-with-us/DevelopmentProjectCard";
 import { developmentProjects, DevelopmentProject } from "@/data/developmentProjects";
 import { 
-import { usePageMeta } from '@/hooks/usePageMeta';
   Code2, 
   Cpu, 
   Wrench, 

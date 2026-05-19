@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from '@/components/Layout';
 import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -9,7 +10,6 @@ import { Progress } from '@/components/ui/progress';
 import { InfoRail } from '@/components/InfoRail';
 import { PredictionDetailModal } from '@/components/future/PredictionDetailModal';
 import { 
-import { usePageMeta } from '@/hooks/usePageMeta';
   Rocket, 
   Calendar, 
   TrendingUp, 

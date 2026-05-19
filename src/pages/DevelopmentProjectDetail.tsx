@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -11,7 +12,6 @@ import { useClaimedProjects } from "@/hooks/useClaimedProjects";
 import { useAuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import { 
-import { usePageMeta } from '@/hooks/usePageMeta';
   ArrowLeft, 
   Target, 
   CheckCircle2, 

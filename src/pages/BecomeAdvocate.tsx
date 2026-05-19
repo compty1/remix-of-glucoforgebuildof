@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from '@/components/Layout';
 import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -14,7 +15,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { 
-import { usePageMeta } from '@/hooks/usePageMeta';
   Megaphone, 
   Heart, 
   Users, 

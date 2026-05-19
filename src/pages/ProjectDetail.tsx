@@ -1,4 +1,5 @@
 import React from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { useParams, Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { useProjectDetail } from '@/hooks/useProjects';
@@ -13,7 +14,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { 
-import { usePageMeta } from '@/hooks/usePageMeta';
   ChevronLeft, 
   Eye, 
   TrendingUp, 

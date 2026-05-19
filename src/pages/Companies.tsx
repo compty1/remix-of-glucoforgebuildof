@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,7 +14,6 @@ import FundingTimelineChart from '@/components/companies/FundingTimelineChart';
 import { useT1DCompanies, CompanyFilters } from '@/hooks/useT1DCompanies';
 import { BackButton } from '@/components/ui/back-button';
 import { 
-import { usePageMeta } from '@/hooks/usePageMeta';
   Search, Building2, DollarSign, TrendingUp, Globe, 
   Filter, RefreshCw, Users, Beaker, Heart, GitCompare
 } from 'lucide-react';
