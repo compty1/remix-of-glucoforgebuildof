@@ -1,7 +1,21 @@
 /**
  * Wave 1 — Seed function guard.
- * Seed functions must be disabled in production unless explicitly allowed
- * via the SEED_ALLOWED env var. Also requires admin auth when allowed.
+ * Seed functions are destructive bulk-write helpers. They must be DISABLED
+ * in production unless an operator explicitly opts in.
+ *
+ * SEED_ALLOWED env var:
+ *   - Unset / "false" / "0" / "no"  → 403, function refuses to run (DEFAULT, recommended for prod)
+ *   - "true" / "1" / "yes"          → function runs, BUT still requires an admin JWT
+ *
+ * Where to set it:
+ *   Lovable Cloud → Backend → Edge Functions → Secrets → add `SEED_ALLOWED`.
+ *   Leave unset in production. Set to "true" temporarily in staging/dev when
+ *   you need to (re)seed catalog data, then unset again.
+ *
+ * Behavior when enabled:
+ *   - Caller must present a valid Supabase JWT belonging to a user with the
+ *     `admin` role (enforced by requireAdmin → user_roles table).
+ *   - Non-admin or anonymous callers get 401/403.
  */
 import { corsHeaders } from "./cors.ts";
 import { requireAdmin } from "./auth.ts";
