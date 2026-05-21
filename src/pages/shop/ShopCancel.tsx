@@ -4,8 +4,10 @@ import Layout from '@/components/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { XCircle, ShoppingBag, ArrowLeft, HelpCircle } from 'lucide-react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const ShopCancel = () => {
+  usePageMeta('Order Cancelled', 'Your order was not completed. Your cart items are still saved for later.');
   return (
     <Layout>
       <div className="container mx-auto px-6 py-12 max-w-2xl">

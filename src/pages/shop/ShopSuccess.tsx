@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Package, ArrowRight, ShoppingBag, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface OrderProduct {
   product_name: string;
@@ -22,6 +23,7 @@ interface Order {
 }
 
 const ShopSuccess = () => {
+  usePageMeta('Order Confirmed', 'Your order has been confirmed. Thank you for supporting the GlucoForge mission.');
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const [order, setOrder] = useState<Order | null>(null);

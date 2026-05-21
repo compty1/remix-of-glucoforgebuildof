@@ -3,8 +3,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { X, ArrowLeft, Heart, HelpCircle } from 'lucide-react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function DonateCancel() {
+  usePageMeta('Donation Cancelled', 'Your donation was not processed. Return to learn how you can still support T1D research.');
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">
