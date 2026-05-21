@@ -23,6 +23,7 @@ interface Order {
 }
 
 const ShopSuccess = () => {
+  usePageMeta('Order Confirmed', 'Your order has been confirmed. Thank you for supporting the GlucoForge mission.');
   const [searchParams] = useSearchParams();
   const sessionId = searchParams.get('session_id');
   const [order, setOrder] = useState<Order | null>(null);
