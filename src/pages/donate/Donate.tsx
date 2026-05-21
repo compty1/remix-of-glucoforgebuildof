@@ -14,10 +14,15 @@ import { useAuthStore } from '@/store/authStore';
 import { toast } from 'sonner';
 import { DonationImpactVisualization } from '@/components/donate/DonationImpactVisualization';
 import { BackButton } from '@/components/ui/back-button';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const quickAmounts = [25, 50, 100, 250, 500, 1000];
 
 export default function Donate() {
+  usePageMeta({
+    title: 'Donate to T1D Research | GlucoForge',
+    description: 'Support Type 1 diabetes research, advocacy, and community programs. Every donation accelerates the path to a cure.',
+  });
   const [sliderValue, setSliderValue] = useState<number[]>([100]);
   const [processing, setProcessing] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
