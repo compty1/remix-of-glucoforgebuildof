@@ -3,8 +3,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { CheckCircle, Heart, Mail, Share2 } from 'lucide-react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export default function DonateSuccess() {
+  usePageMeta('Thank You for Donating', 'Your donation will help accelerate Type 1 diabetes research and bring us closer to a cure.');
   return (
     <Layout>
       <div className="container mx-auto px-6 py-8">
