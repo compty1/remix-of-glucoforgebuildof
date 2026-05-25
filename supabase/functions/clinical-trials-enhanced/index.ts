@@ -187,8 +187,10 @@ serve(async (req) => {
                   }
                 }
 
+                const nctId = identificationModule?.NCTId;
+                if (!nctId) continue; // C80: drop trials without NCT id
                 const trial: ClinicalTrial & { locations?: any[]; contact_name?: string; contact_phone?: string; contact_email?: string } = {
-                  nct_id: identificationModule?.NCTId || `trial_${Date.now()}_${Math.random()}`,
+                  nct_id: nctId,
                   title: identificationModule?.BriefTitle || '',
                   brief_summary: identificationModule?.BriefSummary,
                   detailed_description: identificationModule?.DetailedDescription,
@@ -269,7 +271,7 @@ serve(async (req) => {
     const { data: latestTrials } = await supabase
       .from('clinical_trials_detailed')
       .select('*')
-      .order('created_at', { ascending: false })
+      .order('last_update_date', { ascending: false, nullsFirst: false })
       .limit(100);
 
     const result = {
