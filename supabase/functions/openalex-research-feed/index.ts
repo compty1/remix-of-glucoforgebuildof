@@ -35,6 +35,25 @@ const OPENALEX_QUERIES = [
   'regulatory T cell diabetes'
 ];
 
+// C77 (Wave B): OpenAlex concept IDs to gate ingest to T1D-adjacent research.
+// C2779306644 = Type 1 diabetes mellitus, C2776914184 = Diabetes mellitus,
+// C2780176034 = Insulin-dependent diabetes, C2776506181 = Beta cell,
+// C126322002 = Internal medicine. We OR them so we don't lose true positives
+// that aren't tagged with the most specific concept.
+const OPENALEX_T1D_CONCEPTS = [
+  'C2779306644', 'C2780176034', 'C2776506181',
+].join('|');
+
+// Hard reject if the title/abstract is dominated by T2D/gestational/oncology language.
+function isOffTopic(title: string, abstract: string): boolean {
+  const text = `${title} ${abstract}`.toLowerCase();
+  if (/\btype\s*2\s*diabetes\b|\bt2dm?\b|\bgestational diabetes\b/.test(text)) {
+    // allow if it ALSO explicitly mentions T1D
+    return !/\btype\s*1\s*diabetes\b|\bt1dm?\b|\bautoimmune diabetes\b|\bjuvenile diabetes\b/.test(text);
+  }
+  return false;
+}
+
 interface OpenAlexWork {
   id: string;
   display_name: string;
@@ -146,7 +165,8 @@ serve(async (req) => {
       try {
         const params = new URLSearchParams({
           search: query,
-          filter: `from_publication_date:${fromDate}`,
+          // C77: gate by T1D-adjacent concepts AND date window.
+          filter: `from_publication_date:${fromDate},concepts.id:${OPENALEX_T1D_CONCEPTS}`,
           sort: 'cited_by_count:desc',
           'per-page': '25',
           mailto: MAILTO_EMAIL
@@ -167,6 +187,10 @@ serve(async (req) => {
         for (const work of works) {
           // Skip if no title
           if (!work.display_name && !work.title) continue;
+          const _title = work.display_name || work.title || '';
+          const _abs = reconstructAbstract(work.abstract_inverted_index);
+          // C77: post-fetch T2D reject (concept filter alone isn't perfect)
+          if (isOffTopic(_title, _abs)) continue;
           
           // Extract OpenAlex ID as paper_id
           const openalexId = work.id?.replace('https://openalex.org/', '') || '';
