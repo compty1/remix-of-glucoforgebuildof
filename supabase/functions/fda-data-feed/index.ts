@@ -65,8 +65,10 @@ serve(async (req) => {
         
         if (recallsData.results) {
           for (const recall of recallsData.results) {
+            // C80: drop rows missing natural key so onConflict can dedupe (was Math.random fallback)
+            if (!recall.recall_number) continue;
             allEvents.push({
-              fda_event_id: recall.recall_number || `recall_${Date.now()}_${Math.random()}`,
+              fda_event_id: recall.recall_number,
               event_type: 'recall',
               device_name: recall.product_description,
               manufacturer_name: recall.recalling_firm,
@@ -93,8 +95,9 @@ serve(async (req) => {
         
         if (clearancesData.results) {
           for (const clearance of clearancesData.results) {
+            if (!clearance.k_number) continue;
             allEvents.push({
-              fda_event_id: clearance.k_number || `clearance_${Date.now()}_${Math.random()}`,
+              fda_event_id: clearance.k_number,
               event_type: '510k_clearance',
               device_name: clearance.device_name,
               manufacturer_name: clearance.applicant,
@@ -120,8 +123,9 @@ serve(async (req) => {
         
         if (pmaData.results) {
           for (const pma of pmaData.results) {
+            if (!pma.pma_number) continue;
             allEvents.push({
-              fda_event_id: pma.pma_number || `pma_${Date.now()}_${Math.random()}`,
+              fda_event_id: pma.pma_number,
               event_type: 'pma_approval',
               device_name: pma.device_name,
               manufacturer_name: pma.applicant_full_name,
@@ -149,9 +153,9 @@ serve(async (req) => {
           for (const event of eventsData.results) {
             const deviceName = event.device?.[0]?.generic_name || event.device?.[0]?.brand_name;
             const manufacturerName = event.device?.[0]?.manufacturer_g1_name;
-            
+            if (!event.mdr_report_key) continue;
             allEvents.push({
-              fda_event_id: event.mdr_report_key || `adverse_${Date.now()}_${Math.random()}`,
+              fda_event_id: event.mdr_report_key,
               event_type: 'adverse_event',
               device_name: deviceName,
               manufacturer_name: manufacturerName,
