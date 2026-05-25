@@ -247,4 +247,18 @@ Already listed in §2. Repeats mean two runs over the same input yield different
 
 ---
 
-_End of audit. Approve Wave A to begin implementation._
+_End of audit._
+
+---
+
+## Wave A — IMPLEMENTED (2026-05-25)
+
+- USPTO PatentsView migrated to `search.patentsview.org/api/v1/patent/` (X-Api-Key gated; degrades gracefully when secret missing); patent links now use canonical `ppubs.uspto.gov`.
+- Yahoo Finance now falls back to Stooq CSV on 401/429/empty.
+- CMS NADAC dataset UUID corrected to `aa64474a-…` in both constant and per-drug query path.
+- All `Math.random()`/`Date.now()` natural-key fallbacks removed in fda-data-feed, funding-research-feed, clinical-trials-enhanced, medical-research-aggregator — rows missing the natural key are now skipped so `onConflict` dedup works.
+- `clinical-trials-enhanced` final read now orders by `last_update_date` (was `created_at`).
+- `sanitizeForIlike` no longer strips `.` — fixes "Dexcom G6.1", "type 1.5", etc.
+- `useDeviceDetails` skips empty manufacturer leg (was matching every FDA event row).
+- `useGlobalSearch`: min query length 3, AbortController cancels in-flight searches, cross-table relevance scoring (exact > startsWith > includes, + category boost).
+- `community-feed`: SHA-256 author hash (replaces 32-bit FNV with collisions), word-boundary topic detection, negation-aware sentiment, hoisted `seenIds` across subreddits, collapsed `insulet`/`guardian` into their parent device keys.
