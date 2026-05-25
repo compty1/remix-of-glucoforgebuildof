@@ -29,12 +29,13 @@ Deno.serve(async (req) => {
     // searchable while moving stale content out of default feeds.
     const archiveCutoff = new Date();
     archiveCutoff.setDate(archiveCutoff.getDate() - 180);
-    const { count: archivedCount } = await supabase
+    const archiveRes = await supabase
       .from('community_posts')
-      .update({ is_archived: true }, { count: 'exact' })
+      .update({ is_archived: true })
       .eq('is_archived', false)
-      .lt('published_at', archiveCutoff.toISOString());
-    log.info('Archived old posts', { archived: archivedCount ?? 0 });
+      .lt('published_at', archiveCutoff.toISOString())
+      .select('id');
+    log.info('Archived old posts', { archived: archiveRes.data?.length ?? 0 });
 
     // Fetch posts that need re-verification
     const { data: posts, error: fetchError } = await supabase
