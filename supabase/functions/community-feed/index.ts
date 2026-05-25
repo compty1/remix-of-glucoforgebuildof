@@ -44,14 +44,23 @@ async function anonymizeAuthor(author: string): Promise<string> {
 
 function stripPII(text: string): string {
   if (!text) return '';
-  
-  let cleaned = text
+
+  // C82 (Wave E): preserve URLs from trusted research/medical sources so
+  // citation links inside community posts survive the scrub.
+  const ALLOWED_HOSTS = /^(?:[a-z0-9-]+\.)*(pubmed\.ncbi\.nlm\.nih\.gov|ncbi\.nlm\.nih\.gov|doi\.org|clinicaltrials\.gov|fda\.gov|nih\.gov|diabetes\.org|t1dexchange\.org|jdrf\.org|breakthrought1d\.org|ada\.org|europepmc\.org|openalex\.org|biorxiv\.org|medrxiv\.org|nejm\.org|thelancet\.com)$/i;
+
+  const cleaned = text
     .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[email]')
     .replace(/(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/g, '[phone]')
     .replace(/\d{3}-\d{2}-\d{4}/g, '[ssn]')
     .replace(/@[a-zA-Z0-9_]+/g, '[username]')
-    .replace(/https?:\/\/[^\s]+/g, '[url]');
-    
+    .replace(/https?:\/\/[^\s)]+/g, (match) => {
+      try {
+        const host = new URL(match).hostname;
+        return ALLOWED_HOSTS.test(host) ? match : '[url]';
+      } catch { return '[url]'; }
+    });
+
   return cleaned;
 }
 
