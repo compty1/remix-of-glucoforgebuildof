@@ -234,9 +234,22 @@ serve(async (req) => {
     }
 
     // Upsert to medical_research_papers table
+    // C90 (Wave C): stamp cross-source content_hash + last_synced_at
+    const { computeContentHash } = await import('../_shared/contentHash.ts');
+    const nowIso = new Date().toISOString();
+    const hashed = await Promise.all(uniquePapers.map(async (p: any) => ({
+      ...p,
+      content_hash: await computeContentHash({
+        doi: p.doi,
+        title: p.title,
+        authors: p.authors,
+        publication_date: p.publication_date,
+      }),
+      last_synced_at: nowIso,
+    })));
     const { error } = await supabaseClient
       .from('medical_research_papers')
-      .upsert(uniquePapers, { onConflict: 'paper_id' });
+      .upsert(hashed, { onConflict: 'paper_id' });
 
     if (error) {
       console.error('[PREPRINT-RESEARCH-FEED] Database error:', error);
