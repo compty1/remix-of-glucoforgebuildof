@@ -72,6 +72,8 @@ async function fetchNIHReporterData(): Promise<NIHProject[]> {
       console.log(`[NIH-REPORTER] Found ${data.results.length} projects`);
       
       for (const project of data.results) {
+        const projectNumber = project.project_num || project.core_project_num;
+        if (!projectNumber) continue; // C80: drop rows without natural key
         // Extract principal investigator name
         let piName = 'Unknown';
         if (project.principal_investigators && project.principal_investigators.length > 0) {
@@ -88,7 +90,7 @@ async function fetchNIHReporterData(): Promise<NIHProject[]> {
           : null;
 
         projects.push({
-          project_number: project.project_num || project.core_project_num || `NIH_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          project_number: projectNumber,
           project_title: project.project_title || 'Untitled Project',
           principal_investigator: piName,
           organization: project.organization?.org_name || 'Unknown Organization',
@@ -149,6 +151,8 @@ async function fetchCureResearchData(): Promise<NIHProject[]> {
       console.log(`[NIH-REPORTER] Found ${data.results.length} cure-focused projects`);
       
       for (const project of data.results) {
+        const projectNumber = project.project_num || project.core_project_num;
+        if (!projectNumber) continue;
         let piName = 'Unknown';
         if (project.principal_investigators && project.principal_investigators.length > 0) {
           const pi = project.principal_investigators[0];
@@ -163,7 +167,7 @@ async function fetchCureResearchData(): Promise<NIHProject[]> {
           : null;
 
         projects.push({
-          project_number: project.project_num || project.core_project_num || `NIH_CURE_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          project_number: projectNumber,
           project_title: project.project_title || 'Untitled Project',
           principal_investigator: piName,
           organization: project.organization?.org_name || 'Unknown Organization',
