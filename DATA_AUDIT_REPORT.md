@@ -283,3 +283,20 @@ Schema additions (migration):
 - `discoveries.is_ai_synthesized` (boolean, default false) — for transparency labels on AI-synthesized cards.
 - `medical_research_papers.content_hash` + `last_synced_at` (+ partial index) — foundation for cross-source paper de-duplication.
 - `community_posts.is_archived` (+ index) — enables archiving past 6 months instead of deleting at 60 days.
+
+## Waves C + D — IMPLEMENTED (2026-05-25)
+
+Wave C (cross-source deduplication & freshness):
+- New `_shared/contentHash.ts` helper: SHA-256 over `doi` → `pmid` → `normalized(title)|firstAuthorSurname|year` (16-byte hex). Same paper surfaced via OpenAlex + Semantic Scholar + Europe PMC + bioRxiv now produces the same hash.
+- `medical-research-aggregator`, `openalex-research-feed`, `semantic-scholar-feed`, `preprint-research-feed` all populate `content_hash` + `last_synced_at` on every upsert. Existing `onConflict: 'paper_id'` continues to work; the populated `content_hash` is the foundation for a future backfill that merges cross-source duplicates.
+- `scheduled-maintenance`: archives `community_posts` older than 180 days (`is_archived = true`) instead of relying on deletion; default link-verification sweep now skips archived posts. HEAD requests fall back to ranged GET (`Range: bytes=0-1023`) on 405/403 — matches the `verify-external-links` fix.
+
+Wave D (per-source telemetry):
+- `health-check` now pings 10 upstream sources (PubMed, EuropePMC, OpenAlex, Semantic Scholar, ClinicalTrials.gov, OpenFDA, NIH RePORTER, USPTO PatentsView v1, CMS NADAC, Stooq) with a 6s timeout each and reports `healthy` / `degraded` / `rate_limited` / `unreachable` per source. The `SystemHealth` page now surfaces real upstream outages instead of always-green.
+- Cross-table relevance ranking already shipped in Wave A (`useGlobalSearch` `scoreResult` — exact > startsWith > includes + category boost).
+
+### Remaining (deferred — needs user input or external accounts):
+- Reddit OAuth bearer flow (needs `REDDIT_CLIENT_ID/SECRET` secrets from user).
+- PatentsView Search API key (`PATENTSVIEW_API_KEY`) — function degrades gracefully when missing.
+- Optional: `pg_trgm`-backed `global_search(query, k)` RPC for true fuzzy ranking (deferred — current scoring is sufficient for 3-char min query).
+- Backfill job to collapse historical cross-source paper duplicates using the new `content_hash` (one-time admin task — would delete ~thousands of rows; needs explicit approval before running).
