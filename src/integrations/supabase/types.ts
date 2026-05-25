@@ -1203,6 +1203,7 @@ export type Database = {
           device_mentioned: string | null
           fetched_at: string
           id: string
+          is_archived: boolean
           is_solution: boolean | null
           link_status: Json | null
           num_comments: number | null
@@ -1229,6 +1230,7 @@ export type Database = {
           device_mentioned?: string | null
           fetched_at?: string
           id?: string
+          is_archived?: boolean
           is_solution?: boolean | null
           link_status?: Json | null
           num_comments?: number | null
@@ -1255,6 +1257,7 @@ export type Database = {
           device_mentioned?: string | null
           fetched_at?: string
           id?: string
+          is_archived?: boolean
           is_solution?: boolean | null
           link_status?: Json | null
           num_comments?: number | null
@@ -2477,6 +2480,7 @@ export type Database = {
           full_text: string | null
           id: string
           impact_level: string | null
+          is_ai_synthesized: boolean
           links_verified: boolean | null
           links_verified_at: string | null
           primary_source: string | null
@@ -2496,6 +2500,7 @@ export type Database = {
           full_text?: string | null
           id?: string
           impact_level?: string | null
+          is_ai_synthesized?: boolean
           links_verified?: boolean | null
           links_verified_at?: string | null
           primary_source?: string | null
@@ -2515,6 +2520,7 @@ export type Database = {
           full_text?: string | null
           id?: string
           impact_level?: string | null
+          is_ai_synthesized?: boolean
           links_verified?: boolean | null
           links_verified_at?: string | null
           primary_source?: string | null
@@ -3556,6 +3562,7 @@ export type Database = {
           authors: string[] | null
           citation_count: number | null
           classification_confidence: number | null
+          content_hash: string | null
           created_at: string
           device_mentions: string[] | null
           diabetes_relevance_score: number | null
@@ -3571,6 +3578,7 @@ export type Database = {
           is_type1_relevant: boolean | null
           journal_name: string | null
           keywords: string[] | null
+          last_synced_at: string | null
           mesh_terms: string[] | null
           open_access: boolean | null
           paper_id: string
@@ -3591,6 +3599,7 @@ export type Database = {
           authors?: string[] | null
           citation_count?: number | null
           classification_confidence?: number | null
+          content_hash?: string | null
           created_at?: string
           device_mentions?: string[] | null
           diabetes_relevance_score?: number | null
@@ -3606,6 +3615,7 @@ export type Database = {
           is_type1_relevant?: boolean | null
           journal_name?: string | null
           keywords?: string[] | null
+          last_synced_at?: string | null
           mesh_terms?: string[] | null
           open_access?: boolean | null
           paper_id: string
@@ -3626,6 +3636,7 @@ export type Database = {
           authors?: string[] | null
           citation_count?: number | null
           classification_confidence?: number | null
+          content_hash?: string | null
           created_at?: string
           device_mentions?: string[] | null
           diabetes_relevance_score?: number | null
@@ -3641,6 +3652,7 @@ export type Database = {
           is_type1_relevant?: boolean | null
           journal_name?: string | null
           keywords?: string[] | null
+          last_synced_at?: string | null
           mesh_terms?: string[] | null
           open_access?: boolean | null
           paper_id?: string
