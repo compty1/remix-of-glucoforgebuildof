@@ -36,6 +36,17 @@ interface ResearchItem {
   impact_level: string
 }
 
+// C85 helper — derive a coarse impact label from a citation count so
+// "Latest research" badges stop being uniformly "High".
+function deriveImpactLevel(citedByCount: number | string | undefined | null): string {
+  const n = typeof citedByCount === 'string' ? parseInt(citedByCount, 10) : (citedByCount ?? 0);
+  if (!Number.isFinite(n)) return 'Medium';
+  if (n >= 100) return 'Breakthrough';
+  if (n >= 25) return 'High';
+  if (n >= 5) return 'Medium';
+  return 'Low';
+}
+
 // Comprehensive diabetes research search queries
 const SEARCH_QUERIES = [
   'type 1 diabetes cure',
