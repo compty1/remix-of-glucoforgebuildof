@@ -96,6 +96,15 @@ function calculateRelevanceScore(paper: SemanticScholarPaper): number {
   return Math.min(100, score);
 }
 
+// C78 (Wave B): explicit T2D / off-topic reject. Returns true if paper looks
+// like T2D, gestational, or pure metabolic-syndrome work with no T1D mention.
+function isT2dDominant(paper: SemanticScholarPaper): boolean {
+  const text = `${paper.title || ''} ${paper.abstract || ''} ${paper.tldr?.text || ''}`.toLowerCase();
+  const t1d = /\btype\s*1\s*diabetes\b|\bt1dm?\b|\bautoimmune diabetes\b|\bjuvenile diabetes\b|\bislet\b|\bbeta cell\b/.test(text);
+  const t2d = /\btype\s*2\s*diabetes\b|\bt2dm?\b|\bgestational diabetes\b|\bgdm\b|\binsulin resistance\b/.test(text);
+  return t2d && !t1d;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -138,6 +147,9 @@ serve(async (req) => {
         url.searchParams.set('fields', fields);
         url.searchParams.set('limit', '50');
         url.searchParams.set('year', '2023-'); // Recent papers only
+        // C78: scope to medical research only — drops CS/economics/ag noise
+        url.searchParams.set('fieldsOfStudy', 'Medicine,Biology');
+        url.searchParams.set('publicationTypes', 'JournalArticle,Review,ClinicalTrial');
 
         const response = await tfetch(url.toString(), {
           headers: {
@@ -161,7 +173,7 @@ serve(async (req) => {
         
         if (data.data && Array.isArray(data.data)) {
           for (const paper of data.data) {
-            if (!seenPaperIds.has(paper.paperId) && paper.title) {
+            if (!seenPaperIds.has(paper.paperId) && paper.title && !isT2dDominant(paper)) {
               seenPaperIds.add(paper.paperId);
               allPapers.push(paper);
             }
