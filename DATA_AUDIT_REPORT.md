@@ -262,3 +262,24 @@ _End of audit._
 - `useDeviceDetails` skips empty manufacturer leg (was matching every FDA event row).
 - `useGlobalSearch`: min query length 3, AbortController cancels in-flight searches, cross-table relevance scoring (exact > startsWith > includes, + category boost).
 - `community-feed`: SHA-256 author hash (replaces 32-bit FNV with collisions), word-boundary topic detection, negation-aware sentiment, hoisted `seenIds` across subreddits, collapsed `insulet`/`guardian` into their parent device keys.
+
+## Waves B + E + AI fixes — IMPLEMENTED (2026-05-25)
+
+Wave B (relevance gating):
+- `openalex-research-feed`: now filters by T1D-adjacent concept IDs (C2779306644, C2780176034, C2776506181) AND post-fetch rejects T2D-dominant abstracts.
+- `semantic-scholar-feed`: `fieldsOfStudy=Medicine,Biology` + `publicationTypes=JournalArticle,Review,ClinicalTrial`; `isT2dDominant` reject filter.
+- `preprint-research-feed`: requires explicit T1D signal (T1D / autoimmune / juvenile / islet transplant / beta-cell regen / CGM). Skips rows missing DOI (was `Date.now()` fallback).
+- `research-feed`: `impact_level` now derived from citation count (Breakthrough/High/Medium/Low) instead of hardcoded "High".
+
+Wave E (link integrity & PII):
+- `verify-external-links`: structural Reddit permalink regex (`^/r/{sub}/comments/{id}/…`); HEAD requests now fall back to ranged GET on 405/403 (fixes Wiley/Elsevier/NEJM DOI verification).
+- `community-feed.stripPII`: URL allow-list (pubmed, doi.org, clinicaltrials.gov, fda.gov, nih.gov, diabetes.org, t1dexchange.org, jdrf.org, breakthrought1d.org, ada.org, europepmc.org, openalex.org, biorxiv/medrxiv, NEJM, Lancet) — legitimate citations now survive scrub.
+
+AI synthesis fixes:
+- `ai-connection-analyzer`: removed `Math.random()*20` novelty jitter — now deterministic evidence-count bonus.
+- `ai-discovery-analyzer`: synthesized cards inherit `publication_date` from underlying evidence (was always today, pinning them to top of "Latest research"); flagged with `is_ai_synthesized: true`.
+
+Schema additions (migration):
+- `discoveries.is_ai_synthesized` (boolean, default false) — for transparency labels on AI-synthesized cards.
+- `medical_research_papers.content_hash` + `last_synced_at` (+ partial index) — foundation for cross-source paper de-duplication.
+- `community_posts.is_archived` (+ index) — enables archiving past 6 months instead of deleting at 60 days.
