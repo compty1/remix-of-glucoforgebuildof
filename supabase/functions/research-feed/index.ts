@@ -53,6 +53,8 @@ const SEARCH_QUERIES = [
 ];
 
 async function fetchFromEuropePMC(query: string): Promise<ResearchItem[]> {
+  // C85 helper — citation-count-based impact heuristic.
+  // (defined inline so we don't change module exports)
   try {
     const encodedQuery = encodeURIComponent(query);
     const url = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodedQuery}&format=json&pageSize=20&cursorMark=*`;
