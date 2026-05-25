@@ -334,7 +334,11 @@ serve(async (req) => {
             frequency: pattern.frequency
           },
           related_post_ids: pattern.post_ids,
-          publication_date: new Date().toISOString().split('T')[0]
+          // C84: AI-synthesized rows are labeled and dated from underlying
+          // evidence — was always-today which pushed synthesized cards to the
+          // top of "Latest research" indefinitely.
+          publication_date: pattern.first_seen_at?.split('T')[0] || new Date().toISOString().split('T')[0],
+          is_ai_synthesized: true
         });
       }
     }
@@ -370,7 +374,8 @@ serve(async (req) => {
           confidence: correlation.confidence,
           biological_explanation: correlation.biological_explanation
         },
-        publication_date: new Date().toISOString().split('T')[0]
+        publication_date: correlation.earliest_source_date?.split('T')[0] || new Date().toISOString().split('T')[0],
+        is_ai_synthesized: true
       });
     }
 
