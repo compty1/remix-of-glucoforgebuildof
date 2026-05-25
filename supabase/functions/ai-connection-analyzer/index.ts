@@ -300,7 +300,13 @@ Return connections using the suggest_connections function. Each connection must 
       noveltyScore += Math.min(40, conn.novelty_factors.length * 15);
       if (conn.source_evidence.posts.length > conn.source_evidence.papers.length) noveltyScore += 20;
       if (conn.connection_type === 'environmental' || conn.connection_type === 'symptom') noveltyScore += 20;
-      noveltyScore = Math.min(100, noveltyScore + Math.floor(Math.random() * 20)); // Add some variance
+      // C83: deterministic novelty — was non-reproducible Math.random() jitter.
+      // Replace with a stable bonus derived from the cross-source evidence count.
+      const evidenceBonus = Math.min(
+        20,
+        (conn.source_evidence.papers.length + conn.source_evidence.trials.length) * 4
+      );
+      noveltyScore = Math.min(100, noveltyScore + evidenceBonus);
 
       // Determine validation status
       let validationStatus = 'hypothesis';
