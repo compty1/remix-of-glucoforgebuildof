@@ -8,29 +8,60 @@ export interface SearchResult {
   description: string;
   category: 'project' | 'research' | 'medication' | 'device' | 'company' | 'trial' | 'community' | 'article';
   url: string;
+  score?: number;
 }
 
 const DEBOUNCE_MS = 300;
+const MIN_QUERY_LENGTH = 3;
+
+// C74: simple relevance scoring across all sources
+function scoreResult(query: string, title: string, description: string, category: SearchResult['category']): number {
+  const q = query.toLowerCase();
+  const t = title.toLowerCase();
+  const d = description.toLowerCase();
+  let score = 0;
+  if (t === q) score += 1000;
+  else if (t.startsWith(q)) score += 500;
+  else if (t.includes(q)) score += 200;
+  if (d.includes(q)) score += 50;
+  // Prefer concrete entities over articles/community noise
+  const categoryBoost: Record<SearchResult['category'], number> = {
+    device: 40, medication: 40, company: 30, trial: 25,
+    research: 15, project: 15, article: 10, community: 5,
+  };
+  score += categoryBoost[category] ?? 0;
+  return score;
+}
 
 export function useGlobalSearch() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
 
   const search = useCallback((query: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (abortRef.current) abortRef.current.abort();
 
-    if (query.trim().length < 2) {
+    if (query.trim().length < MIN_QUERY_LENGTH) {
       setResults([]);
       setIsLoading(false);
       return;
     }
 
     setIsLoading(true);
+    const controller = new AbortController();
+    abortRef.current = controller;
 
     debounceRef.current = setTimeout(async () => {
       const sanitized = sanitizeForIlike(query.trim().toLowerCase());
+      if (!sanitized) {
+        setResults([]);
+        setIsLoading(false);
+        return;
+      }
       const searchTerm = `%${sanitized}%`;
+      const rawQuery = query.trim();
 
       try {
         const [
@@ -86,6 +117,8 @@ export function useGlobalSearch() {
             .limit(5),
         ]);
 
+        if (controller.signal.aborted) return;
+
         const allResults: SearchResult[] = [];
 
         interface ProjectRow { id: string; title: string; description: string | null; }
@@ -99,50 +132,60 @@ export function useGlobalSearch() {
 
         if (projectsRes.data) {
           (projectsRes.data as ProjectRow[]).forEach(p => {
-            allResults.push({ id: p.id, title: p.title, description: p.description || 'Health project', category: 'project', url: `/projects/${p.id}` });
+            const description = p.description || 'Health project';
+            allResults.push({ id: p.id, title: p.title, description, category: 'project', url: `/projects/${p.id}`, score: scoreResult(rawQuery, p.title, description, 'project') });
           });
         }
         if (researchRes.data) {
           (researchRes.data as ResearchRow[]).forEach(r => {
-            allResults.push({ id: r.id, title: r.title, description: r.abstract?.slice(0, 150) || 'Research paper', category: 'research', url: '/research-hub' });
+            const description = r.abstract?.slice(0, 150) || 'Research paper';
+            allResults.push({ id: r.id, title: r.title, description, category: 'research', url: '/research-hub', score: scoreResult(rawQuery, r.title, description, 'research') });
           });
         }
         if (medicationsRes.data) {
           (medicationsRes.data as MedRow[]).forEach(m => {
-            allResults.push({ id: m.id, title: m.name, description: m.generic_name || m.description?.slice(0, 100) || 'Medication', category: 'medication', url: '/medicines' });
+            const description = m.generic_name || m.description?.slice(0, 100) || 'Medication';
+            allResults.push({ id: m.id, title: m.name, description, category: 'medication', url: '/medicines', score: scoreResult(rawQuery, m.name, description, 'medication') });
           });
         }
         if (devicesRes.data) {
           (devicesRes.data as DeviceRow[]).forEach(d => {
-            allResults.push({ id: d.id, title: d.name, description: d.manufacturer || d.description?.slice(0, 100) || 'Medical device', category: 'device', url: `/devices/${d.id}` });
+            const description = d.manufacturer || d.description?.slice(0, 100) || 'Medical device';
+            allResults.push({ id: d.id, title: d.name, description, category: 'device', url: `/devices/${d.id}`, score: scoreResult(rawQuery, d.name, description, 'device') });
           });
         }
         if (companiesRes.data) {
           (companiesRes.data as CompanyRow[]).forEach(c => {
-            allResults.push({ id: c.id, title: c.name, description: c.description?.slice(0, 100) || 'T1D Company', category: 'company', url: `/companies/${c.id}` });
+            const description = c.description?.slice(0, 100) || 'T1D Company';
+            allResults.push({ id: c.id, title: c.name, description, category: 'company', url: `/companies/${c.id}`, score: scoreResult(rawQuery, c.name, description, 'company') });
           });
         }
         if (trialsRes.data) {
           (trialsRes.data as TrialRow[]).forEach(t => {
-            allResults.push({ id: t.id, title: t.title, description: t.brief_summary?.slice(0, 100) || t.nct_id || 'Clinical trial', category: 'trial', url: '/trial-matching' });
+            const description = t.brief_summary?.slice(0, 100) || t.nct_id || 'Clinical trial';
+            allResults.push({ id: t.id, title: t.title, description, category: 'trial', url: '/trial-matching', score: scoreResult(rawQuery, t.title, description, 'trial') });
           });
         }
         if (communityRes.data) {
           (communityRes.data as PostRow[]).forEach(p => {
-            allResults.push({ id: p.id, title: p.title, description: p.content?.slice(0, 100) || 'Community discussion', category: 'community', url: '/community-solutions' });
+            const description = p.content?.slice(0, 100) || 'Community discussion';
+            allResults.push({ id: p.id, title: p.title, description, category: 'community', url: '/community-solutions', score: scoreResult(rawQuery, p.title, description, 'community') });
           });
         }
         if (articlesRes.data) {
           (articlesRes.data as ArticleRow[]).forEach(a => {
-            allResults.push({ id: a.id, title: a.title, description: a.excerpt?.slice(0, 100) || 'Article', category: 'article', url: `/articles/${a.slug}` });
+            const description = a.excerpt?.slice(0, 100) || 'Article';
+            allResults.push({ id: a.id, title: a.title, description, category: 'article', url: `/articles/${a.slug}`, score: scoreResult(rawQuery, a.title, description, 'article') });
           });
         }
 
-        setResults(allResults);
+        // C74: sort by relevance score, highest first
+        allResults.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+        if (!controller.signal.aborted) setResults(allResults);
       } catch {
-        setResults([]);
+        if (!controller.signal.aborted) setResults([]);
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) setIsLoading(false);
       }
     }, DEBOUNCE_MS);
   }, []);

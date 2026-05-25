@@ -14,7 +14,6 @@ export function sanitizeForIlike(raw: string): string {
     .replace(/\)/g, '')      // Remove closing parens (PostgREST filter syntax)
     .replace(/\(/g, '')      // Remove opening parens
     .replace(/,/g, '')       // Remove commas (PostgREST OR separator)
-    .replace(/\./g, '')      // Remove dots (PostgREST operator separator)
     .trim();
 }
 

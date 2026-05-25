@@ -33,8 +33,9 @@ interface DrugPricingResult {
   data_source: string;
 }
 
-// NADAC API for real drug pricing (Medicaid.gov)
-const NADAC_API = 'https://data.medicaid.gov/api/1/datastore/query/a]a64474-d161-4089-be2f-5a21a15e4a57';
+// NADAC API for real drug pricing (Medicaid.gov) — UUID was previously typo'd `a]a64474…` (literal `]`)
+const NADAC_DATASET_ID = 'aa64474a-d161-4089-be2f-5a21a15e4a57';
+const NADAC_API = `https://data.medicaid.gov/api/1/datastore/query/${NADAC_DATASET_ID}`;
 
 // Curated reference pricing (CMS NADAC Q4 2024) as fallback
 const REFERENCE_PRICES: Record<string, { unit_price: number; unit: string }> = {
@@ -87,7 +88,7 @@ async function fetchDrugPricing(): Promise<DrugPricingResult[]> {
       let unitPrice = 0;
       let dataSource = '';
       try {
-        const nadacUrl = `https://data.medicaid.gov/api/1/datastore/query/a64474-d161-4089-be2f-5a21a15e4a57?conditions[0][property]=ndc_description&conditions[0][value]=%25${encodeURIComponent(drug.nadac_search)}%25&conditions[0][operator]=LIKE&sort[0][property]=effective_date&sort[0][order]=desc&limit=1`;
+        const nadacUrl = `${NADAC_API}/0?conditions[0][property]=ndc_description&conditions[0][value]=%25${encodeURIComponent(drug.nadac_search)}%25&conditions[0][operator]=LIKE&sort[0][property]=effective_date&sort[0][order]=desc&limit=1`;
         const nadacResponse = await fetchWithTimeout(nadacUrl, {
           headers: { 'Accept': 'application/json' },
         });

@@ -34,14 +34,12 @@ interface RedditResponse {
   };
 }
 
-function anonymizeAuthor(author: string): string {
-  let hash = 0;
-  for (let i = 0; i < author.length; i++) {
-    const char = author.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return `user_${Math.abs(hash)}`;
+// C75: SHA-256 cryptographic hash (sync via subtle.digest) — collisions distribute uniformly.
+async function anonymizeAuthor(author: string): Promise<string> {
+  if (!author) return 'user_anon';
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(author));
+  return 'user_' + Array.from(new Uint8Array(buf)).slice(0, 4)
+    .map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 function stripPII(text: string): string {
@@ -60,13 +58,12 @@ function stripPII(text: string): string {
 function detectDeviceMention(text: string): string | null {
   const deviceKeywords = {
     'dexcom': ['dexcom', 'g6', 'g7', 'stelo', 'dexcom one'],
-    'omnipod': ['omnipod', 'pod 5', 'dash', 'omnipod 5', 'o5'],
+    // C76: collapse insulet into omnipod (Insulet manufactures Omnipod)
+    'omnipod': ['omnipod', 'pod 5', 'dash', 'omnipod 5', 'o5', 'insulet'],
     'tandem': ['tandem', 't:slim', 'tslim', 'control-iq', 'mobi', 'tandem mobi'],
-    'medtronic': ['medtronic', '670g', '780g', 'minimed', '770g', 'guardian 4'],
+    'medtronic': ['medtronic', '670g', '780g', 'minimed', '770g', 'guardian 4', 'guardian sensor', 'guardian'],
     'freestyle': ['freestyle', 'libre', 'libre 2', 'libre 3'],
-    'guardian': ['guardian', 'guardian 4', 'guardian sensor'],
     'eversense': ['eversense', 'implant sensor', 'senseonics'],
-    'insulet': ['insulet'],
     'ilet': ['ilet', 'beta bionics', 'bionic pancreas'],
     'tidepool': ['tidepool', 'tidepool loop'],
     'ypsoloop': ['ypsopump', 'ypsoloop', 'ypsomed'],
@@ -84,20 +81,38 @@ function detectDeviceMention(text: string): string | null {
   return null;
 }
 
+// C77: word-boundary sentiment with simple negation handling.
+// Flips polarity of a sentiment word if preceded within 3 tokens by a negator.
+const NEGATORS = new Set(['not', "don't", 'dont', 'never', 'no', 'cannot', "can't", 'cant', "won't", 'wont', "didn't", 'didnt', "doesn't", 'doesnt', "isn't", 'isnt', "wasn't", 'wasnt']);
+const POS_WORDS = ['great','amazing','love','excellent','perfect','happy','good','best','awesome','solved','works','helped','success','recommend','wonderful','fantastic','reliable','smooth','accurate'];
+const NEG_WORDS = ['terrible','awful','hate','worst','horrible','bad','disappointed','frustrated','angry','fail','broke','error','problem','issue','sucks','useless','unreliable','inaccurate','broken','crashed','defective'];
+
 function analyzeSentiment(text: string): string {
-  const positiveWords = ['great', 'amazing', 'love', 'excellent', 'perfect', 'happy', 'good', 'best', 'awesome', 'finally', 'solved', 'works', 'helped', 'success', 'recommend', 'wonderful', 'fantastic', 'reliable'];
-  const negativeWords = ['terrible', 'awful', 'hate', 'worst', 'horrible', 'bad', 'disappointed', 'frustrated', 'angry', 'fail', 'broke', 'error', 'problem', 'issue', 'sucks', 'useless', 'unreliable', 'inaccurate'];
-  
-  const lowerText = text.toLowerCase();
-  const positiveCount = positiveWords.filter(word => lowerText.includes(word)).length;
-  const negativeCount = negativeWords.filter(word => lowerText.includes(word)).length;
-  
-  if (positiveCount > negativeCount) return 'positive';
-  if (negativeCount > positiveCount) return 'negative';
+  if (!text) return 'neutral';
+  const tokens = text.toLowerCase().replace(/[^a-z0-9'\s]/g, ' ').split(/\s+/).filter(Boolean);
+  let pos = 0, neg = 0;
+  for (let i = 0; i < tokens.length; i++) {
+    const word = tokens[i];
+    const isPos = POS_WORDS.includes(word);
+    const isNeg = NEG_WORDS.includes(word);
+    if (!isPos && !isNeg) continue;
+    // Look back up to 3 tokens for a negator
+    let negated = false;
+    for (let j = Math.max(0, i - 3); j < i; j++) {
+      if (NEGATORS.has(tokens[j])) { negated = true; break; }
+    }
+    if (isPos) (negated ? neg : pos)++;
+    if (isNeg) (negated ? pos : neg)++;
+  }
+  const total = pos + neg;
+  if (total < 2) return 'neutral';
+  if (pos > neg * 1.5) return 'positive';
+  if (neg > pos * 1.5) return 'negative';
   return 'neutral';
 }
 
-// Enhanced topic detection with expanded categories
+// C78: word-boundary topic detection (was substring matching — 'low' caught 'follow', 'plow', etc.)
+function escRe(s: string): string { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 function detectTopics(text: string): string[] {
   const topicKeywords: Record<string, string[]> = {
     'glucose_lows': ['low', 'hypo', 'hypoglycemia', 'crash', 'dropping', 'shaking', 'sweating', 'below 70', 'below 80'],
@@ -122,16 +137,17 @@ function detectTopics(text: string): string[] {
     'workplace': ['work', 'job', 'office', 'employer', 'hr', 'disability', 'accommodations', 'desk job', 'coworker'],
     'dating': ['dating', 'relationship', 'partner', 'spouse', 'marriage', 'intimacy', 'telling someone', 'first date'],
   };
-  
+
   const lowerText = text.toLowerCase();
   const detectedTopics: string[] = [];
-  
   for (const [topic, keywords] of Object.entries(topicKeywords)) {
-    if (keywords.some(k => lowerText.includes(k))) {
-      detectedTopics.push(topic);
-    }
+    const hit = keywords.some(k => {
+      // For multi-word phrases keep substring; for single short tokens require word boundary.
+      if (k.includes(' ') || k.length <= 2) return lowerText.includes(k);
+      return new RegExp(`\\b${escRe(k)}\\b`, 'i').test(lowerText);
+    });
+    if (hit) detectedTopics.push(topic);
   }
-  
   return detectedTopics;
 }
 
@@ -269,6 +285,8 @@ Deno.serve(async (req) => {
     
     const allPosts: any[] = [];
     const allReplies: any[] = [];
+    // C79: hoist seenIds across all subreddits so cross-posts (same id in multiple subs) only ingest once.
+    const seenIds = new Set<string>();
 
     // Fetch new and top posts from each subreddit
     for (const subreddit of subreddits) {
@@ -278,7 +296,6 @@ Deno.serve(async (req) => {
       const hotPosts: RedditPost[] = [];
       
       const combinedPosts = [...newPosts, ...topPosts, ...hotPosts];
-      const seenIds = new Set<string>();
       
       for (const post of combinedPosts) {
         const postData = post.data;
@@ -296,7 +313,7 @@ Deno.serve(async (req) => {
         const fullText = `${postData.title} ${postData.selftext}`;
         const cleanedTitle = stripPII(postData.title);
         const cleanedContent = stripPII(postData.selftext);
-        const anonymizedAuthor = anonymizeAuthor(postData.author);
+        const anonymizedAuthor = await anonymizeAuthor(postData.author);
         const deviceMentioned = detectDeviceMention(fullText);
         const sentiment = analyzeSentiment(fullText);
         const topics = detectTopics(fullText);
@@ -346,7 +363,7 @@ Deno.serve(async (req) => {
               post_id: `${postData.id}_${comment.id}`,
               title: `Re: ${cleanedTitle.substring(0, 100)}`,
               content: stripPII(comment.body),
-              author_anonymous: anonymizeAuthor(comment.author),
+              author_anonymous: await anonymizeAuthor(comment.author),
               score: comment.score,
               num_comments: 0,
               device_mentioned: detectDeviceMention(commentFullText),

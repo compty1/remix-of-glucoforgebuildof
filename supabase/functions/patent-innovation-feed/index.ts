@@ -14,8 +14,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// USPTO PatentsView API - Free, no API key required
-const PATENTSVIEW_API = 'https://api.patentsview.org/patents/query';
+// USPTO PatentsView Search API v1 (the legacy /patents/query endpoint was retired in early 2025).
+// Requires X-Api-Key header — request a key at https://patentsview.org/apis/keyrequest
+const PATENTSVIEW_API = 'https://search.patentsview.org/api/v1/patent/';
 
 interface PatentData {
   patent_id: string;
@@ -30,39 +31,34 @@ interface PatentData {
 
 async function fetchPatentsViewData(query: string): Promise<PatentData[]> {
   const patents: PatentData[] = [];
-  
+  const apiKey = Deno.env.get('PATENTSVIEW_API_KEY');
+  if (!apiKey) {
+    console.warn('[PATENTSVIEW] PATENTSVIEW_API_KEY secret not set — skipping live fetch.');
+    return patents;
+  }
+
   try {
     console.log(`[PATENTSVIEW] Fetching patents for: ${query}`);
-    
-    // PatentsView API query format
+
+    // New Search API: POST JSON with `q`, `f`, `o`, `s`. Field names changed in v1.
     const requestBody = {
       q: {
         _or: [
-          { _text_any: { patent_title: query } },
-          { _text_any: { patent_abstract: query } }
-        ]
+          { _text_phrase: { patent_title: query } },
+          { _text_phrase: { patent_abstract: query } },
+        ],
       },
-      f: [
-        "patent_number",
-        "patent_title",
-        "patent_abstract",
-        "patent_date",
-        "inventor_first_name",
-        "inventor_last_name",
-        "assignee_organization"
-      ],
-      o: {
-        page: 1,
-        per_page: 50
-      },
-      s: [{ patent_date: "desc" }]
+      f: ['patent_id', 'patent_title', 'patent_abstract', 'patent_date', 'inventors', 'assignees'],
+      o: { size: 50 },
+      s: [{ patent_date: 'desc' }],
     };
 
     const response = await tfetch(PATENTSVIEW_API, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'X-Api-Key': apiKey,
       },
       body: JSON.stringify(requestBody)
     });
@@ -73,52 +69,50 @@ async function fetchPatentsViewData(query: string): Promise<PatentData[]> {
     }
 
     const data = await response.json();
-    
-    if (data.patents) {
-      console.log(`[PATENTSVIEW] Found ${data.patents.length} patents for "${query}"`);
-      
-      for (const patent of data.patents) {
-        // Extract inventors
-        const inventors: string[] = [];
-        if (patent.inventors) {
-          for (const inv of patent.inventors) {
-            const name = `${inv.inventor_first_name || ''} ${inv.inventor_last_name || ''}`.trim();
-            if (name) inventors.push(name);
-          }
+    const items: any[] = data.patents || [];
+    if (items.length) console.log(`[PATENTSVIEW] Found ${items.length} patents for "${query}"`);
+
+    for (const patent of items) {
+      const patentNumber: string | undefined = patent.patent_id;
+      if (!patentNumber) continue; // C80: skip rows without a natural key
+
+      const inventors: string[] = [];
+      if (Array.isArray(patent.inventors)) {
+        for (const inv of patent.inventors) {
+          const name = `${inv.inventor_name_first || ''} ${inv.inventor_name_last || ''}`.trim();
+          if (name) inventors.push(name);
         }
-
-        // Extract assignee
-        let assignee = 'Unknown Assignee';
-        if (patent.assignees && patent.assignees.length > 0) {
-          assignee = patent.assignees[0].assignee_organization || 'Unknown Assignee';
-        }
-
-        // Calculate relevance score based on title and abstract
-        let relevanceScore = 5;
-        const content = `${patent.patent_title || ''} ${patent.patent_abstract || ''}`.toLowerCase();
-        
-        if (content.includes('diabetes')) relevanceScore += 20;
-        if (content.includes('glucose')) relevanceScore += 15;
-        if (content.includes('insulin')) relevanceScore += 15;
-        if (content.includes('pancreas') || content.includes('pancreatic')) relevanceScore += 10;
-        if (content.includes('monitoring') || content.includes('sensor')) relevanceScore += 10;
-        if (content.includes('continuous')) relevanceScore += 10;
-        if (content.includes('blood sugar')) relevanceScore += 10;
-        if (content.includes('wearable')) relevanceScore += 5;
-        
-        relevanceScore = Math.min(relevanceScore, 100);
-
-        patents.push({
-          patent_id: `US${patent.patent_number}`,
-          title: patent.patent_title || 'Untitled Patent',
-          abstract: patent.patent_abstract || 'No abstract available',
-          inventors: inventors.slice(0, 5),
-          assignee: assignee,
-          patent_date: patent.patent_date || new Date().toISOString().split('T')[0],
-          diabetes_relevance_score: relevanceScore,
-          patent_url: `https://patents.google.com/patent/US${patent.patent_number}`
-        });
       }
+
+      let assignee = 'Unknown Assignee';
+      if (Array.isArray(patent.assignees) && patent.assignees.length > 0) {
+        assignee = patent.assignees[0].assignee_organization || patent.assignees[0].assignee_individual_name_last || 'Unknown Assignee';
+      }
+
+      let relevanceScore = 5;
+      const content = `${patent.patent_title || ''} ${patent.patent_abstract || ''}`.toLowerCase();
+      if (content.includes('type 1 diabetes') || content.includes('t1d')) relevanceScore += 25;
+      if (content.includes('diabetes')) relevanceScore += 20;
+      if (content.includes('glucose')) relevanceScore += 15;
+      if (content.includes('insulin')) relevanceScore += 15;
+      if (content.includes('pancreas') || content.includes('pancreatic')) relevanceScore += 10;
+      if (content.includes('monitoring') || content.includes('sensor')) relevanceScore += 10;
+      if (content.includes('continuous')) relevanceScore += 10;
+      if (content.includes('blood sugar')) relevanceScore += 10;
+      if (content.includes('wearable')) relevanceScore += 5;
+      relevanceScore = Math.min(relevanceScore, 100);
+
+      patents.push({
+        patent_id: `US${patentNumber}`,
+        title: patent.patent_title || 'Untitled Patent',
+        abstract: patent.patent_abstract || 'No abstract available',
+        inventors: inventors.slice(0, 5),
+        assignee,
+        patent_date: patent.patent_date || new Date().toISOString().split('T')[0],
+        diabetes_relevance_score: relevanceScore,
+        // C81: canonical USPTO public-facing link (per project memory rule)
+        patent_url: `https://ppubs.uspto.gov/pubwebapp/external.html?db=USPAT&pn=US${patentNumber}`,
+      });
     }
   } catch (error) {
     console.error(`[PATENTSVIEW] Error fetching patents for "${query}":`, error);

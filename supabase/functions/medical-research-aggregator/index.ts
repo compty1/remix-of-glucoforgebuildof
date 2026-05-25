@@ -142,8 +142,9 @@ serve(async (req) => {
                   if (content.includes(drug)) drugMentions.push(drug);
                 });
 
+                if (!paper.id) continue; // C80: drop papers without natural key
                 const researchPaper: ResearchPaper = {
-                  paper_id: paper.id || `europe_${Date.now()}_${Math.random()}`,
+                  paper_id: paper.id,
                   title: paper.title || '',
                   abstract: paper.abstractText,
                   authors: paper.authorList?.author?.map((author: any) => 
