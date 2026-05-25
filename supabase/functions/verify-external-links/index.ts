@@ -60,6 +60,18 @@ function isRedditSearchUrl(url: string): boolean {
   return /^https:\/\/(www\.)?reddit\.com\/search\/?\?q=/.test(url);
 }
 
+// C80 (Wave E): tighter structural validation for Reddit permalinks.
+// Previously every reddit URL was waved through as valid. Bad permalinks now
+// fail at the structural check.
+const REDDIT_PERMALINK_RE = /^\/r\/[A-Za-z0-9_]{2,21}\/comments\/[a-z0-9]{4,12}(\/[^/]*)?\/?$/;
+function isValidRedditPermalink(url: string): boolean {
+  try {
+    const u = new URL(url);
+    if (!/reddit\.com$/.test(u.hostname.replace(/^www\./, ''))) return false;
+    return REDDIT_PERMALINK_RE.test(u.pathname);
+  } catch { return false; }
+}
+
 // Structural validation: check URL format without HTTP request
 function structurallyValidate(url: string): { valid: boolean; method: string } {
   try {
@@ -70,6 +82,10 @@ function structurallyValidate(url: string): { valid: boolean; method: string } {
     // Reddit search URLs we generate are always valid
     if (isRedditSearchUrl(url)) {
       return { valid: true, method: 'structural_reddit_search' };
+    }
+    // C80: actual reddit permalinks must conform
+    if (parsed.hostname.includes('reddit.com')) {
+      return { valid: isValidRedditPermalink(url), method: 'structural_reddit_permalink' };
     }
     return { valid: true, method: 'structural_format' };
   } catch {
@@ -87,14 +103,27 @@ async function verifyUrl(url: string): Promise<{ valid: boolean; status?: number
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
-    const response = await fetch(url, {
+    let response = await fetch(url, {
       method: 'HEAD',
       signal: controller.signal,
-      headers: { 'User-Agent': 'GlucoForge Link Verifier/1.0' }
+      headers: { 'User-Agent': 'GlucoForge Link Verifier/1.0 (+https://glucoforge.app)' }
     });
+    // C81 (Wave E): many academic publishers (Wiley/Elsevier/NEJM) return 405
+    // on HEAD — fall back to a ranged GET so DOIs aren't marked dead.
+    if (response.status === 405 || response.status === 403) {
+      response = await fetch(url, {
+        method: 'GET',
+        signal: controller.signal,
+        headers: {
+          'User-Agent': 'GlucoForge Link Verifier/1.0 (+https://glucoforge.app)',
+          'Range': 'bytes=0-0',
+          'Accept': '*/*',
+        },
+      });
+    }
     clearTimeout(timeoutId);
     const valid = response.status >= 200 && response.status < 400;
-    return { valid, status: response.status, method: 'http_head' };
+    return { valid, status: response.status, method: 'http_head_or_get' };
   } catch (error) {
     return { valid: false, error: error instanceof Error ? error.message : 'Unknown error', method: 'http_head' };
   }
