@@ -235,9 +235,25 @@ serve(async (req) => {
     let insertedCount = 0;
 
     if (uniquePapers.length > 0) {
+      // C90 (Wave C): attach cross-source content_hash + last_synced_at so
+      // the same DOI ingested via Europe PMC / OpenAlex / S2 collapses on a
+      // future UNIQUE(content_hash) backfill.
+      const { computeContentHash } = await import('../_shared/contentHash.ts');
+      const nowIso = new Date().toISOString();
+      const hashed = await Promise.all(uniquePapers.map(async (p: any) => ({
+        ...p,
+        content_hash: await computeContentHash({
+          doi: p.doi,
+          pmid: p.pmid,
+          title: p.title,
+          authors: p.authors,
+          publication_date: p.publication_date,
+        }),
+        last_synced_at: nowIso,
+      })));
       const { data, error } = await supabase
         .from('medical_research_papers')
-        .upsert(uniquePapers, { 
+        .upsert(hashed, { 
           onConflict: 'paper_id',
           ignoreDuplicates: true 
         });
@@ -245,7 +261,7 @@ serve(async (req) => {
       if (error) {
         console.error('Database insertion error:', error);
       } else {
-        insertedCount = uniquePapers.length;
+        insertedCount = hashed.length;
         console.log(`Successfully processed ${insertedCount} research papers`);
       }
     }

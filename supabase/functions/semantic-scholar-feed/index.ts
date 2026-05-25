@@ -251,6 +251,17 @@ serve(async (req) => {
           diabetes_relevance_score: relevanceScore,
           updated_at: new Date().toISOString(),
         };
+        // C90 (Wave C): cross-source content_hash + sync timestamp
+        const { computeContentHash } = await import('../_shared/contentHash.ts');
+        const contentHash = await computeContentHash({
+          doi: paperData.doi,
+          pmid: paperData.pmid,
+          title: paperData.title,
+          authors: paperData.authors,
+          publication_date: paperData.publication_date,
+        });
+        (paperData as any).content_hash = contentHash;
+        (paperData as any).last_synced_at = paperData.updated_at;
 
         if (existingPaper) {
           // Update existing paper with Semantic Scholar-specific fields

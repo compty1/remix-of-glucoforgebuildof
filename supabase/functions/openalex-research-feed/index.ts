@@ -245,25 +245,36 @@ serve(async (req) => {
 
     // Insert into database with upsert
     if (relevantPapers.length > 0) {
+      // C90 (Wave C): cross-source content_hash so OpenAlex/S2/EPMC dedupe.
+      const { computeContentHash } = await import('../_shared/contentHash.ts');
+      const nowIso = new Date().toISOString();
+      const rows = await Promise.all(relevantPapers.map(async (paper) => ({
+        paper_id: paper.paper_id,
+        title: paper.title,
+        abstract: paper.abstract,
+        authors: paper.authors,
+        publication_date: paper.publication_date,
+        doi: paper.doi,
+        citation_count: paper.citation_count,
+        keywords: paper.keywords,
+        open_access: paper.open_access,
+        pdf_url: paper.pdf_url,
+        journal_name: paper.journal_name,
+        source_database: paper.source_database,
+        diabetes_relevance_score: paper.diabetes_relevance_score,
+        content_hash: await computeContentHash({
+          doi: paper.doi,
+          title: paper.title,
+          authors: paper.authors,
+          publication_date: paper.publication_date,
+        }),
+        last_synced_at: nowIso,
+        updated_at: nowIso,
+      })));
       const { error: insertError } = await supabase
         .from('medical_research_papers')
         .upsert(
-          relevantPapers.map(paper => ({
-            paper_id: paper.paper_id,
-            title: paper.title,
-            abstract: paper.abstract,
-            authors: paper.authors,
-            publication_date: paper.publication_date,
-            doi: paper.doi,
-            citation_count: paper.citation_count,
-            keywords: paper.keywords,
-            open_access: paper.open_access,
-            pdf_url: paper.pdf_url,
-            journal_name: paper.journal_name,
-            source_database: paper.source_database,
-            diabetes_relevance_score: paper.diabetes_relevance_score,
-            updated_at: new Date().toISOString()
-          })),
+          rows,
           { onConflict: 'paper_id' }
         );
 
