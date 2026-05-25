@@ -80,7 +80,8 @@ async function fetchFromEuropePMC(query: string): Promise<ResearchItem[]> {
           link: item.doi ? `https://doi.org/${item.doi}` : `https://europepmc.org/article/${item.source}/${item.id}`,
           summary: item.abstractText?.substring(0, 500) || 'No abstract available',
           source: 'Europe PMC',
-          impact_level: 'High'
+          // C85: derive impact from citation count instead of always-High
+          impact_level: deriveImpactLevel(item.citedByCount)
         });
       }
     }
@@ -124,7 +125,7 @@ async function fetchFromPubMed(query: string): Promise<ResearchItem[]> {
           link: `https://pubmed.ncbi.nlm.nih.gov/${id}/`,
           summary: article.sortfirstauthor ? `By ${article.sortfirstauthor} - ${article.source || 'PubMed'}` : 'Research article',
           source: 'PubMed',
-          impact_level: 'High'
+          impact_level: 'Medium'
         });
       }
     }
