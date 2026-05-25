@@ -36,6 +36,17 @@ interface ResearchItem {
   impact_level: string
 }
 
+// C85 helper — derive a coarse impact label from a citation count so
+// "Latest research" badges stop being uniformly "High".
+function deriveImpactLevel(citedByCount: number | string | undefined | null): string {
+  const n = typeof citedByCount === 'string' ? parseInt(citedByCount, 10) : (citedByCount ?? 0);
+  if (!Number.isFinite(n)) return 'Medium';
+  if (n >= 100) return 'Breakthrough';
+  if (n >= 25) return 'High';
+  if (n >= 5) return 'Medium';
+  return 'Low';
+}
+
 // Comprehensive diabetes research search queries
 const SEARCH_QUERIES = [
   'type 1 diabetes cure',
@@ -53,6 +64,8 @@ const SEARCH_QUERIES = [
 ];
 
 async function fetchFromEuropePMC(query: string): Promise<ResearchItem[]> {
+  // C85 helper — citation-count-based impact heuristic.
+  // (defined inline so we don't change module exports)
   try {
     const encodedQuery = encodeURIComponent(query);
     const url = `https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${encodedQuery}&format=json&pageSize=20&cursorMark=*`;
@@ -80,7 +93,8 @@ async function fetchFromEuropePMC(query: string): Promise<ResearchItem[]> {
           link: item.doi ? `https://doi.org/${item.doi}` : `https://europepmc.org/article/${item.source}/${item.id}`,
           summary: item.abstractText?.substring(0, 500) || 'No abstract available',
           source: 'Europe PMC',
-          impact_level: 'High'
+          // C85: derive impact from citation count instead of always-High
+          impact_level: deriveImpactLevel(item.citedByCount)
         });
       }
     }
@@ -124,7 +138,7 @@ async function fetchFromPubMed(query: string): Promise<ResearchItem[]> {
           link: `https://pubmed.ncbi.nlm.nih.gov/${id}/`,
           summary: article.sortfirstauthor ? `By ${article.sortfirstauthor} - ${article.source || 'PubMed'}` : 'Research article',
           source: 'PubMed',
-          impact_level: 'High'
+          impact_level: 'Medium'
         });
       }
     }

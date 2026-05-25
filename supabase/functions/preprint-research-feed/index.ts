@@ -58,18 +58,17 @@ async function fetchBioRxivData(server: 'biorxiv' | 'medrxiv'): Promise<Preprint
       for (const paper of data.collection) {
         // Filter for diabetes-related papers
         const content = `${paper.title || ''} ${paper.abstract || ''}`.toLowerCase();
-        
-        if (content.includes('diabetes') || 
-            content.includes('glucose') || 
-            content.includes('insulin') ||
-            content.includes('glycemic') ||
-            content.includes('beta cell') ||
-            content.includes('islet')) {
+
+        // C79 (Wave B): require explicit T1D signal — was admitting most T2D
+        // and general endocrine work because any "insulin"/"glucose" mention passed.
+        const isT1d = /\btype\s*1\s*diabetes\b|\bt1dm?\b|\bautoimmune diabetes\b|\bjuvenile diabetes\b|\bislet (cell|transplant)\b|\bbeta[- ]cell (regen|replace|preservation)\b|\bclosed[- ]loop insulin\b|\bcgm\b|\bcontinuous glucose monitor/.test(content);
+        const isT2dOnly = /\btype\s*2\s*diabetes\b|\bt2dm?\b|\bgestational diabetes\b/.test(content) && !isT1d;
+        if (isT1d && !isT2dOnly) {
           
           // Calculate relevance score
           let relevanceScore = 5;
           if (content.includes('type 1 diabetes') || content.includes('t1d')) relevanceScore += 25;
-          if (content.includes('type 2 diabetes') || content.includes('t2d')) relevanceScore += 15;
+          // Do NOT reward T2D mentions in a T1D feed
           if (content.includes('glucose monitoring')) relevanceScore += 20;
           if (content.includes('insulin')) relevanceScore += 15;
           if (content.includes('cure') || content.includes('reversal')) relevanceScore += 25;
@@ -77,8 +76,10 @@ async function fetchBioRxivData(server: 'biorxiv' | 'medrxiv'): Promise<Preprint
           
           relevanceScore = Math.min(relevanceScore, 100);
 
+          // C79: skip rows missing a stable natural key (was Date.now() fallback)
+          if (!paper.doi) continue;
           papers.push({
-            paper_id: `${server}_${paper.doi?.replace(/[^a-zA-Z0-9]/g, '_') || Date.now()}`,
+            paper_id: `${server}_${paper.doi.replace(/[^a-zA-Z0-9]/g, '_')}`,
             title: paper.title || 'Untitled',
             abstract: paper.abstract || 'No abstract available',
             authors: paper.authors ? paper.authors.split('; ').slice(0, 10) : [],
