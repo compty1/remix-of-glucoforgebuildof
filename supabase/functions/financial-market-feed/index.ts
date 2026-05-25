@@ -25,7 +25,8 @@ const DIABETES_TICKERS = [
   { ticker: 'NVO', name: 'Novo Nordisk A/S' },
 ];
 
-// Fetch real stock quotes from Yahoo Finance v8 API (free, no key needed)
+// C82: Fetch real stock quotes — try Yahoo Finance v8 first, fall back to Stooq CSV
+// when Yahoo returns 401/429 (now common from datacenter egress without a cookie/crumb).
 async function fetchQuote(ticker: string): Promise<{
   price: number;
   marketCap: number;
@@ -41,30 +42,60 @@ async function fetchQuote(ticker: string): Promise<{
       },
     });
 
+    if (response.ok) {
+      const data = await response.json();
+      const meta = data?.chart?.result?.[0]?.meta;
+      if (meta && meta.regularMarketPrice) {
+        const price = meta.regularMarketPrice;
+        const previousClose = meta.chartPreviousClose || meta.previousClose || price;
+        const changePercent = previousClose > 0 ? ((price - previousClose) / previousClose) * 100 : 0;
+        return {
+          price: Math.round(price * 100) / 100,
+          marketCap: meta.marketCap || 0,
+          changePercent: Math.round(changePercent * 100) / 100,
+          volume: meta.regularMarketVolume || 0,
+        };
+      }
+    }
+    console.log(`[FINANCIAL-MARKET-FEED] Yahoo ${response.status} for ${ticker} — falling back to Stooq`);
+    return await fetchStooqQuote(ticker);
+  } catch (err) {
+    console.error(`[FINANCIAL-MARKET-FEED] Yahoo error for ${ticker}, trying Stooq:`, err);
+    return await fetchStooqQuote(ticker);
+  }
+}
+
+// Stooq returns CSV with: Date,Open,High,Low,Close,Volume
+async function fetchStooqQuote(ticker: string): Promise<{
+  price: number; marketCap: number; changePercent: number; volume: number;
+} | null> {
+  try {
+    const symbol = `${ticker.toLowerCase()}.us`;
+    // d2 = last 2 daily bars so we can compute changePercent
+    const url = `https://stooq.com/q/d/l/?s=${symbol}&i=d`;
+    const response = await tfetch(url);
     if (!response.ok) {
-      console.log(`[FINANCIAL-MARKET-FEED] Yahoo Finance returned ${response.status} for ${ticker}`);
+      console.log(`[FINANCIAL-MARKET-FEED] Stooq returned ${response.status} for ${ticker}`);
       return null;
     }
-
-    const data = await response.json();
-    const meta = data?.chart?.result?.[0]?.meta;
-
-    if (!meta) return null;
-
-    const price = meta.regularMarketPrice || 0;
-    const previousClose = meta.chartPreviousClose || meta.previousClose || price;
-    const changePercent = previousClose > 0
-      ? ((price - previousClose) / previousClose) * 100
-      : 0;
-
+    const csv = await response.text();
+    const lines = csv.trim().split('\n').filter(Boolean);
+    if (lines.length < 2) return null;
+    const last = lines[lines.length - 1].split(',');
+    const prev = lines.length > 2 ? lines[lines.length - 2].split(',') : last;
+    const price = parseFloat(last[4]);
+    const previousClose = parseFloat(prev[4]) || price;
+    const volume = parseFloat(last[5]) || 0;
+    if (!isFinite(price) || price <= 0) return null;
+    const changePercent = previousClose > 0 ? ((price - previousClose) / previousClose) * 100 : 0;
     return {
       price: Math.round(price * 100) / 100,
-      marketCap: meta.marketCap || 0,
+      marketCap: 0, // Stooq does not provide market cap
       changePercent: Math.round(changePercent * 100) / 100,
-      volume: meta.regularMarketVolume || 0,
+      volume,
     };
   } catch (err) {
-    console.error(`[FINANCIAL-MARKET-FEED] Error fetching ${ticker}:`, err);
+    console.error(`[FINANCIAL-MARKET-FEED] Stooq error for ${ticker}:`, err);
     return null;
   }
 }
