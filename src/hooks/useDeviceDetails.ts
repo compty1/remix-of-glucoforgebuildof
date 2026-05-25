@@ -156,12 +156,20 @@ async function fetchDeviceDetails(deviceId: string): Promise<DeviceDetails | nul
       .or(searchFilter)
       .order('published_at', { ascending: false })
       .limit(100),
-    supabase
-      .from('fda_device_events')
-      .select('*')
-      .or(`device_name.ilike.%${sanitizeForIlike(deviceData.name)}%,manufacturer_name.ilike.%${sanitizeForIlike(deviceData.manufacturer || '')}%`)
-      .order('event_date', { ascending: false })
-      .limit(20),
+    (() => {
+      const fdaLegs: string[] = [];
+      const safeName = sanitizeForIlike(deviceData.name);
+      const safeMfr = sanitizeForIlike(deviceData.manufacturer || '');
+      if (safeName) fdaLegs.push(`device_name.ilike.%${safeName}%`);
+      if (safeMfr) fdaLegs.push(`manufacturer_name.ilike.%${safeMfr}%`);
+      // C73: skip empty manufacturer leg — empty %% matches every row
+      const q = supabase
+        .from('fda_device_events')
+        .select('*')
+        .order('event_date', { ascending: false })
+        .limit(20);
+      return fdaLegs.length > 0 ? q.or(fdaLegs.join(',')) : q.eq('id', '00000000-0000-0000-0000-000000000000');
+    })(),
     supabase
       .from('manufacturer_support_resources')
       .select('*')
