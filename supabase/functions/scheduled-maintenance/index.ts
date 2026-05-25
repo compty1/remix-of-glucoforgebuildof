@@ -24,11 +24,24 @@ Deno.serve(async (req) => {
 
     log.info('Starting scheduled maintenance');
 
+    // C91 (Wave C): archive community posts older than 180 days instead of
+    // letting older sweeps purge at 60. Keeps the historical corpus
+    // searchable while moving stale content out of default feeds.
+    const archiveCutoff = new Date();
+    archiveCutoff.setDate(archiveCutoff.getDate() - 180);
+    const { count: archivedCount } = await supabase
+      .from('community_posts')
+      .update({ is_archived: true }, { count: 'exact' })
+      .eq('is_archived', false)
+      .lt('published_at', archiveCutoff.toISOString());
+    log.info('Archived old posts', { archived: archivedCount ?? 0 });
+
     // Fetch posts that need re-verification
     const { data: posts, error: fetchError } = await supabase
       .from("community_posts")
       .select("id, url, canonical_url, link_status, source")
       .eq("post_type", "post")
+      .eq("is_archived", false)
       .limit(200);
 
     if (fetchError) throw fetchError;
@@ -78,11 +91,20 @@ Deno.serve(async (req) => {
         try {
           const controller = new AbortController();
           const timeout = setTimeout(() => controller.abort(), 8000);
-          const response = await fetch(url, {
+          let response = await fetch(url, {
             method: "HEAD",
             signal: controller.signal,
             redirect: "follow",
           });
+          // C91: many DOI hosts reject HEAD (405/403) — fall back to ranged GET
+          if (response.status === 405 || response.status === 403) {
+            response = await fetch(url, {
+              method: "GET",
+              signal: controller.signal,
+              redirect: "follow",
+              headers: { Range: "bytes=0-1023" },
+            });
+          }
           clearTimeout(timeout);
 
           const isOk = response.status >= 200 && response.status < 400;
