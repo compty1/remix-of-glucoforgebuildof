@@ -7134,6 +7134,8 @@ export type Database = {
       is_admin: { Args: { check_user_id: string }; Returns: boolean }
       recalculate_device_ratings: { Args: never; Returns: undefined }
       recalculate_medication_ratings: { Args: never; Returns: undefined }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       update_trends: { Args: never; Returns: undefined }
     }
     Enums: {
