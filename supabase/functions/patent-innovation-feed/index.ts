@@ -135,14 +135,91 @@ async function fetchRecentDiabetesPatents(): Promise<PatentData[]> {
   const allPatents: PatentData[] = [];
 
   for (const term of searchTerms) {
-    const patents = await fetchPatentsViewData(term);
+    let patents = await fetchPatentsViewData(term);
+    if (patents.length === 0) {
+      // C93 (Wave F workaround — no PatentsView key required):
+      // Fall back to Firecrawl-scraped Google Patents results when the
+      // PatentsView key is missing or that API returns nothing.
+      patents = await fetchGooglePatentsViaFirecrawl(term);
+    }
     allPatents.push(...patents);
-    
-    // Rate limiting - PatentsView recommends 1 request per second
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
 
   return allPatents;
+}
+
+// Keyless fallback: scrape Google Patents search results via Firecrawl.
+// We already have FIRECRAWL_API_KEY configured for the project.
+async function fetchGooglePatentsViaFirecrawl(query: string): Promise<PatentData[]> {
+  const fcKey = Deno.env.get('FIRECRAWL_API_KEY');
+  if (!fcKey) {
+    console.warn('[PATENTSVIEW-FALLBACK] FIRECRAWL_API_KEY missing — skipping Google Patents scrape.');
+    return [];
+  }
+  const target = `https://patents.google.com/?q=${encodeURIComponent(query)}&sort=new&num=25`;
+  try {
+    const resp = await tfetch('https://api.firecrawl.dev/v1/scrape', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${fcKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url: target, formats: ['markdown'], onlyMainContent: true, timeout: 20000 }),
+    });
+    if (!resp.ok) {
+      console.warn(`[PATENTSVIEW-FALLBACK] Firecrawl ${resp.status} for "${query}"`);
+      return [];
+    }
+    const json = await resp.json();
+    const md: string = json?.data?.markdown ?? '';
+    if (!md) return [];
+
+    // Pull `[Title](/patent/US12345678B2/...)` style result rows.
+    const out: PatentData[] = [];
+    const re = /\[([^\]\n]{8,300})\]\(\/patent\/(US[A-Z0-9]+)[^)]*\)/g;
+    const seen = new Set<string>();
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(md)) !== null) {
+      const title = m[1].replace(/\s+/g, ' ').trim();
+      const pubNumber = m[2];
+      const patentNumber = pubNumber.replace(/^US/, '').replace(/[A-Z][0-9]?$/, '');
+      if (!patentNumber || seen.has(patentNumber)) continue;
+      seen.add(patentNumber);
+
+      const content = title.toLowerCase();
+      let relevanceScore = 5;
+      if (content.includes('type 1 diabetes') || content.includes('t1d')) relevanceScore += 25;
+      if (content.includes('diabetes')) relevanceScore += 20;
+      if (content.includes('glucose')) relevanceScore += 15;
+      if (content.includes('insulin')) relevanceScore += 15;
+      if (content.includes('pancreas') || content.includes('pancreatic')) relevanceScore += 10;
+      if (content.includes('sensor') || content.includes('monitoring')) relevanceScore += 10;
+      if (content.includes('continuous')) relevanceScore += 10;
+      if (content.includes('wearable')) relevanceScore += 5;
+      relevanceScore = Math.min(relevanceScore, 100);
+
+      out.push({
+        patent_id: `US${patentNumber}`,
+        title,
+        abstract: 'Abstract available at USPTO public search.',
+        inventors: [],
+        assignee: 'Unknown Assignee',
+        // No reliable issue date on the search row — use today as the
+        // discovery date so DATE-typed columns accept the row. The
+        // patent_url still resolves to the authoritative USPTO record.
+        patent_date: new Date().toISOString().split('T')[0],
+        diabetes_relevance_score: relevanceScore,
+        patent_url: `https://ppubs.uspto.gov/pubwebapp/external.html?db=USPAT&pn=US${patentNumber}`,
+      });
+      if (out.length >= 25) break;
+    }
+    console.log(`[PATENTSVIEW-FALLBACK] Firecrawl/Google Patents → ${out.length} for "${query}"`);
+    return out;
+  } catch (e) {
+    console.warn('[PATENTSVIEW-FALLBACK] error', String(e));
+    return [];
+  }
 }
 
 serve(async (req) => {

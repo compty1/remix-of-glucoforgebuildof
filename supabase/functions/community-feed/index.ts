@@ -174,40 +174,99 @@ function isSolutionPost(text: string): boolean {
 }
 
 async function fetchRedditPosts(subreddit: string, limit: number = 50, sort: string = 'new'): Promise<RedditPost[]> {
-  // Enhanced headers to mimic browser requests
-  const headers = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+  // C93 (Wave F workaround — no Reddit OAuth required):
+  // Reddit aggressively blocks unauthenticated JSON endpoints from server IPs
+  // (Cloudflare 403/429). The `.rss` Atom feed remains publicly accessible
+  // with a compliant User-Agent and serves the same post stream we need.
+  // Order: RSS → old.reddit JSON → www.reddit JSON.
+  const ua = 'web:glucoforge-community-feed:v1.1 (+https://glucoforge.app)';
+  const jsonHeaders = {
+    'User-Agent': ua,
+    'Accept': 'application/json',
     'Accept-Language': 'en-US,en;q=0.5',
-    'Accept-Encoding': 'gzip, deflate, br',
-    'Connection': 'keep-alive',
-    'Cache-Control': 'no-cache',
+  };
+  const rssHeaders = {
+    'User-Agent': ua,
+    'Accept': 'application/atom+xml,application/xml;q=0.9,*/*;q=0.8',
   };
 
-  // Try multiple endpoints - old.reddit.com is often less restrictive
+  // 1) RSS first (keyless, reliable from server IPs)
+  try {
+    const rssUrl = `https://www.reddit.com/r/${subreddit}/${sort}.rss?limit=${limit}`;
+    const r = await tfetch(rssUrl, { headers: rssHeaders });
+    if (r.ok) {
+      const xml = await r.text();
+      const parsed = parseRedditRss(xml, subreddit);
+      if (parsed.length) {
+        console.log(`[reddit-rss] r/${subreddit}/${sort} → ${parsed.length} posts`);
+        return parsed;
+      }
+    } else {
+      console.log(`[reddit-rss] r/${subreddit} ${sort} returned ${r.status}`);
+    }
+  } catch (e) {
+    console.log(`[reddit-rss] r/${subreddit} ${sort} error`, String(e));
+  }
+
+  // 2) JSON fallbacks
   const urls = [
     `https://old.reddit.com/r/${subreddit}/${sort}.json?limit=${limit}&raw_json=1`,
     `https://www.reddit.com/r/${subreddit}/${sort}.json?limit=${limit}&raw_json=1`,
   ];
-
   for (const url of urls) {
     try {
-      console.log(`Trying to fetch from: ${url}`);
-      const response = await tfetch(url, { headers });
-      
+      const response = await tfetch(url, { headers: jsonHeaders });
       if (response.ok) {
         const data: RedditResponse = await response.json();
-        console.log(`Successfully fetched ${data.data.children.length} posts from r/${subreddit}`);
+        console.log(`[reddit-json] r/${subreddit} ${sort} → ${data.data.children.length}`);
         return data.data.children;
       }
-      console.log(`${url} returned ${response.status}, trying next...`);
-    } catch (error) {
-      console.log(`Failed with ${url}, trying next...`);
+      console.log(`[reddit-json] ${url} returned ${response.status}`);
+    } catch (_) {
+      // continue
     }
   }
-  
-  console.error(`All endpoints failed for r/${subreddit}`);
+
+  console.warn(`[reddit] all endpoints failed for r/${subreddit} ${sort}`);
   return [];
+}
+
+// Lightweight Atom→RedditPost adapter (no XML lib needed).
+function parseRedditRss(xml: string, subreddit: string): RedditPost[] {
+  const out: RedditPost[] = [];
+  const entries = xml.split(/<entry[\s>]/i).slice(1);
+  for (const raw of entries) {
+    const get = (re: RegExp) => (raw.match(re)?.[1] ?? '').trim();
+    const decode = (s: string) => s
+      .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+      .replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"').replace(/&#39;/g, "'")
+      .replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const link = get(/<link[^>]*href="([^"]+)"/i);
+    const idMatch = link.match(/comments\/([a-z0-9]+)/i);
+    const id = idMatch?.[1] || get(/<id>([^<]+)<\/id>/i).split('_').pop() || '';
+    if (!id) continue;
+    const title = decode(get(/<title[^>]*>([\s\S]*?)<\/title>/i));
+    const content = decode(get(/<content[^>]*>([\s\S]*?)<\/content>/i));
+    const author = decode(get(/<name>([\s\S]*?)<\/name>/i)).replace(/^\/?u\//, '');
+    const updated = get(/<updated>([^<]+)<\/updated>/i) || get(/<published>([^<]+)<\/published>/i);
+    const createdUtc = updated ? Math.floor(new Date(updated).getTime() / 1000) : Math.floor(Date.now() / 1000);
+    const permalinkMatch = link.match(/reddit\.com(\/r\/[^?#]+)/i);
+    out.push({
+      data: {
+        id,
+        title: title || '(untitled)',
+        selftext: content || '',
+        author: author || 'anonymous',
+        score: 0,
+        num_comments: 0,
+        created_utc: createdUtc,
+        subreddit,
+        permalink: permalinkMatch?.[1] ?? `/r/${subreddit}/comments/${id}`,
+      },
+    });
+  }
+  return out;
 }
 
 // Fetch top comments from a post

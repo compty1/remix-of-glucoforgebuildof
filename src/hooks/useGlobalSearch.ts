@@ -41,7 +41,9 @@ export function useGlobalSearch() {
 
   const search = useCallback((query: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    if (abortRef.current) abortRef.current.abort();
+    // C93: pass explicit reason so React Query / fetch don't surface a noisy
+    // "signal is aborted without reason" runtime error in the preview.
+    if (abortRef.current) abortRef.current.abort('superseded-by-newer-search');
 
     if (query.trim().length < MIN_QUERY_LENGTH) {
       setResults([]);
