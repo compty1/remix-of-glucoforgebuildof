@@ -295,6 +295,26 @@ Wave D (per-source telemetry):
 - `health-check` now pings 10 upstream sources (PubMed, EuropePMC, OpenAlex, Semantic Scholar, ClinicalTrials.gov, OpenFDA, NIH RePORTER, USPTO PatentsView v1, CMS NADAC, Stooq) with a 6s timeout each and reports `healthy` / `degraded` / `rate_limited` / `unreachable` per source. The `SystemHealth` page now surfaces real upstream outages instead of always-green.
 - Cross-table relevance ranking already shipped in Wave A (`useGlobalSearch` `scoreResult` — exact > startsWith > includes + category boost).
 
+## Waves F + keyless workarounds — IMPLEMENTED (2026-05-26)
+
+**Workarounds for the previously-required external credentials**
+- **Reddit (no OAuth needed):** `community-feed` now tries `https://www.reddit.com/r/<sub>/<sort>.rss` first with a compliant `User-Agent` (`web:glucoforge-community-feed:v1.1`). Reddit's RSS endpoint is still served to server IPs without a client_id/secret. Falls back to `old.reddit.com` / `www.reddit.com` JSON only if RSS fails. Inline Atom-to-RedditPost parser keeps the rest of the pipeline unchanged.
+- **PatentsView (no API key needed):** `patent-innovation-feed` now falls back to **Firecrawl-scraped Google Patents** when `PATENTSVIEW_API_KEY` is missing OR the keyed API returns nothing. We already hold a Firecrawl key. Parses `[Title](/patent/USxxxxx/)` rows and continues to emit canonical `ppubs.uspto.gov` URLs.
+
+**Wave F — search ranking + dedup hardening (migration applied)**
+- `pg_trgm` extension enabled. Trigram GIN indexes added on the 9 highest-traffic search columns: research title/abstract, devices.name, medications.name, t1d_companies.name, clinical_trials_detailed.title, articles.title, community_posts.title, diabetic_health_projects.title. `ilike '%term%'` queries from `useGlobalSearch` now hit indexes instead of seq-scanning.
+- `content_hash` backfilled for every existing `medical_research_papers` row using the same DOI → PMID → normalized(title|first author|year) algorithm as the edge-function helper.
+- Historical duplicates collapsed (kept the most-recently-updated row per hash).
+- `UNIQUE` partial index `uniq_research_content_hash` now enforces single-row-per-paper going forward, so PubMed + OpenAlex + Semantic Scholar + Europe PMC ingests of the same DOI converge into one row.
+- `(is_archived, published_at DESC)` index on `community_posts` makes the new archive partition cheap to filter.
+
+**Runtime polish**
+- `useGlobalSearch` now aborts superseded queries with an explicit reason (`'superseded-by-newer-search'`) so React Query stops surfacing "signal is aborted without reason" in the preview console.
+
+**Still deferred (require human decisions, not code)**
+- Optional: add a `match-by-trigram` RPC and switch `useGlobalSearch` from `ilike` to `similarity()` ordering for typo tolerance (current trigram indexes already help substring search; typo ranking is a follow-up).
+- Optional: per-hook freshness badges (`DataFreshnessBadge`) on every research/discovery card. The data plumbing is in place (`last_synced_at`) — only UI placement work remains.
+
 ### Remaining (deferred — needs user input or external accounts):
 - Reddit OAuth bearer flow (needs `REDDIT_CLIENT_ID/SECRET` secrets from user).
 - PatentsView Search API key (`PATENTSVIEW_API_KEY`) — function degrades gracefully when missing.
