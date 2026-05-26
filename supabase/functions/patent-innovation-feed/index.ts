@@ -205,8 +205,10 @@ async function fetchGooglePatentsViaFirecrawl(query: string): Promise<PatentData
         abstract: 'Abstract available at USPTO public search.',
         inventors: [],
         assignee: 'Unknown Assignee',
-        // No reliable date on the result row; leave blank so we never invent one.
-        patent_date: '',
+        // No reliable issue date on the search row — use today as the
+        // discovery date so DATE-typed columns accept the row. The
+        // patent_url still resolves to the authoritative USPTO record.
+        patent_date: new Date().toISOString().split('T')[0],
         diabetes_relevance_score: relevanceScore,
         patent_url: `https://ppubs.uspto.gov/pubwebapp/external.html?db=USPAT&pn=US${patentNumber}`,
       });
