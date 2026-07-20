@@ -3349,6 +3349,90 @@ export type Database = {
         }
         Relationships: []
       }
+      ingestion_job_state: {
+        Row: {
+          consecutive_failures: number
+          created_at: string
+          id: string
+          is_paused: boolean
+          last_error: string | null
+          last_run_at: string | null
+          last_success_at: string | null
+          next_run_after: string
+          source: string
+          updated_at: string
+        }
+        Insert: {
+          consecutive_failures?: number
+          created_at?: string
+          id?: string
+          is_paused?: boolean
+          last_error?: string | null
+          last_run_at?: string | null
+          last_success_at?: string | null
+          next_run_after?: string
+          source: string
+          updated_at?: string
+        }
+        Update: {
+          consecutive_failures?: number
+          created_at?: string
+          id?: string
+          is_paused?: boolean
+          last_error?: string | null
+          last_run_at?: string | null
+          last_success_at?: string | null
+          next_run_after?: string
+          source?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      insight_reports: {
+        Row: {
+          created_at: string
+          details: string | null
+          id: string
+          reason: string
+          reporter_id: string
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: Database["public"]["Enums"]["insight_report_status"]
+          target_id: string
+          target_type: Database["public"]["Enums"]["insight_target_type"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          reason: string
+          reporter_id: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["insight_report_status"]
+          target_id: string
+          target_type: Database["public"]["Enums"]["insight_target_type"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          id?: string
+          reason?: string
+          reporter_id?: string
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: Database["public"]["Enums"]["insight_report_status"]
+          target_id?: string
+          target_type?: Database["public"]["Enums"]["insight_target_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       lab_results: {
         Row: {
           created_at: string
@@ -5164,6 +5248,33 @@ export type Database = {
         }
         Relationships: []
       }
+      search_cache: {
+        Row: {
+          cache_key: string
+          created_at: string
+          expires_at: string
+          hit_count: number
+          payload: Json
+          query_text: string
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string
+          expires_at?: string
+          hit_count?: number
+          payload: Json
+          query_text: string
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string
+          expires_at?: string
+          hit_count?: number
+          payload?: Json
+          query_text?: string
+        }
+        Relationships: []
+      }
       search_history: {
         Row: {
           created_at: string
@@ -6649,6 +6760,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_ranking_prefs: {
+        Row: {
+          created_at: string
+          muted_sources: string[]
+          source_weights: Json
+          topic_weights: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          muted_sources?: string[]
+          source_weights?: Json
+          topic_weights?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          muted_sources?: string[]
+          source_weights?: Json
+          topic_weights?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -7107,6 +7245,10 @@ export type Database = {
       }
     }
     Functions: {
+      bump_ingestion_backoff: {
+        Args: { p_error: string; p_source: string }
+        Returns: undefined
+      }
       get_glucose_filter_options: { Args: never; Returns: Json }
       get_high_performer_benchmarks: { Args: never; Returns: Json }
       get_public_glucose_summary: {
@@ -7132,6 +7274,7 @@ export type Database = {
         Returns: undefined
       }
       is_admin: { Args: { check_user_id: string }; Returns: boolean }
+      mark_ingestion_success: { Args: { p_source: string }; Returns: undefined }
       recalculate_device_ratings: { Args: never; Returns: undefined }
       recalculate_medication_ratings: { Args: never; Returns: undefined }
       search_similar_content: {
@@ -7151,6 +7294,12 @@ export type Database = {
     }
     Enums: {
       audit_action: "INSERT" | "UPDATE" | "DELETE"
+      insight_report_status: "open" | "reviewing" | "resolved" | "dismissed"
+      insight_target_type:
+        | "discovery"
+        | "discovery_card"
+        | "research_item"
+        | "ai_connection"
       subscription_tier: "free" | "premium" | "provider"
     }
     CompositeTypes: {
@@ -7280,6 +7429,13 @@ export const Constants = {
   public: {
     Enums: {
       audit_action: ["INSERT", "UPDATE", "DELETE"],
+      insight_report_status: ["open", "reviewing", "resolved", "dismissed"],
+      insight_target_type: [
+        "discovery",
+        "discovery_card",
+        "research_item",
+        "ai_connection",
+      ],
       subscription_tier: ["free", "premium", "provider"],
     },
   },
