@@ -7,6 +7,7 @@ import { FileText, ExternalLink, TrendingUp, ArrowRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import { DataFreshnessBadge } from '@/components/ui/data-freshness-badge';
 
 export function LiveResearchFeed() {
   const { data: papers, isLoading } = useQuery({
@@ -61,14 +62,9 @@ export function LiveResearchFeed() {
                 className="p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
               >
                 <h4 className="font-medium text-sm line-clamp-2 mb-1">{paper.title}</h4>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>{paper.source || 'Research'}</span>
-                  {paper.created_at && (
-                    <>
-                      <span>•</span>
-                      <span>{new Date(paper.created_at).toLocaleDateString()}</span>
-                    </>
-                  )}
+                <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">{paper.source || 'Research'}</Badge>
+                  <DataFreshnessBadge lastUpdated={paper.created_at} />
                 </div>
               </div>
             ))}
