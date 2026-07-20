@@ -4,6 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DataFreshnessBadge } from '@/components/ui/data-freshness-badge';
+import { ReportInsightDialog } from '@/components/insights/ReportInsightDialog';
 
 interface Source {
   title: string;
@@ -112,14 +113,17 @@ export default function DiscoveryCard({ data }: DiscoveryCardProps) {
       </CardContent>
 
       <CardFooter className="pt-4 border-t border-border/50">
-        <Link to={`/discover/${data.id}`} className="w-full">
-          <Button 
-            variant="outline" 
-            className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-smooth"
-          >
-            View Full Details
-          </Button>
-        </Link>
+        <div className="w-full flex items-center gap-2">
+          <Link to={`/discover/${data.id}`} className="flex-1">
+            <Button
+              variant="outline"
+              className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-smooth"
+            >
+              View Full Details
+            </Button>
+          </Link>
+          <ReportInsightDialog targetType="discovery_card" targetId={data.id} size="icon" />
+        </div>
       </CardFooter>
     </Card>
   );
