@@ -7134,6 +7134,17 @@ export type Database = {
       is_admin: { Args: { check_user_id: string }; Returns: boolean }
       recalculate_device_ratings: { Args: never; Returns: undefined }
       recalculate_medication_ratings: { Args: never; Returns: undefined }
+      search_similar_content: {
+        Args: { max_rows?: number; min_sim?: number; q: string }
+        Returns: {
+          created_at: string
+          id: string
+          similarity: number
+          snippet: string
+          source: string
+          title: string
+        }[]
+      }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       update_trends: { Args: never; Returns: undefined }

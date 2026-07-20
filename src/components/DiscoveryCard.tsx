@@ -3,6 +3,7 @@ import { ExternalLink, Bookmark, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { DataFreshnessBadge } from '@/components/ui/data-freshness-badge';
 
 interface Source {
   title: string;
@@ -67,6 +68,9 @@ export default function DiscoveryCard({ data }: DiscoveryCardProps) {
                 <TrendingUp className="w-3 h-3 mr-1" />
                 {data.credibility} Credibility
               </Badge>
+              <div className="mt-2">
+                <DataFreshnessBadge lastUpdated={data.created_at} />
+              </div>
             </div>
           </div>
           <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-smooth">
