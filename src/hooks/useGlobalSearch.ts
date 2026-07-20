@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { sanitizeForIlike } from '@/utils/searchSanitizer';
+import { cacheGet, cacheSet } from '@/lib/searchCache';
 
 export interface SearchResult {
   id: string;
@@ -64,6 +65,17 @@ export function useGlobalSearch() {
       }
       const searchTerm = `%${sanitized}%`;
       const rawQuery = query.trim();
+
+      // Fast-path: hit the in-memory LRU cache first (60s TTL).
+      const cacheKey = `gs:${sanitized}`;
+      const cached = cacheGet<SearchResult[]>(cacheKey);
+      if (cached) {
+        if (!controller.signal.aborted) {
+          setResults(cached);
+          setIsLoading(false);
+        }
+        return;
+      }
 
       try {
         const [
@@ -212,7 +224,10 @@ export function useGlobalSearch() {
 
         // C74: sort by relevance score, highest first
         allResults.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
-        if (!controller.signal.aborted) setResults(allResults);
+        if (!controller.signal.aborted) {
+          cacheSet(cacheKey, allResults, 60_000);
+          setResults(allResults);
+        }
       } catch {
         if (!controller.signal.aborted) setResults([]);
       } finally {
