@@ -119,6 +119,7 @@ const AdminLowSugarStories = lazy(() => import("./pages/admin/AdminLowSugarStori
 const AdminWarriors = lazy(() => import("./pages/admin/AdminWarriors"));
 const AdminShop = lazy(() => import("./pages/admin/AdminShop"));
 const ContentModeration = lazy(() => import("./pages/admin/ContentModeration"));
+const AdminInsightReports = lazy(() => import("./pages/admin/AdminInsightReports"));
 
 const AICenter = lazy(() => import("./pages/AICenter"));
 const DiabetesOrganizations = lazy(() => import("./pages/DiabetesOrganizations"));
@@ -363,6 +364,7 @@ const AppContent = () => {
         <Route path="/admin/warriors" element={<ProtectedRoute><AdminRoute><AdminWarriors /></AdminRoute></ProtectedRoute>} />
         <Route path="/admin/shop" element={<ProtectedRoute><AdminRoute><AdminShop /></AdminRoute></ProtectedRoute>} />
         <Route path="/admin/content-moderation" element={<ProtectedRoute><AdminRoute><ContentModeration /></AdminRoute></ProtectedRoute>} />
+        <Route path="/admin/insight-reports" element={<ProtectedRoute><AdminRoute><AdminInsightReports /></AdminRoute></ProtectedRoute>} />
         <Route path="/admin/audit-log" element={<ProtectedRoute><AdminRoute><AuditLog /></AdminRoute></ProtectedRoute>} />
         <Route path="/admin/feature-flags" element={<ProtectedRoute><AdminRoute><FeatureFlagManager /></AdminRoute></ProtectedRoute>} />
         

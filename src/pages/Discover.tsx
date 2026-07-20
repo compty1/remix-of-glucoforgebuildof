@@ -17,6 +17,7 @@ import { DataSourcesBadge } from '@/components/discover/DataSourcesBadge';
 import { QuickStatCard } from '@/components/discover/QuickStatCard';
 import { PeerComparisonPanel } from '@/components/glucose/PeerComparisonPanel';
 import { useQuery } from '@tanstack/react-query';
+import { useRankingPrefs, rankBoost } from '@/hooks/useRankingPrefs';
 
 interface DiscoveryCardData {
   id: string;
@@ -44,6 +45,7 @@ const Discover = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCredibility, setSelectedCredibility] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const { prefs, trackInteraction } = useRankingPrefs();
 
   // Fetch live stats
   const { data: stats } = useQuery({
@@ -86,6 +88,15 @@ const Discover = () => {
         sources: Array.isArray(item.sources) ? item.sources as Array<{ title: string; url: string }> : []
       }));
     }
+  });
+
+  // Personalized ranking: boost cards whose category/source matches user prefs.
+  const rankedInsights = [...insights].sort((a, b) => {
+    const aSrc = Array.isArray(a.sources) && a.sources[0]?.title ? a.sources[0].title : null;
+    const bSrc = Array.isArray(b.sources) && b.sources[0]?.title ? b.sources[0].title : null;
+    const aBoost = rankBoost(prefs, a.category ?? null, aSrc);
+    const bBoost = rankBoost(prefs, b.category ?? null, bSrc);
+    return bBoost - aBoost;
   });
 
   const credibilityFilters = ['High', 'Medium', 'Low'];
@@ -166,10 +177,12 @@ const Discover = () => {
           <div className="flex justify-center items-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        ) : insights.length > 0 ? (
+        ) : rankedInsights.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {insights.map((insight) => (
-              <DiscoveryCard key={insight.id} data={insight} />
+            {rankedInsights.map((insight) => (
+              <div key={insight.id} onClick={() => trackInteraction(insight.category ?? null, Array.isArray(insight.sources) && insight.sources[0]?.title ? insight.sources[0].title : null)}>
+                <DiscoveryCard data={insight} />
+              </div>
             ))}
           </div>
         ) : (
