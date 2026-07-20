@@ -181,6 +181,35 @@ export function useGlobalSearch() {
           });
         }
 
+        // Trigram fuzzy layer: catches typos and word-order variants that ILIKE misses.
+        try {
+          const { data: fuzzy } = await supabase.rpc('search_similar_content', {
+            q: rawQuery,
+            max_rows: 15,
+            min_sim: 0.2,
+          });
+          if (fuzzy && Array.isArray(fuzzy)) {
+            interface FuzzyRow { source: string; id: string; title: string; snippet: string | null; similarity: number; }
+            const seen = new Set(allResults.map(r => `${r.category}:${r.id}`));
+            (fuzzy as FuzzyRow[]).forEach(f => {
+              const category: SearchResult['category'] =
+                f.source === 'research_items' ? 'research' :
+                f.source === 'discoveries' ? 'research' : 'article';
+              const key = `${category}:${f.id}`;
+              if (seen.has(key)) return;
+              seen.add(key);
+              const description = (f.snippet || '').slice(0, 150);
+              allResults.push({
+                id: f.id, title: f.title, description, category,
+                url: category === 'research' ? '/research-hub' : `/discover/${f.id}`,
+                score: Math.round((f.similarity ?? 0) * 300),
+              });
+            });
+          }
+        } catch {
+          // fuzzy layer is optional
+        }
+
         // C74: sort by relevance score, highest first
         allResults.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
         if (!controller.signal.aborted) setResults(allResults);
